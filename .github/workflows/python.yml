@@ -18,8 +18,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.x"
-      - name: Install dependencies
+      - name: Setup uv
         run: pip install uv
+      - name: Install dependencies
+        run: python -m uv sync --dev
       - name: Lint with Ruff
         run: python -m uv run ruff check
 
@@ -32,7 +34,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.x"
-      - name: Install dependencies
+      - name: Setup uv
         run: pip install uv
+      - name: Install dependencies
+        run: python -m uv sync --dev
       - name: Run Pytest
         run: python -m uv run pytest
