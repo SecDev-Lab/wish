@@ -24,7 +24,7 @@ class CommandResult(BaseModel):
     timeout_sec: int | None = None
     """Timeout for command execution in seconds.
 
-     For wish, it's always None."""
+    For wish, it's always None."""
 
     exit_code: int | None = None
     """Exit code of the command.
@@ -49,6 +49,16 @@ class CommandResult(BaseModel):
     """Time when the command was finished.
 
     It's None before the command is finished."""
+
+    @classmethod
+    def create(cls, num: int, command: str, log_files: LogFiles) -> "CommandResult":
+        return cls(
+            num=num,
+            command=command,
+            state=CommandState.DOING,
+            log_files=log_files,
+            created_at=UtcDatetime.now(),
+        )
 
     @classmethod
     def from_json(cls, command_result_json: str) -> "CommandResult":
