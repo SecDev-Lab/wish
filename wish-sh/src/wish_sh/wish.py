@@ -7,11 +7,13 @@ import random
 import json
 from datetime import datetime
 
-# ユーザホーム以下に .wish ディレクトリを作る
+# --------------------
+# 事前設定・モデル部分
+# --------------------
+
 WISH_HOME = os.path.expanduser("~/.wish")
 if not os.path.exists(WISH_HOME):
     os.makedirs(WISH_HOME)
-
 HISTORY_FILE = os.path.join(WISH_HOME, "history.jsonl")
 
 
@@ -91,13 +93,11 @@ def load_history():
 
 
 def save_to_history(wish_obj):
-    """Wishオブジェクトを履歴ファイルに追記する"""
     with open(HISTORY_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(wish_obj.to_dict(), ensure_ascii=False) + "\n")
 
 
 def overwrite_history(wishes):
-    """全Wishリストを履歴ファイルに再度書き込む"""
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         for w in wishes:
             f.write(json.dumps(w.to_dict(), ensure_ascii=False) + "\n")
@@ -105,8 +105,7 @@ def overwrite_history(wishes):
 
 def generate_dummy_commands(wish_text):
     """
-    LLM未実装の代わりに、wish_textに応じてランダムに複数コマンドを返すダミー関数。
-    実際には、LLMを呼び出す or ルールベース などに置き換えてください。
+    wish_text に応じたコマンド候補をランダムに生成（LLM未実装のダミー）
     """
     dummy_pool = [
         "ls -la",
@@ -122,9 +121,6 @@ def generate_dummy_commands(wish_text):
 
 
 def run_command(cmd, wish_id, cmd_index):
-    """
-    コマンドを実行し、stdout/stderrをファイルに保存する。
-    """
     log_dir = os.path.join(WISH_HOME, wish_id, "log")
     os.makedirs(log_dir, exist_ok=True)
 
@@ -144,170 +140,7 @@ def print_commands(commands):
         print(f"[{i}] {cmd}")
 
 
-def interactive_wish_creation():
-    """
-    新しいWishを作成し、コマンド提案～実行を行う。
-    """
-    wish_text = input("\nwish✨ ")
-    if not wish_text.strip():
-        # 空入力なら何もしない
-        return None
-
-    # コマンド生成（ダミー）
-    commands = generate_dummy_commands(wish_text)
-    if not commands:
-        print("No commands generated.")
-        return None
-
-    wish_obj = Wish(wish_text)
-    print_commands(commands)
-
-    ans = input("\nwish❓ ").strip().lower()
-    if ans == "y" or ans == "":
-        # 全コマンド実行
-        execute_all_commands(wish_obj, commands)
-    elif ans == "n":
-        # 部分実行 or 修正
-        specify_or_modify_commands(wish_obj, commands)
-    else:
-        # 一旦同じ扱いにする
-        specify_or_modify_commands(wish_obj, commands)
-
-    # 状態更新
-    if any(cr.exit_code is None for cr in wish_obj.command_results):
-        # 実行されなかったコマンドがある場合→doingのまま or partial
-        pass
-    else:
-        wish_obj.state = WishState.DONE
-        wish_obj.finished_at = datetime.utcnow().isoformat()
-
-    return wish_obj
-
-
-def specify_or_modify_commands(wish_obj, commands):
-    """
-    実行するコマンド番号を指定 or 修正するフロー
-    """
-    print("そのまま実行するコマンドを `1` 、 `1,2` または `1-3` の形式で指定してください。")
-    selection = input("\nwish❓ ").strip()
-    if not selection:
-        return
-
-    # 例: "1,3" -> {1,3}
-    to_run = set()
-    for part in selection.split(","):
-        if "-" in part:
-            start, end = part.split("-")
-            try:
-                start_i = int(start)
-                end_i = int(end)
-                for i in range(start_i, end_i + 1):
-                    if 1 <= i <= len(commands):
-                        to_run.add(i)
-            except ValueError:
-                pass
-        else:
-            try:
-                i = int(part)
-                if 1 <= i <= len(commands):
-                    to_run.add(i)
-            except ValueError:
-                pass
-
-    if not to_run:
-        print("実行対象が指定されませんでした。")
-        return
-
-    # 修正チェック
-    print(
-        f"\n[{', '.join(map(str, to_run))}] のみを実行しますか？ [Y] 修正したいコマンドがあればその番号を入力してください。"
-    )
-    ans = input("\nwish❓ ").strip().lower()
-    if ans.isdigit():
-        # 修正対象のコマンド番号
-        cmd_idx = int(ans)
-        if cmd_idx in to_run:
-            print("\n修正内容を指示してください。")
-            mod_text = input("wish❓ ").strip()
-            # ここでは単純にmod_textをコマンド末尾に付け足す例にする
-            # 実際には自然言語解析して書き換えなどもありうる
-            old_cmd = commands[cmd_idx - 1]
-            # 例: "don't use -T4" → replace など
-            # 今回は超適当に末尾に "# modified"をつけるだけ
-            # （本格的なパースや正規表現等はLLM実装後に検討）
-            new_cmd = old_cmd.replace("-T4", "")
-            if new_cmd == old_cmd:
-                new_cmd += " # " + mod_text
-            commands[cmd_idx - 1] = new_cmd
-
-    # 再表示
-    print("\nこのコマンドをすべて実行しますか？ [Y/n]")
-    for i, cmd in enumerate(commands, 1):
-        if i in to_run:
-            print(f"[{i}] {cmd}")
-    ans = input("\nwish❓ ").strip().lower()
-    if ans == "n":
-        print("実行をキャンセルしました。")
-        return
-
-    # 実行
-    actual_run_commands = [(i, commands[i - 1]) for i in to_run]
-    for idx, cmd in actual_run_commands:
-        cmd_res = CommandResult(cmd)
-        wish_obj.command_results.append(cmd_res)
-
-        print(f"\nコマンドを実行します: {cmd}")
-        rc, out_f, err_f = run_command(cmd, wish_obj.id, idx)
-        cmd_res.exit_code = rc
-        cmd_res.stdout_file = out_f
-        cmd_res.stderr_file = err_f
-        cmd_res.finished_at = datetime.utcnow().isoformat()
-
-
-def execute_all_commands(wish_obj, commands):
-    """
-    全コマンドを順番に実行する
-    """
-    for i, cmd in enumerate(commands, 1):
-        cmd_res = CommandResult(cmd)
-        wish_obj.command_results.append(cmd_res)
-
-        print(f"\nコマンドを実行します: {cmd}")
-        rc, out_f, err_f = run_command(cmd, wish_obj.id, i)
-        cmd_res.exit_code = rc
-        cmd_res.stdout_file = out_f
-        cmd_res.stderr_file = err_f
-        cmd_res.finished_at = datetime.utcnow().isoformat()
-
-
-def show_wishlist(wishes):
-    """
-    wishlistコマンドで、実行履歴を一覧表示する
-    """
-    if not wishes:
-        print("まだwishがありません。")
-        return
-
-    print()
-    for i, w in enumerate(wishes, 1):
-        state_str = w.state
-        created_at_str = w.created_at
-        finished_at_str = w.finished_at if w.finished_at else ""
-        print(f"[{i}] wish: {w.wish_text} (created: {created_at_str}; state: {state_str})")
-
-    # "もっと見る場合はエンターキーを" → 今回はスキップ
-    # "コマンドの経過・結果を確認したい場合は番号を入力" → 実装
-    ans = input("\nwish❓ ").strip()
-    if ans.isdigit():
-        idx = int(ans)
-        if 1 <= idx <= len(wishes):
-            show_wish_detail(wishes[idx - 1])
-
-
 def show_wish_detail(wish_obj):
-    """
-    特定のWishの詳細を表示し、コマンド一覧やログを参照できるようにする
-    """
     if not wish_obj.command_results:
         print("このwishにはコマンドがありません。")
         return
@@ -325,70 +158,210 @@ def show_wish_detail(wish_obj):
             if cr.exit_code is None:
                 print("まだ実行中、または実行されていません。")
             else:
-                # ログの要約（今回は単に先頭数行だけ表示）
                 print("\n--- stdout (先頭10行) ---")
                 if cr.stdout_file and os.path.exists(cr.stdout_file):
                     with open(cr.stdout_file, "r", encoding="utf-8", errors="ignore") as f:
-                        lines = f.readlines()
-                        for line in lines[:10]:
+                        for line in f.readlines()[:10]:
                             print(line, end="")
-
                 print("\n--- stderr (先頭10行) ---")
                 if cr.stderr_file and os.path.exists(cr.stderr_file):
                     with open(cr.stderr_file, "r", encoding="utf-8", errors="ignore") as f:
-                        lines = f.readlines()
-                        for line in lines[:10]:
+                        for line in f.readlines()[:10]:
                             print(line, end="")
 
 
-def main():
-    print("Welcome to wish (prototype)")
-    wishes = load_history()
+def show_wishlist(wishes):
+    if not wishes:
+        print("まだwishがありません。")
+        return None
 
-    while True:
-        try:
-            user_input = input("\n$ ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print("\nBye.")
-            break
+    print()
+    for i, w in enumerate(wishes, 1):
+        state_str = w.state
+        print(f"[{i}] wish: {w.wish_text} (created: {w.created_at}; state: {state_str})")
 
-        if not user_input:
-            # 空行 → 新規のwishを作成するフローへ
-            new_wish = interactive_wish_creation()
-            if new_wish:
-                wishes.append(new_wish)
-                # 履歴保存
-                save_to_history(new_wish)
-        elif user_input == "exit":
-            print("Bye.")
-            break
-        elif user_input == "wishlist":
-            show_wishlist(wishes)
-            # もし詳細変更あったら更新
-            overwrite_history(wishes)
+    ans = input("\nwish❓ ").strip()
+    if ans.isdigit():
+        idx = int(ans)
+        if 1 <= idx <= len(wishes):
+            show_wish_detail(wishes[idx - 1])
+    return None
+
+
+# --------------------
+# ステートマシン部 (Shell Turns)
+# --------------------
+
+
+class State:
+    IDLE = "idle"
+    NEW_WISH = "new_wish"
+    EXECUTE_CONFIRMATION = "execute_confirmation"
+    SPECIFY_MODIFY = "specify_modify"
+    EXECUTE = "execute"
+    SHOW_WISHLIST = "show_wishlist"
+    EXIT = "exit"
+
+
+class ShellTurns:
+    def __init__(self):
+        self.state = State.IDLE
+        self.wishes = load_history()
+        self.current_wish = None
+        self.generated_commands = None
+        self.execute_indices = None  # 実行対象のコマンド番号（集合）
+
+    def run(self):
+        print("Welcome to wish (prototype with Shell Turns)")
+        while self.state != State.EXIT:
+            if self.state == State.IDLE:
+                self.state_idle()
+            elif self.state == State.NEW_WISH:
+                self.state_new_wish()
+            elif self.state == State.EXECUTE_CONFIRMATION:
+                self.state_execute_confirmation()
+            elif self.state == State.SPECIFY_MODIFY:
+                self.state_specify_modify()
+            elif self.state == State.EXECUTE:
+                self.state_execute()
+            elif self.state == State.SHOW_WISHLIST:
+                self.state_show_wishlist()
+        print("Bye.")
+
+    def state_idle(self):
+        user_input = input("\n$ ").strip()
+        if user_input == "":
+            self.state = State.NEW_WISH
+        elif user_input.lower() == "exit":
+            self.state = State.EXIT
+        elif user_input.lower() == "wishlist":
+            self.state = State.SHOW_WISHLIST
         else:
-            # 何か別のコマンド → wishとして解釈
-            # "wish✨ user_input" として処理
-            # 例えば "scan all ports" みたいな
-            wish_text = user_input
-            new_wish = Wish(wish_text)
-            commands = generate_dummy_commands(wish_text)
-            print_commands(commands)
-            ans = input("\nwish❓ ").strip().lower()
-            if ans == "y" or ans == "":
-                execute_all_commands(new_wish, commands)
-            else:
-                specify_or_modify_commands(new_wish, commands)
+            # ユーザ入力をそのままwishと解釈
+            self.current_wish = Wish(user_input)
+            self.generated_commands = generate_dummy_commands(user_input)
+            self.state = State.EXECUTE_CONFIRMATION
 
-            # 状態更新
-            if any(cr.exit_code is None for cr in new_wish.command_results):
-                pass
-            else:
-                new_wish.state = WishState.DONE
-                new_wish.finished_at = datetime.utcnow().isoformat()
+    def state_new_wish(self):
+        # 新規wish作成のためwishテキストを入力
+        wish_text = input("\nwish✨ ").strip()
+        if not wish_text:
+            # 空入力ならIDLEへ戻る
+            self.state = State.IDLE
+            return
+        self.current_wish = Wish(wish_text)
+        self.generated_commands = generate_dummy_commands(wish_text)
+        print_commands(self.generated_commands)
+        self.state = State.EXECUTE_CONFIRMATION
 
-            wishes.append(new_wish)
-            save_to_history(new_wish)
+    def state_execute_confirmation(self):
+        ans = input("\nwish❓ ").strip().lower()
+        if ans == "y" or ans == "":
+            # 全て実行する場合
+            self.execute_indices = set(range(1, len(self.generated_commands) + 1))
+            self.state = State.EXECUTE
+        elif ans == "n":
+            # 部分実行 or 修正
+            self.state = State.SPECIFY_MODIFY
+        else:
+            # 想定外なら再度確認
+            print("入力が不正です。もう一度選択してください。")
+            self.state = State.EXECUTE_CONFIRMATION
+
+    def state_specify_modify(self):
+        print("そのまま実行するコマンドを `1` 、 `1,2` または `1-3` の形式で指定してください。")
+        selection = input("\nwish❓ ").strip()
+        if not selection:
+            self.state = State.IDLE
+            return
+
+        indices = set()
+        for part in selection.split(","):
+            if "-" in part:
+                try:
+                    start, end = part.split("-")
+                    for i in range(int(start), int(end) + 1):
+                        indices.add(i)
+                except ValueError:
+                    continue
+            else:
+                try:
+                    i = int(part)
+                    indices.add(i)
+                except ValueError:
+                    continue
+
+        if not indices:
+            print("実行対象が指定されませんでした。")
+            self.state = State.IDLE
+            return
+
+        self.execute_indices = indices
+        print(
+            f"\n[{', '.join(map(str, self.execute_indices))}] のみを実行しますか？ [Y] 修正したいコマンドがあればその番号を入力してください。"
+        )
+        ans = input("\nwish❓ ").strip().lower()
+        if ans.isdigit():
+            cmd_idx = int(ans)
+            if cmd_idx in self.execute_indices:
+                print("\n修正内容を指示してください。")
+                mod_text = input("wish❓ ").strip()
+                # 単純に"-T4"を除去し、末尾にコメントを付加する例
+                old_cmd = self.generated_commands[cmd_idx - 1]
+                new_cmd = old_cmd.replace("-T4", "")
+                if new_cmd == old_cmd:
+                    new_cmd += " # " + mod_text
+                self.generated_commands[cmd_idx - 1] = new_cmd
+                print(f"修正後のコマンド: {new_cmd}")
+        # 再確認
+        print("\nこのコマンドをすべて実行しますか？ [Y/n]")
+        for i, cmd in enumerate(self.generated_commands, 1):
+            if i in self.execute_indices:
+                print(f"[{i}] {cmd}")
+        ans = input("\nwish❓ ").strip().lower()
+        if ans == "n":
+            print("実行をキャンセルしました。")
+            self.state = State.IDLE
+        else:
+            self.state = State.EXECUTE
+
+    def state_execute(self):
+        # 指定されたコマンドを実行
+        for idx in sorted(self.execute_indices):
+            cmd = self.generated_commands[idx - 1]
+            cmd_res = CommandResult(cmd)
+            self.current_wish.command_results.append(cmd_res)
+            print(f"\nコマンドを実行します: {cmd}")
+            rc, out_f, err_f = run_command(cmd, self.current_wish.id, idx)
+            cmd_res.exit_code = rc
+            cmd_res.stdout_file = out_f
+            cmd_res.stderr_file = err_f
+            cmd_res.finished_at = datetime.utcnow().isoformat()
+
+        self.current_wish.state = WishState.DONE
+        self.current_wish.finished_at = datetime.utcnow().isoformat()
+        self.wishes.append(self.current_wish)
+        save_to_history(self.current_wish)
+        print("wishの実行が完了しました。")
+        self.state = State.IDLE
+
+    def state_show_wishlist(self):
+        show_wishlist(self.wishes)
+        overwrite_history(self.wishes)
+        self.state = State.IDLE
+
+
+# --------------------
+# エントリーポイント
+# --------------------
+
+
+def main():
+    shell = ShellTurns()
+    try:
+        shell.run()
+    except (KeyboardInterrupt, EOFError):
+        print("\nBye.")
 
 
 if __name__ == "__main__":
