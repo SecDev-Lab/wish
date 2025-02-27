@@ -3,7 +3,7 @@ import subprocess
 import time
 from typing import Dict, List, Optional, Tuple
 
-from wish_models import CommandResult, CommandState, LogFiles, UtcDatetime, Wish, WishState
+from wish_models import CommandResult, CommandState, LogFiles, Wish, WishState
 
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
@@ -17,7 +17,7 @@ class WishManager:
         self.paths = WishPaths(settings)
         self.paths.ensure_directories()
         self.current_wish: Optional[Wish] = None
-        self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult]] = {}
+        self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
 
     def save_wish(self, wish: Wish):
         """Save wish to history file."""
@@ -73,7 +73,7 @@ class WishManager:
 
         return commands
 
-    def execute_command(self, wish: Wish, command: str, cmd_num: int) -> CommandResult:
+    def execute_command(self, wish: Wish, command: str, cmd_num: int):
         """Execute a command and capture its output."""
 
         # Create log directories and files
@@ -92,14 +92,14 @@ class WishManager:
                 process = subprocess.Popen(command, stdout=stdout_file, stderr=stderr_file, shell=True, text=True)
 
                 # Store in running commands dict
-                self.running_commands[cmd_num] = (process, result)
+                self.running_commands[cmd_num] = (process, result, wish)
 
                 # Wait for process completion (non-blocking return for UI)
-                return result
+                return
 
             except Exception as e:
                 stderr_file.write(f"Failed to execute command: {str(e)}")
-                
+
                 # Mark the command as failed
                 result.finish(
                     exit_code=1,
@@ -107,7 +107,8 @@ class WishManager:
                     log_summarizer=self.summarize_log
                 )
                 
-                return result
+                # Update the command result in the wish object
+                wish.update_command_result(result)
 
     def summarize_log(self, log_files: LogFiles) -> str:
         """Generate a simple summary of command logs."""
@@ -155,11 +156,11 @@ class WishManager:
 
     def check_running_commands(self):
         """Check status of running commands and update their status."""
-        for idx, (process, result) in list(self.running_commands.items()):
+        for idx, (process, result, wish) in list(self.running_commands.items()):
             if process.poll() is not None:  # Process has finished
                 # Determine the state based on exit code
                 state = CommandState.SUCCESS if process.returncode == 0 else CommandState.OTHERS
-                
+
                 # Mark the command as finished
                 result.finish(
                     exit_code=process.returncode,
@@ -167,9 +168,8 @@ class WishManager:
                     log_summarizer=self.summarize_log
                 )
 
-                # Update the command result in the wish object if current_wish exists
-                if self.current_wish:
-                    self.current_wish.update_command_result(result)
+                # Update the command result in the wish object
+                wish.update_command_result(result)
 
                 # Remove from running commands
                 del self.running_commands[idx]
@@ -177,7 +177,7 @@ class WishManager:
     def cancel_command(self, wish: Wish, cmd_index: int):
         """Cancel a running command."""
         if cmd_index in self.running_commands:
-            process, result = self.running_commands[cmd_index]
+            process, result, _ = self.running_commands[cmd_index]
 
             # Try to terminate the process
             try:

@@ -83,7 +83,6 @@ class WishCLI:
 
     def handle_ask_wish_detail(self) -> Optional[ShellEvent]:
         """Handle the ASK_WISH_DETAIL state."""
-        wish = self.state_machine.get_current_wish()
         commands = self.state_machine.get_current_commands()
 
         print("\n**What's the target IP address or hostname?**")
@@ -153,8 +152,8 @@ class WishCLI:
                 selected_indices = list(range(int(start.strip()) - 1, int(end.strip())))
             elif selection.isdigit():
                 selected_indices = [int(selection) - 1]
-        except:
-            print("Invalid selection format.")
+        except Exception as e:
+            print(f"Invalid selection format: {e}")
             return ShellEvent.NO
 
         # Filter commands based on selection
@@ -275,7 +274,7 @@ class WishCLI:
         # Execute commands
         print("\nCommand execution started. Check progress with Ctrl-R or `wishlist`.")
         for cmd_num, cmd in enumerate(commands, start=1):
-            result = self.manager.execute_command(wish, cmd, cmd_num)
+            self.manager.execute_command(wish, cmd, cmd_num)
 
         # Save wish to history
         self.manager.current_wish = wish

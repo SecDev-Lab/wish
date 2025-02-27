@@ -71,3 +71,17 @@ class Wish(BaseModel):
             if result.num == updated_result.num:
                 self.command_results[i] = updated_result
                 return
+                
+    def get_command_result_by_num(self, num: int) -> CommandResult | None:
+        """Get a command result by its num.
+        
+        Args:
+            num: The num of the command result to find
+            
+        Returns:
+            The command result with the specified num, or None if not found
+        """
+        for result in self.command_results:
+            if result.num == num:
+                return result
+        return None

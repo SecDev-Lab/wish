@@ -97,3 +97,29 @@ class TestWish:
         assert len(wish.command_results) == 1
         assert wish.command_results[0] == original_result
         assert wish.command_results[0].state == CommandState.DOING
+        
+    def test_get_command_result_by_num(self):
+        # Create a wish with multiple command results
+        wish = WishDoingFactory.create()
+        original_result = wish.command_results[0]
+        original_num = original_result.num
+        
+        # Add another command result
+        second_result = CommandResultSuccessFactory.create(
+            num=original_num + 1,
+            state=CommandState.SUCCESS
+        )
+        wish.command_results.append(second_result)
+        
+        # Test getting existing command results
+        result1 = wish.get_command_result_by_num(original_num)
+        assert result1 is not None
+        assert result1 == original_result
+        
+        result2 = wish.get_command_result_by_num(original_num + 1)
+        assert result2 is not None
+        assert result2 == second_result
+        
+        # Test getting non-existent command result
+        result3 = wish.get_command_result_by_num(999)
+        assert result3 is None

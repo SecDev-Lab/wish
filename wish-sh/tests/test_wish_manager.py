@@ -2,8 +2,9 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
-from wish_models import CommandResult, CommandState, LogFiles, WishState
+from wish_models import CommandResult, CommandState, LogFiles, WishState, command_result
 from wish_models.test_factories import CommandResultSuccessFactory, LogFilesFactory, WishDoingFactory, WishDoneFactory
+from wish_models.test_factories.command_result_factory import CommandResultDoingFactory
 
 from wish_sh.settings import Settings
 from wish_sh.wish_manager import WishManager
@@ -129,12 +130,15 @@ class TestWishManager:
         with patch.object(manager.paths, "create_command_log_dirs") as mock_create_dirs:
             mock_create_dirs.return_value = Path("/path/to/log/dir")
 
-            result = manager.execute_command(wish, command, cmd_num)
-
+            manager.execute_command(wish, command, cmd_num)
+            result = wish.get_command_result_by_num(cmd_num)
+            
+            assert result is not None
             assert result.command == command
             assert cmd_num in manager.running_commands
             assert manager.running_commands[cmd_num][0] == mock_process
             assert manager.running_commands[cmd_num][1] == result
+            assert manager.running_commands[cmd_num][2] == wish
             assert isinstance(result.log_files, LogFiles)
             assert result.log_files.stdout == Path("/path/to/log/dir") / f"{cmd_num}.stdout"
             assert result.log_files.stderr == Path("/path/to/log/dir") / f"{cmd_num}.stderr"
@@ -154,12 +158,14 @@ class TestWishManager:
         # Mock summarize_log to avoid actual file operations
         with patch.object(manager, "summarize_log") as mock_summarize:
             mock_summarize.return_value = "Test summary"
-            
+
             with patch.object(manager.paths, "create_command_log_dirs") as mock_create_dirs:
                 mock_create_dirs.return_value = Path("/path/to/log/dir")
 
-                result = manager.execute_command(wish, command, cmd_num)
-
+                manager.execute_command(wish, command, cmd_num)
+                result = wish.get_command_result_by_num(cmd_num)
+                
+                assert result is not None
                 assert result.command == command
                 assert result.exit_code == 1
                 assert result.state == CommandState.OTHERS
@@ -233,10 +239,13 @@ class TestWishManager:
         mock_process.returncode = 0  # Return code 0 (success)
 
         # Create a command result
-        result = CommandResultSuccessFactory()
+        result = CommandResultDoingFactory()
+
+        # Create a wish
+        wish = WishDoingFactory.create(command_results=[result])
 
         # Add to running commands
-        manager.running_commands[0] = (mock_process, result)
+        manager.running_commands[0] = (mock_process, result, wish)
 
         # Mock summarize_log
         with patch.object(manager, "summarize_log") as mock_summarize:
@@ -267,7 +276,7 @@ class TestWishManager:
 
         # Add to running commands
         cmd_index = 1
-        manager.running_commands[cmd_index] = (mock_process, result)
+        manager.running_commands[cmd_index] = (mock_process, result, wish)
 
         # Mock time.sleep to avoid actual delay
         with patch("time.sleep"):
