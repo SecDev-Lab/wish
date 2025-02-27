@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -69,6 +69,75 @@ class TestCommandResult:
         assert result.exit_code is None
         assert result.log_summary is None
         assert result.finished_at is None
+        
+    def test_finish_success(self):
+        """Test that finish method correctly updates a command result for success case."""
+        # Arrange
+        result = CommandResultDoingFactory.create()
+        exit_code = 0
+        state = CommandState.SUCCESS
+        now = UtcDatetime.now()
+        log_summary = "Command executed successfully"
+        
+        # Create a mock log_summarizer function
+        log_summarizer = MagicMock(return_value=log_summary)
+        
+        # Act
+        with patch("wish_models.utc_datetime.UtcDatetime.now", return_value=now):
+            result.finish(exit_code=exit_code, state=state, log_summarizer=log_summarizer)
+        
+        # Assert
+        assert result.exit_code == exit_code
+        assert result.state == state
+        assert result.finished_at == now
+        assert result.log_summary == log_summary
+        log_summarizer.assert_called_once_with(result.log_files)
+    
+    def test_finish_failure(self):
+        """Test that finish method correctly updates a command result for failure case."""
+        # Arrange
+        result = CommandResultDoingFactory.create()
+        exit_code = 1
+        state = CommandState.OTHERS
+        now = UtcDatetime.now()
+        log_summary = "Command failed with error"
+        
+        # Create a mock log_summarizer function
+        log_summarizer = MagicMock(return_value=log_summary)
+        
+        # Act
+        with patch("wish_models.utc_datetime.UtcDatetime.now", return_value=now):
+            result.finish(exit_code=exit_code, state=state, log_summarizer=log_summarizer)
+        
+        # Assert
+        assert result.exit_code == exit_code
+        assert result.state == state
+        assert result.finished_at == now
+        assert result.log_summary == log_summary
+        log_summarizer.assert_called_once_with(result.log_files)
+    
+    def test_finish_cancelled(self):
+        """Test that finish method correctly updates a command result for cancelled case."""
+        # Arrange
+        result = CommandResultDoingFactory.create()
+        exit_code = -1
+        state = CommandState.USER_CANCELLED
+        now = UtcDatetime.now()
+        log_summary = "Command was cancelled by user"
+        
+        # Create a mock log_summarizer function
+        log_summarizer = MagicMock(return_value=log_summary)
+        
+        # Act
+        with patch("wish_models.utc_datetime.UtcDatetime.now", return_value=now):
+            result.finish(exit_code=exit_code, state=state, log_summarizer=log_summarizer)
+        
+        # Assert
+        assert result.exit_code == exit_code
+        assert result.state == state
+        assert result.finished_at == now
+        assert result.log_summary == log_summary
+        log_summarizer.assert_called_once_with(result.log_files)
 
 
 def test_parse_command_results_json():
