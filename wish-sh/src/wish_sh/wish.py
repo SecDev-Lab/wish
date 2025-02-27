@@ -9,14 +9,7 @@ from typing import List
 
 from wish_models import CommandResult, CommandState, LogFiles, UtcDatetime, Wish, WishState
 
-# Constants
-DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
-
-
-# Settings
-class Settings:
-    def __init__(self):
-        self.WISH_HOME = os.environ.get("WISH_HOME", DEFAULT_WISH_HOME)
+from wish_sh.settings import Settings
 
 
 class WishPaths:
