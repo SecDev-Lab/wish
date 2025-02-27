@@ -57,3 +57,17 @@ class Wish(BaseModel):
     @classmethod
     def _gen_id(cls) -> str:
         return uuid.uuid4().hex[:10]
+
+    def update_command_result(self, updated_result: CommandResult) -> None:
+        """Update a command result in the command_results list.
+
+        Args:
+            updated_result: The updated CommandResult object
+
+        This method finds the command result with the same num as the updated_result
+        and replaces it with the updated_result.
+        """
+        for i, result in enumerate(self.command_results):
+            if result.num == updated_result.num:
+                self.command_results[i] = updated_result
+                return

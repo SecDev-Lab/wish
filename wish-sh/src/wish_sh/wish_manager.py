@@ -160,6 +160,10 @@ class WishManager:
                 # Generate log summary
                 if result.log_files:
                     result.log_summary = self.summarize_log(result.log_files.stdout, result.log_files.stderr)
+                
+                # Update the command result in the wish object if current_wish exists
+                if self.current_wish:
+                    self.current_wish.update_command_result(result)
 
                 # Remove from running commands
                 del self.running_commands[idx]
@@ -181,6 +185,10 @@ class WishManager:
             # Update result
             result.state = CommandState.USER_CANCELLED
             result.finished_at = UtcDatetime.now()
+            
+            # Update the command result in the wish object
+            wish.update_command_result(result)
+            
             del self.running_commands[cmd_index]
 
             return f"Command {cmd_index} cancelled."

@@ -1,8 +1,9 @@
 import pytest
 from pydantic import ValidationError
 
+from wish_models.command_result.command_state import CommandState
 from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
-from wish_models.test_factories.wish_factory import WishDoneFactory
+from wish_models.test_factories.wish_factory import WishDoingFactory, WishDoneFactory
 from wish_models.utc_datetime import UtcDatetime
 from wish_models.wish.wish import Wish
 from wish_models.wish.wish_state import WishState
@@ -54,3 +55,45 @@ class TestWish:
         assert wish.command_results == []
         assert isinstance(wish.created_at, UtcDatetime)
         assert wish.finished_at is None
+
+    def test_update_command_result(self):
+        # Create a wish with a command result
+        wish = WishDoingFactory.create()
+        original_result = wish.command_results[0]
+        original_num = original_result.num
+
+        # Create an updated command result with the same num
+        updated_result = CommandResultSuccessFactory.create(
+            num=original_num,
+            exit_code=0,
+            state=CommandState.SUCCESS,
+            log_summary="Updated log summary"
+        )
+
+        # Update the command result
+        wish.update_command_result(updated_result)
+
+        # Verify the command result was updated
+        assert len(wish.command_results) == 1
+        assert wish.command_results[0] == updated_result
+        assert wish.command_results[0].state == CommandState.SUCCESS
+        assert wish.command_results[0].log_summary == "Updated log summary"
+
+    def test_update_command_result_nonexistent(self):
+        # Create a wish with a command result
+        wish = WishDoingFactory.create()
+        original_result = wish.command_results[0]
+
+        # Create a command result with a different num
+        nonexistent_result = CommandResultSuccessFactory.create(
+            num=original_result.num + 999,  # Different num
+            state=CommandState.SUCCESS
+        )
+
+        # Try to update a non-existent command result
+        wish.update_command_result(nonexistent_result)
+
+        # Verify the command results were not changed
+        assert len(wish.command_results) == 1
+        assert wish.command_results[0] == original_result
+        assert wish.command_results[0].state == CommandState.DOING
