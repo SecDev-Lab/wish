@@ -27,7 +27,6 @@ class TestWish:
         assert isinstance(wish.created_at, UtcDatetime)
         assert isinstance(wish.finished_at, UtcDatetime)
 
-
     def test_wish_invalid_id(self):
         now = UtcDatetime.now()
         wish_data = {
@@ -46,3 +45,12 @@ class TestWish:
         wish_json = wish.to_json()
         wish2 = Wish.from_json(wish_json)
         assert wish == wish2
+
+    def test_create(self):
+        wish = Wish.create("Test wish")
+        assert len(wish.id) == 10
+        assert wish.wish == "Test wish"
+        assert wish.state == WishState.DOING
+        assert wish.command_results == []
+        assert isinstance(wish.created_at, UtcDatetime)
+        assert wish.finished_at is None
