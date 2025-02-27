@@ -169,7 +169,7 @@ class TestWishManager:
         stdout_path = Path("stdout.log")
         stderr_path = Path("stderr.log")
 
-        with patch("builtins.open", mock_open(read_data="")) as m:
+        with patch("builtins.open", mock_open(read_data="")) as _m:
             summary = manager.summarize_log(stdout_path, stderr_path)
 
             assert "Standard output: <empty>" in summary
