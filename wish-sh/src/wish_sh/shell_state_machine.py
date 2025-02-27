@@ -1,7 +1,7 @@
 from enum import Enum, auto
 from typing import Callable, Dict, List, Optional
 
-from wish_models import Wish, WishState
+from wish_models import Wish
 
 
 class ShellState(Enum):
@@ -46,7 +46,7 @@ class ShellStateMachine:
         self.selected_commands: List[str] = []
         self.wishes: List[Wish] = []
         self.selected_wish_index: Optional[int] = None
-        
+
         # Initialize the state transition table
         self.transitions: Dict[ShellState, Dict[ShellEvent, ShellState]] = {
             ShellState.INPUT_WISH: {
@@ -98,14 +98,14 @@ class ShellStateMachine:
                 ShellEvent.BACK_TO_INPUT: ShellState.INPUT_WISH,
             },
         }
-        
+
         # Handler functions for each state
         self.state_handlers: Dict[ShellState, Callable] = {}
-    
+
     def register_handler(self, state: ShellState, handler: Callable):
         """Register a handler function for a state"""
         self.state_handlers[state] = handler
-    
+
     def transition(self, event: ShellEvent) -> bool:
         """Transition to a new state based on the event
         
@@ -116,7 +116,7 @@ class ShellStateMachine:
             self.current_state = self.transitions[self.current_state][event]
             return True
         return False
-    
+
     def handle_current_state(self) -> Optional[ShellEvent]:
         """Execute the handler function for the current state
         
@@ -126,50 +126,50 @@ class ShellStateMachine:
         if self.current_state in self.state_handlers:
             return self.state_handlers[self.current_state]()
         return None
-    
+
     def run(self):
         """Run the state machine"""
         while True:
             event = self.handle_current_state()
             if event:
                 self.transition(event)
-    
+
     def set_current_wish(self, wish: Wish):
         """Set the current wish"""
         self.current_wish = wish
-    
+
     def set_current_commands(self, commands: List[str]):
         """Set the current command list"""
         self.current_commands = commands
-    
+
     def set_selected_commands(self, commands: List[str]):
         """Set the selected command list"""
         self.selected_commands = commands
-    
+
     def set_wishes(self, wishes: List[Wish]):
         """Set the wish list"""
         self.wishes = wishes
-    
+
     def set_selected_wish_index(self, index: int):
         """Set the index of the selected wish"""
         self.selected_wish_index = index
-    
+
     def get_current_wish(self) -> Optional[Wish]:
         """Get the current wish"""
         return self.current_wish
-    
+
     def get_current_commands(self) -> List[str]:
         """Get the current command list"""
         return self.current_commands
-    
+
     def get_selected_commands(self) -> List[str]:
         """Get the selected command list"""
         return self.selected_commands
-    
+
     def get_wishes(self) -> List[Wish]:
         """Get the wish list"""
         return self.wishes
-    
+
     def get_selected_wish(self) -> Optional[Wish]:
         """Get the selected wish"""
         if self.selected_wish_index is not None and 0 <= self.selected_wish_index < len(self.wishes):
