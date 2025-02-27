@@ -9,7 +9,11 @@ description = "LLM-assisted shell for penetration testing"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "wish-models>=0.0.0",
 ]
+
+[tool.uv.sources]
+wish-models = { path = "../wish-models", editable = true }
 
 [project.scripts]
 chatbot = "wish_sh.wish:main"

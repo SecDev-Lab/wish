@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-import os
-import sys
-import subprocess
-import uuid
-import random
 import json
+import os
+import random
+import subprocess
+import sys
+import uuid
 from datetime import datetime
+
+from wish_models import CommandResult, Wish, WishState
 
 # --------------------
 # 事前設定・モデル部分
@@ -15,69 +17,6 @@ WISH_HOME = os.path.expanduser("~/.wish")
 if not os.path.exists(WISH_HOME):
     os.makedirs(WISH_HOME)
 HISTORY_FILE = os.path.join(WISH_HOME, "history.jsonl")
-
-
-class WishState:
-    DOING = "doing"
-    DONE = "done"
-    CANCELLED = "cancelled"
-
-
-class CommandResult:
-    def __init__(self, command):
-        self.command = command
-        self.exit_code = None
-        self.stdout_file = None
-        self.stderr_file = None
-        self.finished_at = None
-
-    def to_dict(self):
-        return {
-            "command": self.command,
-            "exit_code": self.exit_code,
-            "stdout_file": self.stdout_file,
-            "stderr_file": self.stderr_file,
-            "finished_at": self.finished_at,
-        }
-
-    @classmethod
-    def from_dict(cls, dct):
-        obj = cls(dct["command"])
-        obj.exit_code = dct["exit_code"]
-        obj.stdout_file = dct["stdout_file"]
-        obj.stderr_file = dct["stderr_file"]
-        obj.finished_at = dct["finished_at"]
-        return obj
-
-
-class Wish:
-    def __init__(self, wish_text):
-        self.id = uuid.uuid4().hex[:10]  # 10桁の16進ID
-        self.wish_text = wish_text
-        self.state = WishState.DOING
-        self.command_results = []
-        self.created_at = datetime.utcnow().isoformat()
-        self.finished_at = None
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "wish_text": self.wish_text,
-            "state": self.state,
-            "command_results": [cr.to_dict() for cr in self.command_results],
-            "created_at": self.created_at,
-            "finished_at": self.finished_at,
-        }
-
-    @classmethod
-    def from_dict(cls, dct):
-        w = cls(dct["wish_text"])
-        w.id = dct["id"]
-        w.state = dct["state"]
-        w.command_results = [CommandResult.from_dict(cr) for cr in dct["command_results"]]
-        w.created_at = dct["created_at"]
-        w.finished_at = dct["finished_at"]
-        return w
 
 
 def load_history():
@@ -238,7 +177,7 @@ class ShellTurns:
             self.state = State.SHOW_WISHLIST
         else:
             # ユーザ入力をそのままwishと解釈
-            self.current_wish = Wish(user_input)
+            self.current_wish = Wish.create(user_input)
             self.generated_commands = generate_dummy_commands(user_input)
             self.state = State.EXECUTE_CONFIRMATION
 
