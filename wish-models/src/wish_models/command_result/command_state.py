@@ -1,0 +1,32 @@
+import enum
+
+
+class CommandState(str, enum.Enum):
+    """Enumeration of ExitClass."""
+
+    DOING = "DOING"
+    """The command is being executed."""
+
+    SUCCESS = "SUCCESS"
+    """The command succeeded, with meaningful insights."""
+
+    USER_CANCELLED = "USER_CANCELLED"
+    """The user cancelled the command."""
+
+    COMMAND_NOT_FOUND = "COMMAND_NOT_FOUND"
+    """The command was not found on the local machine."""
+
+    FILE_NOT_FOUND = "FILE_NOT_FOUND"
+    """A file was not found on the local machine."""
+
+    REMOTE_OPERATION_FAILED = "REMOTE_OPERATION_FAILED"
+    """An operation on a remote machine failed."""
+
+    TIMEOUT = "TIMEOUT"
+    """The command timed out."""
+
+    NETWORK_ERROR = "NETWORK_ERROR"
+    """A network error occurred."""
+
+    OTHERS = "OTHERS"
+    """Other errors."""
