@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from wish_models import WishState
 
 from wish_sh.settings import Settings
-from wish_sh.shell_state_machine import ShellEvent, ShellStateMachine
+from wish_sh.shell_turns import ShellEvent, ShellTurns
 from wish_sh.wish_cli import WishCLI
 from wish_sh.wish_manager import WishManager
 
@@ -12,12 +12,12 @@ class TestWishCLI:
     def test_initialization(self):
         """Test that WishCLI initializes with the correct attributes."""
         with patch.object(WishManager, "__init__", return_value=None) as mock_manager_init:
-            with patch.object(ShellStateMachine, "register_handler") as mock_register:
+            with patch.object(ShellTurns, "register_handler") as mock_register:
                 cli = WishCLI()
 
                 assert isinstance(cli.settings, Settings)
                 assert cli.running is True
-                assert isinstance(cli.state_machine, ShellStateMachine)
+                assert isinstance(cli.state_machine, ShellTurns)
                 mock_manager_init.assert_called_once()
                 # Verify that all state handlers are registered
                 assert mock_register.call_count == 13  # Number of states
@@ -241,10 +241,11 @@ class TestWishCLI:
         mock_print.assert_any_call("\nCommand execution started. Check progress with Ctrl-R or `wishlist`.")
 
     @patch("builtins.print")
-    @patch.object(ShellStateMachine, "handle_current_state")
-    @patch.object(ShellStateMachine, "transition")
+    @patch.object(ShellTurns, "handle_current_state")
+    @patch.object(ShellTurns, "transition")
     def test_run(self, mock_transition, mock_handle, mock_print):
         """Test that run executes the state machine correctly."""
+
         # Setup to make cli.running = False after first event
         def side_effect():
             cli.running = False

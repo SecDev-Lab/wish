@@ -4,7 +4,7 @@ from typing import Optional
 from wish_models import Wish, WishState
 
 from wish_sh.settings import Settings
-from wish_sh.shell_state_machine import ShellEvent, ShellState, ShellStateMachine
+from wish_sh.shell_turns import ShellEvent, ShellState, ShellTurns
 from wish_sh.wish_manager import WishManager
 
 
@@ -15,7 +15,7 @@ class WishCLI:
         self.settings = Settings()
         self.manager = WishManager(self.settings)
         self.running = True
-        self.state_machine = ShellStateMachine()
+        self.state_machine = ShellTurns()
 
         # Register state handlers
         self.state_machine.register_handler(ShellState.INPUT_WISH, self.handle_input_wish)

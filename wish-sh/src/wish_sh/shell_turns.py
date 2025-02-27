@@ -6,6 +6,7 @@ from wish_models import Wish
 
 class ShellState(Enum):
     """Enumeration of states in the Shell Turns state machine"""
+
     INPUT_WISH = auto()
     ASK_WISH_DETAIL = auto()
     SUGGEST_COMMANDS = auto()
@@ -23,6 +24,7 @@ class ShellState(Enum):
 
 class ShellEvent(Enum):
     """Enumeration of events in the Shell Turns state machine"""
+
     SUFFICIENT_WISH = auto()
     INSUFFICIENT_WISH = auto()
     OK = auto()
@@ -36,7 +38,7 @@ class ShellEvent(Enum):
     BACK_TO_INPUT = auto()
 
 
-class ShellStateMachine:
+class ShellTurns:
     """Implementation of the Shell Turns state machine"""
 
     def __init__(self):
@@ -108,7 +110,7 @@ class ShellStateMachine:
 
     def transition(self, event: ShellEvent) -> bool:
         """Transition to a new state based on the event
-        
+
         Returns:
             bool: Whether the transition was successful
         """
@@ -119,7 +121,7 @@ class ShellStateMachine:
 
     def handle_current_state(self) -> Optional[ShellEvent]:
         """Execute the handler function for the current state
-        
+
         Returns:
             Optional[ShellEvent]: The event returned by the handler (if any)
         """
