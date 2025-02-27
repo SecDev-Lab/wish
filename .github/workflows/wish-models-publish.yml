@@ -22,6 +22,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
 
+      - name: Extract tag version
+        id: tag_version
+        run: echo "TAG_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: Extract pyproject.toml version
+        id: pyproject_version
+        run: |
+          PYPROJECT_VERSION=$(grep -m 1 'version = ' wish-models/pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "PYPROJECT_VERSION=$PYPROJECT_VERSION" >> $GITHUB_ENV
+
+      - name: Verify versions match
+        run: |
+          echo "Tag version: $TAG_VERSION"
+          echo "pyproject.toml version: $PYPROJECT_VERSION"
+          if [ "$TAG_VERSION" != "$PYPROJECT_VERSION" ]; then
+            echo "Error: Version mismatch between tag ($TAG_VERSION) and pyproject.toml ($PYPROJECT_VERSION)"
+            exit 1
+          fi
+
       - name: Build package
         run: cd wish-models ; python -m build
 
