@@ -12,7 +12,7 @@ class CommandState(str, enum.Enum):
 
     USER_CANCELLED = "USER_CANCELLED"
     """The user cancelled the command.
-    
+
     Wish uses this state (wish assists human operators)"""
 
     COMMAND_NOT_FOUND = "COMMAND_NOT_FOUND"
