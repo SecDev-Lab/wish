@@ -23,10 +23,10 @@ jobs:
           pip install build twine
 
       - name: Build package
-        run: python -m build
+        run: cd wish-models ; python -m build
 
       - name: Publish package to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+        run: cd wish-models ; twine upload dist/*
