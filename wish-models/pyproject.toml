@@ -10,7 +10,7 @@ Issues = "https://github.com/SecDev-Lab/wish/issues"
 
 [project]
 name = "wish-models"
-version = "0.0.1"
+version = "0.0.0" # No need to update. GitHub Actions will update this on publish.
 description = "Models used in wish-sh and RapidPen"
 readme = "README.md"
 requires-python = ">=3.13"
