@@ -1,70 +1,27 @@
-import os
-import json
 import datetime
-import uuid
-import pytest
+import json
+import os
 import sys
+import uuid
 from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open, call
+from unittest.mock import MagicMock, call, mock_open, patch
+
+import pytest
+from wish_models.test_factories import CommandResultSuccessFactory, LogFilesFactory
 
 from wish_sh import (
-    WishState,
-    CommandState as CommandState,
-    LogFiles,
     CommandResult,
-    Wish,
+    LogFiles,
     Settings,
-    WishPaths,
-    WishManager,
+    Wish,
     WishCLI,
+    WishManager,
+    WishPaths,
+    WishState,
 )
-
-from wish_models.test_factories import CommandResultSuccessFactory
-
-
-class TestCommandResult:
-    def test_initialization(self):
-        """Test that CommandResult initializes with the correct attributes."""
-        command = "echo 'test'"
-
-        result = CommandResult(command)
-
-        assert result.command == command
-        assert result.timeout_sec is None
-        assert result.exit_code is None
-        assert result.state is None
-        assert result.log_summary is None
-        assert result.log_files is None
-        assert result.process is None
-        # Check that created_at is a valid ISO format string
-        datetime.datetime.fromisoformat(result.created_at)
-        assert result.finished_at is None
-
-    def test_to_dict(self):
-        """Test that to_dict returns the expected dictionary."""
-        command = "echo 'test'"
-
-        result = CommandResult(command)
-        result.timeout_sec = 10
-        result.exit_code = 0
-        result.state = CommandState.SUCCESS
-        result.log_summary = "Test summary"
-        stdout_path = Path("/path/to/stdout")
-        stderr_path = Path("/path/to/stderr")
-        result.log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
-        result.finished_at = "2023-01-01T00:00:00"
-
-        result_dict = result.to_dict()
-
-        assert result_dict["command"] == command
-        assert result_dict["timeout_sec"] == 10
-        assert result_dict["exit_code"] == 0
-        assert result_dict["state"] == CommandState.SUCCESS
-        assert result_dict["log_summary"] == "Test summary"
-        assert result_dict["log_files"]["stdout"] == str(stdout_path)
-        assert result_dict["log_files"]["stderr"] == str(stderr_path)
-        assert result_dict["created_at"] == result.created_at
-        assert result_dict["finished_at"] == "2023-01-01T00:00:00"
+from wish_sh import (
+    CommandState as CommandState,
+)
 
 
 class TestWish:
@@ -95,8 +52,7 @@ class TestWish:
             wish.finished_at = "2023-01-01T00:00:00"
 
             # Add a command result
-            command = "echo 'test'"
-            result = CommandResult(command)
+            result = CommandResultSuccessFactory.create()
             wish.command_results.append(result)
 
             wish_dict = wish.to_dict()
@@ -105,7 +61,7 @@ class TestWish:
             assert wish_dict["wish"] == wish_text
             assert wish_dict["state"] == WishState.DONE
             assert len(wish_dict["command_results"]) == 1
-            assert wish_dict["command_results"][0]["command"] == command
+            assert wish_dict["command_results"][0]["command"] == result.command
             assert wish_dict["created_at"] == wish.created_at
             assert wish_dict["finished_at"] == "2023-01-01T00:00:00"
 
@@ -292,21 +248,20 @@ class TestWishManager:
         manager = WishManager(settings)
         wish = Wish("Test wish")
         command = "echo 'test'"
-        index = 0
+        cmd_num = 1
 
         with patch.object(manager.paths, "create_command_log_dirs") as mock_create_dirs:
             mock_create_dirs.return_value = Path("/path/to/log/dir")
 
-            result = manager.execute_command(wish, command, index)
+            result = manager.execute_command(wish, command, cmd_num)
 
             assert result.command == command
-            assert result.process == mock_process
-            assert index in manager.running_commands
-            assert manager.running_commands[index][0] == mock_process
-            assert manager.running_commands[index][1] == result
+            assert cmd_num in manager.running_commands
+            assert manager.running_commands[cmd_num][0] == mock_process
+            assert manager.running_commands[cmd_num][1] == result
             assert isinstance(result.log_files, LogFiles)
-            assert result.log_files.stdout == Path("/path/to/log/dir") / "0.stdout"
-            assert result.log_files.stderr == Path("/path/to/log/dir") / "0.stderr"
+            assert result.log_files.stdout == Path("/path/to/log/dir") / f"{cmd_num}.stdout"
+            assert result.log_files.stderr == Path("/path/to/log/dir") / f"{cmd_num}.stderr"
 
     @patch("subprocess.Popen")
     @patch("builtins.open", new_callable=mock_open)
@@ -420,7 +375,8 @@ class TestWishManager:
         mock_process = MagicMock()
 
         # Create a command result
-        result = CommandResult("echo 'test'")
+        log_files = LogFilesFactory.create()
+        result = CommandResult.create(1, "echo 'test'", log_files)
 
         # Add to running commands
         cmd_index = 0

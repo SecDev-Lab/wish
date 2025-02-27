@@ -12,38 +12,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from wish_models import CommandState, LogFiles, WishState
+from wish_models import CommandState, LogFiles, WishState, CommandResult
 
 # Constants
 DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
-
-
-class CommandResult:
-    def __init__(self, command: str):
-        self.command = command
-        self.timeout_sec = None
-        self.exit_code = None
-        self.state = None
-        self.log_summary = None
-        self.log_files = None
-        self.created_at = datetime.datetime.utcnow().isoformat()
-        self.finished_at = None
-        self.process = None
-
-    def to_dict(self):
-        return {
-            "command": self.command,
-            "timeout_sec": self.timeout_sec,
-            "exit_code": self.exit_code,
-            "state": self.state,
-            "log_summary": self.log_summary,
-            "log_files": {
-                "stdout": str(self.log_files.stdout) if self.log_files else None,
-                "stderr": str(self.log_files.stderr) if self.log_files else None,
-            },
-            "created_at": self.created_at,
-            "finished_at": self.finished_at,
-        }
 
 
 class Wish:
@@ -157,25 +129,26 @@ class WishManager:
 
         return commands
 
-    def execute_command(self, wish: Wish, command: str, index: int) -> CommandResult:
+    def execute_command(self, wish: Wish, command: str, cmd_num: int) -> CommandResult:
         """Execute a command and capture its output."""
-        result = CommandResult(command)
-        wish.command_results.append(result)
 
         # Create log directories and files
         log_dir = self.paths.create_command_log_dirs(wish.id)
-        stdout_path = log_dir / f"{index}.stdout"
-        stderr_path = log_dir / f"{index}.stderr"
-        result.log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
+        stdout_path = log_dir / f"{cmd_num}.stdout"
+        stderr_path = log_dir / f"{cmd_num}.stderr"
+        log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
+
+        # Create command result
+        result = CommandResult.create(cmd_num, command, log_files)
+        wish.command_results.append(result)
 
         with open(stdout_path, "w") as stdout_file, open(stderr_path, "w") as stderr_file:
             try:
                 # Start the process
                 process = subprocess.Popen(command, stdout=stdout_file, stderr=stderr_file, shell=True, text=True)
-                result.process = process
 
                 # Store in running commands dict
-                self.running_commands[index] = (process, result)
+                self.running_commands[cmd_num] = (process, result)
 
                 # Wait for process completion (non-blocking return for UI)
                 return result
@@ -373,8 +346,8 @@ class WishCLI:
         # Display commands and ask for confirmation
         if len(commands) > 1:
             print(f"\nこのコマンドをすべて実行しますか？ [Y/n]")
-            for i, cmd in enumerate(commands, 1):
-                print(f"[{i}] {cmd}")
+            for cmd_num, cmd in enumerate(commands, 1):
+                print(f"[{cmd_num}] {cmd}")
 
             self.print_question()
             confirm = input().strip().lower()
@@ -419,8 +392,8 @@ class WishCLI:
 
         # Execute commands
         print("\nコマンドの実行を開始しました。経過は Ctrl-R または `wishlist` で確認できます。")
-        for i, cmd in enumerate(commands, 1):
-            result = self.manager.execute_command(wish, cmd, i)
+        for cmd_num, cmd in enumerate(commands, start=1):
+            result = self.manager.execute_command(wish, cmd, cmd_num)
 
         # Save wish to history
         self.manager.save_wish(wish)
