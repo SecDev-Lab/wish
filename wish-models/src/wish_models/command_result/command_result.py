@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+from typing import Callable
 
 from pydantic import BaseModel
 
@@ -73,6 +75,22 @@ class CommandResult(BaseModel):
 
     def to_dict(self) -> dict:
         return self.model_dump()
+
+    def finish(self, exit_code: int, state: CommandState, log_summarizer: Callable[[LogFiles], str]) -> None:
+        """Mark the command as finished and update its state.
+        
+        Args:
+            exit_code: The exit code of the command.
+            log_summarizer: Function to generate log summary.
+                It should take LogFiles as arguments and return a string.
+        """
+        self.exit_code = exit_code
+        self.state = state
+        self.finished_at = UtcDatetime.now()
+        
+        # Generate log summary if log files exist
+        if self.log_files:
+            self.log_summary = log_summarizer(self.log_files)
 
 
 def parse_command_results_json(command_results_json: str) -> list[CommandResult]:
