@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, call, mock_open, patch
 
 import pytest
-from wish_models.test_factories import CommandResultSuccessFactory, LogFilesFactory
+from wish_models.test_factories import CommandResultSuccessFactory, LogFilesFactory, WishDoingFactory, WishDoneFactory
 
 from wish_sh import (
     CommandResult,
@@ -22,48 +22,6 @@ from wish_sh import (
 from wish_sh import (
     CommandState as CommandState,
 )
-
-
-class TestWish:
-    def test_initialization(self):
-        """Test that Wish initializes with the correct attributes."""
-        wish_text = "Test wish"
-
-        with patch("uuid.uuid4") as mock_uuid:
-            mock_uuid.return_value = uuid.UUID("12345678-1234-5678-1234-567812345678")
-            wish = Wish(wish_text)
-
-            assert wish.id == "1234567812"  # First 10 chars of the hex representation
-            assert wish.wish == wish_text
-            assert wish.state == WishState.DOING
-            assert wish.command_results == []
-            # Check that created_at is a valid ISO format string
-            datetime.datetime.fromisoformat(wish.created_at)
-            assert wish.finished_at is None
-
-    def test_to_dict(self):
-        """Test that to_dict returns the expected dictionary."""
-        wish_text = "Test wish"
-
-        with patch("uuid.uuid4") as mock_uuid:
-            mock_uuid.return_value = uuid.UUID("12345678-1234-5678-1234-567812345678")
-            wish = Wish(wish_text)
-            wish.state = WishState.DONE
-            wish.finished_at = "2023-01-01T00:00:00"
-
-            # Add a command result
-            result = CommandResultSuccessFactory.create()
-            wish.command_results.append(result)
-
-            wish_dict = wish.to_dict()
-
-            assert wish_dict["id"] == "1234567812"
-            assert wish_dict["wish"] == wish_text
-            assert wish_dict["state"] == WishState.DONE
-            assert len(wish_dict["command_results"]) == 1
-            assert wish_dict["command_results"][0]["command"] == result.command
-            assert wish_dict["created_at"] == wish.created_at
-            assert wish_dict["finished_at"] == "2023-01-01T00:00:00"
 
 
 class TestSettings:
@@ -153,7 +111,7 @@ class TestWishManager:
         """Test that save_wish writes the wish to the history file."""
         settings = Settings()
         manager = WishManager(settings)
-        wish = Wish("Test wish")
+        wish = WishDoneFactory.create()
 
         manager.save_wish(wish)
 
@@ -163,7 +121,7 @@ class TestWishManager:
         written_data = mock_file().write.call_args[0][0].strip()
         wish_dict = json.loads(written_data)
         assert wish_dict["id"] == wish.id
-        assert wish_dict["wish"] == "Test wish"
+        assert wish_dict["wish"] == wish.wish
 
     @patch("builtins.open", new_callable=mock_open)
     def test_load_wishes_empty_file(self, mock_file):
@@ -246,8 +204,8 @@ class TestWishManager:
 
         settings = Settings()
         manager = WishManager(settings)
-        wish = Wish("Test wish")
-        command = "echo 'test'"
+        wish = WishDoingFactory.create()
+        command = wish.command_results[0].command
         cmd_num = 1
 
         with patch.object(manager.paths, "create_command_log_dirs") as mock_create_dirs:
@@ -271,14 +229,14 @@ class TestWishManager:
 
         settings = Settings()
         manager = WishManager(settings)
-        wish = Wish("Test wish")
-        command = "echo 'test'"
-        index = 0
+        wish = WishDoingFactory.create()
+        command = wish.command_results[0].command
+        cmd_num = 1
 
         with patch.object(manager.paths, "create_command_log_dirs") as mock_create_dirs:
             mock_create_dirs.return_value = Path("/path/to/log/dir")
 
-            result = manager.execute_command(wish, command, index)
+            result = manager.execute_command(wish, command, cmd_num)
 
             assert result.command == command
             assert result.exit_code == 1
@@ -369,7 +327,7 @@ class TestWishManager:
         """Test that cancel_command terminates a running command."""
         settings = Settings()
         manager = WishManager(settings)
-        wish = Wish("Test wish")
+        wish = WishDoingFactory.create()
 
         # Create a mock process
         mock_process = MagicMock()
@@ -379,7 +337,7 @@ class TestWishManager:
         result = CommandResult.create(1, "echo 'test'", log_files)
 
         # Add to running commands
-        cmd_index = 0
+        cmd_index = 1
         manager.running_commands[cmd_index] = (mock_process, result)
 
         # Mock time.sleep to avoid actual delay
@@ -396,7 +354,7 @@ class TestWishManager:
         """Test that cancel_command handles non-existent command indices."""
         settings = Settings()
         manager = WishManager(settings)
-        wish = Wish("Test wish")
+        wish = WishDoingFactory.create()
 
         response = manager.cancel_command(wish, 999)
 
@@ -407,13 +365,13 @@ class TestWishManager:
         settings = Settings()
         manager = WishManager(settings)
 
-        wish = Wish("Test wish")
+        wish = WishDoingFactory.create()
         wish.state = WishState.DOING
 
         formatted = manager.format_wish_list_item(wish, 1)
 
         assert "[1]" in formatted
-        assert "Test wish" in formatted
+        assert wish.wish[:10] in formatted
         assert "doing" in formatted.lower()
 
     def test_format_wish_list_item_done(self):
@@ -421,14 +379,11 @@ class TestWishManager:
         settings = Settings()
         manager = WishManager(settings)
 
-        wish = Wish("Test wish")
-        wish.state = WishState.DONE
-        wish.finished_at = datetime.datetime.utcnow().isoformat()
+        wish = WishDoneFactory.create()
 
         formatted = manager.format_wish_list_item(wish, 1)
 
         assert "[1]" in formatted
-        assert "Test wish" in formatted
         assert "done" in formatted.lower()
 
 

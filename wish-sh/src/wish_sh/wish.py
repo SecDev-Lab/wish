@@ -12,30 +12,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from wish_models import CommandState, LogFiles, WishState, CommandResult
+from wish_models import CommandResult, CommandState, LogFiles, Wish, WishState
 
 # Constants
 DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
-
-
-class Wish:
-    def __init__(self, wish_text: str):
-        self.id = uuid.uuid4().hex[:10]
-        self.wish = wish_text
-        self.state = WishState.DOING
-        self.command_results = []
-        self.created_at = datetime.datetime.utcnow().isoformat()
-        self.finished_at = None
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "wish": self.wish,
-            "state": self.state,
-            "command_results": [cmd.to_dict() for cmd in self.command_results],
-            "created_at": self.created_at,
-            "finished_at": self.finished_at,
-        }
 
 
 # Settings
@@ -92,7 +72,7 @@ class WishManager:
                 lines = f.readlines()
                 for line in reversed(lines[-limit:]):
                     wish_dict = json.loads(line.strip())
-                    wish = Wish(wish_dict["wish"])
+                    wish = Wish.create(wish_dict["wish"])
                     wish.id = wish_dict["id"]
                     wish.state = wish_dict["state"]
                     wish.created_at = wish_dict["created_at"]
@@ -244,12 +224,10 @@ class WishManager:
 
     def format_wish_list_item(self, wish: Wish, index: int) -> str:
         """Format a wish for display in wishlist."""
-        created_time = datetime.datetime.fromisoformat(wish.created_at).strftime("%H:%M:%S")
         if wish.state == WishState.DONE and wish.finished_at:
-            finished_time = datetime.datetime.fromisoformat(wish.finished_at).strftime("%H:%M:%S")
-            return f"[{index}] wish: {wish.wish[:30]}{'...' if len(wish.wish) > 30 else ''}  (started at {created_time} ; done at {finished_time})"
+            return f"[{index}] wish: {wish.wish[:30]}{'...' if len(wish.wish) > 30 else ''}  (started at {wish.created_at} ; done at {wish.finished_at})"
         else:
-            return f"[{index}] wish: {wish.wish[:30]}{'...' if len(wish.wish) > 30 else ''}  (started at {created_time} ; {wish.state})"
+            return f"[{index}] wish: {wish.wish[:30]}{'...' if len(wish.wish) > 30 else ''}  (started at {wish.created_at} ; {wish.state})"
 
 
 # UI
@@ -328,7 +306,7 @@ class WishCLI:
             return
 
         # Create a new wish
-        wish = Wish(wish_text)
+        wish = Wish.create(wish_text)
         wish.state = WishState.DOING
         self.manager.current_wish = wish
 
