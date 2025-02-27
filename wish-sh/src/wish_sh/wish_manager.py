@@ -2,7 +2,7 @@ import json
 import subprocess
 import time
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Optional, Tuple
 
 from wish_models import CommandResult, CommandState, LogFiles, UtcDatetime, Wish, WishState
 
@@ -17,8 +17,8 @@ class WishManager:
         self.settings = settings
         self.paths = WishPaths(settings)
         self.paths.ensure_directories()
-        self.current_wish = None
-        self.running_commands = {}
+        self.current_wish: Optional[Wish] = None
+        self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult]] = {}
 
     def save_wish(self, wish: Wish):
         """Save wish to history file."""
