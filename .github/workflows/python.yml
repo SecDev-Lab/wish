@@ -19,9 +19,9 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install dependencies
-        run: uv install
+        run: pip install uv
       - name: Lint with Ruff
-        run: uv run ruff check
+        run: python -m uv run ruff check
 
   test:
     name: Run Tests
@@ -33,6 +33,6 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install dependencies
-        run: uv install
+        run: pip install uv
       - name: Run Pytest
-        run: uv run pytest
+        run: python -m uv run pytest
