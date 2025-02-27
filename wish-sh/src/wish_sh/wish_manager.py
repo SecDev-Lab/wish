@@ -106,7 +106,7 @@ class WishManager:
                     state=CommandState.OTHERS,
                     log_summarizer=self.summarize_log
                 )
-                
+
                 # Update the command result in the wish object
                 wish.update_command_result(result)
 

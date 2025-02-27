@@ -2,8 +2,8 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
-from wish_models import CommandResult, CommandState, LogFiles, WishState, command_result
-from wish_models.test_factories import CommandResultSuccessFactory, LogFilesFactory, WishDoingFactory, WishDoneFactory
+from wish_models import CommandResult, CommandState, LogFiles, WishState
+from wish_models.test_factories import LogFilesFactory, WishDoingFactory, WishDoneFactory
 from wish_models.test_factories.command_result_factory import CommandResultDoingFactory
 
 from wish_sh.settings import Settings
@@ -132,7 +132,7 @@ class TestWishManager:
 
             manager.execute_command(wish, command, cmd_num)
             result = wish.get_command_result_by_num(cmd_num)
-            
+
             assert result is not None
             assert result.command == command
             assert cmd_num in manager.running_commands
@@ -164,7 +164,7 @@ class TestWishManager:
 
                 manager.execute_command(wish, command, cmd_num)
                 result = wish.get_command_result_by_num(cmd_num)
-                
+
                 assert result is not None
                 assert result.command == command
                 assert result.exit_code == 1
