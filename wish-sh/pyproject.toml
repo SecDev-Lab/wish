@@ -1,0 +1,45 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project]
+name = "wish-sh"
+version = "0.0.0"
+description = "LLM-assisted shell for penetration testing"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+]
+
+[project.scripts]
+chatbot = "wish_sh.wish:main"
+
+[tool.uv]
+dev-dependencies = [
+    "factory-boy>=3.3.1",
+    "pytest-asyncio>=0.25.2",
+    "pytest>=8.3.4",
+    "ruff>=0.9.7",
+]
+
+[tool.pdm.build]
+includes = ["src/"]
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "I", # isort
+    "B", # flake8-bugbear
+    "W", # pycodestyle warnings
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = ["--import-mode=importlib"]
+asyncio_default_fixture_loop_scope = "function"
