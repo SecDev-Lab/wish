@@ -471,6 +471,11 @@ class WishCLI:
                 self.execute_wish(wish_text)
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point for the wish shell."""
     cli = WishCLI()
     cli.run()
+
+
+if __name__ == "__main__":
+    main()
