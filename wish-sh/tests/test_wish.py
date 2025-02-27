@@ -19,17 +19,7 @@ from wish_sh import (
     WishCLI,
 )
 
-
-class TestLogFiles:
-    def test_initialization(self):
-        """Test that LogFiles initializes with the correct attributes."""
-        stdout_path = Path("/path/to/stdout")
-        stderr_path = Path("/path/to/stderr")
-
-        log_files = LogFiles(stdout_path, stderr_path)
-
-        assert log_files.stdout == stdout_path
-        assert log_files.stderr == stderr_path
+from wish_models.test_factories import CommandResultSuccessFactory
 
 
 class TestCommandResult:
@@ -42,7 +32,7 @@ class TestCommandResult:
         assert result.command == command
         assert result.timeout_sec is None
         assert result.exit_code is None
-        assert result.exit_class is None
+        assert result.state is None
         assert result.log_summary is None
         assert result.log_files is None
         assert result.process is None
@@ -57,11 +47,11 @@ class TestCommandResult:
         result = CommandResult(command)
         result.timeout_sec = 10
         result.exit_code = 0
-        result.exit_class = CommandState.SUCCESS
+        result.state = CommandState.SUCCESS
         result.log_summary = "Test summary"
         stdout_path = Path("/path/to/stdout")
         stderr_path = Path("/path/to/stderr")
-        result.log_files = LogFiles(stdout_path, stderr_path)
+        result.log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
         result.finished_at = "2023-01-01T00:00:00"
 
         result_dict = result.to_dict()
@@ -69,7 +59,7 @@ class TestCommandResult:
         assert result_dict["command"] == command
         assert result_dict["timeout_sec"] == 10
         assert result_dict["exit_code"] == 0
-        assert result_dict["exit_class"] == CommandState.SUCCESS
+        assert result_dict["state"] == CommandState.SUCCESS
         assert result_dict["log_summary"] == "Test summary"
         assert result_dict["log_files"]["stdout"] == str(stdout_path)
         assert result_dict["log_files"]["stderr"] == str(stderr_path)
@@ -337,7 +327,7 @@ class TestWishManager:
 
             assert result.command == command
             assert result.exit_code == 1
-            assert result.exit_class == CommandState.OTHERS
+            assert result.state == CommandState.OTHERS
             assert result.finished_at is not None
 
     def test_summarize_log_empty_files(self):
@@ -403,10 +393,7 @@ class TestWishManager:
         mock_process.returncode = 0  # Return code 0 (success)
 
         # Create a command result
-        result = CommandResult("echo 'test'")
-        stdout_path = Path("/path/to/stdout")
-        stderr_path = Path("/path/to/stderr")
-        result.log_files = LogFiles(stdout_path, stderr_path)
+        result = CommandResultSuccessFactory()
 
         # Add to running commands
         manager.running_commands[0] = (mock_process, result)
@@ -419,7 +406,7 @@ class TestWishManager:
 
             assert 0 not in manager.running_commands  # Command should be removed
             assert result.exit_code == 0
-            assert result.exit_class == CommandState.SUCCESS
+            assert result.state == CommandState.SUCCESS
             assert result.finished_at is not None
             assert result.log_summary == "Test summary"
 
@@ -444,7 +431,7 @@ class TestWishManager:
             response = manager.cancel_command(wish, cmd_index)
 
             assert cmd_index not in manager.running_commands
-            assert result.exit_class == CommandState.USER_CANCELLED
+            assert result.state == CommandState.USER_CANCELLED
             assert result.finished_at is not None
             mock_process.terminate.assert_called_once()
             assert "cancelled" in response

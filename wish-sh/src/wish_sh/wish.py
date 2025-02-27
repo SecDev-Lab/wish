@@ -12,17 +12,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from wish_models import CommandState, WishState
+from wish_models import CommandState, LogFiles, WishState
 
 # Constants
 DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
-
-
-# Models (simplified for prototype)
-class LogFiles:
-    def __init__(self, stdout_path: Path, stderr_path: Path):
-        self.stdout = stdout_path
-        self.stderr = stderr_path
 
 
 class CommandResult:
@@ -30,7 +23,7 @@ class CommandResult:
         self.command = command
         self.timeout_sec = None
         self.exit_code = None
-        self.exit_class = None
+        self.state = None
         self.log_summary = None
         self.log_files = None
         self.created_at = datetime.datetime.utcnow().isoformat()
@@ -42,7 +35,7 @@ class CommandResult:
             "command": self.command,
             "timeout_sec": self.timeout_sec,
             "exit_code": self.exit_code,
-            "exit_class": self.exit_class,
+            "state": self.state,
             "log_summary": self.log_summary,
             "log_files": {
                 "stdout": str(self.log_files.stdout) if self.log_files else None,
@@ -173,7 +166,7 @@ class WishManager:
         log_dir = self.paths.create_command_log_dirs(wish.id)
         stdout_path = log_dir / f"{index}.stdout"
         stderr_path = log_dir / f"{index}.stderr"
-        result.log_files = LogFiles(stdout_path, stderr_path)
+        result.log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
 
         with open(stdout_path, "w") as stdout_file, open(stderr_path, "w") as stderr_file:
             try:
@@ -190,7 +183,7 @@ class WishManager:
             except Exception as e:
                 stderr_file.write(f"Failed to execute command: {str(e)}")
                 result.exit_code = 1
-                result.exit_class = CommandState.OTHERS
+                result.state = CommandState.OTHERS
                 result.finished_at = datetime.datetime.utcnow().isoformat()
                 return result
 
@@ -243,7 +236,7 @@ class WishManager:
         for idx, (process, result) in list(self.running_commands.items()):
             if process.poll() is not None:  # Process has finished
                 result.exit_code = process.returncode
-                result.exit_class = CommandState.SUCCESS if result.exit_code == 0 else CommandState.OTHERS
+                result.state = CommandState.SUCCESS if result.exit_code == 0 else CommandState.OTHERS
                 result.finished_at = datetime.datetime.utcnow().isoformat()
 
                 # Generate log summary
@@ -268,7 +261,7 @@ class WishManager:
                 pass  # Ignore errors in termination
 
             # Update result
-            result.exit_class = CommandState.USER_CANCELLED
+            result.state = CommandState.USER_CANCELLED
             result.finished_at = datetime.datetime.utcnow().isoformat()
             del self.running_commands[cmd_index]
 
