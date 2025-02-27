@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class WishState(Enum):
+class WishState(str, Enum):
     DOING = "DOING"
     DONE = "DONE"
     FAILED = "FAILED"

@@ -1,27 +1,21 @@
 #!/usr/bin/env python3
-import os
-import sys
-import random
-import json
 import datetime
-import subprocess
+import json
+import os
+import random
 import signal
+import subprocess
+import sys
 import time
 import uuid
-from pathlib import Path
 from enum import Enum
-from typing import List, Dict, Optional, Any, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from wish_models import WishState
 
 # Constants
 DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
-
-
-# Enums
-class WishState(str, Enum):
-    CREATED = "created"
-    DOING = "doing"
-    DONE = "done"
-    CANCELLED = "cancelled"
 
 
 class ExitClassEnum(str, Enum):
@@ -70,7 +64,7 @@ class Wish:
     def __init__(self, wish_text: str):
         self.id = uuid.uuid4().hex[:10]
         self.wish = wish_text
-        self.state = WishState.CREATED
+        self.state = WishState.DOING
         self.command_results = []
         self.created_at = datetime.datetime.utcnow().isoformat()
         self.finished_at = None
