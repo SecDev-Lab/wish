@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import datetime
 import json
 import os
 import subprocess
@@ -8,7 +7,7 @@ import time
 from pathlib import Path
 from typing import List
 
-from wish_models import CommandResult, CommandState, LogFiles, Wish, WishState
+from wish_models import CommandResult, CommandState, LogFiles, UtcDatetime, Wish, WishState
 
 # Constants
 DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
@@ -133,7 +132,7 @@ class WishManager:
                 stderr_file.write(f"Failed to execute command: {str(e)}")
                 result.exit_code = 1
                 result.state = CommandState.OTHERS
-                result.finished_at = datetime.datetime.utcnow().isoformat()
+                result.finished_at = UtcDatetime.now()
                 return result
 
     def summarize_log(self, stdout_path: Path, stderr_path: Path) -> str:
@@ -186,7 +185,7 @@ class WishManager:
             if process.poll() is not None:  # Process has finished
                 result.exit_code = process.returncode
                 result.state = CommandState.SUCCESS if result.exit_code == 0 else CommandState.OTHERS
-                result.finished_at = datetime.datetime.utcnow().isoformat()
+                result.finished_at = UtcDatetime.now()
 
                 # Generate log summary
                 if result.log_files:
@@ -211,7 +210,7 @@ class WishManager:
 
             # Update result
             result.state = CommandState.USER_CANCELLED
-            result.finished_at = datetime.datetime.utcnow().isoformat()
+            result.finished_at = UtcDatetime.now()
             del self.running_commands[cmd_index]
 
             return f"Command {cmd_index} cancelled."
