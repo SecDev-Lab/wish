@@ -1,13 +1,8 @@
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
-from wish_sh import (
-    CommandState as CommandState,
-)
-from wish_sh import (
-    Settings,
-    WishPaths,
-)
+from wish_sh.settings import Settings
+from wish_sh.wish_paths import WishPaths
 
 
 class TestWishPaths:

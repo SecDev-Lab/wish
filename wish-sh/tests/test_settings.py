@@ -1,12 +1,7 @@
 import os
 from unittest.mock import patch
 
-from wish_sh import (
-    CommandState as CommandState,
-)
-from wish_sh import (
-    Settings,
-)
+from wish_sh.settings import Settings
 
 
 class TestSettings:
