@@ -1,14 +1,16 @@
 from .wish import (
-    Wish,
-    WishState,
     CommandResult,
     LogFiles,
-    CommandState as CommandState,
     Settings,
-    WishPaths,
-    WishManager,
+    Wish,
     WishCLI,
+    WishManager,
+    WishPaths,
+    WishState,
     main,
+)
+from .wish import (
+    CommandState as CommandState,
 )
 
 __all__ = [

@@ -1,19 +1,14 @@
-import datetime
 import json
 import os
-import sys
-import uuid
 from pathlib import Path
-from unittest.mock import MagicMock, call, mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
-import pytest
 from wish_models.test_factories import CommandResultSuccessFactory, LogFilesFactory, WishDoingFactory, WishDoneFactory
 
 from wish_sh import (
     CommandResult,
     LogFiles,
     Settings,
-    Wish,
     WishCLI,
     WishManager,
     WishPaths,

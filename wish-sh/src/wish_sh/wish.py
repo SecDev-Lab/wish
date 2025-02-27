@@ -2,15 +2,11 @@
 import datetime
 import json
 import os
-import random
-import signal
 import subprocess
 import sys
 import time
-import uuid
-from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List
 
 from wish_models import CommandResult, CommandState, LogFiles, Wish, WishState
 
@@ -323,7 +319,7 @@ class WishCLI:
 
         # Display commands and ask for confirmation
         if len(commands) > 1:
-            print(f"\nこのコマンドをすべて実行しますか？ [Y/n]")
+            print("\nこのコマンドをすべて実行しますか？ [Y/n]")
             for cmd_num, cmd in enumerate(commands, 1):
                 print(f"[{cmd_num}] {cmd}")
 
@@ -359,7 +355,7 @@ class WishCLI:
                     return
         else:
             # Single command
-            print(f"\nこのコマンドを実行しますか？ [Y/n]")
+            print("\nこのコマンドを実行しますか？ [Y/n]")
             print(f"[1] {commands[0]}")
 
             self.print_question()
