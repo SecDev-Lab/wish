@@ -12,17 +12,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from wish_models import WishState
+from wish_models import CommandState, WishState
 
 # Constants
 DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
-
-
-class ExitClassEnum(str, Enum):
-    SUCCESS = "success"
-    ERROR = "error"
-    TIMEOUT = "timeout"
-    USER_CANCEL = "user_cancel"
 
 
 # Models (simplified for prototype)
@@ -197,7 +190,7 @@ class WishManager:
             except Exception as e:
                 stderr_file.write(f"Failed to execute command: {str(e)}")
                 result.exit_code = 1
-                result.exit_class = ExitClassEnum.ERROR
+                result.exit_class = CommandState.OTHERS
                 result.finished_at = datetime.datetime.utcnow().isoformat()
                 return result
 
@@ -250,7 +243,7 @@ class WishManager:
         for idx, (process, result) in list(self.running_commands.items()):
             if process.poll() is not None:  # Process has finished
                 result.exit_code = process.returncode
-                result.exit_class = ExitClassEnum.SUCCESS if result.exit_code == 0 else ExitClassEnum.ERROR
+                result.exit_class = CommandState.SUCCESS if result.exit_code == 0 else CommandState.OTHERS
                 result.finished_at = datetime.datetime.utcnow().isoformat()
 
                 # Generate log summary
@@ -275,7 +268,7 @@ class WishManager:
                 pass  # Ignore errors in termination
 
             # Update result
-            result.exit_class = ExitClassEnum.USER_CANCEL
+            result.exit_class = CommandState.USER_CANCELLED
             result.finished_at = datetime.datetime.utcnow().isoformat()
             del self.running_commands[cmd_index]
 

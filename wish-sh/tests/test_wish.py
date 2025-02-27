@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock, mock_open, call
 
 from wish_sh import (
     WishState,
-    CommandState as ExitClassEnum,
+    CommandState as CommandState,
     LogFiles,
     CommandResult,
     Wish,
@@ -18,15 +18,6 @@ from wish_sh import (
     WishManager,
     WishCLI,
 )
-
-
-class TestExitClassEnum:
-    def test_enum_values(self):
-        """Test that ExitClassEnum has the expected values."""
-        assert ExitClassEnum.SUCCESS == "success"
-        assert ExitClassEnum.ERROR == "error"
-        assert ExitClassEnum.TIMEOUT == "timeout"
-        assert ExitClassEnum.USER_CANCEL == "user_cancel"
 
 
 class TestLogFiles:
@@ -66,7 +57,7 @@ class TestCommandResult:
         result = CommandResult(command)
         result.timeout_sec = 10
         result.exit_code = 0
-        result.exit_class = ExitClassEnum.SUCCESS
+        result.exit_class = CommandState.SUCCESS
         result.log_summary = "Test summary"
         stdout_path = Path("/path/to/stdout")
         stderr_path = Path("/path/to/stderr")
@@ -78,7 +69,7 @@ class TestCommandResult:
         assert result_dict["command"] == command
         assert result_dict["timeout_sec"] == 10
         assert result_dict["exit_code"] == 0
-        assert result_dict["exit_class"] == ExitClassEnum.SUCCESS
+        assert result_dict["exit_class"] == CommandState.SUCCESS
         assert result_dict["log_summary"] == "Test summary"
         assert result_dict["log_files"]["stdout"] == str(stdout_path)
         assert result_dict["log_files"]["stderr"] == str(stderr_path)
@@ -346,7 +337,7 @@ class TestWishManager:
 
             assert result.command == command
             assert result.exit_code == 1
-            assert result.exit_class == ExitClassEnum.ERROR
+            assert result.exit_class == CommandState.OTHERS
             assert result.finished_at is not None
 
     def test_summarize_log_empty_files(self):
@@ -428,7 +419,7 @@ class TestWishManager:
 
             assert 0 not in manager.running_commands  # Command should be removed
             assert result.exit_code == 0
-            assert result.exit_class == ExitClassEnum.SUCCESS
+            assert result.exit_class == CommandState.SUCCESS
             assert result.finished_at is not None
             assert result.log_summary == "Test summary"
 
@@ -453,7 +444,7 @@ class TestWishManager:
             response = manager.cancel_command(wish, cmd_index)
 
             assert cmd_index not in manager.running_commands
-            assert result.exit_class == ExitClassEnum.USER_CANCEL
+            assert result.exit_class == CommandState.USER_CANCELLED
             assert result.finished_at is not None
             mock_process.terminate.assert_called_once()
             assert "cancelled" in response

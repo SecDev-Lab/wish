@@ -3,7 +3,7 @@ from .wish import (
     WishState,
     CommandResult,
     LogFiles,
-    ExitClassEnum as CommandState,
+    CommandState as CommandState,
     Settings,
     WishPaths,
     WishManager,

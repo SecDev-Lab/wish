@@ -11,7 +11,9 @@ class CommandState(str, enum.Enum):
     """The command succeeded, with meaningful insights."""
 
     USER_CANCELLED = "USER_CANCELLED"
-    """The user cancelled the command."""
+    """The user cancelled the command.
+    
+    Wish uses this state (wish assists human operators)"""
 
     COMMAND_NOT_FOUND = "COMMAND_NOT_FOUND"
     """The command was not found on the local machine."""
