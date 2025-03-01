@@ -11,10 +11,10 @@ class HelpPane(Container):
     # CSS moved to external file: wish_tui.css
 
     # Help text definitions
-    DEFAULT_HELP = "Help: ← Wish Select | → Main | Ctrl+↑ Main | Ctrl+↓ Sub | q Confirm Quit | Ctrl+Q Quit"
-    WISH_SELECT_HELP = "Help: ↑↓ Select Wish | → Main | q Confirm Quit | Ctrl+Q Quit"
-    MAIN_PANE_HELP = "Help: ← Wish Select | Ctrl+↓ Sub | q Confirm Quit | Ctrl+Q Quit"
-    SUB_PANE_HELP = "Help: ← Wish Select | Ctrl+↑ Main | q Confirm Quit | Ctrl+Q Quit"
+    DEFAULT_HELP = 'Help: [magenta][b]←[/b][/magenta] Wish Select | [magenta][b]→[/b][/magenta] Main | [magenta][b]Ctrl+↑[/b][/magenta] Main | [magenta][b]Ctrl+↓[/b][/magenta] Sub | [magenta][b]q[/b][/magenta] Confirm Quit | [magenta][b]Ctrl+Q[/b][/magenta] Quit'
+    WISH_SELECT_HELP = 'Help: [magenta][b]↑↓[/b][/magenta] Select Wish | [magenta][b]→[/b][/magenta] Main | [magenta][b]q[/b][/magenta] Confirm Quit | [magenta][b]Ctrl+Q[/b][/magenta] Quit'
+    MAIN_PANE_HELP = 'Help: [magenta][b]←[/b][/magenta] Wish Select | [magenta][b]Ctrl+↓[/b][/magenta] Sub | [magenta][b]q[/b][/magenta] Confirm Quit | [magenta][b]Ctrl+Q[/b][/magenta] Quit'
+    SUB_PANE_HELP = 'Help: [magenta][b]←[/b][/magenta] Wish Select | [magenta][b]Ctrl+↑[/b][/magenta] Main | [magenta][b]q[/b][/magenta] Confirm Quit | [magenta][b]Ctrl+Q[/b][/magenta] Quit'
 
     def __init__(self, *args, **kwargs):
         """Initialize the HelpPane."""
@@ -23,7 +23,7 @@ class HelpPane(Container):
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Static(self.help_text, id="help-content")
+        yield Static(self.help_text, id="help-content", markup=True)
     
     def update_help(self, active_pane: str) -> None:
         """Update the help text based on the active pane.
