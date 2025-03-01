@@ -204,17 +204,32 @@ class WishManager:
         else:
             return f"Command {cmd_index} is not running."
 
+    def _get_state_emoji(self, state: WishState) -> str:
+        """Get emoji for wish state."""
+        if state == WishState.DOING:
+            return "🔄"
+        elif state == WishState.DONE:
+            return "✅"
+        elif state == WishState.FAILED:
+            return "❌"
+        elif state == WishState.CANCELLED:
+            return "🚫"
+        else:
+            return "❓"  # For unknown states
+
     def format_wish_list_item(self, wish: Wish, index: int) -> str:
         """Format a wish for display in wishlist."""
+        emoji = self._get_state_emoji(wish.state)
+        
         if wish.state == WishState.DONE and wish.finished_at:
             return (
-                f"[{index}] wish: {wish.wish[:30]}"
+                f"{emoji} wish: {wish.wish[:30]}"
                 f"{'...' if len(wish.wish) > 30 else ''}  "
                 f"(started at {wish.created_at} ; done at {wish.finished_at})"
             )
         else:
             return (
-                f"[{index}] wish: {wish.wish[:30]}"
+                f"{emoji} wish: {wish.wish[:30]}"
                 f"{'...' if len(wish.wish) > 30 else ''}  "
                 f"(started at {wish.created_at} ; {wish.state})"
             )

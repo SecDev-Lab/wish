@@ -48,7 +48,28 @@ WishSelectPane {
     height: 100%;
 }
 
-WishSelectPane Static.selected {
+/* Horizontal layout for wish items */
+.wish-item {
+    width: 100%;
+    height: 1;
+}
+
+/* Fixed width for emoji cell */
+.fixed {
+    width: 3;  /* Fixed width */
+    content-align: center middle;
+}
+
+.emoji-cell {
+    content-align: center middle;
+}
+
+.text-cell {
+    width: 1fr;  /* Take remaining space */
+}
+
+/* Selected state styling */
+.wish-item.selected {
     background: $accent-darken-2;
     color: $text-accent;
 }

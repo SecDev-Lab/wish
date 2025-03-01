@@ -1,6 +1,7 @@
 """Wish Select Pane widget for wish-sh TUI."""
 
 from textual.app import ComposeResult
+from textual.containers import Horizontal
 from textual.message import Message
 from textual.widgets import Static
 
@@ -19,6 +20,37 @@ class WishSelected(Message):
         """
         self.wish = wish
         super().__init__()
+
+
+class WishItem(Horizontal):
+    """A widget representing a wish item with emoji and text in separate columns."""
+    
+    def __init__(self, wish, manager, is_selected=False):
+        """Initialize the WishItem.
+        
+        Args:
+            wish: The wish to display.
+            manager: WishManager instance for getting emoji.
+            is_selected: Whether this item is selected.
+        """
+        super().__init__()
+        self.wish = wish
+        self.manager = manager
+        self.is_selected = is_selected
+        self.add_class("wish-item")
+        if is_selected:
+            self.add_class("selected")
+    
+    def compose(self):
+        """Compose the widget."""
+        # Get emoji based on wish state
+        emoji = self.manager._get_state_emoji(self.wish.state) if self.manager else "❓"
+        
+        # First column: emoji with fixed width
+        yield Static(emoji, classes="emoji-cell fixed")
+        
+        # Second column: wish text
+        yield Static(self.wish.wish, classes="text-cell")
 
 
 class WishSelectPane(BasePane):
@@ -47,12 +79,14 @@ class WishSelectPane(BasePane):
         if not self.wishes:
             yield Static("(No wishes available)", id="wish-select-content", markup=False)
         else:
-            for i, wish in enumerate(self.wishes, 1):
-                # Use a simple representation to avoid markup issues
-                static = Static(f"[{i}] {wish.wish}", id=f"wish-{id(wish)}", markup=False)
-                if i - 1 == self.selected_index:
-                    static.add_class("selected")
-                yield static
+            for i, wish in enumerate(self.wishes):
+                wish_item = WishItem(
+                    wish=wish,
+                    manager=self.manager,
+                    is_selected=(i == self.selected_index)
+                )
+                wish_item.id = f"wish-{id(wish)}"
+                yield wish_item  # Make sure this is wish_item, not wish_grid
     
     def on_key(self, event) -> None:
         """Handle key events."""
@@ -85,14 +119,22 @@ class WishSelectPane(BasePane):
         # Reset all wish selection states
         for i in range(len(self.wishes)):
             wish_id = f"wish-{id(self.wishes[i])}"
-            widget = self.query_one(f"#{wish_id}")
-            widget.remove_class("selected")
+            try:
+                widget = self.query_one(f"#{wish_id}")
+                widget.remove_class("selected")
+            except Exception:
+                # Widget might not be found if the UI is being rebuilt
+                pass
         
         # Add selected class to the currently selected wish
         if self.selected_index >= 0:
             wish_id = f"wish-{id(self.wishes[self.selected_index])}"
-            widget = self.query_one(f"#{wish_id}")
-            widget.add_class("selected")
-            
-            # Post a message that a wish was selected
-            self.post_message(WishSelected(self.wishes[self.selected_index]))
+            try:
+                widget = self.query_one(f"#{wish_id}")
+                widget.add_class("selected")
+                
+                # Post a message that a wish was selected
+                self.post_message(WishSelected(self.wishes[self.selected_index]))
+            except Exception:
+                # Widget might not be found if the UI is being rebuilt
+                pass

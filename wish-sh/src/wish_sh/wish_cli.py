@@ -200,8 +200,9 @@ class WishCLI:
         if not wish:
             return ShellEvent.BACK_TO_INPUT
 
+        emoji = self.manager._get_state_emoji(wish.state)
         print(f"\nWish: {wish.wish}")
-        print(f"Status: {wish.state}")
+        print(f"Status: {emoji} {wish.state}")
         print(f"Created at: {wish.created_at}")
         if wish.finished_at:
             print(f"Finished at: {wish.finished_at}")
@@ -215,8 +216,9 @@ class WishCLI:
         # In a real implementation, we'd load and display command results
         # For prototype, show mock data
         print("\nCommands:")
+        emoji = self.manager._get_state_emoji(wish.state)
         for i, cmd in enumerate(["find / -perm -u=s -type f 2>/dev/null"], 1):
-            print(f"[{i}] cmd: {cmd} ({wish.state})")
+            print(f"{emoji} cmd: {cmd} ({wish.state})")
 
         self.print_question()
         choice = input().strip()
