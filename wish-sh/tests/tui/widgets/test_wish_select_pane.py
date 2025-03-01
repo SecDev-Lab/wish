@@ -38,11 +38,6 @@ class TestWishSelectPane:
             assert pane is not None
             assert pane.id == "wish-select"
             
-            # Check that the pane has the expected content
-            title = app.query_one("#wish-select-title")
-            assert title is not None
-            assert title.renderable == "Wish Select"
-            
             # Check that the pane shows the "No wishes available" message
             content = app.query_one("#wish-select-content")
             assert content is not None
@@ -63,22 +58,15 @@ class TestWishSelectPane:
             pane = app.query_one(WishSelectPane)
             assert pane is not None
             
-            # Check that the pane has the expected content
-            title = app.query_one("#wish-select-title")
-            assert title is not None
-            
             # Check that the pane shows the NEW WISH option and the wishes
             statics = app.query("Static")
-            assert len(statics) == len(test_wishes) + 2  # +1 for title, +1 for NEW WISH option
+            assert len(statics) == len(test_wishes) + 1  # +1 for NEW WISH option
             
-            # The first Static is the title
-            assert statics[0].renderable == "Wish Select"
-            
-            # The second Static is the NEW WISH option
-            assert "NEW WISH" in statics[1].renderable
+            # The first Static is the NEW WISH option
+            assert "NEW WISH" in statics[0].renderable
             
             # The rest are the wishes
-            for i, wish in enumerate(test_wishes, 2):  # Start from index 2 (after title and NEW WISH)
+            for i, wish in enumerate(test_wishes, 1):  # Start from index 1 (after NEW WISH)
                 assert wish.wish in statics[i].renderable
 
     @pytest.mark.asyncio
@@ -118,15 +106,12 @@ class TestWishSelectPane:
             
             # Check that the pane shows the wishes
             statics = app.query("Static")
-            assert len(statics) == len(test_wishes) + 2  # +1 for the title, +1 for NEW WISH option
+            assert len(statics) == len(test_wishes) + 1  # +1 for NEW WISH option
             
-            # The first Static is the title
-            assert statics[0].renderable == "Wish Select"
-            
-            # The wishes start at index 2 (after title and NEW WISH option)
+            # The wishes start at index 1 (after NEW WISH option)
             for i, wish in enumerate(test_wishes, 0):
                 # Check that the text contains the wish text
-                wish_index = i + 2  # Adjust for title and NEW WISH option
+                wish_index = i + 1  # Adjust for NEW WISH option
                 assert wish.wish in statics[wish_index].renderable
 
     @pytest.mark.asyncio
@@ -142,10 +127,10 @@ class TestWishSelectPane:
             
             # Check that the pane shows the wish with brackets
             statics = app.query("Static")
-            assert len(statics) == 3  # title + NEW WISH option + 1 wish
+            assert len(statics) == 2  # NEW WISH option + 1 wish
             
-            # The wish text should contain the brackets (at index 2, after title and NEW WISH)
-            assert "[This is a wish with brackets]" in statics[2].renderable
+            # The wish text should contain the brackets (at index 1, after NEW WISH)
+            assert "[This is a wish with brackets]" in statics[1].renderable
     
     @pytest.mark.asyncio
     async def test_new_wish_option_display(self):

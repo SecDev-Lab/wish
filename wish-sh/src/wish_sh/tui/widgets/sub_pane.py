@@ -24,17 +24,12 @@ class SubPane(BasePane):
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Static("Command Output", id="sub-pane-title")
         yield Static("(Select a command to view details)", id="sub-pane-content")
     
     def update_for_new_wish_mode(self):
         """Update the pane for New Wish mode."""
-        self.update_title_and_content(
-            "sub-pane-title",
-            "sub-pane-content",
-            "Sub Pane (New wish mode)",
-            "新しいWishのコマンド出力がここに表示されます。"
-        )
+        content_widget = self.query_one("#sub-pane-content")
+        content_widget.update("新しいWishのコマンド出力がここに表示されます。")
     
     def update_command_output(self, command_result):
         """Update the pane with command output details.

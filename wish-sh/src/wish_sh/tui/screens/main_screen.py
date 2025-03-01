@@ -124,12 +124,8 @@ class MainScreen(Screen):
             self.main_pane.update_wish(wish)
             
             # Reset Sub pane to default state for WISH HISTORY mode
-            self.sub_pane.update_title_and_content(
-                "sub-pane-title",
-                "sub-pane-content",
-                "Command Output",
-                "(Select a command to view details)"
-            )
+            content_widget = self.sub_pane.query_one("#sub-pane-content")
+            content_widget.update("(Select a command to view details)")
     
     def on_wish_selected(self, event: WishSelected) -> None:
         """Handle wish selection events."""

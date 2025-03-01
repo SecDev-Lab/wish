@@ -99,12 +99,12 @@ class TestMainScreen:
             assert screen.current_mode == WishMode.NEW_WISH
             
             # Check that the main pane is initialized for NEW_WISH mode
-            main_pane_title = app.query_one("#main-pane-title")
-            assert main_pane_title.renderable == "Main Pane (New wish mode)"
+            main_content = app.query_one("#main-pane-content")
+            assert "新しいWishを作成するモードです" in main_content.renderable
             
             # Check that the sub pane is initialized for NEW_WISH mode
-            sub_pane_title = app.query_one("#sub-pane-title")
-            assert sub_pane_title.renderable == "Sub Pane (New wish mode)"
+            sub_content = app.query_one("#sub-pane-content")
+            assert "新しいWishのコマンド出力がここに表示されます" in sub_content.renderable
 
     @pytest.mark.asyncio
     async def test_main_screen_wish_selected_event_with_mode(self):
@@ -133,13 +133,9 @@ class TestMainScreen:
             main_content = app.query_one("#main-pane-content")
             assert "wish: Test wish for event" in main_content.renderable
             
-            # Check that the main pane title has been updated
-            main_title = app.query_one("#main-pane-title")
-            assert main_title.renderable == "Main Pane"
-            
             # Check that the sub pane has been reset
-            sub_title = app.query_one("#sub-pane-title")
-            assert sub_title.renderable == "Command Output"
+            sub_content = app.query_one("#sub-pane-content")
+            assert sub_content.renderable == "(Select a command to view details)"
             
             # Now post a WishSelected event with NEW_WISH mode
             screen.post_message(WishSelected(None, WishMode.NEW_WISH))
@@ -149,13 +145,13 @@ class TestMainScreen:
             # Check that the screen mode has been updated
             assert screen.current_mode == WishMode.NEW_WISH
             
-            # Check that the main pane title has been updated
-            main_title = app.query_one("#main-pane-title")
-            assert main_title.renderable == "Main Pane (New wish mode)"
+            # Check that the main pane content has been updated
+            main_content = app.query_one("#main-pane-content")
+            assert "新しいWishを作成するモードです" in main_content.renderable
             
-            # Check that the sub pane title has been updated
-            sub_title = app.query_one("#sub-pane-title")
-            assert sub_title.renderable == "Sub Pane (New wish mode)"
+            # Check that the sub pane content has been updated
+            sub_content = app.query_one("#sub-pane-content")
+            assert "新しいWishのコマンド出力がここに表示されます" in sub_content.renderable
 
     @pytest.mark.asyncio
     async def test_main_screen_key_navigation(self):

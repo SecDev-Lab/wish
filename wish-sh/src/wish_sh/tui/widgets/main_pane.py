@@ -38,17 +38,12 @@ class MainPane(BasePane):
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Static("Main Pane", id="main-pane-title")
         yield Static("(Main content will be displayed here)", id="main-pane-content")
     
     def update_for_new_wish_mode(self):
         """Update the pane for New Wish mode."""
-        self.update_title_and_content(
-            "main-pane-title",
-            "main-pane-content",
-            "Main Pane (New wish mode)",
-            "新しいWishを作成するモードです。"
-        )
+        content_widget = self.query_one("#main-pane-content")
+        content_widget.update("新しいWishを作成するモードです。")
     
     def update_wish(self, wish):
         """Update the pane with the selected wish details.
@@ -58,10 +53,6 @@ class MainPane(BasePane):
         """
         try:
             self.current_wish = wish
-            
-            # Update title to default for Wish History mode
-            title_widget = self.query_one("#main-pane-title")
-            title_widget.update("Main Pane")
             
             # Get existing content widget
             content_widget = self.query_one("#main-pane-content")

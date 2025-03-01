@@ -47,8 +47,6 @@ class WishSelectPane(BasePane):
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Static("Wish Select", id="wish-select-title", markup=False)
-        
         # Add NEW WISH option at the top
         new_wish_emoji = "✨"  # Sparkles emoji as a "good emoji"
         new_wish_static = Static(f"{new_wish_emoji} NEW WISH", id="new-wish-option", classes="wish-item")

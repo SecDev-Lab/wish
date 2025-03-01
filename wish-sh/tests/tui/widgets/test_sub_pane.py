@@ -30,11 +30,6 @@ class TestSubPane:
             assert pane is not None
             assert pane.id == "sub-pane"
             
-            # Check that the pane has the expected content
-            title = app.query_one("#sub-pane-title")
-            assert title is not None
-            assert title.renderable == "Command Output"
-            
             # Check that the pane shows the placeholder message
             content = app.query_one("#sub-pane-content")
             assert content is not None
@@ -49,11 +44,6 @@ class TestSubPane:
             
             # Update for New Wish mode
             pane.update_for_new_wish_mode()
-            
-            # Check that the title has been updated
-            title = app.query_one("#sub-pane-title")
-            assert title is not None
-            assert title.renderable == "Sub Pane (New wish mode)"
             
             # Check that the content has been updated
             content = app.query_one("#sub-pane-content")

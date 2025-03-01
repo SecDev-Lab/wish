@@ -27,11 +27,6 @@ class TestMainPane:
             assert pane is not None
             assert pane.id == "main-pane"
             
-            # Check that the pane has the expected content
-            title = app.query_one("#main-pane-title")
-            assert title is not None
-            assert title.renderable == "Main Pane"
-            
             # Check that the pane shows the placeholder message
             content = app.query_one("#main-pane-content")
             assert content is not None
@@ -139,35 +134,30 @@ class TestMainPane:
             # Update for New Wish mode
             pane.update_for_new_wish_mode()
             
-            # Check that the title has been updated
-            title = app.query_one("#main-pane-title")
-            assert title is not None
-            assert title.renderable == "Main Pane (New wish mode)"
-            
             # Check that the content has been updated
             content = app.query_one("#main-pane-content")
             assert content is not None
             assert "新しいWishを作成するモードです" in content.renderable
     
     @pytest.mark.asyncio
-    async def test_main_pane_title_update_on_wish_mode_switch(self):
-        """Test that the MainPane title is updated correctly when switching modes."""
+    async def test_main_pane_content_update_on_wish_mode_switch(self):
+        """Test that the MainPane content is updated correctly when switching modes."""
         app = MainPaneTestApp()
         async with app.run_test():
             pane = app.query_one(MainPane)
             
             # First update for New Wish mode
             pane.update_for_new_wish_mode()
-            title = app.query_one("#main-pane-title")
-            assert title.renderable == "Main Pane (New wish mode)"
+            content = app.query_one("#main-pane-content")
+            assert "新しいWishを作成するモードです" in content.renderable
             
             # Then update with a wish (Wish History mode)
             test_wish = Wish.create("Test wish")
             pane.update_wish(test_wish)
             
-            # Check that the title has been reset to default
-            title = app.query_one("#main-pane-title")
-            assert title.renderable == "Main Pane"
+            # Check that the content has been updated
+            content = app.query_one("#main-pane-content")
+            assert "wish: Test wish" in content.renderable
     
     @pytest.mark.asyncio
     async def test_main_pane_active_state(self):
