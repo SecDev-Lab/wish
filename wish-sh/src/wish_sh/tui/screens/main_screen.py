@@ -4,6 +4,8 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 
+from wish_sh.settings import Settings
+from wish_sh.wish_manager import WishManager
 from wish_sh.tui.widgets.help_pane import HelpPane
 from wish_sh.tui.widgets.main_pane import MainPane
 from wish_sh.tui.widgets.sub_pane import SubPane
@@ -12,6 +14,15 @@ from wish_sh.tui.widgets.wish_select_pane import WishSelectPane
 
 class MainScreen(Screen):
     """Main screen for the wish-sh TUI application."""
+    
+    def __init__(self, *args, **kwargs):
+        """Initialize the MainScreen."""
+        super().__init__(*args, **kwargs)
+        # WishManagerを初期化
+        self.settings = Settings()
+        self.manager = WishManager(self.settings)
+        # 過去のwishを読み込む
+        self.wishes = self.manager.load_wishes()
 
     DEFAULT_CSS = """
     MainScreen {
@@ -45,7 +56,7 @@ class MainScreen(Screen):
     def compose(self) -> ComposeResult:
         """Compose the screen."""
         # Create the main layout
-        self.wish_select = WishSelectPane(id="wish-select")
+        self.wish_select = WishSelectPane(wishes=self.wishes, manager=self.manager, id="wish-select")
         self.main_pane = MainPane(id="main-pane")
         self.sub_pane = SubPane(id="sub-pane")
         help_pane = HelpPane(id="help-pane")
