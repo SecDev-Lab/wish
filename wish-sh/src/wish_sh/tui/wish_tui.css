@@ -87,11 +87,23 @@ SubPane #sub-pane-content {
     overflow-y: scroll;
 }
 
-/* Grid styles */
-Grid {
+/* Grid and Horizontal container styles */
+Grid, Horizontal {
     width: 100%;
     height: auto;
     overflow-y: scroll;
+}
+
+/* Label and value styles for separated components */
+#wish-labels, #command-labels {
+    width: 20%;
+    padding-right: 1;
+    text-align: right;
+}
+
+#wish-values, #command-values {
+    width: 80%;
+    text-align: left;
 }
 
 .label {
