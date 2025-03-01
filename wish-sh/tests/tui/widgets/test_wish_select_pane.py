@@ -2,6 +2,7 @@
 
 import pytest
 from textual.app import App, ComposeResult
+from wish_models import Wish
 
 from wish_sh.tui.widgets.wish_select_pane import WishSelectPane
 
@@ -49,7 +50,11 @@ class TestWishSelectPane:
     async def test_wish_select_pane_with_wishes(self):
         """Test that a WishSelectPane can display wishes."""
         # Create some test wishes
-        test_wishes = ["Wish 1", "Wish 2", "Wish 3"]
+        test_wishes = [
+            Wish.create("Wish 1"),
+            Wish.create("Wish 2"),
+            Wish.create("Wish 3")
+        ]
         
         app = WishSelectPaneTestApp(wishes=test_wishes)
         async with app.run_test():
@@ -70,9 +75,11 @@ class TestWishSelectPane:
             # The first Static is the title
             assert statics[0].renderable == "Wish Select"
             
-            # The rest are the wishes
-            for i, wish in enumerate(test_wishes):
-                assert statics[i + 1].renderable == str(wish)
+            # The rest are the wishes with their index
+            for i, wish in enumerate(test_wishes, 1):
+                # Check that the text contains both the index and the wish text
+                assert f"[{i}]" in statics[i].renderable
+                assert wish.wish in statics[i].renderable
 
     @pytest.mark.asyncio
     async def test_wish_select_pane_active_state(self):
@@ -93,3 +100,50 @@ class TestWishSelectPane:
             pane.set_active(False)
             # No need to process events, the class is removed immediately
             assert "active-pane" not in pane.classes
+
+    @pytest.mark.asyncio
+    async def test_wish_select_pane_with_real_wishes(self):
+        """Test that a WishSelectPane can display real Wish objects."""
+        # Create some test Wish objects
+        test_wishes = [
+            Wish.create("Test wish 1"),
+            Wish.create("Test wish 2"),
+            Wish.create("Test wish 3")
+        ]
+        
+        app = WishSelectPaneTestApp(wishes=test_wishes)
+        async with app.run_test():
+            pane = app.query_one(WishSelectPane)
+            assert pane is not None
+            
+            # Check that the pane shows the wishes
+            statics = app.query("Static")
+            assert len(statics) == len(test_wishes) + 1  # +1 for the title
+            
+            # The first Static is the title
+            assert statics[0].renderable == "Wish Select"
+            
+            # The rest are the wishes with their index
+            for i, wish in enumerate(test_wishes, 1):
+                # Check that the text contains both the index and the wish text
+                assert f"[{i}]" in statics[i].renderable
+                assert wish.wish in statics[i].renderable
+
+    @pytest.mark.asyncio
+    async def test_wish_select_pane_with_brackets(self):
+        """Test that a WishSelectPane can display text with brackets correctly."""
+        # Create a Wish with brackets in the text
+        test_wish = Wish.create("[This is a wish with brackets]")
+        
+        app = WishSelectPaneTestApp(wishes=[test_wish])
+        async with app.run_test():
+            pane = app.query_one(WishSelectPane)
+            assert pane is not None
+            
+            # Check that the pane shows the wish with brackets
+            statics = app.query("Static")
+            assert len(statics) == 2  # title + 1 wish
+            
+            # The wish text should contain both the index and the brackets
+            assert "[1]" in statics[1].renderable
+            assert "[This is a wish with brackets]" in statics[1].renderable
