@@ -6,7 +6,7 @@ MainScreen {
     grid-size: 2 2;
     grid-rows: 1fr 1fr;
     grid-columns: 30 1fr;
-    grid-gutter: 1;
+    grid-gutter: 0;
 }
 
 WishSelectPane {
@@ -32,13 +32,11 @@ HelpPane {
 BasePane {
     width: 100%;
     height: 100%;
-    border: solid $primary;
     background: $surface;
     padding: 1;
 }
 
 BasePane.active-pane {
-    border: heavy $accent;
     background: $surface-lighten-1;
 }
 
