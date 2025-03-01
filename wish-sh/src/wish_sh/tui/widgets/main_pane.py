@@ -43,7 +43,7 @@ class MainPane(BasePane):
     def update_for_new_wish_mode(self):
         """Update the pane for New Wish mode."""
         content_widget = self.query_one("#main-pane-content")
-        content_widget.update("新しいWishを作成するモードです。")
+        content_widget.update("[b]新しいWishを作成するモードです。[/b]")
     
     def _get_wish_state_emoji(self, state):
         """Get emoji for wish state."""

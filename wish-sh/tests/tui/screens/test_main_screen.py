@@ -131,7 +131,8 @@ class TestMainScreen:
             
             # Check that the main pane content has been updated
             main_content = app.query_one("#main-pane-content")
-            assert "wish: Test wish for event" in main_content.renderable
+            assert "[b]Wish:[/b]" in main_content.renderable
+            assert "Test wish for event" in main_content.renderable
             
             # Check that the sub pane has been reset
             sub_content = app.query_one("#sub-pane-content")
