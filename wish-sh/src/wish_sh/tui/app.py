@@ -18,7 +18,8 @@ class WishTUIApp(App):
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),
         Binding("q", "confirm_quit", "Confirm Quit"),
-        Binding("ctrl+left", "focus_wish_select", "Focus Wish Select"),
+        Binding("left", "focus_wish_select", "Focus Wish Select"),
+        Binding("right", "focus_main", "Focus Main"),
         Binding("ctrl+up", "focus_main", "Focus Main"),
         Binding("ctrl+down", "focus_sub", "Focus Sub"),
     ]
@@ -36,15 +37,30 @@ class WishTUIApp(App):
 
     def action_focus_wish_select(self) -> None:
         """Action to focus the wish select pane."""
-        self.query_one("#wish-select").focus()
+        # Get the main screen
+        main_screen = self.screen
+        if hasattr(main_screen, "activate_pane"):
+            main_screen.activate_pane("wish-select")
+        else:
+            self.query_one("#wish-select").focus()
 
     def action_focus_main(self) -> None:
         """Action to focus the main pane."""
-        self.query_one("#main-pane").focus()
+        # Get the main screen
+        main_screen = self.screen
+        if hasattr(main_screen, "activate_pane"):
+            main_screen.activate_pane("main-pane")
+        else:
+            self.query_one("#main-pane").focus()
 
     def action_focus_sub(self) -> None:
         """Action to focus the sub pane."""
-        self.query_one("#sub-pane").focus()
+        # Get the main screen
+        main_screen = self.screen
+        if hasattr(main_screen, "activate_pane"):
+            main_screen.activate_pane("sub-pane")
+        else:
+            self.query_one("#sub-pane").focus()
 
     def action_confirm_quit(self) -> None:
         """Action to show quit confirmation dialog."""

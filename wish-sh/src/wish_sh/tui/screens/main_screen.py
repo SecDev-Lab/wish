@@ -68,12 +68,27 @@ class MainScreen(Screen):
     
     def on_key(self, event) -> None:
         """Handle key events."""
-        if event.key == "ctrl+left":
+        # デバッグ情報を表示
+        self.log(f"Key pressed: {event.key}")
+        
+        # 左右の矢印キーでペーン間を移動
+        if event.key in ("left", "arrow_left"):
+            self.log("Activating Wish Select pane")
             self.activate_pane("wish-select")
-        elif event.key == "ctrl+up":
+            return True  # イベントを消費
+        elif event.key in ("right", "arrow_right"):
+            self.log("Activating Main pane")
             self.activate_pane("main-pane")
-        elif event.key == "ctrl+down":
+            return True  # イベントを消費
+        # 上下の矢印キーは Ctrl キーと組み合わせて使用
+        elif event.key in ("ctrl+up", "ctrl+arrow_up", "up+ctrl"):
+            self.log("Activating Main pane")
+            self.activate_pane("main-pane")
+            return True  # イベントを消費
+        elif event.key in ("ctrl+down", "ctrl+arrow_down", "down+ctrl"):
+            self.log("Activating Sub pane")
             self.activate_pane("sub-pane")
+            return True  # イベントを消費
     
     def activate_pane(self, pane_id: str) -> None:
         """Activate the specified pane."""

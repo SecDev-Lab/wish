@@ -22,6 +22,6 @@ class HelpPane(Container):
     def compose(self) -> ComposeResult:
         """Compose the widget."""
         yield Static(
-            "Help: Ctrl+← Wish Select | Ctrl+↑ Main | Ctrl+↓ Sub | q 確認して終了 | Ctrl+Q 直接終了",
+            "Help: ← Wish Select | → Main | Ctrl+↑ Main | Ctrl+↓ Sub | q 確認して終了 | Ctrl+Q 直接終了",
             id="help-content"
         )
