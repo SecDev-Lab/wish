@@ -7,7 +7,7 @@ from textual.screen import Screen
 from wish_sh.settings import Settings
 from wish_sh.wish_manager import WishManager
 from wish_sh.tui.widgets.help_pane import HelpPane
-from wish_sh.tui.widgets.main_pane import MainPane
+from wish_sh.tui.widgets.main_pane import MainPane, CommandSelected
 from wish_sh.tui.widgets.sub_pane import SubPane
 from wish_sh.tui.widgets.wish_select_pane import WishSelectPane, WishSelected
 
@@ -15,43 +15,16 @@ from wish_sh.tui.widgets.wish_select_pane import WishSelectPane, WishSelected
 class MainScreen(Screen):
     """Main screen for the wish-sh TUI application."""
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, wish_manager=None, **kwargs):
         """Initialize the MainScreen."""
         super().__init__(*args, **kwargs)
-        # WishManagerを初期化
+        # Initialize with dependency injection
         self.settings = Settings()
-        self.manager = WishManager(self.settings)
-        # 過去のwishを読み込む
+        self.manager = wish_manager or WishManager(self.settings)
+        # Load past wishes
         self.wishes = self.manager.load_wishes()
 
-    DEFAULT_CSS = """
-    MainScreen {
-        layout: grid;
-        grid-size: 2 2;
-        grid-rows: 1fr 1fr;
-        grid-columns: 30 1fr;
-        grid-gutter: 1;
-    }
-    
-    WishSelectPane {
-        row-span: 2;
-        column-span: 1;
-    }
-    
-    MainPane {
-        row-span: 1;
-        column-span: 1;
-    }
-    
-    SubPane {
-        row-span: 1;
-        column-span: 1;
-    }
-    
-    HelpPane {
-        layer: overlay;
-    }
-    """
+    # CSS moved to external file: wish_tui.css
 
     def compose(self) -> ComposeResult:
         """Compose the screen."""
@@ -86,38 +59,29 @@ class MainScreen(Screen):
     
     def on_key(self, event) -> None:
         """Handle key events."""
-        # デバッグ情報を表示
-        self.log(f"Key pressed: {event.key}")
-        
-        # Wish Selectペーンがアクティブなときは上下キーを直接処理
+        # Handle up/down keys when Wish Select pane is active
         if self.wish_select.has_class("active-pane"):
             if event.key in ("up", "arrow_up"):
-                self.log("Directly handling up key for WishSelectPane")
                 self.wish_select.select_previous()
-                return True  # イベントを消費
+                return True  # Consume event
             elif event.key in ("down", "arrow_down"):
-                self.log("Directly handling down key for WishSelectPane")
                 self.wish_select.select_next()
-                return True  # イベントを消費
+                return True  # Consume event
         
-        # 左右の矢印キーでペーン間を移動
+        # Navigate between panes with arrow keys
         if event.key in ("left", "arrow_left"):
-            self.log("Activating Wish Select pane")
             self.activate_pane("wish-select")
-            return True  # イベントを消費
+            return True  # Consume event
         elif event.key in ("right", "arrow_right"):
-            self.log("Activating Main pane")
             self.activate_pane("main-pane")
-            return True  # イベントを消費
-        # 上下の矢印キーは Ctrl キーと組み合わせて使用
+            return True  # Consume event
+        # Use Ctrl+arrow keys for vertical navigation
         elif event.key in ("ctrl+up", "ctrl+arrow_up", "up+ctrl"):
-            self.log("Activating Main pane")
             self.activate_pane("main-pane")
-            return True  # イベントを消費
+            return True  # Consume event
         elif event.key in ("ctrl+down", "ctrl+arrow_down", "down+ctrl"):
-            self.log("Activating Sub pane")
             self.activate_pane("sub-pane")
-            return True  # イベントを消費
+            return True  # Consume event
     
     def activate_pane(self, pane_id: str) -> None:
         """Activate the specified pane."""
@@ -142,5 +106,10 @@ class MainScreen(Screen):
     
     def on_wish_selected(self, event: WishSelected) -> None:
         """Handle wish selection events."""
-        self.log(f"Wish selected: {event.wish.wish}")
         self.main_pane.update_wish(event.wish)
+    
+    def on_command_selected(self, event: CommandSelected) -> None:
+        """Handle command selection events."""
+        self.sub_pane.update_command_output(event.command_result)
+        # Activate the sub pane to show the command output
+        self.activate_pane("sub-pane")

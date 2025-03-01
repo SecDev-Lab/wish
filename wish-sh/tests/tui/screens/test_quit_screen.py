@@ -45,12 +45,12 @@ class TestQuitScreen:
             yes_button = app.query_one("#yes")
             assert yes_button is not None
             assert isinstance(yes_button, Button)
-            assert str(yes_button.label) == "はい"
+            assert str(yes_button.label) == "Yes"
             
             no_button = app.query_one("#no")
             assert no_button is not None
             assert isinstance(no_button, Button)
-            assert str(no_button.label) == "いいえ"
+            assert str(no_button.label) == "No"
 
     @pytest.mark.asyncio
     async def test_quit_screen_yes_button(self):

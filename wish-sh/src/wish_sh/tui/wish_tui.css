@@ -1,0 +1,109 @@
+/* Main application styles */
+
+/* MainScreen styles */
+MainScreen {
+    layout: grid;
+    grid-size: 2 2;
+    grid-rows: 1fr 1fr;
+    grid-columns: 30 1fr;
+    grid-gutter: 1;
+}
+
+WishSelectPane {
+    row-span: 2;
+    column-span: 1;
+}
+
+MainPane {
+    row-span: 1;
+    column-span: 1;
+}
+
+SubPane {
+    row-span: 1;
+    column-span: 1;
+}
+
+HelpPane {
+    layer: overlay;
+}
+
+/* BasePane styles */
+BasePane {
+    width: 100%;
+    height: 100%;
+    border: solid $primary;
+    background: $surface;
+    padding: 1;
+}
+
+BasePane.active-pane {
+    border: heavy $accent;
+    background: $surface-lighten-1;
+}
+
+/* WishSelectPane styles */
+WishSelectPane {
+    width: 30;
+    height: 100%;
+}
+
+WishSelectPane Static.selected {
+    background: $accent-darken-2;
+    color: $text-accent;
+}
+
+/* MainPane styles */
+MainPane {
+    width: 100%;
+    height: 100%;
+}
+
+MainPane #command-status-done {
+    color: $success;
+}
+
+MainPane #command-status-doing {
+    color: $warning;
+}
+
+MainPane #command-status-failed, MainPane #command-status-cancelled {
+    color: $error;
+}
+
+/* SubPane styles */
+SubPane {
+    width: 100%;
+    height: 100%;
+}
+
+SubPane #sub-pane-content {
+    height: auto;
+    overflow-y: scroll;
+}
+
+/* HelpPane styles */
+HelpPane {
+    width: 100%;
+    height: 3;
+    dock: bottom;
+    border: solid $primary;
+    background: $surface-darken-1;
+    padding: 0 1;
+}
+
+/* QuitScreen styles */
+QuitScreen {
+    align: center middle;
+}
+
+.quit-dialog {
+    background: $surface;
+    padding: 1 2;
+    border: solid $primary;
+    width: 40;
+}
+
+.quit-dialog Button {
+    margin: 1 1 0 1;
+}

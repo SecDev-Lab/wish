@@ -12,7 +12,7 @@ class WishTUIApp(App):
 
     TITLE = "wish-sh TUI"
     SUB_TITLE = "Your wish, our command"
-    CSS_PATH = None  # We're using inline CSS for simplicity
+    CSS_PATH = "wish_tui.css"  # Use external CSS file
 
     # Define key bindings
     BINDINGS = [

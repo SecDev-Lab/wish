@@ -8,22 +8,13 @@ from textual.widgets import Static
 class HelpPane(Container):
     """Help information pane."""
 
-    DEFAULT_CSS = """
-    HelpPane {
-        width: 100%;
-        height: 3;
-        dock: bottom;
-        border: solid $primary;
-        background: $surface-darken-1;
-        padding: 0 1;
-    }
-    """
+    # CSS moved to external file: wish_tui.css
 
-    # ヘルプテキスト定義
-    DEFAULT_HELP = "Help: ← Wish Select | → Main | Ctrl+↑ Main | Ctrl+↓ Sub | q 確認して終了 | Ctrl+Q 直接終了"
-    WISH_SELECT_HELP = "Help: ↑↓ Wish選択 | → Main | q 確認して終了 | Ctrl+Q 直接終了"
-    MAIN_PANE_HELP = "Help: ← Wish Select | Ctrl+↓ Sub | q 確認して終了 | Ctrl+Q 直接終了"
-    SUB_PANE_HELP = "Help: ← Wish Select | Ctrl+↑ Main | q 確認して終了 | Ctrl+Q 直接終了"
+    # Help text definitions
+    DEFAULT_HELP = "Help: ← Wish Select | → Main | Ctrl+↑ Main | Ctrl+↓ Sub | q Confirm Quit | Ctrl+Q Quit"
+    WISH_SELECT_HELP = "Help: ↑↓ Select Wish | → Main | q Confirm Quit | Ctrl+Q Quit"
+    MAIN_PANE_HELP = "Help: ← Wish Select | Ctrl+↓ Sub | q Confirm Quit | Ctrl+Q Quit"
+    SUB_PANE_HELP = "Help: ← Wish Select | Ctrl+↑ Main | q Confirm Quit | Ctrl+Q Quit"
 
     def __init__(self, *args, **kwargs):
         """Initialize the HelpPane."""

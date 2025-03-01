@@ -6,20 +6,7 @@ from textual.containers import Container
 class BasePane(Container):
     """Base class for all panes in the application."""
 
-    DEFAULT_CSS = """
-    BasePane {
-        width: 100%;
-        height: 100%;
-        border: solid $primary;
-        background: $surface;
-        padding: 1;
-    }
-    
-    BasePane.active-pane {
-        border: heavy $accent;
-        background: $surface-lighten-1;
-    }
-    """
+    # CSS moved to external file: wish_tui.css
 
     def set_active(self, active: bool) -> None:
         """Set the active state of the pane.

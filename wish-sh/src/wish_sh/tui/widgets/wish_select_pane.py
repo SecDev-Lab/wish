@@ -24,17 +24,7 @@ class WishSelected(Message):
 class WishSelectPane(BasePane):
     """A pane for selecting wishes."""
 
-    DEFAULT_CSS = """
-    WishSelectPane {
-        width: 30;
-        height: 100%;
-    }
-    
-    WishSelectPane Static.selected {
-        background: $accent-darken-2;
-        color: $text-accent;
-    }
-    """
+    # CSS moved to external file: wish_tui.css
 
     def __init__(self, wishes=None, manager=None, *args, **kwargs):
         """Initialize the WishSelectPane.
@@ -68,46 +58,15 @@ class WishSelectPane(BasePane):
         """Handle key events."""
         if not self.wishes:
             return False
-
-        # デバッグ情報を表示
-        self.log(f"WishSelectPane received key: {event.key}")
         
         if event.key in ("up", "arrow_up"):
-            self.log("Processing up key")
             self.select_previous()
             return True
         elif event.key in ("down", "arrow_down"):
-            self.log("Processing down key")
             self.select_next()
             return True
         
         return False
-    
-    # Textualの標準キーイベントハンドラを追加（異なる命名規則を試す）
-    def key_up(self) -> None:
-        """Handle up key press."""
-        self.log("key_up called")
-        if self.wishes:
-            self.select_previous()
-    
-    def key_down(self) -> None:
-        """Handle down key press."""
-        self.log("key_down called")
-        if self.wishes:
-            self.select_next()
-            
-    # 別の命名規則も試す
-    def on_press_up(self) -> None:
-        """Handle up key press."""
-        self.log("on_press_up called")
-        if self.wishes:
-            self.select_previous()
-    
-    def on_press_down(self) -> None:
-        """Handle down key press."""
-        self.log("on_press_down called")
-        if self.wishes:
-            self.select_next()
     
     def select_previous(self) -> None:
         """Select the previous wish."""
