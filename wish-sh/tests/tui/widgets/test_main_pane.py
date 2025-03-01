@@ -69,10 +69,14 @@ class TestMainPane:
             # Check that the pane shows the wish details
             content = app.query_one("#main-pane-content")
             assert content is not None
-            assert "wish: Test wish" in content.renderable
-            assert "Commands:" in content.renderable
+            assert "[b]Wish:[/b]" in content.renderable
+            assert "Test wish" in content.renderable
+            assert "[b]Status:[/b]" in content.renderable
+            assert "[b]Created:[/b]" in content.renderable
+            assert "[b]Finished:[/b]" in content.renderable
+            assert "[b]Commands:[/b]" in content.renderable
+            assert "✅" in content.renderable  # Success emoji
             assert "echo 'Hello, world!'" in content.renderable
-            assert "(DONE)" in content.renderable
 
     @pytest.mark.asyncio
     async def test_main_pane_update_wish_with_multiple_commands(self):
@@ -109,20 +113,21 @@ class TestMainPane:
             # Check that the pane shows the wish details
             content = app.query_one("#main-pane-content")
             assert content is not None
-            assert "wish: Test wish with multiple commands" in content.renderable
+            assert "[b]Wish:[/b]" in content.renderable
+            assert "Test wish with multiple commands" in content.renderable
             
-            # Check that all commands are displayed with their correct status
+            # Check that all commands are displayed with their correct status and emojis
             assert "echo 'Command 1'" in content.renderable
-            assert "(DONE)" in content.renderable
+            assert "✅" in content.renderable  # Success emoji
             
             assert "echo 'Command 2'" in content.renderable
-            assert "(FAILED)" in content.renderable
+            assert "❌" in content.renderable  # Failed emoji
             
             assert "echo 'Command 3'" in content.renderable
-            assert "(DOING)" in content.renderable
+            assert "❓" in content.renderable  # Unknown state emoji
             
             assert "echo 'Command 4'" in content.renderable
-            assert "(CANCELLED)" in content.renderable
+            assert "🚫" in content.renderable  # Cancelled emoji
 
     @pytest.mark.asyncio
     async def test_main_pane_update_for_new_wish_mode(self):
@@ -157,7 +162,8 @@ class TestMainPane:
             
             # Check that the content has been updated
             content = app.query_one("#main-pane-content")
-            assert "wish: Test wish" in content.renderable
+            assert "[b]Wish:[/b]" in content.renderable
+            assert "Test wish" in content.renderable
     
     @pytest.mark.asyncio
     async def test_main_pane_active_state(self):

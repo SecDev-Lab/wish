@@ -4,7 +4,7 @@ from textual.app import ComposeResult
 from textual.message import Message
 from textual.widgets import Static
 
-from wish_models import CommandState, CommandResult
+from wish_models import CommandState, CommandResult, WishState
 from wish_sh.tui.widgets.base_pane import BasePane
 
 
@@ -38,12 +38,48 @@ class MainPane(BasePane):
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Static("(Main content will be displayed here)", id="main-pane-content")
+        yield Static("(Main content will be displayed here)", id="main-pane-content", markup=True)
     
     def update_for_new_wish_mode(self):
         """Update the pane for New Wish mode."""
         content_widget = self.query_one("#main-pane-content")
         content_widget.update("新しいWishを作成するモードです。")
+    
+    def _get_wish_state_emoji(self, state):
+        """Get emoji for wish state."""
+        if state == WishState.DOING:
+            return "🔄"
+        elif state == WishState.DONE:
+            return "✅"
+        elif state == WishState.FAILED:
+            return "❌"
+        elif state == WishState.CANCELLED:
+            return "🚫"
+        else:
+            return "❓"
+
+    def _get_command_state_emoji(self, state):
+        """Get emoji for command state."""
+        if state == CommandState.DOING:
+            return "🔄"
+        elif state == CommandState.SUCCESS:
+            return "✅"
+        elif state == CommandState.USER_CANCELLED:
+            return "🚫"
+        elif state == CommandState.COMMAND_NOT_FOUND:
+            return "🔍❌"
+        elif state == CommandState.FILE_NOT_FOUND:
+            return "📄❌"
+        elif state == CommandState.REMOTE_OPERATION_FAILED:
+            return "🌐❌"
+        elif state == CommandState.TIMEOUT:
+            return "⏱️"
+        elif state == CommandState.NETWORK_ERROR:
+            return "📡❌"
+        elif state == CommandState.OTHERS:
+            return "❌"
+        else:
+            return "❓"
     
     def update_wish(self, wish):
         """Update the pane with the selected wish details.
@@ -59,31 +95,23 @@ class MainPane(BasePane):
             
             # Create content text
             if wish:
-                # Format wish details
+                # Get emoji for wish state
+                state_emoji = self._get_wish_state_emoji(wish.state)
+                
+                # Format wish details with aligned labels
                 content_lines = [
-                    f"wish: {wish.wish}",
+                    f"[b]Wish:[/b]     {wish.wish}",
+                    f"[b]Status:[/b]   {state_emoji} {wish.state}",
+                    f"[b]Created:[/b]  {wish.created_at}",
+                    f"[b]Finished:[/b] {wish.finished_at or 'Not finished yet'}",
                     "",
-                    "Commands:"
+                    "[b]Commands:[/b]"
                 ]
                 
-                # Add command results
+                # Add command results as single lines
                 for i, cmd in enumerate(wish.command_results, 1):
-                    status_id = ""
-                    if cmd.state == CommandState.SUCCESS:
-                        status = "(DONE)"
-                        status_id = "command-status-done"
-                    elif cmd.state == CommandState.OTHERS:
-                        status = "(FAILED)"
-                        status_id = "command-status-failed"
-                    elif cmd.state == CommandState.USER_CANCELLED:
-                        status = "(CANCELLED)"
-                        status_id = "command-status-cancelled"
-                    else:
-                        status = "(DOING)"
-                        status_id = "command-status-doing"
-                    
-                    command_line = f"({i}) {cmd.command}  {status}"
-                    content_lines.append(command_line)
+                    cmd_emoji = self._get_command_state_emoji(cmd.state)
+                    content_lines.append(f"{cmd_emoji} ({i}) {cmd.command}")
                 
                 content_text = "\n".join(content_lines)
             else:
@@ -111,9 +139,10 @@ class MainPane(BasePane):
             clicked_line = event.y - content_widget.region.y
             
             # Calculate which command was clicked (if any)
-            # First 3 lines are header (wish, empty line, "Commands:")
-            if clicked_line >= 3 and clicked_line < 3 + len(self.current_wish.command_results):
-                command_index = clicked_line - 3
+            # First 6 lines are header (Wish, Status, Created, Finished, empty line, "Commands:")
+            header_lines = 6
+            if clicked_line >= header_lines and clicked_line < header_lines + len(self.current_wish.command_results):
+                command_index = clicked_line - header_lines
                 if 0 <= command_index < len(self.current_wish.command_results):
                     selected_command = self.current_wish.command_results[command_index]
                     # Post a message that a command was selected
