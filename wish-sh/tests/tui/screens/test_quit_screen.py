@@ -32,7 +32,6 @@ class QuitScreenTestApp(App):
 class TestQuitScreen:
     """Tests for the QuitScreen."""
 
-    @pytest.mark.skip(reason="QuitScreen tests need more investigation")
     @pytest.mark.asyncio
     async def test_quit_screen_composition(self):
         """Test that the QuitScreen is composed correctly."""
@@ -46,28 +45,29 @@ class TestQuitScreen:
             yes_button = app.query_one("#yes")
             assert yes_button is not None
             assert isinstance(yes_button, Button)
-            assert yes_button.label == "はい"
+            assert str(yes_button.label) == "はい"
             
             no_button = app.query_one("#no")
             assert no_button is not None
             assert isinstance(no_button, Button)
-            assert no_button.label == "いいえ"
+            assert str(no_button.label) == "いいえ"
 
-    @pytest.mark.skip(reason="QuitScreen tests need more investigation")
     @pytest.mark.asyncio
     async def test_quit_screen_yes_button(self):
         """Test that the yes button exits the application."""
         app = QuitScreenTestApp()
         async with app.run_test():
-            # Press the yes button
+            # Get the screen and button
+            screen = app.query_one(QuitScreen)
             yes_button = app.query_one("#yes")
-            yes_button.press()
-            # No need to process events, the exit is called immediately
+            
+            # Manually call the event handler with a button press event
+            event = Button.Pressed(yes_button)
+            screen.on_button_pressed(event)
             
             # Check that exit was called
             assert app.exit_called is True
 
-    @pytest.mark.skip(reason="QuitScreen tests need more investigation")
     @pytest.mark.asyncio
     async def test_quit_screen_no_button(self):
         """Test that the no button pops the screen."""
@@ -85,13 +85,13 @@ class TestQuitScreen:
         app.pop_screen = mock_pop_screen
         
         async with app.run_test():
-            # We need to push another screen first to avoid ScreenStackError
-            app.push_screen(QuitScreen())
-            
-            # Press the no button
+            # Get the screen and button
+            screen = app.query_one(QuitScreen)
             no_button = app.query_one("#no")
-            no_button.press()
-            # No need to process events, the pop_screen is called immediately
+            
+            # Manually call the event handler with a button press event
+            event = Button.Pressed(no_button)
+            screen.on_button_pressed(event)
             
             # Check that pop_screen was called
             assert pop_screen_called is True
