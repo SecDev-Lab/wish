@@ -43,16 +43,12 @@ class MainPane(BasePane):
     
     def update_for_new_wish_mode(self):
         """Update the pane for New Wish mode."""
-        try:
-            # Update title
-            title_widget = self.query_one("#main-pane-title")
-            title_widget.update("Main Pane (New wish mode)")
-            
-            # Update content with more meaningful text
-            content_widget = self.query_one("#main-pane-content")
-            content_widget.update("新しいWishを作成するモードです。")
-        except Exception as e:
-            self.log(f"Error updating for New Wish mode: {e}")
+        self.update_title_and_content(
+            "main-pane-title",
+            "main-pane-content",
+            "Main Pane (New wish mode)",
+            "新しいWishを作成するモードです。"
+        )
     
     def update_wish(self, wish):
         """Update the pane with the selected wish details.

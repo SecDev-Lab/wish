@@ -57,8 +57,7 @@ class MainScreen(Screen):
         self.help_pane.update_help("main-pane")
         
         # Initialize with NEW_WISH mode
-        self.main_pane.update_for_new_wish_mode()
-        self.sub_pane.update_for_new_wish_mode()
+        self.set_mode(WishMode.NEW_WISH)
     
     def on_key(self, event) -> None:
         """Handle key events."""
@@ -107,23 +106,34 @@ class MainScreen(Screen):
         # Update help text based on active pane
         self.help_pane.update_help(pane_id)
     
-    def on_wish_selected(self, event: WishSelected) -> None:
-        """Handle wish selection events."""
-        self.current_mode = event.mode
+    def set_mode(self, mode: WishMode, wish=None) -> None:
+        """Set the current mode and update panes accordingly.
         
-        if self.current_mode == WishMode.NEW_WISH:
+        Args:
+            mode: The mode to set.
+            wish: The wish to display (for WISH_HISTORY mode).
+        """
+        self.current_mode = mode
+        
+        if mode == WishMode.NEW_WISH:
             # Update panes for NEW WISH mode
             self.main_pane.update_for_new_wish_mode()
             self.sub_pane.update_for_new_wish_mode()
         else:
             # Update panes for WISH HISTORY mode
-            self.main_pane.update_wish(event.wish)
+            self.main_pane.update_wish(wish)
             
             # Reset Sub pane to default state for WISH HISTORY mode
-            title_widget = self.sub_pane.query_one("#sub-pane-title")
-            title_widget.update("Command Output")
-            content_widget = self.sub_pane.query_one("#sub-pane-content")
-            content_widget.update("(Select a command to view details)")
+            self.sub_pane.update_title_and_content(
+                "sub-pane-title",
+                "sub-pane-content",
+                "Command Output",
+                "(Select a command to view details)"
+            )
+    
+    def on_wish_selected(self, event: WishSelected) -> None:
+        """Handle wish selection events."""
+        self.set_mode(event.mode, event.wish)
     
     def on_command_selected(self, event: CommandSelected) -> None:
         """Handle command selection events."""

@@ -214,7 +214,7 @@ class TestWishCLI:
 
         assert event == ShellEvent.OK
         mock_print.assert_any_call("\nWish: Test wish")
-        mock_print.assert_any_call(f"Status: {WishState.DONE}")
+        mock_print.assert_any_call(f"Status: ✅ {WishState.DONE}")
         mock_print.assert_any_call("Created at: 2023-01-01T00:00:00")
         mock_print.assert_any_call("Finished at: 2023-01-01T01:00:00")
 

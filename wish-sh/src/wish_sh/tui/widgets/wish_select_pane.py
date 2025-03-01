@@ -51,7 +51,7 @@ class WishSelectPane(BasePane):
         
         # Add NEW WISH option at the top
         new_wish_emoji = "✨"  # Sparkles emoji as a "good emoji"
-        new_wish_static = Static(f"{new_wish_emoji}  NEW WISH", id="new-wish-option", classes="wish-item")
+        new_wish_static = Static(f"{new_wish_emoji} NEW WISH", id="new-wish-option", classes="wish-item")
         
         # Select NEW WISH by default
         if self.selected_index == 0:

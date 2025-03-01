@@ -5,6 +5,7 @@ from textual.app import App, ComposeResult
 from textual.widgets import Static
 from wish_models import Wish
 
+from wish_sh.tui.modes import WishMode
 from wish_sh.tui.screens.main_screen import MainScreen
 from wish_sh.tui.widgets.main_pane import MainPane
 from wish_sh.tui.widgets.sub_pane import SubPane
@@ -88,31 +89,73 @@ class TestMainScreen:
             assert "active-pane" not in sub_pane.classes
 
     @pytest.mark.asyncio
-    async def test_main_screen_wish_selected_event(self):
-        """Test that the MainScreen handles WishSelected events."""
+    async def test_main_screen_initial_mode(self):
+        """Test that the MainScreen initializes with NEW_WISH mode."""
+        app = MainScreenTestApp()
+        async with app.run_test():
+            screen = app.query_one(MainScreen)
+            
+            # Check that the screen initializes with NEW_WISH mode
+            assert screen.current_mode == WishMode.NEW_WISH
+            
+            # Check that the main pane is initialized for NEW_WISH mode
+            main_pane_title = app.query_one("#main-pane-title")
+            assert main_pane_title.renderable == "Main Pane (New wish mode)"
+            
+            # Check that the sub pane is initialized for NEW_WISH mode
+            sub_pane_title = app.query_one("#sub-pane-title")
+            assert sub_pane_title.renderable == "Sub Pane (New wish mode)"
+
+    @pytest.mark.asyncio
+    async def test_main_screen_wish_selected_event_with_mode(self):
+        """Test that the MainScreen handles WishSelected events with mode information."""
         app = MainScreenTestApp()
         async with app.run_test() as pilot:
             screen = app.query_one(MainScreen)
             main_pane = app.query_one(MainPane)
+            sub_pane = app.query_one(SubPane)
             
             # Create a test wish
             test_wish = Wish.create("Test wish for event")
             
-            # Store the initial wish
-            initial_wish = main_pane.current_wish
-            
-            # Post a WishSelected event
-            screen.post_message(WishSelected(test_wish))
+            # Post a WishSelected event with WISH_HISTORY mode
+            screen.post_message(WishSelected(test_wish, WishMode.WISH_HISTORY))
             # Wait for a frame to process the message
             await pilot.pause()
             
-            # Now main_pane should have the new wish
+            # Check that the screen mode has been updated
+            assert screen.current_mode == WishMode.WISH_HISTORY
+            
+            # Check that the main pane has been updated
             assert main_pane.current_wish is test_wish
-            assert main_pane.current_wish is not initial_wish
             
             # Check that the main pane content has been updated
-            content = app.query_one("#main-pane-content")
-            assert "wish: Test wish for event" in content.renderable
+            main_content = app.query_one("#main-pane-content")
+            assert "wish: Test wish for event" in main_content.renderable
+            
+            # Check that the main pane title has been updated
+            main_title = app.query_one("#main-pane-title")
+            assert main_title.renderable == "Main Pane"
+            
+            # Check that the sub pane has been reset
+            sub_title = app.query_one("#sub-pane-title")
+            assert sub_title.renderable == "Command Output"
+            
+            # Now post a WishSelected event with NEW_WISH mode
+            screen.post_message(WishSelected(None, WishMode.NEW_WISH))
+            # Wait for a frame to process the message
+            await pilot.pause()
+            
+            # Check that the screen mode has been updated
+            assert screen.current_mode == WishMode.NEW_WISH
+            
+            # Check that the main pane title has been updated
+            main_title = app.query_one("#main-pane-title")
+            assert main_title.renderable == "Main Pane (New wish mode)"
+            
+            # Check that the sub pane title has been updated
+            sub_title = app.query_one("#sub-pane-title")
+            assert sub_title.renderable == "Sub Pane (New wish mode)"
 
     @pytest.mark.asyncio
     async def test_main_screen_key_navigation(self):

@@ -5,6 +5,7 @@ from textual.app import App, ComposeResult
 from textual.pilot import Pilot
 from wish_models import Wish
 
+from wish_sh.tui.modes import WishMode
 from wish_sh.tui.widgets.wish_select_pane import WishSelectPane, WishSelected
 
 
@@ -66,20 +67,18 @@ class TestWishSelectPane:
             title = app.query_one("#wish-select-title")
             assert title is not None
             
-            # Check that the pane shows the wishes
-            # We can't check the exact IDs since they're based on object IDs,
-            # but we can check that there are the right number of Static widgets
-            # and that they have the expected content
+            # Check that the pane shows the NEW WISH option and the wishes
             statics = app.query("Static")
-            assert len(statics) == len(test_wishes) + 1  # +1 for the title
+            assert len(statics) == len(test_wishes) + 2  # +1 for title, +1 for NEW WISH option
             
             # The first Static is the title
             assert statics[0].renderable == "Wish Select"
             
-            # The rest are the wishes with their index
-            for i, wish in enumerate(test_wishes, 1):
-                # Check that the text contains both the index and the wish text
-                assert f"[{i}]" in statics[i].renderable
+            # The second Static is the NEW WISH option
+            assert "NEW WISH" in statics[1].renderable
+            
+            # The rest are the wishes
+            for i, wish in enumerate(test_wishes, 2):  # Start from index 2 (after title and NEW WISH)
                 assert wish.wish in statics[i].renderable
 
     @pytest.mark.asyncio
@@ -119,16 +118,16 @@ class TestWishSelectPane:
             
             # Check that the pane shows the wishes
             statics = app.query("Static")
-            assert len(statics) == len(test_wishes) + 1  # +1 for the title
+            assert len(statics) == len(test_wishes) + 2  # +1 for the title, +1 for NEW WISH option
             
             # The first Static is the title
             assert statics[0].renderable == "Wish Select"
             
-            # The rest are the wishes with their index
-            for i, wish in enumerate(test_wishes, 1):
-                # Check that the text contains both the index and the wish text
-                assert f"[{i}]" in statics[i].renderable
-                assert wish.wish in statics[i].renderable
+            # The wishes start at index 2 (after title and NEW WISH option)
+            for i, wish in enumerate(test_wishes, 0):
+                # Check that the text contains the wish text
+                wish_index = i + 2  # Adjust for title and NEW WISH option
+                assert wish.wish in statics[wish_index].renderable
 
     @pytest.mark.asyncio
     async def test_wish_select_pane_with_brackets(self):
@@ -143,12 +142,27 @@ class TestWishSelectPane:
             
             # Check that the pane shows the wish with brackets
             statics = app.query("Static")
-            assert len(statics) == 2  # title + 1 wish
+            assert len(statics) == 3  # title + NEW WISH option + 1 wish
             
-            # The wish text should contain both the index and the brackets
-            assert "[1]" in statics[1].renderable
-            assert "[This is a wish with brackets]" in statics[1].renderable
+            # The wish text should contain the brackets (at index 2, after title and NEW WISH)
+            assert "[This is a wish with brackets]" in statics[2].renderable
     
+    @pytest.mark.asyncio
+    async def test_new_wish_option_display(self):
+        """Test that the NEW WISH option is displayed correctly."""
+        app = WishSelectPaneTestApp()
+        async with app.run_test():
+            # Check that the NEW WISH option is displayed
+            new_wish_option = app.query_one("#new-wish-option")
+            assert new_wish_option is not None
+            assert "NEW WISH" in new_wish_option.renderable
+            
+            # Check that it has the sparkles emoji
+            assert "✨" in new_wish_option.renderable
+            
+            # Check that it's selected by default
+            assert "selected" in new_wish_option.classes
+
     @pytest.mark.asyncio
     async def test_wish_selection_with_keys(self):
         """Test that wishes can be selected using up/down keys."""
@@ -163,39 +177,58 @@ class TestWishSelectPane:
         async with app.run_test():
             pane = app.query_one(WishSelectPane)
             
-            # Initially, the first wish should be selected
+            # Initially, the NEW WISH option should be selected
             assert pane.selected_index == 0
-            wish1_widget = app.query_one(f"#wish-{id(test_wishes[0])}")
-            assert "selected" in wish1_widget.classes
+            new_wish_option = app.query_one("#new-wish-option")
+            assert "selected" in new_wish_option.classes
             
-            # Select the second wish directly
+            # Select the first wish
             pane.select_next()
             assert pane.selected_index == 1
+            wish1_widget = app.query_one(f"#wish-{id(test_wishes[0])}")
+            assert "selected" in wish1_widget.classes
+            assert "selected" not in new_wish_option.classes
+            
+            # Select the second wish
+            pane.select_next()
+            assert pane.selected_index == 2
             wish2_widget = app.query_one(f"#wish-{id(test_wishes[1])}")
             assert "selected" in wish2_widget.classes
             assert "selected" not in wish1_widget.classes
             
             # Select the third wish
             pane.select_next()
-            assert pane.selected_index == 2
+            assert pane.selected_index == 3
             wish3_widget = app.query_one(f"#wish-{id(test_wishes[2])}")
             assert "selected" in wish3_widget.classes
             assert "selected" not in wish2_widget.classes
             
             # Try to go beyond the end, nothing should change
             pane.select_next()
-            assert pane.selected_index == 2  # Still at the last wish
+            assert pane.selected_index == 3  # Still at the last wish
             assert "selected" in wish3_widget.classes
             
             # Go back to the second wish
             pane.select_previous()
-            assert pane.selected_index == 1
+            assert pane.selected_index == 2
             assert "selected" in wish2_widget.classes
             assert "selected" not in wish3_widget.classes
+            
+            # Go back to the first wish
+            pane.select_previous()
+            assert pane.selected_index == 1
+            assert "selected" in wish1_widget.classes
+            assert "selected" not in wish2_widget.classes
+            
+            # Go back to the NEW WISH option
+            pane.select_previous()
+            assert pane.selected_index == 0
+            assert "selected" in new_wish_option.classes
+            assert "selected" not in wish1_widget.classes
     
     @pytest.mark.asyncio
-    async def test_wish_selected_message(self):
-        """Test that a wish can be selected and deselected."""
+    async def test_wish_selected_message_with_mode(self):
+        """Test that WishSelected messages include the correct mode."""
         # Create some test wishes
         test_wishes = [
             Wish.create("Wish 1"),
@@ -203,16 +236,49 @@ class TestWishSelectPane:
         ]
         
         app = WishSelectPaneTestApp(wishes=test_wishes)
-        async with app.run_test():
+        async with app.run_test() as pilot:
             pane = app.query_one(WishSelectPane)
             
-            # Initially, the first wish should be selected
+            # Set up a message capture
+            messages = []
+            
+            # Override the post_message method to capture WishSelected messages
+            original_post_message = app.post_message
+            
+            def custom_post_message(message):
+                if isinstance(message, WishSelected):
+                    messages.append(message)
+                return original_post_message(message)
+            
+            # Replace the post_message method
+            app.post_message = custom_post_message
+            
+            # Initially, the NEW WISH option should be selected
             assert pane.selected_index == 0
             
-            # Select the second wish directly
+            # Force an update to trigger the message
+            pane.update_selection()
+            await pilot.pause()
+            
+            # Check that a message was sent with NEW_WISH mode
+            assert len(messages) == 1
+            assert messages[0].wish is None
+            assert messages[0].mode == WishMode.NEW_WISH
+            
+            # Select the first wish
             pane.select_next()
-            assert pane.selected_index == 1
+            await pilot.pause()
             
-            # Go back to the first wish
+            # Check that a message was sent with WISH_HISTORY mode
+            assert len(messages) == 2
+            assert messages[1].wish is test_wishes[0]
+            assert messages[1].mode == WishMode.WISH_HISTORY
+            
+            # Go back to the NEW WISH option
             pane.select_previous()
-            assert pane.selected_index == 0
+            await pilot.pause()
+            
+            # Check that a message was sent with NEW_WISH mode again
+            assert len(messages) == 3
+            assert messages[2].wish is None
+            assert messages[2].mode == WishMode.NEW_WISH

@@ -223,13 +223,13 @@ class WishManager:
         
         if wish.state == WishState.DONE and wish.finished_at:
             return (
-                f"{emoji} wish: {wish.wish[:30]}"
+                f"[{index}] {emoji} wish: {wish.wish[:30]}"
                 f"{'...' if len(wish.wish) > 30 else ''}  "
                 f"(started at {wish.created_at} ; done at {wish.finished_at})"
             )
         else:
             return (
-                f"{emoji} wish: {wish.wish[:30]}"
+                f"[{index}] {emoji} wish: {wish.wish[:30]}"
                 f"{'...' if len(wish.wish) > 30 else ''}  "
                 f"(started at {wish.created_at} ; {wish.state})"
             )
