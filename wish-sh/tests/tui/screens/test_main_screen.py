@@ -131,7 +131,7 @@ class TestMainScreen:
             
             # Check that the main pane content has been updated
             main_content = app.query_one("#main-pane-content")
-            assert "[b]Wish:[/b]" in main_content.renderable
+            assert "Wish:" in main_content.renderable
             assert "Test wish for event" in main_content.renderable
             
             # Check that the sub pane has been reset
@@ -154,6 +154,38 @@ class TestMainScreen:
             sub_content = app.query_one("#sub-pane-content")
             assert "新しいWishのコマンド出力がここに表示されます" in sub_content.renderable
 
+    @pytest.mark.asyncio
+    async def test_main_screen_wish_selected_focus(self):
+        """Test that the MainScreen keeps focus on wish_select when a wish is selected."""
+        app = MainScreenTestApp()
+        async with app.run_test() as pilot:
+            screen = app.query_one(MainScreen)
+            wish_select = app.query_one(WishSelectPane)
+            main_pane = app.query_one(MainPane)
+            
+            # First activate wish_select
+            screen.activate_pane("wish-select")
+            assert "active-pane" in wish_select.classes
+            assert "active-pane" not in main_pane.classes
+            
+            # Create a test wish
+            test_wish = Wish.create("Test wish for focus")
+            
+            # Post a WishSelected event with WISH_HISTORY mode
+            screen.post_message(WishSelected(test_wish, WishMode.WISH_HISTORY))
+            # Wait for a frame to process the message
+            await pilot.pause()
+            
+            # Check that the screen mode has been updated
+            assert screen.current_mode == WishMode.WISH_HISTORY
+            
+            # Check that the main pane has been updated
+            assert main_pane.current_wish is test_wish
+            
+            # Check that the focus remains on wish_select
+            assert "active-pane" in wish_select.classes
+            assert "active-pane" not in main_pane.classes
+    
     @pytest.mark.asyncio
     async def test_main_screen_key_navigation(self):
         """Test that the MainScreen handles key navigation."""

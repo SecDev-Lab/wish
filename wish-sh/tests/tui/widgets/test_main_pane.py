@@ -268,6 +268,92 @@ class TestMainPane:
             assert "📡❌" in rendered_text  # Network error emoji
     
     @pytest.mark.asyncio
+    async def test_main_pane_update_wish_preserve_selection(self):
+        """Test that update_wish can preserve selection."""
+        # Create a test wish with multiple commands
+        test_wish = Wish.create("Test wish with multiple commands")
+        
+        # Add command results
+        log_files = LogFiles(stdout="stdout.log", stderr="stderr.log")
+        
+        for i in range(3):
+            cmd = CommandResult.create(i+1, f"echo 'Command {i+1}'", log_files)
+            cmd.state = CommandState.SUCCESS
+            test_wish.command_results.append(cmd)
+        
+        app = MainPaneTestApp()
+        async with app.run_test():
+            pane = app.query_one(MainPane)
+            
+            # Update with the test wish
+            pane.update_wish(test_wish)
+            
+            # Initially the first command should be selected
+            assert pane.selected_command_index == 0
+            
+            # Manually set the selected command to the second one
+            pane.selected_command_index = 1
+            
+            # Update the wish again with preserve_selection=True
+            pane.update_wish(test_wish, preserve_selection=True)
+            
+            # The selection should be preserved
+            assert pane.selected_command_index == 1
+            
+            # Update the wish again with preserve_selection=False
+            pane.update_wish(test_wish, preserve_selection=False)
+            
+            # The selection should be reset to the first command
+            assert pane.selected_command_index == 0
+    
+    @pytest.mark.asyncio
+    async def test_main_pane_update_command_selection(self):
+        """Test that update_command_selection works correctly."""
+        # Create a test wish with multiple commands
+        test_wish = Wish.create("Test wish with multiple commands")
+        
+        # Add command results
+        log_files = LogFiles(stdout="stdout.log", stderr="stderr.log")
+        
+        for i in range(3):
+            cmd = CommandResult.create(i+1, f"echo 'Command {i+1}'", log_files)
+            cmd.state = CommandState.SUCCESS
+            test_wish.command_results.append(cmd)
+        
+        app = MainPaneTestApp()
+        async with app.run_test():
+            pane = app.query_one(MainPane)
+            
+            # Update with the test wish
+            pane.update_wish(test_wish)
+            
+            # Initially the first command should be selected
+            assert pane.selected_command_index == 0
+            
+            # Test select_next_command
+            pane.select_next_command()
+            assert pane.selected_command_index == 1
+            
+            # Test select_previous_command
+            pane.select_previous_command()
+            assert pane.selected_command_index == 0
+            
+            # Test select_next_command at the end of the list
+            pane.selected_command_index = 2
+            pane.select_next_command()
+            assert pane.selected_command_index == 2  # Should not change
+            
+            # Test select_previous_command at the beginning of the list
+            pane.selected_command_index = 0
+            pane.select_previous_command()
+            assert pane.selected_command_index == 0  # Should not change
+            
+            # Test select_next_command with no selection
+            pane.selected_command_index = -1
+            pane.select_next_command()
+            assert pane.selected_command_index == 0  # Should select the first command
+    
+    @pytest.mark.asyncio
     async def test_main_pane_command_selection_with_keys(self):
         """Test that commands can be selected with up/down keys in the MainPane."""
         # Create a test wish with multiple commands
@@ -288,8 +374,8 @@ class TestMainPane:
             # Update with the test wish
             pane.update_wish(test_wish)
             
-            # Initially no command is selected
-            assert pane.selected_command_index == -1
+            # Initially the first command should be selected
+            assert pane.selected_command_index == 0
             
             try:
                 # Create a mock key event for down key

@@ -92,6 +92,95 @@ class MainPane(BasePane):
         else:
             return "❓"
     
+    def _get_content_widget(self):
+        """Get or create the content widget.
+        
+        Returns:
+            Static: The content widget.
+        """
+        try:
+            content = self.query_one("#main-pane-content")
+        except:
+            # Create a new content widget if it doesn't exist
+            content = Static(id="main-pane-content")
+            self.mount(content)
+        return content
+    
+    def _format_datetime(self, dt):
+        """Format a datetime for display.
+        
+        Args:
+            dt: The datetime to format, can be string or UtcDatetime.
+            
+        Returns:
+            str: The formatted datetime string.
+        """
+        if isinstance(dt, str):
+            # Convert string to UtcDatetime
+            dt_obj = UtcDatetime.model_validate(dt)
+            return dt_obj.to_local_str()
+        else:
+            return dt.to_local_str()
+    
+    def _make_safe_command(self, command):
+        """Make a command text safe for display.
+        
+        Args:
+            command: The command text.
+            
+        Returns:
+            str: The safe command text.
+        """
+        # Replace problematic characters in command text
+        safe_command = command
+        # Replace characters that might be interpreted as markup or cause issues
+        safe_command = safe_command.replace("[", "【").replace("]", "】")
+        safe_command = safe_command.replace('"', "'")
+        safe_command = safe_command.replace("\\", "/")
+        return safe_command
+    
+    def _create_content_lines(self, wish, state_emoji, created_at_local, finished_at_text):
+        """Create content lines for display.
+        
+        Args:
+            wish: The wish to display.
+            state_emoji: The emoji for the wish state.
+            created_at_local: The local created time.
+            finished_at_text: The finished time text.
+            
+        Returns:
+            list: The content lines.
+            list: The command indices.
+        """
+        content_lines = []
+        
+        # Add wish details with label and value on the same line
+        content_lines.append(f"Wish:     {wish.wish}")
+        content_lines.append(f"Status:   {state_emoji} {wish.state}")
+        content_lines.append(f"Created:  {created_at_local}")
+        content_lines.append(f"Finished: {finished_at_text}")
+        content_lines.append("")
+        content_lines.append("Commands:")
+        
+        # Add command results
+        command_indices = []  # Store command indices for click handling
+        for i, cmd in enumerate(wish.command_results, 1):
+            cmd_emoji = self._get_command_state_emoji(cmd.state)
+            safe_command = self._make_safe_command(cmd.command)
+            
+            # Add visual indicator for selected command
+            cmd_index = i - 1
+            if cmd_index == self.selected_command_index:
+                content_lines.append(f"{cmd_emoji} ({i}) > {safe_command}")  # Add '>' to indicate selection
+            else:
+                content_lines.append(f"{cmd_emoji} ({i}) {safe_command}")
+            
+            # Store line indices for commands
+            cmd_line_index = len(content_lines) - 1  # Index of the command line
+            command_indices.append((i-1, cmd_line_index))
+        
+        return content_lines, command_indices
+    
     def update_wish(self, wish, preserve_selection=False):
         """Update the pane with the selected wish details.
         
@@ -104,9 +193,11 @@ class MainPane(BasePane):
             wish_changed = self.current_wish != wish
             self.current_wish = wish
             
-            # Wishが変わった場合のみ選択をリセット
-            if wish_changed and not preserve_selection:
-                self.log(f"Resetting selection because wish changed and preserve_selection={preserve_selection}")
+            # 選択をリセットする条件:
+            # 1. Wishが変わった場合、かつpreserve_selectionがFalseの場合
+            # 2. preserve_selectionがFalseの場合（同じWishでも強制的にリセット）
+            if not preserve_selection:
+                self.log(f"Resetting selection because preserve_selection={preserve_selection}")
                 self.selected_command_index = -1  # Default to no selection
                 
                 # If wish has commands, select the first one (index 0)
@@ -116,63 +207,18 @@ class MainPane(BasePane):
             self.log(f"update_wish: selected_command_index={self.selected_command_index}, preserve_selection={preserve_selection}")
             
             # Get existing content widget
-            try:
-                content = self.query_one("#main-pane-content")
-            except:
-                # Create a new content widget if it doesn't exist
-                content = Static(id="main-pane-content")
-                self.mount(content)
+            content_widget = self._get_content_widget()
             
             if wish:
                 # Get emoji for wish state
                 state_emoji = self._get_wish_state_emoji(wish.state)
                 
                 # Convert UTC times to local time
-                if isinstance(wish.created_at, str):
-                    # Convert string to UtcDatetime
-                    created_at_dt = UtcDatetime.model_validate(wish.created_at)
-                    created_at_local = created_at_dt.to_local_str()
-                else:
-                    created_at_local = wish.created_at.to_local_str()
+                created_at_local = self._format_datetime(wish.created_at)
                 
                 finished_at_text = "(Not finished yet)"
                 if wish.finished_at:
-                    if isinstance(wish.finished_at, str):
-                        # Convert string to UtcDatetime
-                        finished_at_dt = UtcDatetime.model_validate(wish.finished_at)
-                        finished_at_text = finished_at_dt.to_local_str()
-                    else:
-                        finished_at_text = wish.finished_at.to_local_str()
-                
-                # Create two separate widgets: one for labels (with markup) and one for values (without markup)
-                # Format wish details as text
-                label_lines = []
-                value_lines = []
-                
-                # Add wish details - with label and value separated
-                label_lines.append("[b]Wish:[/b]")
-                value_lines.append(wish.wish)
-                
-                label_lines.append(f"[b]Status:[/b]")
-                value_lines.append(f"{state_emoji} {wish.state}")
-                
-                label_lines.append(f"[b]Created:[/b]")
-                value_lines.append(created_at_local)
-                
-                label_lines.append(f"[b]Finished:[/b]")
-                value_lines.append(finished_at_text)
-                
-                label_lines.append("")
-                value_lines.append("")
-                
-                label_lines.append("[b]Commands:[/b]")
-                value_lines.append("")
-                
-                # Add command results
-                for i, cmd in enumerate(wish.command_results, 1):
-                    cmd_emoji = self._get_command_state_emoji(cmd.state)
-                    label_lines.append(f"{cmd_emoji} ({i})")
-                    value_lines.append(cmd.command)
+                    finished_at_text = self._format_datetime(wish.finished_at)
                 
                 # Remove old grid if exists (but keep the content widget)
                 try:
@@ -181,72 +227,12 @@ class MainPane(BasePane):
                 except:
                     pass
                 
-                # Create content lines for the widget
-                content_lines = []
-                
-                # Add wish details with label and value on the same line
-                content_lines.append(f"[b]Wish:[/b]     {escape(wish.wish)}")
-                content_lines.append(f"[b]Status:[/b]   {state_emoji} {wish.state}")
-                content_lines.append(f"[b]Created:[/b]  {created_at_local}")
-                content_lines.append(f"[b]Finished:[/b] {finished_at_text}")
-                content_lines.append("")
-                content_lines.append("[b]Commands:[/b]")
-                
-                # Add command results
-                for i, cmd in enumerate(wish.command_results, 1):
-                    cmd_emoji = self._get_command_state_emoji(cmd.state)
-                    # Use rich.markup.escape to escape any markup in the command text
-                    escaped_command = escape(cmd.command)
-                    content_lines.append(f"{cmd_emoji} ({i}) {escaped_command}")
-                
-                # Create a simple content widget with both label and value - NO MARKUP
-                content_lines = []
-                
-                # Add wish details with label and value on the same line
-                content_lines.append(f"Wish:     {wish.wish}")
-                content_lines.append(f"Status:   {state_emoji} {wish.state}")
-                content_lines.append(f"Created:  {created_at_local}")
-                content_lines.append(f"Finished: {finished_at_text}")
-                content_lines.append("")
-                content_lines.append("Commands:")
-                
-                # Add command results
-                self.command_indices = []  # Store command indices for click handling
-                for i, cmd in enumerate(wish.command_results, 1):
-                    cmd_emoji = self._get_command_state_emoji(cmd.state)
-                    
-                    # TODO: この文字置換による対応は暫定的な回避策です。
-                    # 問題点:
-                    # 1. テキストの内容を変更してしまうため、本来の情報が正確に表示されない
-                    # 2. 将来的に問題を引き起こす可能性のある他の特殊文字が出てくる可能性がある
-                    # 3. より根本的な解決策としては、Textualのウィジェットの実装を見直すか、
-                    #    マークアップ処理を完全に無効化する方法を探るべき
-                    #
-                    # 適切な解決策:
-                    # - Textualの新しいバージョンでマークアップ処理が改善されるか確認する
-                    # - カスタムウィジェットを作成して、マークアップ処理を完全に制御する
-                    # - 表示用と内部処理用のテキストを分離し、表示用テキストのみを安全に加工する
-                    
-                    # Replace problematic characters in command text
-                    safe_command = cmd.command
-                    # Replace characters that might be interpreted as markup or cause issues
-                    safe_command = safe_command.replace("[", "【").replace("]", "】")
-                    safe_command = safe_command.replace('"', "'")
-                    safe_command = safe_command.replace("\\", "/")
-                    
-                    # Add visual indicator for selected command
-                    cmd_index = i - 1
-                    if cmd_index == self.selected_command_index:
-                        content_lines.append(f"{cmd_emoji} ({i}) > {safe_command}")  # Add '>' to indicate selection
-                    else:
-                        content_lines.append(f"{cmd_emoji} ({i}) {safe_command}")
-                    
-                    # Store line indices for commands
-                    cmd_line_index = len(content_lines) - 1  # Index of the command line
-                    self.command_indices.append((i-1, cmd_line_index))
+                # Create content lines and command indices
+                content_lines, self.command_indices = self._create_content_lines(
+                    wish, state_emoji, created_at_local, finished_at_text
+                )
                 
                 # Update the existing content widget with markup disabled
-                content_widget = self.query_one("#main-pane-content")
                 content_widget.markup = False
                 content_widget.update("\n".join(content_lines))
                 
