@@ -131,20 +131,14 @@ class MainPane(BasePane):
                 # Format wish details as text
                 content_lines = []
                 
-                # Add wish details
-                content_lines.append("[b]Wish:[/b]")
+                # Add wish details - with label and value on the same line
                 # Escape any markup in the wish text
                 escaped_wish = wish.wish.replace("[", "\\[").replace("]", "\\]")
-                content_lines.append(escaped_wish)
+                content_lines.append(f"[b]Wish:[/b]     {escaped_wish}")
                 
-                content_lines.append(f"[b]Status:[/b]")
-                content_lines.append(f"{state_emoji} {wish.state}")
-                
-                content_lines.append("[b]Created:[/b]")
-                content_lines.append(created_at_local)
-                
-                content_lines.append("[b]Finished:[/b]")
-                content_lines.append(finished_at_text)
+                content_lines.append(f"[b]Status:[/b]   {state_emoji} {wish.state}")
+                content_lines.append(f"[b]Created:[/b]  {created_at_local}")
+                content_lines.append(f"[b]Finished:[/b] {finished_at_text}")
                 
                 content_lines.append("")
                 content_lines.append("[b]Commands:[/b]")
@@ -153,10 +147,9 @@ class MainPane(BasePane):
                 self.command_indices = []  # Store command indices for click handling
                 for i, cmd in enumerate(wish.command_results, 1):
                     cmd_emoji = self._get_command_state_emoji(cmd.state)
-                    content_lines.append(f"{cmd_emoji} ({i})")
                     # Escape any markup in the command text
                     escaped_command = cmd.command.replace("[", "\\[").replace("]", "\\]")
-                    content_lines.append(escaped_command)
+                    content_lines.append(f"{cmd_emoji} ({i}) {escaped_command}")
                     
                     # Store line indices for commands
                     cmd_line_index = len(content_lines) - 2  # Index of the command line

@@ -63,11 +63,10 @@ class SubPane(BasePane):
             # Format command details as text
             content_lines = []
             
-            # Add command
-            content_lines.append("[b]Command:[/b]")
+            # Add command - with label and value on the same line
             # Escape any markup in the command text
             escaped_command = command_result.command.replace("[", "\\[").replace("]", "\\]")
-            content_lines.append(escaped_command)
+            content_lines.append(f"[b]Command:[/b] {escaped_command}")
             content_lines.append("")
             
             # Add stdout content if available
