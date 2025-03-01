@@ -5,16 +5,53 @@ from textual.containers import Container
 from textual.widgets import Static
 
 
+def style_shortcut(key: str) -> str:
+    """ショートカットキーをスタイリングする
+    
+    Args:
+        key: スタイリングするショートカットキー
+        
+    Returns:
+        スタイリングされたショートカットキー
+    """
+    return f"[magenta][b]{key}[/b][/magenta]"
+
+
 class HelpPane(Container):
     """Help information pane."""
 
     # CSS moved to external file: wish_tui.css
 
     # Help text definitions
-    DEFAULT_HELP = 'Help: [magenta][b]←[/b][/magenta] Wish Select | [magenta][b]→[/b][/magenta] Main | [magenta][b]Ctrl+↑[/b][/magenta] Main | [magenta][b]Ctrl+↓[/b][/magenta] Sub | [magenta][b]q[/b][/magenta] Confirm Quit | [magenta][b]Ctrl+Q[/b][/magenta] Quit'
-    WISH_SELECT_HELP = 'Help: [magenta][b]↑↓[/b][/magenta] Select Wish | [magenta][b]→[/b][/magenta] Main | [magenta][b]q[/b][/magenta] Confirm Quit | [magenta][b]Ctrl+Q[/b][/magenta] Quit'
-    MAIN_PANE_HELP = 'Help: [magenta][b]←[/b][/magenta] Wish Select | [magenta][b]Ctrl+↓[/b][/magenta] Sub | [magenta][b]q[/b][/magenta] Confirm Quit | [magenta][b]Ctrl+Q[/b][/magenta] Quit'
-    SUB_PANE_HELP = 'Help: [magenta][b]←[/b][/magenta] Wish Select | [magenta][b]Ctrl+↑[/b][/magenta] Main | [magenta][b]q[/b][/magenta] Confirm Quit | [magenta][b]Ctrl+Q[/b][/magenta] Quit'
+    DEFAULT_HELP = (
+        f"Help: {style_shortcut('←')} Wish Select | "
+        f"{style_shortcut('→')} Main | "
+        f"{style_shortcut('Ctrl+↑')} Main | "
+        f"{style_shortcut('Ctrl+↓')} Sub | "
+        f"{style_shortcut('q')} Confirm Quit | "
+        f"{style_shortcut('Ctrl+Q')} Quit"
+    )
+    
+    WISH_SELECT_HELP = (
+        f"Help: {style_shortcut('↑↓')} Select Wish | "
+        f"{style_shortcut('→')} Main | "
+        f"{style_shortcut('q')} Confirm Quit | "
+        f"{style_shortcut('Ctrl+Q')} Quit"
+    )
+    
+    MAIN_PANE_HELP = (
+        f"Help: {style_shortcut('←')} Wish Select | "
+        f"{style_shortcut('Ctrl+↓')} Sub | "
+        f"{style_shortcut('q')} Confirm Quit | "
+        f"{style_shortcut('Ctrl+Q')} Quit"
+    )
+    
+    SUB_PANE_HELP = (
+        f"Help: {style_shortcut('←')} Wish Select | "
+        f"{style_shortcut('Ctrl+↑')} Main | "
+        f"{style_shortcut('q')} Confirm Quit | "
+        f"{style_shortcut('Ctrl+Q')} Quit"
+    )
 
     def __init__(self, *args, **kwargs):
         """Initialize the HelpPane."""
