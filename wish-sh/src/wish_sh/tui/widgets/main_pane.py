@@ -1,10 +1,11 @@
 """Main Pane widget for wish-sh TUI."""
 
+from datetime import datetime
 from textual.app import ComposeResult
 from textual.message import Message
 from textual.widgets import Static
 
-from wish_models import CommandState, CommandResult, WishState
+from wish_models import CommandState, CommandResult, WishState, UtcDatetime
 from wish_sh.tui.widgets.base_pane import BasePane
 
 
@@ -98,12 +99,29 @@ class MainPane(BasePane):
                 # Get emoji for wish state
                 state_emoji = self._get_wish_state_emoji(wish.state)
                 
+                # Convert UTC times to local time
+                if isinstance(wish.created_at, str):
+                    # Convert string to UtcDatetime
+                    created_at_dt = UtcDatetime.model_validate(wish.created_at)
+                    created_at_local = created_at_dt.to_local_str()
+                else:
+                    created_at_local = wish.created_at.to_local_str()
+                
+                finished_at_text = "(Not finished yet)"
+                if wish.finished_at:
+                    if isinstance(wish.finished_at, str):
+                        # Convert string to UtcDatetime
+                        finished_at_dt = UtcDatetime.model_validate(wish.finished_at)
+                        finished_at_text = finished_at_dt.to_local_str()
+                    else:
+                        finished_at_text = wish.finished_at.to_local_str()
+                
                 # Format wish details with aligned labels
                 content_lines = [
                     f"[b]Wish:[/b]     {wish.wish}",
                     f"[b]Status:[/b]   {state_emoji} {wish.state}",
-                    f"[b]Created:[/b]  {wish.created_at}",
-                    f"[b]Finished:[/b] {wish.finished_at or 'Not finished yet'}",
+                    f"[b]Created:[/b]  {created_at_local}",
+                    f"[b]Finished:[/b] {finished_at_text}",
                     "",
                     "[b]Commands:[/b]"
                 ]
@@ -120,10 +138,11 @@ class MainPane(BasePane):
             # Update the existing content widget
             content_widget.update(content_text)
         except Exception as e:
-            self.log(f"Error updating wish: {e}")
+            error_message = f"Error updating wish: {e}"
+            self.log(error_message)
             try:
                 content_widget = self.query_one("#main-pane-content")
-                content_widget.update("(Error displaying wish details)")
+                content_widget.update(f"(Error displaying wish details: {e})")
             except:
                 # Minimal error handling if we can't even get the content widget
                 pass
