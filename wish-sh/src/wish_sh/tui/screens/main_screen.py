@@ -61,14 +61,31 @@ class MainScreen(Screen):
     
     def on_key(self, event) -> None:
         """Handle key events."""
+        # デバッグログを追加
+        self.log(f"MainScreen on_key: {event.key}")
+        self.log(f"MainScreen active pane: wish_select={self.wish_select.has_class('active-pane')}, main_pane={self.main_pane.has_class('active-pane')}")
+        self.log(f"MainScreen current mode: {self.current_mode}")
+        
         # Handle up/down keys when Wish Select pane is active
         if self.wish_select.has_class("active-pane"):
             if event.key in ("up", "arrow_up"):
+                self.log("MainScreen: Passing up key to wish_select")
                 self.wish_select.select_previous()
                 return True  # Consume event
             elif event.key in ("down", "arrow_down"):
+                self.log("MainScreen: Passing down key to wish_select")
                 self.wish_select.select_next()
                 return True  # Consume event
+        
+        # Handle up/down keys when Main pane is active and in WISH_HISTORY mode
+        if self.main_pane.has_class("active-pane") and self.current_mode == WishMode.WISH_HISTORY:
+            if event.key in ("up", "arrow_up", "down", "arrow_down"):
+                self.log("MainScreen: Passing up/down key to main_pane")
+                # Pass the key event to the main pane
+                if self.main_pane.on_key(event):
+                    return True  # Consume event if the main pane handled it
+                else:
+                    self.log("MainScreen: main_pane did not handle the key event")
         
         # Navigate between panes with arrow keys
         if event.key in ("left", "arrow_left"):
@@ -133,6 +150,7 @@ class MainScreen(Screen):
     
     def on_command_selected(self, event: CommandSelected) -> None:
         """Handle command selection events."""
+        # Update the sub pane with command output but keep focus on main pane
         self.sub_pane.update_command_output(event.command_result)
-        # Activate the sub pane to show the command output
-        self.activate_pane("sub-pane")
+        # Do not activate the sub pane to keep focus on main pane
+        # self.activate_pane("sub-pane")
