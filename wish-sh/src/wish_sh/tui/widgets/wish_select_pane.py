@@ -1,7 +1,6 @@
 """Wish Select Pane widget for wish-sh TUI."""
 
 from textual.app import ComposeResult
-from textual.containers import Horizontal
 from textual.message import Message
 from textual.widgets import Static
 
@@ -20,37 +19,6 @@ class WishSelected(Message):
         """
         self.wish = wish
         super().__init__()
-
-
-class WishItem(Horizontal):
-    """A widget representing a wish item with emoji and text in separate columns."""
-    
-    def __init__(self, wish, manager, is_selected=False):
-        """Initialize the WishItem.
-        
-        Args:
-            wish: The wish to display.
-            manager: WishManager instance for getting emoji.
-            is_selected: Whether this item is selected.
-        """
-        super().__init__()
-        self.wish = wish
-        self.manager = manager
-        self.is_selected = is_selected
-        self.add_class("wish-item")
-        if is_selected:
-            self.add_class("selected")
-    
-    def compose(self):
-        """Compose the widget."""
-        # Get emoji based on wish state
-        emoji = self.manager._get_state_emoji(self.wish.state) if self.manager else "❓"
-        
-        # First column: emoji with fixed width
-        yield Static(emoji, classes="emoji-cell fixed")
-        
-        # Second column: wish text
-        yield Static(self.wish.wish, classes="text-cell")
 
 
 class WishSelectPane(BasePane):
@@ -80,13 +48,16 @@ class WishSelectPane(BasePane):
             yield Static("(No wishes available)", id="wish-select-content", markup=False)
         else:
             for i, wish in enumerate(self.wishes):
-                wish_item = WishItem(
-                    wish=wish,
-                    manager=self.manager,
-                    is_selected=(i == self.selected_index)
-                )
-                wish_item.id = f"wish-{id(wish)}"
-                yield wish_item  # Make sure this is wish_item, not wish_grid
+                # Get emoji based on wish state
+                emoji = self.manager._get_state_emoji(wish.state) if self.manager else "❓"
+                
+                # Create a single Static widget with fixed spacing (reduced from 3 to 2 spaces)
+                static = Static(f"{emoji} {wish.wish}", id=f"wish-{id(wish)}", classes="wish-item")
+                
+                if i == self.selected_index:
+                    static.add_class("selected")
+                
+                yield static
     
     def on_key(self, event) -> None:
         """Handle key events."""

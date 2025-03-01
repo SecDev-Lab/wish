@@ -48,24 +48,10 @@ WishSelectPane {
     height: 100%;
 }
 
-/* Horizontal layout for wish items */
+/* Wish item styling */
 .wish-item {
     width: 100%;
     height: 1;
-}
-
-/* Fixed width for emoji cell */
-.fixed {
-    width: 3;  /* Fixed width */
-    content-align: center middle;
-}
-
-.emoji-cell {
-    content-align: center middle;
-}
-
-.text-cell {
-    width: 1fr;  /* Take remaining space */
 }
 
 /* Selected state styling */
