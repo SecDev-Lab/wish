@@ -40,6 +40,109 @@ class SubPane(BasePane):
         content_widget = self.query_one("#sub-pane-content")
         content_widget.update("新しいWishのコマンド出力がここに表示されます。")
     
+    def set_active(self, active: bool) -> None:
+        """Set the active state of the pane.
+        
+        Args:
+            active: Whether the pane should be active or not.
+        """
+        super().set_active(active)
+        
+        if active:
+            # コンテンツウィジェットにフォーカスを当てる
+            try:
+                content = self.query_one("#sub-pane-content")
+                content.focus()
+                self.log("SubPane content focused")
+            except Exception as e:
+                self.log(f"Error focusing content: {e}")
+    
+    def on_key(self, event) -> None:
+        """キーイベントを処理する
+        
+        Args:
+            event: キーイベント
+            
+        Returns:
+            bool: イベントが処理された場合はTrue、そうでない場合はFalse
+        """
+        self.log(f"SubPane on_key: {event.key}, focused: {self.has_focus}, active: {self.has_class('active-pane')}, current_command: {self.current_command is not None}")
+        
+        # ログビューアーダイアログを表示するキー
+        if event.key == "o" and self.current_command:
+            self.log(f"SubPane: 'o' key pressed with current_command: {self.current_command}")
+            # stdoutのポップアップを表示
+            if self.current_command.log_files and self.current_command.log_files.stdout:
+                try:
+                    if os.path.exists(self.current_command.log_files.stdout):
+                        with open(self.current_command.log_files.stdout, "r") as f:
+                            stdout_content = f.read()
+                        
+                        # ポップアップダイアログを表示
+                        from wish_sh.tui.screens.log_viewer_screen import LogViewerScreen
+                        self.app.push_screen(
+                            LogViewerScreen(stdout_content, "Standard Output")
+                        )
+                        return True
+                except Exception as e:
+                    self.log(f"Error reading stdout: {e}")
+            return True
+        
+        elif event.key == "e" and self.current_command:
+            self.log(f"SubPane: 'e' key pressed with current_command: {self.current_command}")
+            # stderrのポップアップを表示
+            if self.current_command.log_files and self.current_command.log_files.stderr:
+                try:
+                    if os.path.exists(self.current_command.log_files.stderr):
+                        with open(self.current_command.log_files.stderr, "r") as f:
+                            stderr_content = f.read()
+                        
+                        # ポップアップダイアログを表示
+                        from wish_sh.tui.screens.log_viewer_screen import LogViewerScreen
+                        self.app.push_screen(
+                            LogViewerScreen(stderr_content, "Standard Error")
+                        )
+                        return True
+                except Exception as e:
+                    self.log(f"Error reading stderr: {e}")
+            return True
+        
+        # 既存のキーバインディング処理
+        elif event.key == "j" or event.key == "down":
+            content = self.query_one("#sub-pane-content")
+            content.scroll_down()
+            self.log("Scrolling down")
+            return True
+        elif event.key == "k" or event.key == "up":
+            content = self.query_one("#sub-pane-content")
+            content.scroll_up()
+            self.log("Scrolling up")
+            return True
+        elif event.key == "ctrl+f":
+            content = self.query_one("#sub-pane-content")
+            for _ in range(10):
+                content.scroll_down()
+            self.log("Page down")
+            return True
+        elif event.key == "ctrl+b":
+            content = self.query_one("#sub-pane-content")
+            for _ in range(10):
+                content.scroll_up()
+            self.log("Page up")
+            return True
+        elif event.key == "<":
+            content = self.query_one("#sub-pane-content")
+            content.scroll_home()
+            self.log("Scroll to top")
+            return True
+        elif event.key == ">":
+            content = self.query_one("#sub-pane-content")
+            content.scroll_end()
+            self.log("Scroll to bottom")
+            return True
+        
+        return False
+    
     def update_command_output(self, command_result):
         """Update the pane with command output details.
         
@@ -47,7 +150,9 @@ class SubPane(BasePane):
             command_result: The command result to display.
         """
         try:
+            self.log(f"SubPane update_command_output: command_result={command_result is not None}")
             self.current_command = command_result
+            self.log(f"SubPane update_command_output: self.current_command={self.current_command is not None}")
             
             # Get existing content widget
             try:
@@ -236,13 +341,18 @@ class SubPane(BasePane):
                             # Add line count information
                             content_lines.append(f"({len(stdout_lines)} lines total)")
                             
-                            for line in stdout_lines:
+                            # 冒頭3行だけ表示
+                            for line in stdout_lines[:3]:
                                 # Replace problematic characters in output
                                 safe_line = line.rstrip()
                                 safe_line = safe_line.replace("[", "【").replace("]", "】")
                                 safe_line = safe_line.replace('"', "'")
                                 safe_line = safe_line.replace("\\", "/")
                                 content_lines.append(safe_line)
+                            
+                            # 3行以上ある場合は「もっと見る」メッセージを表示
+                            if len(stdout_lines) > 3:
+                                content_lines.append("... (Press 'o' to view full output)")
                         else:
                             content_lines.append("(No output)")
                     else:
@@ -268,13 +378,18 @@ class SubPane(BasePane):
                             # Add line count information
                             content_lines.append(f"({len(stderr_lines)} lines total)")
                             
-                            for line in stderr_lines:
+                            # 冒頭3行だけ表示
+                            for line in stderr_lines[:3]:
                                 # Replace problematic characters in error output
                                 safe_line = line.rstrip()
                                 safe_line = safe_line.replace("[", "【").replace("]", "】")
                                 safe_line = safe_line.replace('"', "'")
                                 safe_line = safe_line.replace("\\", "/")
                                 content_lines.append(safe_line)
+                            
+                            # 3行以上ある場合は「もっと見る」メッセージを表示
+                            if len(stderr_lines) > 3:
+                                content_lines.append("... (Press 'e' to view full error output)")
                         else:
                             content_lines.append("(No error output)")
                     else:

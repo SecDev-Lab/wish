@@ -98,6 +98,12 @@ SubPane #sub-pane-content {
     height: auto;
     overflow-y: scroll;
     max-height: 100%;  /* 親コンテナの高さいっぱいに表示 */
+    border: none;  /* ボーダーを削除 */
+    padding: 0 1;  /* 左右にパディングを追加 */
+}
+
+SubPane.active-pane #sub-pane-content {
+    border: tall $accent;  /* アクティブな場合はボーダーを追加 */
 }
 
 /* Grid and Horizontal container styles */
@@ -161,4 +167,40 @@ QuitScreen {
 
 .quit-dialog Button {
     margin: 1 1 0 1;
+}
+
+/* LogViewerScreen styles */
+LogViewerScreen {
+    align: center middle;
+}
+
+#log-viewer-dialog {
+    width: 80%;
+    height: 80%;
+    background: $surface;
+    border: tall $accent;
+    padding: 1;
+}
+
+#log-viewer-title {
+    background: $primary;
+    color: $text-primary;
+    text-align: center;
+    width: 100%;
+    height: 1;
+}
+
+#log-line-count {
+    text-align: right;
+    height: 1;
+}
+
+#log-content {
+    height: 1fr;
+    overflow-y: scroll;
+}
+
+#log-viewer-footer {
+    text-align: center;
+    height: 1;
 }

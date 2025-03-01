@@ -63,7 +63,7 @@ class MainScreen(Screen):
         """Handle key events."""
         # デバッグログを追加
         self.log(f"MainScreen on_key: {event.key}")
-        self.log(f"MainScreen active pane: wish_select={self.wish_select.has_class('active-pane')}, main_pane={self.main_pane.has_class('active-pane')}")
+        self.log(f"MainScreen active pane: wish_select={self.wish_select.has_class('active-pane')}, main_pane={self.main_pane.has_class('active-pane')}, sub_pane={self.sub_pane.has_class('active-pane')}")
         self.log(f"MainScreen current mode: {self.current_mode}")
         
         # Handle up/down keys when Wish Select pane is active
@@ -86,6 +86,16 @@ class MainScreen(Screen):
                     return True  # Consume event if the main pane handled it
                 else:
                     self.log("MainScreen: main_pane did not handle the key event")
+        
+        # Handle o/e keys when Sub pane is active and in WISH_HISTORY mode
+        if self.sub_pane.has_class("active-pane") and self.current_mode == WishMode.WISH_HISTORY:
+            if event.key in ("o", "e"):
+                self.log(f"MainScreen: Passing {event.key} key to sub_pane")
+                # Pass the key event to the sub pane
+                if self.sub_pane.on_key(event):
+                    return True  # Consume event if the sub pane handled it
+                else:
+                    self.log(f"MainScreen: sub_pane did not handle the {event.key} key event")
         
         # Navigate between panes with arrow keys
         if event.key in ("left", "arrow_left"):

@@ -17,6 +17,8 @@ class BasePane(Container):
         """
         if active:
             self.add_class("active-pane")
+            # フォーカスを当てる
+            self.focus()
         else:
             self.remove_class("active-pane")
     
