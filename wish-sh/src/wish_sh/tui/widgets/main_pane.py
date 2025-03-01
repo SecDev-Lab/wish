@@ -4,7 +4,7 @@ from datetime import datetime
 from textual.app import ComposeResult
 from textual.message import Message
 from textual.widgets import Static
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical
 from rich.markup import escape
 
 from wish_models import CommandState, CommandResult, WishState, UtcDatetime
@@ -168,16 +168,20 @@ class MainPane(BasePane):
             cmd_emoji = self._get_command_state_emoji(cmd.state)
             safe_command = self._make_safe_command(cmd.command)
             
-            # Add visual indicator for selected command
+            # Add command with CSS class for selection instead of '>' character
             cmd_index = i - 1
-            if cmd_index == self.selected_command_index:
-                content_lines.append(f"{cmd_emoji} ({i}) > {safe_command}")  # Add '>' to indicate selection
-            else:
-                content_lines.append(f"{cmd_emoji} ({i}) {safe_command}")
+            cmd_text = f"{cmd_emoji} ({i}) {safe_command}"
             
             # Store line indices for commands
-            cmd_line_index = len(content_lines) - 1  # Index of the command line
+            cmd_line_index = len(content_lines)  # Index of the command line
             command_indices.append((i-1, cmd_line_index))
+            
+            # Add the command line with visual indicator for selection
+            if cmd_index == self.selected_command_index:
+                # Use standard Rich markup for selected command
+                content_lines.append(f"[reverse]{cmd_text}[/reverse]")
+            else:
+                content_lines.append(cmd_text)
         
         return content_lines, command_indices
     
@@ -232,8 +236,8 @@ class MainPane(BasePane):
                     wish, state_emoji, created_at_local, finished_at_text
                 )
                 
-                # Update the existing content widget with markup disabled
-                content_widget.markup = False
+                # Update the existing content widget with markup enabled for CSS classes
+                content_widget.markup = True
                 content_widget.update("\n".join(content_lines))
                 
                 # Force a refresh to ensure the UI updates

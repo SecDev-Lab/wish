@@ -76,6 +76,18 @@ MainPane #command-status-failed, MainPane #command-status-cancelled {
     color: $error;
 }
 
+/* Command item styling */
+.command-item {
+    width: 100%;
+    height: 1;
+}
+
+/* Selected command styling */
+.command-item.selected {
+    background: $accent-darken-2;
+    color: $text-accent;
+}
+
 /* SubPane styles */
 SubPane {
     width: 100%;

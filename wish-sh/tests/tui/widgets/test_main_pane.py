@@ -219,10 +219,10 @@ class TestMainPane:
             # Update with the test wish
             pane.update_wish(test_wish)
             
-            # Check that the content widget has markup disabled
+            # Check that the content widget has markup enabled for CSS classes
             content = app.query_one("#main-pane-content")
             assert content is not None
-            assert content.markup is False
+            assert content.markup is True
             
             # Check that the wish with markup characters is displayed correctly
             rendered_text = content.renderable
@@ -254,10 +254,10 @@ class TestMainPane:
             # Update with the test wish
             pane.update_wish(test_wish)
             
-            # Check that the content widget has markup disabled
+            # Check that the content widget has markup enabled for CSS classes
             content = app.query_one("#main-pane-content")
             assert content is not None
-            assert content.markup is False
+            assert content.markup is True
             
             # The command should be displayed without causing errors
             # We don't check the exact text because the character replacement might vary,
@@ -425,10 +425,12 @@ class TestMainPane:
                 pane.on_key(up_key)
                 assert pane.selected_command_index == 0
                 
-                # Check that the selected command is visually indicated
+                # Check that the selected command is visually indicated with CSS class
                 content = app.query_one("#main-pane-content")
                 rendered_text = content.renderable
-                assert "> echo 'Command 1'" in rendered_text or "> echo 'Command 1'" in rendered_text
+                # In the new implementation, we use [reverse] markup instead of '>' character
+                assert "[reverse]" in rendered_text
+                assert "echo 'Command 1'" in rendered_text
             except Exception as e:
                 # If there's an error, just log it and pass the test
                 # This is not ideal, but it allows us to focus on the main functionality
