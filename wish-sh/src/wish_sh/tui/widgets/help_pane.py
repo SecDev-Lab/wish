@@ -5,58 +5,83 @@ from textual.containers import Container
 from textual.widgets import Static
 
 
-def style_shortcut(key: str) -> str:
-    """ショートカットキーをスタイリングする
-    
-    Args:
-        key: スタイリングするショートカットキー
-        
-    Returns:
-        スタイリングされたショートカットキー
-    """
-    return f"[magenta][b]{key}[/b][/magenta]"
-
-
 class HelpPane(Container):
     """Help information pane."""
 
     # CSS moved to external file: wish_tui.css
 
-    # Help text definitions
-    DEFAULT_HELP = (
-        f"Help: {style_shortcut('←')} Wish Select | "
-        f"{style_shortcut('→')} Main | "
-        f"{style_shortcut('Ctrl+↑')} Main | "
-        f"{style_shortcut('Ctrl+↓')} Sub | "
-        f"{style_shortcut('q')} Confirm Quit | "
-        f"{style_shortcut('Ctrl+Q')} Quit"
-    )
-    
-    WISH_SELECT_HELP = (
-        f"Help: {style_shortcut('↑↓')} Select Wish | "
-        f"{style_shortcut('→')} Main | "
-        f"{style_shortcut('q')} Confirm Quit | "
-        f"{style_shortcut('Ctrl+Q')} Quit"
-    )
-    
-    MAIN_PANE_HELP = (
-        f"Help: {style_shortcut('←')} Wish Select | "
-        f"{style_shortcut('Ctrl+↓')} Sub | "
-        f"{style_shortcut('q')} Confirm Quit | "
-        f"{style_shortcut('Ctrl+Q')} Quit"
-    )
-    
-    SUB_PANE_HELP = (
-        f"Help: {style_shortcut('←')} Wish Select | "
-        f"{style_shortcut('Ctrl+↑')} Main | "
-        f"{style_shortcut('q')} Confirm Quit | "
-        f"{style_shortcut('Ctrl+Q')} Quit"
-    )
-
     def __init__(self, *args, **kwargs):
         """Initialize the HelpPane."""
         super().__init__(*args, **kwargs)
-        self.help_text = self.DEFAULT_HELP
+        
+        # ヘルプテキストを初期化
+        self.help_text = self._create_default_help()
+    
+    @staticmethod
+    def _style_shortcut(key: str) -> str:
+        """ショートカットキーをスタイリングする
+        
+        Args:
+            key: スタイリングするショートカットキー
+            
+        Returns:
+            スタイリングされたショートカットキー
+        """
+        return f"[magenta][b]{key}[/b][/magenta]"
+    
+    def _create_default_help(self) -> str:
+        """デフォルトのヘルプテキストを作成する
+        
+        Returns:
+            デフォルトのヘルプテキスト
+        """
+        return (
+            f"Help: {self._style_shortcut('←')} Wish Select | "
+            f"{self._style_shortcut('→')} Main | "
+            f"{self._style_shortcut('Ctrl+↑')} Main | "
+            f"{self._style_shortcut('Ctrl+↓')} Sub | "
+            f"{self._style_shortcut('q')} Confirm Quit | "
+            f"{self._style_shortcut('Ctrl+Q')} Quit"
+        )
+    
+    def _create_wish_select_help(self) -> str:
+        """Wish Select ペイン用のヘルプテキストを作成する
+        
+        Returns:
+            Wish Select ペイン用のヘルプテキスト
+        """
+        return (
+            f"Help: {self._style_shortcut('↑↓')} Select Wish | "
+            f"{self._style_shortcut('→')} Main | "
+            f"{self._style_shortcut('q')} Confirm Quit | "
+            f"{self._style_shortcut('Ctrl+Q')} Quit"
+        )
+    
+    def _create_main_pane_help(self) -> str:
+        """Main ペイン用のヘルプテキストを作成する
+        
+        Returns:
+            Main ペイン用のヘルプテキスト
+        """
+        return (
+            f"Help: {self._style_shortcut('←')} Wish Select | "
+            f"{self._style_shortcut('Ctrl+↓')} Sub | "
+            f"{self._style_shortcut('q')} Confirm Quit | "
+            f"{self._style_shortcut('Ctrl+Q')} Quit"
+        )
+    
+    def _create_sub_pane_help(self) -> str:
+        """Sub ペイン用のヘルプテキストを作成する
+        
+        Returns:
+            Sub ペイン用のヘルプテキスト
+        """
+        return (
+            f"Help: {self._style_shortcut('←')} Wish Select | "
+            f"{self._style_shortcut('Ctrl+↑')} Main | "
+            f"{self._style_shortcut('q')} Confirm Quit | "
+            f"{self._style_shortcut('Ctrl+Q')} Quit"
+        )
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
@@ -69,13 +94,13 @@ class HelpPane(Container):
             active_pane: The ID of the active pane.
         """
         if active_pane == "wish-select":
-            self.help_text = self.WISH_SELECT_HELP
+            self.help_text = self._create_wish_select_help()
         elif active_pane == "main-pane":
-            self.help_text = self.MAIN_PANE_HELP
+            self.help_text = self._create_main_pane_help()
         elif active_pane == "sub-pane":
-            self.help_text = self.SUB_PANE_HELP
+            self.help_text = self._create_sub_pane_help()
         else:
-            self.help_text = self.DEFAULT_HELP
+            self.help_text = self._create_default_help()
         
         # Update the help content
         help_content = self.query_one("#help-content")
