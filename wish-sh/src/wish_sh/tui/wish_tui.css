@@ -87,6 +87,28 @@ SubPane #sub-pane-content {
     overflow-y: scroll;
 }
 
+/* Grid styles */
+Grid {
+    width: 100%;
+    height: auto;
+    overflow-y: scroll;
+}
+
+.label {
+    width: 100%;
+    padding-right: 1;
+    text-align: right;
+}
+
+.value {
+    width: 100%;
+    text-align: left;
+}
+
+.command-label, .command-value {
+    background: $surface-lighten-1;
+}
+
 /* HelpPane styles */
 HelpPane {
     width: 100%;

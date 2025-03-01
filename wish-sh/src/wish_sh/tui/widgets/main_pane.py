@@ -4,6 +4,7 @@ from datetime import datetime
 from textual.app import ComposeResult
 from textual.message import Message
 from textual.widgets import Static
+from textual.containers import Grid
 
 from wish_models import CommandState, CommandResult, WishState, UtcDatetime
 from wish_sh.tui.widgets.base_pane import BasePane
@@ -43,6 +44,13 @@ class MainPane(BasePane):
     
     def update_for_new_wish_mode(self):
         """Update the pane for New Wish mode."""
+        # Remove old grid if exists
+        try:
+            old_grid = self.query_one("#wish-details-grid")
+            self.remove(old_grid)
+        except:
+            pass
+            
         content_widget = self.query_one("#main-pane-content")
         content_widget.update("[b]新しいWishを作成するモードです。[/b]")
     
@@ -92,9 +100,13 @@ class MainPane(BasePane):
             self.current_wish = wish
             
             # Get existing content widget
-            content_widget = self.query_one("#main-pane-content")
+            try:
+                content = self.query_one("#main-pane-content")
+            except:
+                # Create a new content widget if it doesn't exist
+                content = Static(id="main-pane-content")
+                self.mount(content)
             
-            # Create content text
             if wish:
                 # Get emoji for wish state
                 state_emoji = self._get_wish_state_emoji(wish.state)
@@ -116,27 +128,46 @@ class MainPane(BasePane):
                     else:
                         finished_at_text = wish.finished_at.to_local_str()
                 
-                # Format wish details with aligned labels
-                content_lines = [
-                    f"[b]Wish:[/b]     {wish.wish}",
-                    f"[b]Status:[/b]   {state_emoji} {wish.state}",
-                    f"[b]Created:[/b]  {created_at_local}",
-                    f"[b]Finished:[/b] {finished_at_text}",
-                    "",
-                    "[b]Commands:[/b]"
-                ]
+                # Format wish details as text
+                content_lines = []
                 
-                # Add command results as single lines
+                # Add wish details
+                content_lines.append("[b]Wish:[/b]")
+                # Escape any markup in the wish text
+                escaped_wish = wish.wish.replace("[", "\\[").replace("]", "\\]")
+                content_lines.append(escaped_wish)
+                
+                content_lines.append(f"[b]Status:[/b]")
+                content_lines.append(f"{state_emoji} {wish.state}")
+                
+                content_lines.append("[b]Created:[/b]")
+                content_lines.append(created_at_local)
+                
+                content_lines.append("[b]Finished:[/b]")
+                content_lines.append(finished_at_text)
+                
+                content_lines.append("")
+                content_lines.append("[b]Commands:[/b]")
+                
+                # Add command results
+                self.command_indices = []  # Store command indices for click handling
                 for i, cmd in enumerate(wish.command_results, 1):
                     cmd_emoji = self._get_command_state_emoji(cmd.state)
-                    content_lines.append(f"{cmd_emoji} ({i}) {cmd.command}")
+                    content_lines.append(f"{cmd_emoji} ({i})")
+                    # Escape any markup in the command text
+                    escaped_command = cmd.command.replace("[", "\\[").replace("]", "\\]")
+                    content_lines.append(escaped_command)
+                    
+                    # Store line indices for commands
+                    cmd_line_index = len(content_lines) - 2  # Index of the command line
+                    self.command_indices.append((i-1, cmd_line_index))
                 
+                # Update the content
                 content_text = "\n".join(content_lines)
+                content.update(content_text)
             else:
-                content_text = "(No wish selected)"
-            
-            # Update the existing content widget
-            content_widget.update(content_text)
+                # If no wish selected, show simple message
+                self.mount(Static("(No wish selected)", id="main-pane-content"))
         except Exception as e:
             error_message = f"Error updating wish: {e}"
             self.log(error_message)
@@ -149,7 +180,7 @@ class MainPane(BasePane):
     
     def on_click(self, event) -> None:
         """Handle click events to select commands."""
-        if not self.current_wish or not self.current_wish.command_results:
+        if not self.current_wish or not self.current_wish.command_results or not hasattr(self, 'command_indices'):
             return
         
         try:
@@ -157,14 +188,13 @@ class MainPane(BasePane):
             content_widget = self.query_one("#main-pane-content")
             clicked_line = event.y - content_widget.region.y
             
-            # Calculate which command was clicked (if any)
-            # First 6 lines are header (Wish, Status, Created, Finished, empty line, "Commands:")
-            header_lines = 6
-            if clicked_line >= header_lines and clicked_line < header_lines + len(self.current_wish.command_results):
-                command_index = clicked_line - header_lines
-                if 0 <= command_index < len(self.current_wish.command_results):
-                    selected_command = self.current_wish.command_results[command_index]
-                    # Post a message that a command was selected
-                    self.post_message(CommandSelected(selected_command))
+            # Check if we clicked on a command line
+            for cmd_index, line_index in self.command_indices:
+                if clicked_line == line_index or clicked_line == line_index + 1:  # Command line or command text line
+                    if 0 <= cmd_index < len(self.current_wish.command_results):
+                        selected_command = self.current_wish.command_results[cmd_index]
+                        # Post a message that a command was selected
+                        self.post_message(CommandSelected(selected_command))
+                        break
         except Exception as e:
             self.log(f"Error handling click: {e}")

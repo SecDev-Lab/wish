@@ -65,8 +65,8 @@ class WishSelectPane(BasePane):
                 # Get emoji based on wish state
                 emoji = self.manager._get_state_emoji(wish.state) if self.manager else "❓"
                 
-                # Create a single Static widget with fixed spacing (reduced from 3 to 2 spaces)
-                static = Static(f"{emoji} {wish.wish}", id=f"wish-{id(wish)}", classes="wish-item")
+                # Create a Static widget with emoji and wish text
+                static = Static(f"{emoji} {wish.wish}", id=f"wish-{id(wish)}", classes="wish-item", markup=False)
                 
                 # Adjust index to account for NEW WISH option
                 if i + 1 == self.selected_index:

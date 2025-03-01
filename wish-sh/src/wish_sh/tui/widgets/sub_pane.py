@@ -3,6 +3,7 @@
 import os
 from textual.app import ComposeResult
 from textual.widgets import Static
+from textual.containers import Grid
 
 from wish_sh.tui.widgets.base_pane import BasePane
 
@@ -28,6 +29,13 @@ class SubPane(BasePane):
     
     def update_for_new_wish_mode(self):
         """Update the pane for New Wish mode."""
+        # Remove old grid if exists
+        try:
+            old_grid = self.query_one("#command-details-grid")
+            self.remove(old_grid)
+        except:
+            pass
+            
         content_widget = self.query_one("#sub-pane-content")
         content_widget.update("新しいWishのコマンド出力がここに表示されます。")
     
@@ -40,22 +48,32 @@ class SubPane(BasePane):
         try:
             self.current_command = command_result
             
+            # Get existing content widget
+            try:
+                content = self.query_one("#sub-pane-content")
+            except:
+                # Create a new content widget if it doesn't exist
+                content = Static(id="sub-pane-content")
+                self.mount(content)
+            
             if not command_result:
-                content_widget = self.query_one("#sub-pane-content")
-                content_widget.update("(No command selected)")
+                content.update("(No command selected)")
                 return
             
-            content_widget = self.query_one("#sub-pane-content")
+            # Format command details as text
+            content_lines = []
             
-            # Format command output details
-            content_lines = [
-                f"Command: {command_result.command}",
-                ""
-            ]
+            # Add command
+            content_lines.append("[b]Command:[/b]")
+            # Escape any markup in the command text
+            escaped_command = command_result.command.replace("[", "\\[").replace("]", "\\]")
+            content_lines.append(escaped_command)
+            content_lines.append("")
             
             # Add stdout content if available
             if command_result.log_files and command_result.log_files.stdout:
-                content_lines.append("Standard Output:")
+                content_lines.append("[b]Standard Output:[/b]")
+                
                 try:
                     # Check if the file exists
                     if os.path.exists(command_result.log_files.stdout):
@@ -64,7 +82,10 @@ class SubPane(BasePane):
                             stdout_lines = f.readlines()[:20]  # First 20 lines only
                         
                         if stdout_lines:
-                            content_lines.extend([line.rstrip() for line in stdout_lines])
+                            for line in stdout_lines:
+                                # Escape any markup in the output
+                                escaped_line = line.rstrip().replace("[", "\\[").replace("]", "\\]")
+                                content_lines.append(escaped_line)
                             if len(stdout_lines) == 20:
                                 content_lines.append("... (output truncated)")
                         else:
@@ -74,12 +95,14 @@ class SubPane(BasePane):
                 except Exception as e:
                     content_lines.append(f"(Error reading output: {e})")
             else:
+                content_lines.append("[b]Standard Output:[/b]")
                 content_lines.append("(No output file available)")
             
             # Add stderr content if available
             if command_result.log_files and command_result.log_files.stderr:
                 content_lines.append("")
-                content_lines.append("Standard Error:")
+                content_lines.append("[b]Standard Error:[/b]")
+                
                 try:
                     # Check if the file exists
                     if os.path.exists(command_result.log_files.stderr):
@@ -88,7 +111,10 @@ class SubPane(BasePane):
                             stderr_lines = f.readlines()[:20]  # First 20 lines only
                         
                         if stderr_lines:
-                            content_lines.extend([line.rstrip() for line in stderr_lines])
+                            for line in stderr_lines:
+                                # Escape any markup in the error output
+                                escaped_line = line.rstrip().replace("[", "\\[").replace("]", "\\]")
+                                content_lines.append(escaped_line)
                             if len(stderr_lines) == 20:
                                 content_lines.append("... (output truncated)")
                         else:
@@ -98,8 +124,9 @@ class SubPane(BasePane):
                 except Exception as e:
                     content_lines.append(f"(Error reading error output: {e})")
             
+            # Update the content
             content_text = "\n".join(content_lines)
-            content_widget.update(content_text)
+            content.update(content_text)
         except Exception as e:
             self.log(f"Error updating command output: {e}")
             try:
