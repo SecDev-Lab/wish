@@ -7,7 +7,7 @@ from textual.widgets import Static
 from wish_sh.tui.widgets.base_pane import BasePane
 
 
-class TestApp(App):
+class BasePaneTestApp(App):
     """Test application for BasePane."""
 
     def compose(self) -> ComposeResult:
@@ -20,17 +20,19 @@ class TestApp(App):
 class TestBasePane:
     """Tests for the BasePane widget."""
 
+    @pytest.mark.asyncio
     async def test_base_pane_creation(self):
         """Test that a BasePane can be created."""
-        app = TestApp()
+        app = BasePaneTestApp()
         async with app.run_test():
             pane = app.query_one(BasePane)
             assert pane is not None
             assert pane.id == "test-pane"
 
+    @pytest.mark.asyncio
     async def test_base_pane_active_state(self):
         """Test that a BasePane can be set to active."""
-        app = TestApp()
+        app = BasePaneTestApp()
         async with app.run_test():
             pane = app.query_one(BasePane)
             
@@ -39,10 +41,10 @@ class TestBasePane:
             
             # Set to active
             pane.set_active(True)
-            await app.process_messages()
+            # No need to process events, the class is added immediately
             assert "active-pane" in pane.classes
             
             # Set to inactive
             pane.set_active(False)
-            await app.process_messages()
+            # No need to process events, the class is removed immediately
             assert "active-pane" not in pane.classes

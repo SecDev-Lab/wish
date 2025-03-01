@@ -6,7 +6,7 @@ from textual.app import App, ComposeResult
 from wish_sh.tui.widgets.wish_select_pane import WishSelectPane
 
 
-class TestApp(App):
+class WishSelectPaneTestApp(App):
     """Test application for WishSelectPane."""
 
     def __init__(self, wishes=None):
@@ -26,9 +26,10 @@ class TestApp(App):
 class TestWishSelectPane:
     """Tests for the WishSelectPane widget."""
 
+    @pytest.mark.asyncio
     async def test_wish_select_pane_creation(self):
         """Test that a WishSelectPane can be created."""
-        app = TestApp()
+        app = WishSelectPaneTestApp()
         async with app.run_test():
             pane = app.query_one(WishSelectPane)
             assert pane is not None
@@ -44,12 +45,13 @@ class TestWishSelectPane:
             assert content is not None
             assert content.renderable == "(No wishes available)"
 
+    @pytest.mark.asyncio
     async def test_wish_select_pane_with_wishes(self):
         """Test that a WishSelectPane can display wishes."""
         # Create some test wishes
         test_wishes = ["Wish 1", "Wish 2", "Wish 3"]
         
-        app = TestApp(wishes=test_wishes)
+        app = WishSelectPaneTestApp(wishes=test_wishes)
         async with app.run_test():
             pane = app.query_one(WishSelectPane)
             assert pane is not None
@@ -72,9 +74,10 @@ class TestWishSelectPane:
             for i, wish in enumerate(test_wishes):
                 assert statics[i + 1].renderable == str(wish)
 
+    @pytest.mark.asyncio
     async def test_wish_select_pane_active_state(self):
         """Test that a WishSelectPane can be set to active."""
-        app = TestApp()
+        app = WishSelectPaneTestApp()
         async with app.run_test():
             pane = app.query_one(WishSelectPane)
             
@@ -83,10 +86,10 @@ class TestWishSelectPane:
             
             # Set to active
             pane.set_active(True)
-            await app.process_messages()
+            # No need to process events, the class is added immediately
             assert "active-pane" in pane.classes
             
             # Set to inactive
             pane.set_active(False)
-            await app.process_messages()
+            # No need to process events, the class is removed immediately
             assert "active-pane" not in pane.classes
