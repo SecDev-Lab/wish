@@ -80,14 +80,12 @@ class SubPane(BasePane):
                 try:
                     # Check if the file exists
                     if os.path.exists(command_result.log_files.stdout):
-                        # Read the first few lines of stdout
+                        # Read all lines of stdout
                         with open(command_result.log_files.stdout, "r") as f:
-                            stdout_lines = f.readlines()[:20]  # First 20 lines only
+                            stdout_lines = f.readlines()
                         
                         if stdout_lines:
                             stdout_text = "".join(stdout_lines)
-                            if len(stdout_lines) == 20:
-                                stdout_text += "\n... (output truncated)"
                             value_lines.append(stdout_text)
                         else:
                             value_lines.append("(No output)")
@@ -108,14 +106,12 @@ class SubPane(BasePane):
                 try:
                     # Check if the file exists
                     if os.path.exists(command_result.log_files.stderr):
-                        # Read the first few lines of stderr
+                        # Read all lines of stderr
                         with open(command_result.log_files.stderr, "r") as f:
-                            stderr_lines = f.readlines()[:20]  # First 20 lines only
+                            stderr_lines = f.readlines()
                         
                         if stderr_lines:
                             stderr_text = "".join(stderr_lines)
-                            if len(stderr_lines) == 20:
-                                stderr_text += "\n... (output truncated)"
                             value_lines.append(stderr_text)
                         else:
                             value_lines.append("(No error output)")
@@ -149,17 +145,18 @@ class SubPane(BasePane):
                 try:
                     # Check if the file exists
                     if os.path.exists(command_result.log_files.stdout):
-                        # Read the first few lines of stdout
+                        # Read all lines of stdout
                         with open(command_result.log_files.stdout, "r") as f:
-                            stdout_lines = f.readlines()[:20]  # First 20 lines only
+                            stdout_lines = f.readlines()
                         
                         if stdout_lines:
+                            # Add line count information
+                            content_lines.append(f"({len(stdout_lines)} lines total)")
+                            
                             for line in stdout_lines:
                                 # Escape any markup in the output
                                 escaped_line = escape(line.rstrip())
                                 content_lines.append(escaped_line)
-                            if len(stdout_lines) == 20:
-                                content_lines.append("... (output truncated)")
                         else:
                             content_lines.append("(No output)")
                     else:
@@ -177,17 +174,18 @@ class SubPane(BasePane):
                 try:
                     # Check if the file exists
                     if os.path.exists(command_result.log_files.stderr):
-                        # Read the first few lines of stderr
+                        # Read all lines of stderr
                         with open(command_result.log_files.stderr, "r") as f:
-                            stderr_lines = f.readlines()[:20]  # First 20 lines only
+                            stderr_lines = f.readlines()
                         
                         if stderr_lines:
+                            # Add line count information
+                            content_lines.append(f"({len(stderr_lines)} lines total)")
+                            
                             for line in stderr_lines:
                                 # Escape any markup in the error output
                                 escaped_line = escape(line.rstrip())
                                 content_lines.append(escaped_line)
-                            if len(stderr_lines) == 20:
-                                content_lines.append("... (output truncated)")
                         else:
                             content_lines.append("(No error output)")
                     else:
@@ -230,11 +228,14 @@ class SubPane(BasePane):
                 try:
                     # Check if the file exists
                     if os.path.exists(command_result.log_files.stdout):
-                        # Read the first few lines of stdout
+                        # Read all lines of stdout
                         with open(command_result.log_files.stdout, "r") as f:
-                            stdout_lines = f.readlines()[:20]  # First 20 lines only
+                            stdout_lines = f.readlines()
                         
                         if stdout_lines:
+                            # Add line count information
+                            content_lines.append(f"({len(stdout_lines)} lines total)")
+                            
                             for line in stdout_lines:
                                 # Replace problematic characters in output
                                 safe_line = line.rstrip()
@@ -242,8 +243,6 @@ class SubPane(BasePane):
                                 safe_line = safe_line.replace('"', "'")
                                 safe_line = safe_line.replace("\\", "/")
                                 content_lines.append(safe_line)
-                            if len(stdout_lines) == 20:
-                                content_lines.append("... (output truncated)")
                         else:
                             content_lines.append("(No output)")
                     else:
@@ -261,11 +260,14 @@ class SubPane(BasePane):
                 try:
                     # Check if the file exists
                     if os.path.exists(command_result.log_files.stderr):
-                        # Read the first few lines of stderr
+                        # Read all lines of stderr
                         with open(command_result.log_files.stderr, "r") as f:
-                            stderr_lines = f.readlines()[:20]  # First 20 lines only
+                            stderr_lines = f.readlines()
                         
                         if stderr_lines:
+                            # Add line count information
+                            content_lines.append(f"({len(stderr_lines)} lines total)")
+                            
                             for line in stderr_lines:
                                 # Replace problematic characters in error output
                                 safe_line = line.rstrip()
@@ -273,8 +275,6 @@ class SubPane(BasePane):
                                 safe_line = safe_line.replace('"', "'")
                                 safe_line = safe_line.replace("\\", "/")
                                 content_lines.append(safe_line)
-                            if len(stderr_lines) == 20:
-                                content_lines.append("... (output truncated)")
                         else:
                             content_lines.append("(No error output)")
                     else:
@@ -288,6 +288,9 @@ class SubPane(BasePane):
             content_widget = self.query_one("#sub-pane-content")
             content_widget.markup = False
             content_widget.update("\n".join(content_lines))
+            
+            # Reset scroll position to the top
+            content_widget.scroll_home()
             
             # Force a refresh to ensure the UI updates
             self.refresh()

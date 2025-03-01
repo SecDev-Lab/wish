@@ -80,6 +80,9 @@ class HelpPane(Container):
         return (
             f"Help: {self._style_shortcut('←')} Wish Select | "
             f"{self._style_shortcut('Ctrl+↑')} Main | "
+            f"{self._style_shortcut('j/k')} Line Down/Up | "
+            f"{self._style_shortcut('Ctrl+F/B')} Page Down/Up | "
+            f"{self._style_shortcut('</>')} Top/Bottom | "
             f"{self._style_shortcut('q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
         )

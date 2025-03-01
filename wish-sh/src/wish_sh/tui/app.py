@@ -22,6 +22,14 @@ class WishTUIApp(App):
         Binding("right", "focus_main", "Focus Main"),
         Binding("ctrl+up", "focus_main", "Focus Main"),
         Binding("ctrl+down", "focus_sub", "Focus Sub"),
+        Binding("j", "scroll_down_line", "Scroll Down"),
+        Binding("down", "scroll_down_line", "Scroll Down"),
+        Binding("k", "scroll_up_line", "Scroll Up"),
+        Binding("up", "scroll_up_line", "Scroll Up"),
+        Binding("ctrl+f", "scroll_page_down", "Page Down"),
+        Binding("ctrl+b", "scroll_page_up", "Page Up"),
+        Binding(">", "scroll_end", "Bottom"),
+        Binding("<", "scroll_home", "Top"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -66,3 +74,62 @@ class WishTUIApp(App):
         """Action to show quit confirmation dialog."""
         from wish_sh.tui.screens.quit_screen import QuitScreen
         self.push_screen(QuitScreen())
+    
+    def action_scroll_up_line(self) -> None:
+        """Scroll up one line in the active pane."""
+        active_pane = self.get_active_pane()
+        if active_pane and active_pane.id == "sub-pane":
+            content = active_pane.query_one("#sub-pane-content")
+            # 1行上にスクロール
+            content.scroll_up()
+    
+    def action_scroll_down_line(self) -> None:
+        """Scroll down one line in the active pane."""
+        active_pane = self.get_active_pane()
+        if active_pane and active_pane.id == "sub-pane":
+            content = active_pane.query_one("#sub-pane-content")
+            # 1行下にスクロール
+            content.scroll_down()
+    
+    def action_scroll_page_up(self) -> None:
+        """Page up in the active pane."""
+        active_pane = self.get_active_pane()
+        if active_pane and active_pane.id == "sub-pane":
+            content = active_pane.query_one("#sub-pane-content")
+            # ページ単位でスクロール
+            for _ in range(10):  # 10行分スクロール
+                content.scroll_up()
+    
+    def action_scroll_page_down(self) -> None:
+        """Page down in the active pane."""
+        active_pane = self.get_active_pane()
+        if active_pane and active_pane.id == "sub-pane":
+            content = active_pane.query_one("#sub-pane-content")
+            # ページ単位でスクロール
+            for _ in range(10):  # 10行分スクロール
+                content.scroll_down()
+    
+    def action_scroll_home(self) -> None:
+        """Scroll to the top of the active pane."""
+        active_pane = self.get_active_pane()
+        if active_pane and active_pane.id == "sub-pane":
+            content = active_pane.query_one("#sub-pane-content")
+            content.scroll_home()
+    
+    def action_scroll_end(self) -> None:
+        """Scroll to the bottom of the active pane."""
+        active_pane = self.get_active_pane()
+        if active_pane and active_pane.id == "sub-pane":
+            content = active_pane.query_one("#sub-pane-content")
+            content.scroll_end()
+    
+    def get_active_pane(self):
+        """Get the currently active pane."""
+        main_screen = self.screen
+        if hasattr(main_screen, "wish_select") and main_screen.wish_select.has_class("active-pane"):
+            return main_screen.wish_select
+        elif hasattr(main_screen, "main_pane") and main_screen.main_pane.has_class("active-pane"):
+            return main_screen.main_pane
+        elif hasattr(main_screen, "sub_pane") and main_screen.sub_pane.has_class("active-pane"):
+            return main_screen.sub_pane
+        return None

@@ -97,6 +97,7 @@ SubPane {
 SubPane #sub-pane-content {
     height: auto;
     overflow-y: scroll;
+    max-height: 100%;  /* 親コンテナの高さいっぱいに表示 */
 }
 
 /* Grid and Horizontal container styles */
