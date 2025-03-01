@@ -32,6 +32,7 @@ classifiers = [
 ]
 license = {file = "../LICENSE"}
 dependencies = [
+    "textual>=2.1.2",
     "wish-models>=0.0.1",
 ]
 
