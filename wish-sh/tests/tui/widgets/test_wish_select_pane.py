@@ -2,9 +2,10 @@
 
 import pytest
 from textual.app import App, ComposeResult
+from textual.pilot import Pilot
 from wish_models import Wish
 
-from wish_sh.tui.widgets.wish_select_pane import WishSelectPane
+from wish_sh.tui.widgets.wish_select_pane import WishSelectPane, WishSelected
 
 
 class WishSelectPaneTestApp(App):
@@ -147,3 +148,71 @@ class TestWishSelectPane:
             # The wish text should contain both the index and the brackets
             assert "[1]" in statics[1].renderable
             assert "[This is a wish with brackets]" in statics[1].renderable
+    
+    @pytest.mark.asyncio
+    async def test_wish_selection_with_keys(self):
+        """Test that wishes can be selected using up/down keys."""
+        # Create some test wishes
+        test_wishes = [
+            Wish.create("Wish 1"),
+            Wish.create("Wish 2"),
+            Wish.create("Wish 3")
+        ]
+        
+        app = WishSelectPaneTestApp(wishes=test_wishes)
+        async with app.run_test():
+            pane = app.query_one(WishSelectPane)
+            
+            # Initially, the first wish should be selected
+            assert pane.selected_index == 0
+            wish1_widget = app.query_one(f"#wish-{id(test_wishes[0])}")
+            assert "selected" in wish1_widget.classes
+            
+            # Select the second wish directly
+            pane.select_next()
+            assert pane.selected_index == 1
+            wish2_widget = app.query_one(f"#wish-{id(test_wishes[1])}")
+            assert "selected" in wish2_widget.classes
+            assert "selected" not in wish1_widget.classes
+            
+            # Select the third wish
+            pane.select_next()
+            assert pane.selected_index == 2
+            wish3_widget = app.query_one(f"#wish-{id(test_wishes[2])}")
+            assert "selected" in wish3_widget.classes
+            assert "selected" not in wish2_widget.classes
+            
+            # Try to go beyond the end, nothing should change
+            pane.select_next()
+            assert pane.selected_index == 2  # Still at the last wish
+            assert "selected" in wish3_widget.classes
+            
+            # Go back to the second wish
+            pane.select_previous()
+            assert pane.selected_index == 1
+            assert "selected" in wish2_widget.classes
+            assert "selected" not in wish3_widget.classes
+    
+    @pytest.mark.asyncio
+    async def test_wish_selected_message(self):
+        """Test that a wish can be selected and deselected."""
+        # Create some test wishes
+        test_wishes = [
+            Wish.create("Wish 1"),
+            Wish.create("Wish 2")
+        ]
+        
+        app = WishSelectPaneTestApp(wishes=test_wishes)
+        async with app.run_test():
+            pane = app.query_one(WishSelectPane)
+            
+            # Initially, the first wish should be selected
+            assert pane.selected_index == 0
+            
+            # Select the second wish directly
+            pane.select_next()
+            assert pane.selected_index == 1
+            
+            # Go back to the first wish
+            pane.select_previous()
+            assert pane.selected_index == 0

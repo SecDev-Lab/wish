@@ -9,7 +9,7 @@ from wish_sh.wish_manager import WishManager
 from wish_sh.tui.widgets.help_pane import HelpPane
 from wish_sh.tui.widgets.main_pane import MainPane
 from wish_sh.tui.widgets.sub_pane import SubPane
-from wish_sh.tui.widgets.wish_select_pane import WishSelectPane
+from wish_sh.tui.widgets.wish_select_pane import WishSelectPane, WishSelected
 
 
 class MainScreen(Screen):
@@ -59,13 +59,13 @@ class MainScreen(Screen):
         self.wish_select = WishSelectPane(wishes=self.wishes, manager=self.manager, id="wish-select")
         self.main_pane = MainPane(id="main-pane")
         self.sub_pane = SubPane(id="sub-pane")
-        help_pane = HelpPane(id="help-pane")
+        self.help_pane = HelpPane(id="help-pane")
 
         # Yield the widgets in the desired order
         yield self.wish_select
         yield self.main_pane
         yield self.sub_pane
-        yield help_pane
+        yield self.help_pane
 
     def on_mount(self) -> None:
         """Event handler called when the screen is mounted."""
@@ -76,11 +76,29 @@ class MainScreen(Screen):
         self.wish_select.set_active(False)
         self.main_pane.set_active(True)
         self.sub_pane.set_active(False)
+        
+        # Update help text for initial active pane
+        self.help_pane.update_help("main-pane")
+        
+        # If there are wishes, select the first one and update the main pane
+        if self.wishes:
+            self.main_pane.update_wish(self.wishes[0])
     
     def on_key(self, event) -> None:
         """Handle key events."""
         # デバッグ情報を表示
         self.log(f"Key pressed: {event.key}")
+        
+        # Wish Selectペーンがアクティブなときは上下キーを直接処理
+        if self.wish_select.has_class("active-pane"):
+            if event.key in ("up", "arrow_up"):
+                self.log("Directly handling up key for WishSelectPane")
+                self.wish_select.select_previous()
+                return True  # イベントを消費
+            elif event.key in ("down", "arrow_down"):
+                self.log("Directly handling down key for WishSelectPane")
+                self.wish_select.select_next()
+                return True  # イベントを消費
         
         # 左右の矢印キーでペーン間を移動
         if event.key in ("left", "arrow_left"):
@@ -118,3 +136,11 @@ class MainScreen(Screen):
         elif pane_id == "sub-pane":
             self.sub_pane.set_active(True)
             self.sub_pane.focus()
+        
+        # Update help text based on active pane
+        self.help_pane.update_help(pane_id)
+    
+    def on_wish_selected(self, event: WishSelected) -> None:
+        """Handle wish selection events."""
+        self.log(f"Wish selected: {event.wish.wish}")
+        self.main_pane.update_wish(event.wish)
