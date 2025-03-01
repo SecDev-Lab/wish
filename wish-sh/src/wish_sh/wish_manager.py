@@ -37,7 +37,34 @@ class WishManager:
                     wish.state = wish_dict["state"]
                     wish.created_at = wish_dict["created_at"]
                     wish.finished_at = wish_dict["finished_at"]
-                    # (simplified: not loading command results for prototype)
+                    
+                    # Load command results
+                    if "command_results" in wish_dict and wish_dict["command_results"]:
+                        for cmd_dict in wish_dict["command_results"]:
+                            # Create LogFiles object
+                            log_files = LogFiles(
+                                stdout=cmd_dict["log_files"]["stdout"],
+                                stderr=cmd_dict["log_files"]["stderr"]
+                            )
+                            
+                            # Create CommandResult object
+                            cmd_result = CommandResult.create(
+                                cmd_dict["num"],
+                                cmd_dict["command"],
+                                log_files
+                            )
+                            
+                            # Set additional properties
+                            cmd_result.state = cmd_dict["state"]
+                            cmd_result.timeout_sec = cmd_dict["timeout_sec"]
+                            cmd_result.exit_code = cmd_dict["exit_code"]
+                            cmd_result.log_summary = cmd_dict["log_summary"]
+                            cmd_result.created_at = cmd_dict["created_at"]
+                            cmd_result.finished_at = cmd_dict["finished_at"]
+                            
+                            # Add to wish
+                            wish.command_results.append(cmd_result)
+                    
                     wishes.append(wish)
         except (FileNotFoundError, json.JSONDecodeError):
             pass
