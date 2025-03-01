@@ -6,6 +6,7 @@ from textual.screen import Screen
 
 from wish_sh.settings import Settings
 from wish_sh.wish_manager import WishManager
+from wish_sh.tui.modes import WishMode
 from wish_sh.tui.widgets.help_pane import HelpPane
 from wish_sh.tui.widgets.main_pane import MainPane, CommandSelected
 from wish_sh.tui.widgets.sub_pane import SubPane
@@ -23,6 +24,8 @@ class MainScreen(Screen):
         self.manager = wish_manager or WishManager(self.settings)
         # Load past wishes
         self.wishes = self.manager.load_wishes()
+        # Initialize with NEW_WISH mode by default
+        self.current_mode = WishMode.NEW_WISH
 
     # CSS moved to external file: wish_tui.css
 
@@ -53,9 +56,9 @@ class MainScreen(Screen):
         # Update help text for initial active pane
         self.help_pane.update_help("main-pane")
         
-        # If there are wishes, select the first one and update the main pane
-        if self.wishes:
-            self.main_pane.update_wish(self.wishes[0])
+        # Initialize with NEW_WISH mode
+        self.main_pane.update_for_new_wish_mode()
+        self.sub_pane.update_for_new_wish_mode()
     
     def on_key(self, event) -> None:
         """Handle key events."""
@@ -106,7 +109,21 @@ class MainScreen(Screen):
     
     def on_wish_selected(self, event: WishSelected) -> None:
         """Handle wish selection events."""
-        self.main_pane.update_wish(event.wish)
+        self.current_mode = event.mode
+        
+        if self.current_mode == WishMode.NEW_WISH:
+            # Update panes for NEW WISH mode
+            self.main_pane.update_for_new_wish_mode()
+            self.sub_pane.update_for_new_wish_mode()
+        else:
+            # Update panes for WISH HISTORY mode
+            self.main_pane.update_wish(event.wish)
+            
+            # Reset Sub pane to default state for WISH HISTORY mode
+            title_widget = self.sub_pane.query_one("#sub-pane-title")
+            title_widget.update("Command Output")
+            content_widget = self.sub_pane.query_one("#sub-pane-content")
+            content_widget.update("(Select a command to view details)")
     
     def on_command_selected(self, event: CommandSelected) -> None:
         """Handle command selection events."""
