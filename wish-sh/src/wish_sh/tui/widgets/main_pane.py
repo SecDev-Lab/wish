@@ -17,9 +17,9 @@ class MainPane(Container):
         padding: 1;
     }
     
-    MainPane:focus-within {
-        border: heavy $accent;
-        background: $accent-lighten-2;
+    MainPane.active-pane {
+        border: heavy $error;
+        background: $warning-lighten-2;
     }
     
     #main-pane-active-title {
@@ -48,8 +48,16 @@ class MainPane(Container):
     def set_active(self, active: bool) -> None:
         """Set the active state of the pane."""
         if active:
+            # タイトル表示の切り替え
             self.active_title.styles.display = "block"
             self.inactive_title.styles.display = "none"
+            
+            # ペーン自体のスタイル変更
+            self.add_class("active-pane")
         else:
+            # タイトル表示の切り替え
             self.active_title.styles.display = "none"
             self.inactive_title.styles.display = "block"
+            
+            # ペーン自体のスタイルを元に戻す
+            self.remove_class("active-pane")
