@@ -49,7 +49,7 @@ class TestSubPane:
             # Check that the content has been updated
             content = app.query_one("#sub-pane-content")
             assert content is not None
-            assert "新しいWishのコマンド出力がここに表示されます" in content.renderable
+            assert "Command output for new Wish will be displayed here" in content.renderable
 
     @pytest.mark.asyncio
     async def test_sub_pane_update_command_output_none(self):
@@ -102,31 +102,25 @@ class TestSubPane:
                 assert content is not None
                 
                 # Check basic command information
-                assert f"コマンド #{cmd_result.num}" in content.renderable
+                assert f"Command:    #{cmd_result.num}" in content.renderable
                 assert cmd_result.command in content.renderable
-                assert "状態: 成功" in content.renderable
-                assert "終了コード: 0" in content.renderable
+                assert "Status:     Success" in content.renderable
+                assert "Exit Code:  0" in content.renderable
                 
                 # Check timestamps
-                assert "=== タイムスタンプ ===" in content.renderable
-                assert "開始時間:" in content.renderable
-                assert "終了時間:" in content.renderable
-                assert "実行時間:" in content.renderable
+                assert "Started:" in content.renderable
+                assert "Finished:" in content.renderable
+                assert "Duration:" in content.renderable
                 
                 # Check log summary
-                assert "=== ログ要約 ===" in content.renderable
+                assert "=== Log Summary ===" in content.renderable
                 assert "Command executed successfully" in content.renderable
                 
                 # Check output sections
-                assert "=== 標準出力 ===" in content.renderable
+                assert "=== Standard Output ===" in content.renderable
                 assert "Hello, world!" in content.renderable
-                assert "=== 標準エラー出力 ===" in content.renderable
+                assert "=== Standard Error ===" in content.renderable
                 assert "Error message" in content.renderable
-                
-                # Check keyboard shortcuts section
-                assert "=== キーボードショートカット ===" in content.renderable
-                assert "o: 標準出力全体を表示" in content.renderable
-                assert "e: エラー出力全体を表示" in content.renderable
         finally:
             # Clean up temporary files
             os.unlink(stdout_path)
@@ -240,19 +234,19 @@ class TestSubPane:
                 # We don't check the exact text because the character replacement might vary,
                 # but we ensure that the command is displayed in some form
                 rendered_text = content.renderable
-                assert "コマンド #" in rendered_text
+                assert "Command:" in rendered_text
                 assert "python3 -c" in rendered_text
                 
                 # Check state and exit code
-                assert "状態: ネットワークエラー" in rendered_text
-                assert "終了コード: 1" in rendered_text
+                assert "Status:     Network Error" in rendered_text
+                assert "Exit Code:  1" in rendered_text
                 
                 # Check log summary
                 assert "Network connection failed" in rendered_text
                 
                 # Check that stdout and stderr sections are displayed
-                assert "=== 標準出力 ===" in rendered_text
-                assert "=== 標準エラー出力 ===" in rendered_text
+                assert "=== Standard Output ===" in rendered_text
+                assert "=== Standard Error ===" in rendered_text
         finally:
             # Clean up temporary files
             os.unlink(stdout_path)
@@ -289,24 +283,24 @@ class TestSubPane:
                 
                 # Check command information
                 rendered_text = content.renderable
-                assert "コマンド #1: long-running-command" in rendered_text
-                assert "状態: 実行中" in rendered_text
+                assert "Command:    #1 long-running-command" in rendered_text
+                assert "Status:     Running" in rendered_text
                 
                 # Check that exit_code is not displayed
-                assert "終了コード:" not in rendered_text
+                assert "Exit Code:" not in rendered_text
                 
                 # Check timestamps - should only have start time
-                assert "開始時間:" in rendered_text
-                assert "終了時間:" not in rendered_text
-                assert "実行時間:" not in rendered_text
+                assert "Started:" in rendered_text
+                assert "Finished:" not in rendered_text
+                assert "Duration:" not in rendered_text
                 
                 # Check that log summary is not displayed
-                assert "=== ログ要約 ===" not in rendered_text
+                assert "=== Log Summary ===" not in rendered_text
                 
                 # Check that stdout and stderr sections are displayed
-                assert "=== 標準出力 ===" in rendered_text
+                assert "=== Standard Output ===" in rendered_text
                 assert "Running command output..." in rendered_text
-                assert "=== 標準エラー出力 ===" in rendered_text
+                assert "=== Standard Error ===" in rendered_text
         finally:
             # Clean up temporary files
             os.unlink(stdout_path)

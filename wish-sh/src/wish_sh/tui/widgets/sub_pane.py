@@ -39,7 +39,7 @@ class SubPane(BasePane):
         except Exception as e:
             self.logger.debug(f"No command-details-grid to remove: {e}")
             
-        self.update_content("sub-pane-content", "新しいWishのコマンド出力がここに表示されます。")
+        self.update_content("sub-pane-content", "Command output for new Wish will be displayed here.")
     
     def set_active(self, active: bool) -> None:
         """Set the active state of the pane.
@@ -186,21 +186,21 @@ class SubPane(BasePane):
             tuple: (display_text, style_class)
         """
         if state is None:
-            return "不明", "state-unknown"
+            return "Unknown", "state-unknown"
             
         state_map = {
-            CommandState.DOING: ("実行中", "state-doing"),
-            CommandState.SUCCESS: ("成功", "state-success"),
-            CommandState.USER_CANCELLED: ("ユーザーによるキャンセル", "state-cancelled"),
-            CommandState.COMMAND_NOT_FOUND: ("コマンドが見つかりません", "state-error"),
-            CommandState.FILE_NOT_FOUND: ("ファイルが見つかりません", "state-error"),
-            CommandState.REMOTE_OPERATION_FAILED: ("リモート操作失敗", "state-error"),
-            CommandState.TIMEOUT: ("タイムアウト", "state-error"),
-            CommandState.NETWORK_ERROR: ("ネットワークエラー", "state-error"),
-            CommandState.OTHERS: ("その他のエラー", "state-error"),
+            CommandState.DOING: ("Running", "state-doing"),
+            CommandState.SUCCESS: ("Success", "state-success"),
+            CommandState.USER_CANCELLED: ("User Cancelled", "state-cancelled"),
+            CommandState.COMMAND_NOT_FOUND: ("Command Not Found", "state-error"),
+            CommandState.FILE_NOT_FOUND: ("File Not Found", "state-error"),
+            CommandState.REMOTE_OPERATION_FAILED: ("Remote Operation Failed", "state-error"),
+            CommandState.TIMEOUT: ("Timeout", "state-error"),
+            CommandState.NETWORK_ERROR: ("Network Error", "state-error"),
+            CommandState.OTHERS: ("Other Error", "state-error"),
         }
         
-        return state_map.get(state, ("不明", "state-unknown"))
+        return state_map.get(state, ("Unknown", "state-unknown"))
     
     def _format_duration(self, start_time, end_time):
         """Format the duration between two UTC timestamps.
@@ -213,7 +213,7 @@ class SubPane(BasePane):
             str: Formatted duration string.
         """
         if not start_time or not end_time:
-            return "不明"
+            return "Unknown"
             
         # Convert to datetime objects
         start_dt = start_time.v
@@ -228,11 +228,11 @@ class SubPane(BasePane):
         minutes, seconds = divmod(remainder, 60)
         
         if hours > 0:
-            return f"{int(hours)}時間{int(minutes)}分{int(seconds)}秒"
+            return f"{int(hours)}h {int(minutes)}m {int(seconds)}s"
         elif minutes > 0:
-            return f"{int(minutes)}分{int(seconds)}秒"
+            return f"{int(minutes)}m {int(seconds)}s"
         else:
-            return f"{int(seconds)}秒"
+            return f"{int(seconds)}s"
     
     def update_command_output(self, command_result):
         """Update the pane with command output details.
@@ -254,65 +254,63 @@ class SubPane(BasePane):
             # Create content lines for the widget
             content_lines = []
             
-            # === コマンド情報セクション ===
-            # コマンド番号とコマンド文字列
+            # Command information section
             safe_command = sanitize_command_text(command_result.command)
-            content_lines.append(f"コマンド #{command_result.num}: {safe_command}")
+            content_lines.append(f"Command:    #{command_result.num} {safe_command}")
             
-            # 実行状態
+            # Status
             state_text, state_class = self._get_state_display(command_result.state)
-            content_lines.append(f"状態: {state_text}")
+            content_lines.append(f"Status:     {state_text}")
             
-            # 終了コード（コマンドが終了している場合）
+            # Exit code (if command is finished)
             if command_result.exit_code is not None:
-                content_lines.append(f"終了コード: {command_result.exit_code}")
+                content_lines.append(f"Exit Code:  {command_result.exit_code}")
             
-            # === タイムスタンプセクション ===
+            # Time information
             content_lines.append("")
-            content_lines.append("=== タイムスタンプ ===")
             
-            # 開始時間
+            # Start time
             if command_result.created_at:
                 try:
-                    # UtcDatetimeオブジェクトの場合
+                    # If it's a UtcDatetime object
                     if hasattr(command_result.created_at, 'to_local_str'):
                         local_created_at = command_result.created_at.to_local_str("%Y-%m-%d %H:%M:%S")
-                    # 文字列の場合
+                    # If it's a string
                     else:
                         local_created_at = str(command_result.created_at)
-                    content_lines.append(f"開始時間: {local_created_at}")
+                    content_lines.append(f"Started:    {local_created_at}")
                 except Exception as e:
                     self.logger.error(f"Error formatting created_at: {e}")
-                    content_lines.append(f"開始時間: {str(command_result.created_at)}")
+                    content_lines.append(f"Started:    {str(command_result.created_at)}")
             
-            # 終了時間（コマンドが終了している場合）
+            # End time (if command is finished)
             if command_result.finished_at:
                 try:
-                    # UtcDatetimeオブジェクトの場合
+                    # If it's a UtcDatetime object
                     if hasattr(command_result.finished_at, 'to_local_str'):
                         local_finished_at = command_result.finished_at.to_local_str("%Y-%m-%d %H:%M:%S")
-                    # 文字列の場合
+                    # If it's a string
                     else:
                         local_finished_at = str(command_result.finished_at)
-                    content_lines.append(f"終了時間: {local_finished_at}")
+                    content_lines.append(f"Finished:   {local_finished_at}")
                     
-                    # 実行時間
+                    # Duration
                     if hasattr(command_result.created_at, 'v') and hasattr(command_result.finished_at, 'v'):
                         duration = self._format_duration(command_result.created_at, command_result.finished_at)
-                        content_lines.append(f"実行時間: {duration}")
+                        content_lines.append(f"Duration:   {duration}")
                 except Exception as e:
                     self.logger.error(f"Error formatting finished_at: {e}")
-                    content_lines.append(f"終了時間: {str(command_result.finished_at)}")
+                    content_lines.append(f"Finished:   {str(command_result.finished_at)}")
             
-            # === ログ要約セクション ===
+            # Log summary section
             if command_result.log_summary:
                 content_lines.append("")
-                content_lines.append("=== ログ要約 ===")
+                content_lines.append("=== Log Summary ===")
                 content_lines.append(command_result.log_summary)
             
-            # === 出力セクション ===
+            # Output section
             content_lines.append("")
-            content_lines.append("=== 標準出力 ===")
+            content_lines.append("=== Standard Output ===")
             
             if command_result.log_files and command_result.log_files.stdout:
                 stdout_lines, stdout_count, stdout_preview = self._read_log_file(
@@ -321,7 +319,7 @@ class SubPane(BasePane):
                 
                 if stdout_count > 0:
                     # Add line count information
-                    content_lines.append(f"({stdout_count} 行)")
+                    content_lines.append(f"({stdout_count} lines)")
                     
                     # Add preview lines
                     content_lines.extend(stdout_preview)
@@ -332,11 +330,11 @@ class SubPane(BasePane):
                 else:
                     content_lines.extend(stdout_preview)  # Will contain error message if any
             else:
-                content_lines.append("(出力ファイルがありません)")
+                content_lines.append("(No output file available)")
             
             # Add stderr content if available
             content_lines.append("")
-            content_lines.append("=== 標準エラー出力 ===")
+            content_lines.append("=== Standard Error ===")
             
             if command_result.log_files and command_result.log_files.stderr:
                 stderr_lines, stderr_count, stderr_preview = self._read_log_file(
@@ -345,7 +343,7 @@ class SubPane(BasePane):
                 
                 if stderr_count > 0:
                     # Add line count information
-                    content_lines.append(f"({stderr_count} 行)")
+                    content_lines.append(f"({stderr_count} lines)")
                     
                     # Add preview lines
                     content_lines.extend(stderr_preview)
@@ -356,19 +354,7 @@ class SubPane(BasePane):
                 else:
                     content_lines.extend(stderr_preview)  # Will contain error message if any
             else:
-                content_lines.append("(エラー出力ファイルがありません)")
-            
-            # === ナビゲーションヘルプ ===
-            content_lines.append("")
-            content_lines.append("=== キーボードショートカット ===")
-            content_lines.append("o: 標準出力全体を表示")
-            content_lines.append("e: エラー出力全体を表示")
-            content_lines.append("j/↓: 下にスクロール")
-            content_lines.append("k/↑: 上にスクロール")
-            content_lines.append("Ctrl+f: 1ページ下にスクロール")
-            content_lines.append("Ctrl+b: 1ページ上にスクロール")
-            content_lines.append("<: 先頭にスクロール")
-            content_lines.append(">: 末尾にスクロール")
+                content_lines.append("(No error output file available)")
             
             # Update the content widget with markup disabled
             content_widget.markup = False
