@@ -4,6 +4,8 @@ from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Static
 
+from wish_sh.logging import setup_logger
+
 
 class HelpPane(Container):
     """Help information pane."""
@@ -14,7 +16,10 @@ class HelpPane(Container):
         """Initialize the HelpPane."""
         super().__init__(*args, **kwargs)
         
-        # ヘルプテキストを初期化
+        # Set up logger
+        self.logger = setup_logger("wish_sh.tui.HelpPane")
+        
+        # Initialize help text
         self.help_text = self._create_default_help()
     
     @staticmethod

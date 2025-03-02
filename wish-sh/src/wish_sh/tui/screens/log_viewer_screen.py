@@ -5,7 +5,8 @@ from textual.binding import Binding
 from textual.containers import Container, ScrollableContainer
 from textual.screen import Screen
 from textual.widgets import Static
-import logging
+
+from wish_sh.logging import setup_logger
 
 
 class LogViewerScreen(Screen):
@@ -38,8 +39,8 @@ class LogViewerScreen(Screen):
         self.title = title
         self.line_count = len(log_content.splitlines()) if log_content else 0
         
-        # 最小限のロギング設定
-        self.logger = logging.getLogger("wish_sh.tui.log_viewer")
+        # Set up logger
+        self.logger = setup_logger("wish_sh.tui.LogViewerScreen")
 
     def compose(self) -> ComposeResult:
         """Compose the screen."""
@@ -48,14 +49,14 @@ class LogViewerScreen(Screen):
             yield Static(f"({self.line_count} lines total)", id="log-line-count")
             
             with ScrollableContainer(id="log-content-container"):
-                # 各行を個別のStaticウィジェットとして表示
+                # Display each line as a separate Static widget
                 content_lines = self.log_content.splitlines()
                 
-                # 最低でも30行のコンテンツを確保（スクロール可能な高さを保証）
+                # Ensure at least 30 lines of content to guarantee scrollable height
                 if len(content_lines) < 30:
                     content_lines.extend([""] * (30 - len(content_lines)))
                 
-                # 各行を個別のStaticとして追加
+                # Add each line as a separate Static widget
                 for i, line in enumerate(content_lines):
                     yield Static(line, id=f"log-content-line-{i}", markup=False)
                     
@@ -101,39 +102,46 @@ class LogViewerScreen(Screen):
         """Dismiss the screen."""
         self.app.pop_screen()
     
+    def _focus_container(self) -> None:
+        """Focus the content container."""
+        try:
+            container = self.query_one("#log-content-container")
+            self.set_focus(container)
+        except Exception as e:
+            self.logger.error(f"Error focusing container: {e}")
+    
     def on_mount(self) -> None:
         """Event handler called when the screen is mounted."""
-        # コンテナにフォーカスを当てる
-        container = self.query_one("#log-content-container")
-        self.set_focus(container)
+        # Focus the container
+        self._focus_container()
     
     def on_show(self) -> None:
         """Event handler called when the screen is shown."""
-        # コンテナにフォーカスを当てる
+        # Focus the screen and container
         self.focus()
-        container = self.query_one("#log-content-container")
-        self.set_focus(container)
+        self._focus_container()
     
     def on_enter(self) -> None:
         """Event handler called when the screen is entered."""
-        # コンテナにフォーカスを当てる
+        # Focus the screen and container
         self.focus()
-        container = self.query_one("#log-content-container")
-        self.set_focus(container)
+        self._focus_container()
     
     def on_focus(self) -> None:
         """Event handler called when the screen gains focus."""
-        # コンテナにフォーカスを当てる
-        container = self.query_one("#log-content-container")
-        self.set_focus(container)
+        # Focus the container
+        self._focus_container()
     
     def on_key(self, event) -> None:
-        """キーイベントを処理する"""
-        # キーイベントをバインディングに任せる
+        """Process key events."""
+        # Let the bindings handle key events
         return False
     
     def on_idle(self) -> None:
-        """アイドル時に呼び出され、フォーカス状態を監視"""
-        container = self.query_one("#log-content-container")
-        if not container.has_focus:
-            self.set_focus(container)
+        """Called when idle, monitor focus state."""
+        try:
+            container = self.query_one("#log-content-container")
+            if not container.has_focus:
+                self.set_focus(container)
+        except Exception as e:
+            self.logger.error(f"Error in on_idle: {e}")

@@ -5,9 +5,9 @@ from textual.app import ComposeResult
 from textual.message import Message
 from textual.widgets import Static
 from textual.containers import Horizontal, Vertical
-from rich.markup import escape
 
 from wish_models import CommandState, CommandResult, WishState, UtcDatetime
+from wish_sh.tui.utils import make_markup_safe, sanitize_command_text
 from wish_sh.tui.widgets.base_pane import BasePane
 
 
@@ -39,6 +39,7 @@ class MainPane(BasePane):
         super().__init__(*args, **kwargs)
         self.current_wish = None
         self.selected_command_index = -1  # -1 means no command selected
+        self.command_indices = []  # Store command indices for click handling
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
@@ -50,11 +51,10 @@ class MainPane(BasePane):
         try:
             old_grid = self.query_one("#wish-details-grid")
             self.remove(old_grid)
-        except:
-            pass
+        except Exception as e:
+            self.logger.debug(f"No wish-details-grid to remove: {e}")
             
-        content_widget = self.query_one("#main-pane-content")
-        content_widget.update("[b]新しいWishを作成するモードです。[/b]")
+        self.update_content("main-pane-content", "[b]新しいWishを作成するモードです。[/b]")
     
     def _get_wish_state_emoji(self, state):
         """Get emoji for wish state."""
@@ -92,20 +92,6 @@ class MainPane(BasePane):
         else:
             return "❓"
     
-    def _get_content_widget(self):
-        """Get or create the content widget.
-        
-        Returns:
-            Static: The content widget.
-        """
-        try:
-            content = self.query_one("#main-pane-content")
-        except:
-            # Create a new content widget if it doesn't exist
-            content = Static(id="main-pane-content")
-            self.mount(content)
-        return content
-    
     def _format_datetime(self, dt):
         """Format a datetime for display.
         
@@ -121,23 +107,6 @@ class MainPane(BasePane):
             return dt_obj.to_local_str()
         else:
             return dt.to_local_str()
-    
-    def _make_safe_command(self, command):
-        """Make a command text safe for display.
-        
-        Args:
-            command: The command text.
-            
-        Returns:
-            str: The safe command text.
-        """
-        # Replace problematic characters in command text
-        safe_command = command
-        # Replace characters that might be interpreted as markup or cause issues
-        safe_command = safe_command.replace("[", "【").replace("]", "】")
-        safe_command = safe_command.replace('"', "'")
-        safe_command = safe_command.replace("\\", "/")
-        return safe_command
     
     def _create_content_lines(self, wish, state_emoji, created_at_local, finished_at_text):
         """Create content lines for display.
@@ -166,7 +135,7 @@ class MainPane(BasePane):
         command_indices = []  # Store command indices for click handling
         for i, cmd in enumerate(wish.command_results, 1):
             cmd_emoji = self._get_command_state_emoji(cmd.state)
-            safe_command = self._make_safe_command(cmd.command)
+            safe_command = sanitize_command_text(cmd.command)
             
             # Add command with CSS class for selection instead of '>' character
             cmd_index = i - 1
@@ -193,25 +162,25 @@ class MainPane(BasePane):
             preserve_selection: Whether to preserve the current selection.
         """
         try:
-            # Wishが変わったかどうかをチェック
+            # Check if the wish has changed
             wish_changed = self.current_wish != wish
             self.current_wish = wish
             
-            # 選択をリセットする条件:
-            # 1. Wishが変わった場合、かつpreserve_selectionがFalseの場合
-            # 2. preserve_selectionがFalseの場合（同じWishでも強制的にリセット）
+            # Reset selection conditions:
+            # 1. If the wish has changed and preserve_selection is False
+            # 2. If preserve_selection is False (force reset even for the same wish)
             if not preserve_selection:
-                self.log(f"Resetting selection because preserve_selection={preserve_selection}")
+                self.logger.debug(f"Resetting selection because preserve_selection={preserve_selection}")
                 self.selected_command_index = -1  # Default to no selection
                 
                 # If wish has commands, select the first one (index 0)
                 if wish and wish.command_results and len(wish.command_results) > 0:
                     self.selected_command_index = 0
             
-            self.log(f"update_wish: selected_command_index={self.selected_command_index}, preserve_selection={preserve_selection}")
+            self.logger.debug(f"update_wish: selected_command_index={self.selected_command_index}, preserve_selection={preserve_selection}")
             
             # Get existing content widget
-            content_widget = self._get_content_widget()
+            content_widget = self.get_content_widget("main-pane-content")
             
             if wish:
                 # Get emoji for wish state
@@ -228,8 +197,8 @@ class MainPane(BasePane):
                 try:
                     old_grid = self.query_one("#wish-details-grid")
                     self.remove(old_grid)
-                except:
-                    pass
+                except Exception as e:
+                    self.logger.debug(f"No wish-details-grid to remove: {e}")
                 
                 # Create content lines and command indices
                 content_lines, self.command_indices = self._create_content_lines(
@@ -244,34 +213,32 @@ class MainPane(BasePane):
                 self.refresh()
             else:
                 # If no wish selected, show simple message
-                self.mount(Static("(No wish selected)", id="main-pane-content"))
+                self.update_content("main-pane-content", "(No wish selected)")
         except Exception as e:
             error_message = f"Error updating wish: {e}"
-            self.log(error_message)
+            self.logger.error(error_message)
             try:
-                content_widget = self.query_one("#main-pane-content")
-                content_widget.update(f"(Error displaying wish details: {e})")
-            except:
+                self.update_content("main-pane-content", f"(Error displaying wish details: {e})")
+            except Exception as inner_e:
                 # Minimal error handling if we can't even get the content widget
-                pass
+                self.logger.error(f"Failed to display error message: {inner_e}")
     
     def on_key(self, event) -> None:
         """Handle key events for command selection."""
-        # 条件チェックを緩和し、ログを追加
+        # Check conditions and log
         if not self.current_wish:
-            self.log("on_key: No current wish")
+            self.logger.debug("on_key: No current wish")
             return False
         if not self.current_wish.command_results:
-            self.log("on_key: No command results")
+            self.logger.debug("on_key: No command results")
             return False
-        # command_indicesのチェックを削除 - 常に設定されるはずなので不要
 
         if event.key in ("up", "arrow_up"):
-            self.log(f"on_key: Up key pressed, current index: {self.selected_command_index}")
+            self.logger.debug(f"on_key: Up key pressed, current index: {self.selected_command_index}")
             self.select_previous_command()
             return True
         elif event.key in ("down", "arrow_down"):
-            self.log(f"on_key: Down key pressed, current index: {self.selected_command_index}")
+            self.logger.debug(f"on_key: Down key pressed, current index: {self.selected_command_index}")
             self.select_next_command()
             return True
         
@@ -300,38 +267,37 @@ class MainPane(BasePane):
             # Post a message that a command was selected
             self.post_message(CommandSelected(selected_command))
             
-            # 選択状態を保持して表示を更新
-            self.log(f"update_command_selection: selected_command_index={self.selected_command_index}")
+            # Update display with preserved selection
+            self.logger.debug(f"update_command_selection: selected_command_index={self.selected_command_index}")
             self.update_wish(self.current_wish, preserve_selection=True)
     
     def on_click(self, event) -> None:
         """Handle click events to select commands."""
-        # 条件チェックを緩和し、ログを追加
+        # Check conditions and log
         if not self.current_wish:
-            self.log("on_click: No current wish")
+            self.logger.debug("on_click: No current wish")
             return
         if not self.current_wish.command_results:
-            self.log("on_click: No command results")
+            self.logger.debug("on_click: No command results")
             return
-        # command_indicesのチェックを削除 - 常に設定されるはずなので不要
         
         try:
             # Get the clicked line
             content_widget = self.query_one("#main-pane-content")
             clicked_line = event.y - content_widget.region.y
-            self.log(f"on_click: Clicked line: {clicked_line}")
+            self.logger.debug(f"on_click: Clicked line: {clicked_line}")
             
             # Check if we clicked on a command line
             for cmd_index, line_index in self.command_indices:
                 if clicked_line == line_index or clicked_line == line_index + 1:  # Command line or command text line
                     if 0 <= cmd_index < len(self.current_wish.command_results):
-                        self.log(f"on_click: Selected command index: {cmd_index}")
+                        self.logger.debug(f"on_click: Selected command index: {cmd_index}")
                         self.selected_command_index = cmd_index
                         selected_command = self.current_wish.command_results[cmd_index]
                         # Post a message that a command was selected
                         self.post_message(CommandSelected(selected_command))
-                        # 選択状態を保持して表示を更新
+                        # Update display with preserved selection
                         self.update_wish(self.current_wish, preserve_selection=True)
                         break
         except Exception as e:
-            self.log(f"Error handling click: {e}")
+            self.logger.error(f"Error handling click: {e}")

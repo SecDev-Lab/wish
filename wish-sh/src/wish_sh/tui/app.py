@@ -4,6 +4,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Footer, Static
 
+from wish_sh.logging import setup_logger
 from wish_sh.tui.screens.main_screen import MainScreen
 
 
@@ -31,6 +32,11 @@ class WishTUIApp(App):
         Binding(">", "scroll_end", "Bottom"),
         Binding("<", "scroll_home", "Top"),
     ]
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the application."""
+        super().__init__(*args, **kwargs)
+        self.logger = setup_logger("wish_sh.tui.WishTUIApp")
 
     def compose(self) -> ComposeResult:
         """Compose the application."""
@@ -63,16 +69,15 @@ class WishTUIApp(App):
 
     def action_focus_sub(self) -> None:
         """Action to focus the sub pane."""
-        # デバッグログを追加
-        print("action_focus_sub called")
+        self.logger.debug("action_focus_sub called")
         
         # Get the main screen
         main_screen = self.screen
         if hasattr(main_screen, "activate_pane"):
-            print(f"Calling main_screen.activate_pane('sub-pane')")
+            self.logger.debug("Calling main_screen.activate_pane('sub-pane')")
             main_screen.activate_pane("sub-pane")
         else:
-            print(f"Calling self.query_one('#sub-pane').focus()")
+            self.logger.debug("Calling self.query_one('#sub-pane').focus()")
             self.query_one("#sub-pane").focus()
 
     def action_confirm_quit(self) -> None:
@@ -85,7 +90,7 @@ class WishTUIApp(App):
         active_pane = self.get_active_pane()
         if active_pane and active_pane.id == "sub-pane":
             content = active_pane.query_one("#sub-pane-content")
-            # 1行上にスクロール
+            # Scroll up one line
             content.scroll_up()
     
     def action_scroll_down_line(self) -> None:
@@ -93,7 +98,7 @@ class WishTUIApp(App):
         active_pane = self.get_active_pane()
         if active_pane and active_pane.id == "sub-pane":
             content = active_pane.query_one("#sub-pane-content")
-            # 1行下にスクロール
+            # Scroll down one line
             content.scroll_down()
     
     def action_scroll_page_up(self) -> None:
@@ -101,7 +106,7 @@ class WishTUIApp(App):
         active_pane = self.get_active_pane()
         if active_pane and active_pane.id == "sub-pane":
             content = active_pane.query_one("#sub-pane-content")
-            # ページ単位でスクロール
+            # Scroll up one page
             content.scroll_page_up()
     
     def action_scroll_page_down(self) -> None:
@@ -109,7 +114,7 @@ class WishTUIApp(App):
         active_pane = self.get_active_pane()
         if active_pane and active_pane.id == "sub-pane":
             content = active_pane.query_one("#sub-pane-content")
-            # ページ単位でスクロール
+            # Scroll down one page
             content.scroll_page_down()
     
     def action_scroll_home(self) -> None:
@@ -138,23 +143,21 @@ class WishTUIApp(App):
         return None
     
     def on_key(self, event) -> None:
-        """アプリケーション全体でのキーイベント監視"""
-        # すべてのキーイベントをログに記録
-        print(f"App received key: {event.key}")
+        """Monitor key events for the entire application."""
+        # Log key events at debug level
+        self.logger.debug(f"App received key: {event.key}")
         
-        # Ctrl+下矢印のデバッグログを追加
+        # Handle Ctrl+Down key for debugging
         if event.key in ("ctrl+down", "ctrl+arrow_down", "down+ctrl"):
-            print(f"App: Ctrl+Down key detected: {event.key}")
+            self.logger.debug(f"Ctrl+Down key detected: {event.key}")
         
-        # LogViewerScreen が表示されている場合、キーイベントを優先的に処理
+        # Handle LogViewerScreen key events
         from wish_sh.tui.screens.log_viewer_screen import LogViewerScreen
         if isinstance(self.screen, LogViewerScreen):
-            # キーイベントをログに記録
-            print(f"App received key: {event.key} for LogViewerScreen")
-            # LogViewerScreen のキーイベント処理を呼び出す
+            self.logger.debug(f"Key event for LogViewerScreen: {event.key}")
             result = self.screen.on_key(event)
-            print(f"LogViewerScreen on_key result: {result}")
+            self.logger.debug(f"LogViewerScreen on_key result: {result}")
             return result
         
-        # 通常のキーイベント処理
+        # Normal key event processing
         return False

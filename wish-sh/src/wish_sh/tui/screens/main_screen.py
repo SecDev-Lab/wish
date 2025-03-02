@@ -4,6 +4,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 
+from wish_sh.logging import setup_logger
 from wish_sh.settings import Settings
 from wish_sh.wish_manager import WishManager
 from wish_sh.tui.modes import WishMode
@@ -19,6 +20,9 @@ class MainScreen(Screen):
     def __init__(self, *args, wish_manager=None, **kwargs):
         """Initialize the MainScreen."""
         super().__init__(*args, **kwargs)
+        # Set up logger
+        self.logger = setup_logger("wish_sh.tui.MainScreen")
+        
         # Initialize with dependency injection
         self.settings = Settings()
         self.manager = wish_manager or WishManager(self.settings)
@@ -61,45 +65,47 @@ class MainScreen(Screen):
     
     def on_key(self, event) -> None:
         """Handle key events."""
-        # デバッグログを追加
-        self.log(f"MainScreen on_key: {event.key}")
-        self.log(f"MainScreen active pane: wish_select={self.wish_select.has_class('active-pane')}, main_pane={self.main_pane.has_class('active-pane')}, sub_pane={self.sub_pane.has_class('active-pane')}")
-        self.log(f"MainScreen current mode: {self.current_mode}")
+        # Log key events at debug level
+        self.logger.debug(f"Key event: {event.key}")
+        self.logger.debug(f"Active pane: wish_select={self.wish_select.has_class('active-pane')}, "
+                         f"main_pane={self.main_pane.has_class('active-pane')}, "
+                         f"sub_pane={self.sub_pane.has_class('active-pane')}")
+        self.logger.debug(f"Current mode: {self.current_mode}")
         
-        # Ctrl+下矢印のデバッグログを追加
+        # Log Ctrl+Down key events
         if event.key in ("ctrl+down", "ctrl+arrow_down", "down+ctrl"):
-            self.log(f"MainScreen: Ctrl+Down key detected: {event.key}")
+            self.logger.debug(f"Ctrl+Down key detected: {event.key}")
         
         # Handle up/down keys when Wish Select pane is active
         if self.wish_select.has_class("active-pane"):
             if event.key in ("up", "arrow_up"):
-                self.log("MainScreen: Passing up key to wish_select")
+                self.logger.debug("Passing up key to wish_select")
                 self.wish_select.select_previous()
                 return True  # Consume event
             elif event.key in ("down", "arrow_down"):
-                self.log("MainScreen: Passing down key to wish_select")
+                self.logger.debug("Passing down key to wish_select")
                 self.wish_select.select_next()
                 return True  # Consume event
         
         # Handle up/down keys when Main pane is active and in WISH_HISTORY mode
         if self.main_pane.has_class("active-pane") and self.current_mode == WishMode.WISH_HISTORY:
             if event.key in ("up", "arrow_up", "down", "arrow_down"):
-                self.log("MainScreen: Passing up/down key to main_pane")
+                self.logger.debug("Passing up/down key to main_pane")
                 # Pass the key event to the main pane
                 if self.main_pane.on_key(event):
                     return True  # Consume event if the main pane handled it
                 else:
-                    self.log("MainScreen: main_pane did not handle the key event")
+                    self.logger.debug("main_pane did not handle the key event")
         
         # Handle o/e keys when Sub pane is active and in WISH_HISTORY mode
         if self.sub_pane.has_class("active-pane") and self.current_mode == WishMode.WISH_HISTORY:
             if event.key in ("o", "e"):
-                self.log(f"MainScreen: Passing {event.key} key to sub_pane")
+                self.logger.debug(f"Passing {event.key} key to sub_pane")
                 # Pass the key event to the sub pane
                 if self.sub_pane.on_key(event):
                     return True  # Consume event if the sub pane handled it
                 else:
-                    self.log(f"MainScreen: sub_pane did not handle the {event.key} key event")
+                    self.logger.debug(f"sub_pane did not handle the {event.key} key event")
         
         # Navigate between panes with arrow keys
         if event.key in ("left", "arrow_left"):
