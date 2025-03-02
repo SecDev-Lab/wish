@@ -2,6 +2,7 @@
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
+from textual.message import Message
 from textual.screen import Screen
 
 from wish_sh.logging import setup_logger
@@ -12,6 +13,19 @@ from wish_sh.tui.widgets.help_pane import HelpPane
 from wish_sh.tui.widgets.main_pane import MainPane, CommandSelected
 from wish_sh.tui.widgets.sub_pane import SubPane
 from wish_sh.tui.widgets.wish_select_pane import WishSelectPane, WishSelected
+
+
+class ActivatePane(Message):
+    """Message sent to request activation of a specific pane."""
+
+    def __init__(self, pane_id: str):
+        """Initialize the message.
+        
+        Args:
+            pane_id: The ID of the pane to activate.
+        """
+        self.pane_id = pane_id
+        super().__init__()
 
 
 class MainScreen(Screen):
@@ -174,3 +188,7 @@ class MainScreen(Screen):
         self.sub_pane.update_command_output(event.command_result)
         # Do not activate the sub pane to keep focus on main pane
         # self.activate_pane("sub-pane")
+        
+    def on_activate_pane(self, event: ActivatePane) -> None:
+        """Handle pane activation requests."""
+        self.activate_pane(event.pane_id)

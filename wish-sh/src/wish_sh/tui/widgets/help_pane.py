@@ -57,6 +57,7 @@ class HelpPane(Container):
         """
         return (
             f"Help: {self._style_shortcut('↑↓')} Select Wish | "
+            f"{self._style_shortcut('Enter/Space')} Decide & Go to Main | "
             f"{self._style_shortcut('→')} Main | "
             f"{self._style_shortcut('q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
@@ -71,6 +72,7 @@ class HelpPane(Container):
         return (
             f"Help: {self._style_shortcut('←')} Wish Select | "
             f"{self._style_shortcut('↑↓')} Select Command | "
+            f"{self._style_shortcut('Enter/Space')} Decide & Go to Sub | "
             f"{self._style_shortcut('Ctrl+↓')} Sub | "
             f"{self._style_shortcut('q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"

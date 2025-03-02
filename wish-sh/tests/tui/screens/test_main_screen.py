@@ -224,3 +224,48 @@ class TestMainScreen:
             assert "active-pane" not in wish_select.classes
             assert "active-pane" in main_pane.classes
             assert "active-pane" not in sub_pane.classes
+    
+    @pytest.mark.asyncio
+    async def test_main_screen_activate_pane_message(self):
+        """Test that the MainScreen handles ActivatePane messages."""
+        app = MainScreenTestApp()
+        async with app.run_test() as pilot:
+            screen = app.query_one(MainScreen)
+            
+            # Get the panes
+            wish_select = app.query_one(WishSelectPane)
+            main_pane = app.query_one(MainPane)
+            sub_pane = app.query_one(SubPane)
+            
+            # Initially, main_pane should be active
+            assert "active-pane" not in wish_select.classes
+            assert "active-pane" in main_pane.classes
+            assert "active-pane" not in sub_pane.classes
+            
+            # Post an ActivatePane message to activate wish_select
+            from wish_sh.tui.screens.main_screen import ActivatePane
+            screen.post_message(ActivatePane("wish-select"))
+            await pilot.pause()  # Wait for a frame to process the message
+            
+            # Check that wish_select is now active
+            assert "active-pane" in wish_select.classes
+            assert "active-pane" not in main_pane.classes
+            assert "active-pane" not in sub_pane.classes
+            
+            # Post an ActivatePane message to activate sub_pane
+            screen.post_message(ActivatePane("sub-pane"))
+            await pilot.pause()  # Wait for a frame to process the message
+            
+            # Check that sub_pane is now active
+            assert "active-pane" not in wish_select.classes
+            assert "active-pane" not in main_pane.classes
+            assert "active-pane" in sub_pane.classes
+            
+            # Post an ActivatePane message to activate main_pane
+            screen.post_message(ActivatePane("main-pane"))
+            await pilot.pause()  # Wait for a frame to process the message
+            
+            # Check that main_pane is now active
+            assert "active-pane" not in wish_select.classes
+            assert "active-pane" in main_pane.classes
+            assert "active-pane" not in sub_pane.classes

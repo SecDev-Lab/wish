@@ -76,11 +76,19 @@ class WishSelectPane(BasePane):
     
     def on_key(self, event) -> None:
         """Handle key events."""
+        self.logger.debug(f"on_key: Key pressed: {event.key}")
+        
         if event.key in ("up", "arrow_up"):
             self.select_previous()
             return True
         elif event.key in ("down", "arrow_down"):
             self.select_next()
+            return True
+        elif event.key in ("enter", "return", " ", "space"):
+            # 決定操作：Main Paneをアクティベート
+            self.logger.debug("on_key: Enter/Space key pressed, activating main-pane")
+            from wish_sh.tui.screens.main_screen import ActivatePane
+            self.post_message(ActivatePane("main-pane"))
             return True
         
         return False

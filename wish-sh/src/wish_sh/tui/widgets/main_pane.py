@@ -225,6 +225,8 @@ class MainPane(BasePane):
     
     def on_key(self, event) -> None:
         """Handle key events for command selection."""
+        self.logger.debug(f"on_key: Key pressed: {event.key}")
+        
         # Check conditions and log
         if not self.current_wish:
             self.logger.debug("on_key: No current wish")
@@ -241,6 +243,14 @@ class MainPane(BasePane):
             self.logger.debug(f"on_key: Down key pressed, current index: {self.selected_command_index}")
             self.select_next_command()
             return True
+        elif event.key in ("enter", "return", " ", "space"):
+            self.logger.debug(f"on_key: Enter/Space key pressed, current index: {self.selected_command_index}")
+            # 決定操作：Sub Paneをアクティベート
+            if self.selected_command_index >= 0 and self.selected_command_index < len(self.current_wish.command_results):
+                self.logger.debug("on_key: Activating sub-pane")
+                from wish_sh.tui.screens.main_screen import ActivatePane
+                self.post_message(ActivatePane("sub-pane"))
+                return True
         
         return False
     

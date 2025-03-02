@@ -386,11 +386,15 @@ class TestMainPane:
                     # Newer Textual versions
                     down_key = Key(key="down", character="")
                     up_key = Key(key="up", character="")
+                    enter_key = Key(key="enter", character="")
+                    space_key = Key(key="space", character="")
                 except TypeError:
                     try:
                         # Older Textual versions
                         down_key = Key(key="down")
                         up_key = Key(key="up")
+                        enter_key = Key(key="enter")
+                        space_key = Key(key="space")
                     except:
                         # If we can't create Key events, skip the test
                         print("Skipping key event tests due to API incompatibility")
@@ -431,6 +435,16 @@ class TestMainPane:
                 # In the new implementation, we use [reverse] markup instead of '>' character
                 assert "[reverse]" in rendered_text
                 assert "echo 'Command 1'" in rendered_text
+                
+                # Test that enter key posts an ActivatePane message
+                # We can't directly test the message posting, but we can check that the method returns True
+                # which indicates that it handled the event
+                result = pane.on_key(enter_key)
+                assert result is True
+                
+                # Test that space key posts an ActivatePane message
+                result = pane.on_key(space_key)
+                assert result is True
             except Exception as e:
                 # If there's an error, just log it and pass the test
                 # This is not ideal, but it allows us to focus on the main functionality

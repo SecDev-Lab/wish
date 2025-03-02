@@ -31,6 +31,8 @@ class WishTUIApp(App):
         Binding("ctrl+b", "scroll_page_up", "Page Up"),
         Binding(">", "scroll_end", "Bottom"),
         Binding("<", "scroll_home", "Top"),
+        Binding("enter", "activate_selected", "Activate Selected"),
+        Binding("space", "activate_selected", "Activate Selected"),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -141,6 +143,20 @@ class WishTUIApp(App):
         elif hasattr(main_screen, "sub_pane") and main_screen.sub_pane.has_class("active-pane"):
             return main_screen.sub_pane
         return None
+    
+    def action_activate_selected(self) -> None:
+        """Activate the selected item in the active pane."""
+        self.logger.debug("action_activate_selected called")
+        active_pane = self.get_active_pane()
+        
+        if active_pane and active_pane.id == "wish-select":
+            # Wish Select Paneがアクティブな場合、Main Paneをアクティベート
+            self.logger.debug("Wish Select Pane is active, activating Main Pane")
+            self.action_focus_main()
+        elif active_pane and active_pane.id == "main-pane":
+            # Main Paneがアクティブな場合、Sub Paneをアクティベート
+            self.logger.debug("Main Pane is active, activating Sub Pane")
+            self.action_focus_sub()
     
     def on_key(self, event) -> None:
         """Monitor key events for the entire application."""
