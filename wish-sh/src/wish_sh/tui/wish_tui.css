@@ -103,7 +103,7 @@ SubPane #sub-pane-content {
 }
 
 SubPane.active-pane #sub-pane-content {
-    border: tall $accent;  /* アクティブな場合はボーダーを追加 */
+    border: none;  /* アクティブな場合もボーダーを表示しない */
 }
 
 /* Grid and Horizontal container styles */
