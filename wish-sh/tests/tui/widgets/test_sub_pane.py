@@ -2,10 +2,11 @@
 
 import os
 import tempfile
+from datetime import datetime, timezone
 
 import pytest
 from textual.app import App, ComposeResult
-from wish_models import CommandResult, LogFiles
+from wish_models import CommandResult, LogFiles, CommandState, UtcDatetime
 
 from wish_sh.tui.widgets.sub_pane import SubPane
 
@@ -83,6 +84,12 @@ class TestSubPane:
             log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
             cmd_result = CommandResult.create(1, "echo 'Hello, world!'", log_files)
             
+            # Set additional properties for testing
+            cmd_result.state = CommandState.SUCCESS
+            cmd_result.exit_code = 0
+            cmd_result.log_summary = "Command executed successfully"
+            cmd_result.finished_at = UtcDatetime.now()
+            
             app = SubPaneTestApp()
             async with app.run_test():
                 pane = app.query_one(SubPane)
@@ -93,11 +100,33 @@ class TestSubPane:
                 # Check that the pane shows the command details
                 content = app.query_one("#sub-pane-content")
                 assert content is not None
-                assert f"Command: {cmd_result.command}" in content.renderable
-                assert "Standard Output:" in content.renderable
+                
+                # Check basic command information
+                assert f"コマンド #{cmd_result.num}" in content.renderable
+                assert cmd_result.command in content.renderable
+                assert "状態: 成功" in content.renderable
+                assert "終了コード: 0" in content.renderable
+                
+                # Check timestamps
+                assert "=== タイムスタンプ ===" in content.renderable
+                assert "開始時間:" in content.renderable
+                assert "終了時間:" in content.renderable
+                assert "実行時間:" in content.renderable
+                
+                # Check log summary
+                assert "=== ログ要約 ===" in content.renderable
+                assert "Command executed successfully" in content.renderable
+                
+                # Check output sections
+                assert "=== 標準出力 ===" in content.renderable
                 assert "Hello, world!" in content.renderable
-                assert "Standard Error:" in content.renderable
+                assert "=== 標準エラー出力 ===" in content.renderable
                 assert "Error message" in content.renderable
+                
+                # Check keyboard shortcuts section
+                assert "=== キーボードショートカット ===" in content.renderable
+                assert "o: 標準出力全体を表示" in content.renderable
+                assert "e: エラー出力全体を表示" in content.renderable
         finally:
             # Clean up temporary files
             os.unlink(stdout_path)
@@ -140,6 +169,10 @@ class TestSubPane:
             # Create a test command result with markup characters
             log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
             cmd_result = CommandResult.create(1, "echo '[bold]Hello[/bold]'", log_files)
+            
+            # Set additional properties for testing
+            cmd_result.state = CommandState.SUCCESS
+            cmd_result.exit_code = 0
             
             app = SubPaneTestApp()
             async with app.run_test():
@@ -185,6 +218,12 @@ class TestSubPane:
             log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
             cmd_result = CommandResult.create(1, problematic_cmd, log_files)
             
+            # Set additional properties for testing
+            cmd_result.state = CommandState.NETWORK_ERROR
+            cmd_result.exit_code = 1
+            cmd_result.log_summary = "Network connection failed"
+            cmd_result.finished_at = UtcDatetime.now()
+            
             app = SubPaneTestApp()
             async with app.run_test():
                 pane = app.query_one(SubPane)
@@ -201,12 +240,73 @@ class TestSubPane:
                 # We don't check the exact text because the character replacement might vary,
                 # but we ensure that the command is displayed in some form
                 rendered_text = content.renderable
-                assert "Command:" in rendered_text
+                assert "コマンド #" in rendered_text
                 assert "python3 -c" in rendered_text
                 
+                # Check state and exit code
+                assert "状態: ネットワークエラー" in rendered_text
+                assert "終了コード: 1" in rendered_text
+                
+                # Check log summary
+                assert "Network connection failed" in rendered_text
+                
                 # Check that stdout and stderr sections are displayed
-                assert "Standard Output:" in rendered_text
-                assert "Standard Error:" in rendered_text
+                assert "=== 標準出力 ===" in rendered_text
+                assert "=== 標準エラー出力 ===" in rendered_text
+        finally:
+            # Clean up temporary files
+            os.unlink(stdout_path)
+            os.unlink(stderr_path)
+    @pytest.mark.asyncio
+    async def test_sub_pane_with_running_command(self):
+        """Test that a SubPane can handle a running command."""
+        # Create empty temporary files for stdout and stderr
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stdout_file:
+            stdout_file.write("Running command output...\n")
+            stdout_path = stdout_file.name
+        
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stderr_file:
+            stderr_path = stderr_file.name
+        
+        try:
+            # Create a test command result for a running command
+            log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
+            cmd_result = CommandResult.create(1, "long-running-command", log_files)
+            
+            # State should be DOING for a running command
+            # finished_at and exit_code should be None
+            
+            app = SubPaneTestApp()
+            async with app.run_test():
+                pane = app.query_one(SubPane)
+                
+                # Update with the test command result
+                pane.update_command_output(cmd_result)
+                
+                # Check that the content widget has markup disabled
+                content = app.query_one("#sub-pane-content")
+                assert content is not None
+                
+                # Check command information
+                rendered_text = content.renderable
+                assert "コマンド #1: long-running-command" in rendered_text
+                assert "状態: 実行中" in rendered_text
+                
+                # Check that exit_code is not displayed
+                assert "終了コード:" not in rendered_text
+                
+                # Check timestamps - should only have start time
+                assert "開始時間:" in rendered_text
+                assert "終了時間:" not in rendered_text
+                assert "実行時間:" not in rendered_text
+                
+                # Check that log summary is not displayed
+                assert "=== ログ要約 ===" not in rendered_text
+                
+                # Check that stdout and stderr sections are displayed
+                assert "=== 標準出力 ===" in rendered_text
+                assert "Running command output..." in rendered_text
+                assert "=== 標準エラー出力 ===" in rendered_text
         finally:
             # Clean up temporary files
             os.unlink(stdout_path)

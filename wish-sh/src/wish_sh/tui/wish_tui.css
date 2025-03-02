@@ -72,7 +72,8 @@ MainPane #command-status-doing {
     color: $warning;
 }
 
-MainPane #command-status-failed, MainPane #command-status-cancelled {
+MainPane #command-status-failed,
+MainPane #command-status-cancelled {
     color: $error;
 }
 
@@ -97,30 +98,72 @@ SubPane {
 SubPane #sub-pane-content {
     height: auto;
     overflow-y: scroll;
-    max-height: 100%;  /* 親コンテナの高さいっぱいに表示 */
-    border: none;  /* ボーダーを削除 */
-    padding: 0 1;  /* 左右にパディングを追加 */
+    max-height: 100%;
+    /* 親コンテナの高さいっぱいに表示 */
+    border: none;
+    /* ボーダーを削除 */
+    padding: 0 1;
+    /* 左右にパディングを追加 */
 }
 
 SubPane.active-pane #sub-pane-content {
-    border: none;  /* アクティブな場合もボーダーを表示しない */
+    border: none;
+    /* アクティブな場合もボーダーを表示しない */
+}
+
+/* Command state styles for SubPane */
+.state-doing {
+    color: $warning;
+    text-style: italic;
+}
+
+.state-success {
+    color: $success;
+    text-style: bold;
+}
+
+.state-cancelled {
+    color: $warning;
+    text-style: strike;
+}
+
+.state-error {
+    color: $error;
+    text-style: bold;
+}
+
+.state-unknown {
+    color: $text-muted;
+    text-style: italic;
+}
+
+/* Section headers in SubPane */
+SubPane .section-header {
+    background: $primary-background;
+    color: $text-primary;
+    text-style: bold;
+    padding: 0 1;
+    margin: 1 0;
 }
 
 /* Grid and Horizontal container styles */
-Grid, Horizontal {
+Grid,
+Horizontal {
     width: 100%;
     height: auto;
     overflow-y: scroll;
 }
 
 /* Label and value styles for separated components */
-#wish-labels, #command-labels {
+#wish-labels,
+#command-labels {
     width: 20%;
     padding-right: 1;
     text-align: right;
 }
 
-#wish-values, #command-values {
+#wish-values,
+#command-values {
     width: 80%;
     text-align: left;
 }
@@ -136,7 +179,8 @@ Grid, Horizontal {
     text-align: left;
 }
 
-.command-label, .command-value {
+.command-label,
+.command-value {
     background: $surface-lighten-1;
 }
 
