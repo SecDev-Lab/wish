@@ -120,14 +120,12 @@ class SubPane(BasePane):
             return True
         elif event.key == "ctrl+f":
             content = self.query_one("#sub-pane-content")
-            for _ in range(10):
-                content.scroll_down()
+            content.scroll_page_down()
             self.log("Page down")
             return True
         elif event.key == "ctrl+b":
             content = self.query_one("#sub-pane-content")
-            for _ in range(10):
-                content.scroll_up()
+            content.scroll_page_up()
             self.log("Page up")
             return True
         elif event.key == "<":

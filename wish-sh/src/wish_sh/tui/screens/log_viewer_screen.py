@@ -76,21 +76,13 @@ class LogViewerScreen(Screen):
     def action_page_down(self) -> None:
         """Scroll down one page."""
         container = self.query_one("#log-content-container")
-        
-        # 10行分スクロール
-        for _ in range(10):
-            container.scroll_down()
-            
+        container.scroll_page_down()
         self.refresh()
     
     def action_page_up(self) -> None:
         """Scroll up one page."""
         container = self.query_one("#log-content-container")
-        
-        # 10行分スクロール
-        for _ in range(10):
-            container.scroll_up()
-            
+        container.scroll_page_up()
         self.refresh()
     
     def action_scroll_home(self) -> None:
