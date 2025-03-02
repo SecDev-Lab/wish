@@ -66,6 +66,10 @@ class MainScreen(Screen):
         self.log(f"MainScreen active pane: wish_select={self.wish_select.has_class('active-pane')}, main_pane={self.main_pane.has_class('active-pane')}, sub_pane={self.sub_pane.has_class('active-pane')}")
         self.log(f"MainScreen current mode: {self.current_mode}")
         
+        # Ctrl+下矢印のデバッグログを追加
+        if event.key in ("ctrl+down", "ctrl+arrow_down", "down+ctrl"):
+            self.log(f"MainScreen: Ctrl+Down key detected: {event.key}")
+        
         # Handle up/down keys when Wish Select pane is active
         if self.wish_select.has_class("active-pane"):
             if event.key in ("up", "arrow_up"):

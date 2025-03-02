@@ -63,11 +63,16 @@ class WishTUIApp(App):
 
     def action_focus_sub(self) -> None:
         """Action to focus the sub pane."""
+        # デバッグログを追加
+        print("action_focus_sub called")
+        
         # Get the main screen
         main_screen = self.screen
         if hasattr(main_screen, "activate_pane"):
+            print(f"Calling main_screen.activate_pane('sub-pane')")
             main_screen.activate_pane("sub-pane")
         else:
+            print(f"Calling self.query_one('#sub-pane').focus()")
             self.query_one("#sub-pane").focus()
 
     def action_confirm_quit(self) -> None:
@@ -97,8 +102,7 @@ class WishTUIApp(App):
         if active_pane and active_pane.id == "sub-pane":
             content = active_pane.query_one("#sub-pane-content")
             # ページ単位でスクロール
-            for _ in range(10):  # 10行分スクロール
-                content.scroll_up()
+            content.scroll_page_up()
     
     def action_scroll_page_down(self) -> None:
         """Page down in the active pane."""
@@ -106,8 +110,7 @@ class WishTUIApp(App):
         if active_pane and active_pane.id == "sub-pane":
             content = active_pane.query_one("#sub-pane-content")
             # ページ単位でスクロール
-            for _ in range(10):  # 10行分スクロール
-                content.scroll_down()
+            content.scroll_page_down()
     
     def action_scroll_home(self) -> None:
         """Scroll to the top of the active pane."""
@@ -136,6 +139,13 @@ class WishTUIApp(App):
     
     def on_key(self, event) -> None:
         """アプリケーション全体でのキーイベント監視"""
+        # すべてのキーイベントをログに記録
+        print(f"App received key: {event.key}")
+        
+        # Ctrl+下矢印のデバッグログを追加
+        if event.key in ("ctrl+down", "ctrl+arrow_down", "down+ctrl"):
+            print(f"App: Ctrl+Down key detected: {event.key}")
+        
         # LogViewerScreen が表示されている場合、キーイベントを優先的に処理
         from wish_sh.tui.screens.log_viewer_screen import LogViewerScreen
         if isinstance(self.screen, LogViewerScreen):
