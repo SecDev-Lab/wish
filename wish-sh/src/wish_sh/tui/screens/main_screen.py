@@ -174,9 +174,14 @@ class MainScreen(Screen):
             # Update panes for WISH HISTORY mode
             self.main_pane.update_wish(wish)
             
-            # Reset Sub pane to default state for WISH HISTORY mode
-            content_widget = self.sub_pane.query_one("#sub-pane-content")
-            content_widget.update("(Select a command to view details)")
+            # 変更: wishにコマンドがある場合、最初のコマンドをSub Paneに表示
+            if wish and wish.command_results and len(wish.command_results) > 0:
+                first_command = wish.command_results[0]
+                self.sub_pane.update_command_output(first_command)
+            else:
+                # コマンドがない場合は従来通りのメッセージを表示
+                content_widget = self.sub_pane.query_one("#sub-pane-content")
+                content_widget.update("(Select a command to view details)")
     
     def on_wish_selected(self, event: WishSelected) -> None:
         """Handle wish selection events."""

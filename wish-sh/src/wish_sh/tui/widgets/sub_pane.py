@@ -39,7 +39,7 @@ class SubPane(BasePane):
         except Exception as e:
             self.logger.debug(f"No command-details-grid to remove: {e}")
             
-        self.update_content("sub-pane-content", "Command output for new Wish will be displayed here.")
+        self.update_content("sub-pane-content", "新しいWishのコマンド出力がここに表示されます")
     
     def set_active(self, active: bool) -> None:
         """Set the active state of the pane.
