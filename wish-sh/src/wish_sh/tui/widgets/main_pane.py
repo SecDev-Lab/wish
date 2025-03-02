@@ -7,7 +7,7 @@ from textual.widgets import Static
 from textual.containers import Horizontal, Vertical
 
 from wish_models import CommandState, CommandResult, WishState, UtcDatetime
-from wish_sh.tui.utils import make_markup_safe, sanitize_command_text
+from wish_sh.tui.utils import make_markup_safe, sanitize_command_text, get_command_state_emoji
 from wish_sh.tui.widgets.base_pane import BasePane
 
 
@@ -69,28 +69,6 @@ class MainPane(BasePane):
         else:
             return "❓"
 
-    def _get_command_state_emoji(self, state):
-        """Get emoji for command state."""
-        if state == CommandState.DOING:
-            return "🔄"
-        elif state == CommandState.SUCCESS:
-            return "✅"
-        elif state == CommandState.USER_CANCELLED:
-            return "🚫"
-        elif state == CommandState.COMMAND_NOT_FOUND:
-            return "🔍❌"
-        elif state == CommandState.FILE_NOT_FOUND:
-            return "📄❌"
-        elif state == CommandState.REMOTE_OPERATION_FAILED:
-            return "🌐❌"
-        elif state == CommandState.TIMEOUT:
-            return "⏱️"
-        elif state == CommandState.NETWORK_ERROR:
-            return "📡❌"
-        elif state == CommandState.OTHERS:
-            return "❌"
-        else:
-            return "❓"
     
     def _format_datetime(self, dt):
         """Format a datetime for display.
@@ -134,7 +112,7 @@ class MainPane(BasePane):
         # Add command results
         command_indices = []  # Store command indices for click handling
         for i, cmd in enumerate(wish.command_results, 1):
-            cmd_emoji = self._get_command_state_emoji(cmd.state)
+            cmd_emoji = get_command_state_emoji(cmd.state)
             safe_command = sanitize_command_text(cmd.command)
             
             # Add command with CSS class for selection instead of '>' character
@@ -256,12 +234,20 @@ class MainPane(BasePane):
     
     def select_previous_command(self) -> None:
         """Select the previous command."""
+        # Check if current_wish is None
+        if not self.current_wish:
+            return
+            
         if self.selected_command_index > 0:
             self.selected_command_index -= 1
             self.update_command_selection()
     
     def select_next_command(self) -> None:
         """Select the next command."""
+        # Check if current_wish is None
+        if not self.current_wish:
+            return
+            
         if self.selected_command_index < len(self.current_wish.command_results) - 1:
             self.selected_command_index += 1
             self.update_command_selection()
@@ -272,6 +258,10 @@ class MainPane(BasePane):
     
     def update_command_selection(self) -> None:
         """Update the command selection and post a message."""
+        # Check if current_wish is None
+        if not self.current_wish:
+            return
+            
         if 0 <= self.selected_command_index < len(self.current_wish.command_results):
             selected_command = self.current_wish.command_results[self.selected_command_index]
             # Post a message that a command was selected

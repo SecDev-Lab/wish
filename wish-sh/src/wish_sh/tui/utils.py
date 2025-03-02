@@ -1,6 +1,7 @@
 """Utility functions for the TUI."""
 
 from rich.markup import escape
+from wish_models.command_result.command_state import CommandState
 
 
 def make_markup_safe(text: str) -> str:
@@ -44,3 +45,34 @@ def sanitize_command_text(command: str) -> str:
     safe_command = safe_command.replace('"', "'")
     safe_command = safe_command.replace("\\", "/")
     return safe_command
+
+
+def get_command_state_emoji(state):
+    """Get emoji for command state.
+    
+    Args:
+        state: The CommandState enum value.
+        
+    Returns:
+        str: The emoji representing the state.
+    """
+    if state == CommandState.DOING:
+        return "🔄"
+    elif state == CommandState.SUCCESS:
+        return "✅"
+    elif state == CommandState.USER_CANCELLED:
+        return "🚫"
+    elif state == CommandState.COMMAND_NOT_FOUND:
+        return "🔍❌"
+    elif state == CommandState.FILE_NOT_FOUND:
+        return "📄❌"
+    elif state == CommandState.REMOTE_OPERATION_FAILED:
+        return "🌐❌"
+    elif state == CommandState.TIMEOUT:
+        return "⏱️"
+    elif state == CommandState.NETWORK_ERROR:
+        return "📡❌"
+    elif state == CommandState.OTHERS:
+        return "❌"
+    else:
+        return "❓"

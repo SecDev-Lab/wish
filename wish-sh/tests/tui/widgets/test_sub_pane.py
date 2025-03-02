@@ -104,7 +104,7 @@ class TestSubPane:
                 # Check basic command information
                 assert f"Command:    #{cmd_result.num}" in content.renderable
                 assert cmd_result.command in content.renderable
-                assert "Status:     Success" in content.renderable
+                assert "Status:     ✅ Success" in content.renderable
                 assert "Exit Code:  0" in content.renderable
                 
                 # Check timestamps
@@ -238,7 +238,7 @@ class TestSubPane:
                 assert "python3 -c" in rendered_text
                 
                 # Check state and exit code
-                assert "Status:     Network Error" in rendered_text
+                assert "Status:     📡❌ Network Error" in rendered_text
                 assert "Exit Code:  1" in rendered_text
                 
                 # Check log summary
@@ -284,7 +284,7 @@ class TestSubPane:
                 # Check command information
                 rendered_text = content.renderable
                 assert "Command:    #1 long-running-command" in rendered_text
-                assert "Status:     Running" in rendered_text
+                assert "Status:     🔄 Running" in rendered_text
                 
                 # Check that exit_code is not displayed
                 assert "Exit Code:" not in rendered_text

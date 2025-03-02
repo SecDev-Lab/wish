@@ -7,7 +7,7 @@ from textual.widgets import Static
 from textual.containers import Horizontal
 
 from wish_models.command_result.command_state import CommandState
-from wish_sh.tui.utils import make_markup_safe, sanitize_command_text
+from wish_sh.tui.utils import make_markup_safe, sanitize_command_text, get_command_state_emoji
 from wish_sh.tui.widgets.base_pane import BasePane
 
 
@@ -260,15 +260,14 @@ class SubPane(BasePane):
             
             # Status
             state_text, state_class = self._get_state_display(command_result.state)
-            content_lines.append(f"Status:     {state_text}")
+            state_emoji = get_command_state_emoji(command_result.state)
+            content_lines.append(f"Status:     {state_emoji} {state_text}")
             
             # Exit code (if command is finished)
             if command_result.exit_code is not None:
                 content_lines.append(f"Exit Code:  {command_result.exit_code}")
             
-            # Time information
-            content_lines.append("")
-            
+
             # Start time
             if command_result.created_at:
                 try:
