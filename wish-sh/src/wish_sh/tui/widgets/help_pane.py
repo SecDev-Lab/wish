@@ -41,10 +41,10 @@ class HelpPane(Container):
             デフォルトのヘルプテキスト
         """
         return (
-            f"Help: {self._style_shortcut('←')} Wish Select | "
-            f"{self._style_shortcut('→')} Main | "
-            f"{self._style_shortcut('Ctrl+↑')} Main | "
-            f"{self._style_shortcut('Ctrl+↓')} Sub | "
+            f"Help: {self._style_shortcut('←/h')} Wish Select | "
+            f"{self._style_shortcut('→/l')} Main | "
+            f"{self._style_shortcut('Ctrl+↑/k')} Main | "
+            f"{self._style_shortcut('Ctrl+↓/j')} Sub | "
             f"{self._style_shortcut('q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
         )
@@ -56,9 +56,9 @@ class HelpPane(Container):
             Wish Select ペイン用のヘルプテキスト
         """
         return (
-            f"Help: {self._style_shortcut('↑↓')} Select Wish | "
+            f"Help: {self._style_shortcut('↑↓/k j')} Select Wish | "
             f"{self._style_shortcut('Enter/Space')} Decide & Go to Main | "
-            f"{self._style_shortcut('→')} Main | "
+            f"{self._style_shortcut('→/l')} Main | "
             f"{self._style_shortcut('q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
         )
@@ -70,10 +70,10 @@ class HelpPane(Container):
             Main ペイン用のヘルプテキスト
         """
         return (
-            f"Help: {self._style_shortcut('←')} Wish Select | "
-            f"{self._style_shortcut('↑↓')} Select Command | "
+            f"Help: {self._style_shortcut('←/h')} Wish Select | "
+            f"{self._style_shortcut('↑↓/k j')} Select Command | "
             f"{self._style_shortcut('Enter/Space')} Decide & Go to Sub | "
-            f"{self._style_shortcut('Ctrl+↓')} Sub | "
+            f"{self._style_shortcut('Ctrl+↓/j')} Sub | "
             f"{self._style_shortcut('q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
         )
@@ -85,8 +85,8 @@ class HelpPane(Container):
             Sub ペイン用のヘルプテキスト
         """
         return (
-            f"Help: {self._style_shortcut('←')} Wish Select | "
-            f"{self._style_shortcut('Ctrl+↑')} Main | "
+            f"Help: {self._style_shortcut('←/h')} Wish Select | "
+            f"{self._style_shortcut('Ctrl+↑/k')} Main | "
             f"{self._style_shortcut('j/k')} Line Down/Up | "
             f"{self._style_shortcut('o')} View Full Output | "
             f"{self._style_shortcut('e')} View Full Error | "

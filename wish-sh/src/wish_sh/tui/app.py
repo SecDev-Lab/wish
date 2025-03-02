@@ -20,9 +20,13 @@ class WishTUIApp(App):
         Binding("ctrl+q", "quit", "Quit"),
         Binding("q", "confirm_quit", "Confirm Quit"),
         Binding("left", "focus_wish_select", "Focus Wish Select"),
+        Binding("h", "focus_wish_select", "Focus Wish Select"),
         Binding("right", "focus_main", "Focus Main"),
+        Binding("l", "focus_main", "Focus Main"),
         Binding("ctrl+up", "focus_main", "Focus Main"),
+        Binding("ctrl+k", "focus_main", "Focus Main"),
         Binding("ctrl+down", "focus_sub", "Focus Sub"),
+        Binding("ctrl+j", "focus_sub", "Focus Sub"),
         Binding("j", "scroll_down_line", "Scroll Down"),
         Binding("down", "scroll_down_line", "Scroll Down"),
         Binding("k", "scroll_up_line", "Scroll Up"),
@@ -88,20 +92,38 @@ class WishTUIApp(App):
         self.push_screen(QuitScreen())
     
     def action_scroll_up_line(self) -> None:
-        """Scroll up one line in the active pane."""
+        """Scroll up one line or select previous item in the active pane."""
         active_pane = self.get_active_pane()
-        if active_pane and active_pane.id == "sub-pane":
+        if not active_pane:
+            return
+            
+        if active_pane.id == "sub-pane":
+            # Sub paneの場合はスクロール
             content = active_pane.query_one("#sub-pane-content")
-            # Scroll up one line
             content.scroll_up()
+        elif active_pane.id == "wish-select":
+            # Wish Select paneの場合は前のアイテムを選択
+            active_pane.select_previous()
+        elif active_pane.id == "main-pane":
+            # Main paneの場合は前のコマンドを選択
+            active_pane.select_previous_command()
     
     def action_scroll_down_line(self) -> None:
-        """Scroll down one line in the active pane."""
+        """Scroll down one line or select next item in the active pane."""
         active_pane = self.get_active_pane()
-        if active_pane and active_pane.id == "sub-pane":
+        if not active_pane:
+            return
+            
+        if active_pane.id == "sub-pane":
+            # Sub paneの場合はスクロール
             content = active_pane.query_one("#sub-pane-content")
-            # Scroll down one line
             content.scroll_down()
+        elif active_pane.id == "wish-select":
+            # Wish Select paneの場合は次のアイテムを選択
+            active_pane.select_next()
+        elif active_pane.id == "main-pane":
+            # Main paneの場合は次のコマンドを選択
+            active_pane.select_next_command()
     
     def action_scroll_page_up(self) -> None:
         """Page up in the active pane."""
