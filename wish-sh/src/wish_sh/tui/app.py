@@ -133,3 +133,18 @@ class WishTUIApp(App):
         elif hasattr(main_screen, "sub_pane") and main_screen.sub_pane.has_class("active-pane"):
             return main_screen.sub_pane
         return None
+    
+    def on_key(self, event) -> None:
+        """アプリケーション全体でのキーイベント監視"""
+        # LogViewerScreen が表示されている場合、キーイベントを優先的に処理
+        from wish_sh.tui.screens.log_viewer_screen import LogViewerScreen
+        if isinstance(self.screen, LogViewerScreen):
+            # キーイベントをログに記録
+            print(f"App received key: {event.key} for LogViewerScreen")
+            # LogViewerScreen のキーイベント処理を呼び出す
+            result = self.screen.on_key(event)
+            print(f"LogViewerScreen on_key result: {result}")
+            return result
+        
+        # 通常のキーイベント処理
+        return False

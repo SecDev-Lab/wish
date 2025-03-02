@@ -200,6 +200,12 @@ LogViewerScreen {
     overflow-y: scroll;
 }
 
+#log-content-container {
+    height: 1fr;
+    overflow-y: scroll;
+    max-height: 70%;
+}
+
 #log-viewer-footer {
     text-align: center;
     height: 1;
