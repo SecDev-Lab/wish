@@ -49,7 +49,7 @@ class TestSubPane:
             # Check that the content has been updated
             content = app.query_one("#sub-pane-content")
             assert content is not None
-            assert "Command output for new Wish will be displayed here" in content.renderable
+            assert pane.MSG_NEW_WISH_MODE in content.renderable
 
     @pytest.mark.asyncio
     async def test_sub_pane_update_command_output_none(self):
@@ -64,7 +64,7 @@ class TestSubPane:
             # Check that the pane shows the "No command selected" message
             content = app.query_one("#sub-pane-content")
             assert content is not None
-            assert content.renderable == "(No command selected)"
+            assert content.renderable == pane.MSG_NO_COMMAND_SELECTED
 
     @pytest.mark.asyncio
     async def test_sub_pane_update_command_output(self):

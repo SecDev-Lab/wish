@@ -157,6 +157,15 @@ class MainScreen(Screen):
         # Update help text based on active pane
         self.help_pane.update_help(pane_id)
     
+    def display_command(self, command_result):
+        """Display command details in the sub pane.
+        
+        Args:
+            command_result: The command result to display.
+        """
+        if command_result:
+            self.sub_pane.update_command_output(command_result)
+    
     def set_mode(self, mode: WishMode, wish=None) -> None:
         """Set the current mode and update panes accordingly.
         
@@ -174,14 +183,13 @@ class MainScreen(Screen):
             # Update panes for WISH HISTORY mode
             self.main_pane.update_wish(wish)
             
-            # 変更: wishにコマンドがある場合、最初のコマンドをSub Paneに表示
-            if wish and wish.command_results and len(wish.command_results) > 0:
-                first_command = wish.command_results[0]
-                self.sub_pane.update_command_output(first_command)
+            # wishにコマンドがある場合、最初のコマンドを表示
+            if wish and wish.command_results:
+                self.display_command(wish.command_results[0])
             else:
                 # コマンドがない場合は従来通りのメッセージを表示
                 content_widget = self.sub_pane.query_one("#sub-pane-content")
-                content_widget.update("(Select a command to view details)")
+                content_widget.update(self.sub_pane.MSG_NO_COMMAND_SELECTED)
     
     def on_wish_selected(self, event: WishSelected) -> None:
         """Handle wish selection events."""
@@ -190,7 +198,7 @@ class MainScreen(Screen):
     def on_command_selected(self, event: CommandSelected) -> None:
         """Handle command selection events."""
         # Update the sub pane with command output but keep focus on main pane
-        self.sub_pane.update_command_output(event.command_result)
+        self.display_command(event.command_result)
         # Do not activate the sub pane to keep focus on main pane
         # self.activate_pane("sub-pane")
         

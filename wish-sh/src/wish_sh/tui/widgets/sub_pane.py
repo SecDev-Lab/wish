@@ -14,6 +14,17 @@ from wish_sh.tui.widgets.base_pane import BasePane
 class SubPane(BasePane):
     """Sub content pane for displaying command output details."""
 
+    # メッセージ定数
+    MSG_NO_COMMAND_SELECTED = "(Select a command to view details)"
+    MSG_NEW_WISH_MODE = "新しいWishのコマンド出力がここに表示されます"
+    MSG_NO_OUTPUT_FILE = "(No output file available)"
+    MSG_NO_ERROR_FILE = "(No error output file available)"
+    MSG_NO_OUTPUT = "(No output)"
+    MSG_FILE_NOT_FOUND_PREFIX = "(File not found: "
+    MSG_ERROR_READING_FILE_PREFIX = "(Error reading file: "
+    MSG_VIEW_FULL_OUTPUT = "... (Press 'o' to view full output)"
+    MSG_VIEW_FULL_ERROR = "... (Press 'e' to view full error output)"
+
     # CSS moved to external file: wish_tui.css
 
     def __init__(self, *args, **kwargs):
@@ -28,7 +39,7 @@ class SubPane(BasePane):
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Static("(Select a command to view details)", id="sub-pane-content")
+        yield Static(self.MSG_NO_COMMAND_SELECTED, id="sub-pane-content")
     
     def update_for_new_wish_mode(self):
         """Update the pane for New Wish mode."""
@@ -39,7 +50,7 @@ class SubPane(BasePane):
         except Exception as e:
             self.logger.debug(f"No command-details-grid to remove: {e}")
             
-        self.update_content("sub-pane-content", "新しいWishのコマンド出力がここに表示されます")
+        self.update_content("sub-pane-content", self.MSG_NEW_WISH_MODE)
     
     def set_active(self, active: bool) -> None:
         """Set the active state of the pane.
@@ -157,13 +168,13 @@ class SubPane(BasePane):
         """
         try:
             if not os.path.exists(file_path):
-                return [], 0, [f"(File not found: {file_path})"]
+                return [], 0, [f"{self.MSG_FILE_NOT_FOUND_PREFIX}{file_path})"]
                 
             with open(file_path, "r") as f:
                 lines = f.readlines()
                 
             if not lines:
-                return [], 0, ["(No output)"]
+                return [], 0, [self.MSG_NO_OUTPUT]
                 
             # Get preview lines (first few lines)
             preview_lines = []
@@ -174,7 +185,7 @@ class SubPane(BasePane):
             return lines, len(lines), preview_lines
         except Exception as e:
             self.logger.error(f"Error reading log file: {e}")
-            return [], 0, [f"(Error reading file: {e})"]
+            return [], 0, [f"{self.MSG_ERROR_READING_FILE_PREFIX}{e})"]
     
     def _get_state_display(self, state):
         """Get a human-readable display for command state.
@@ -248,7 +259,7 @@ class SubPane(BasePane):
             content_widget = self.get_content_widget("sub-pane-content")
             
             if not command_result:
-                content_widget.update("(No command selected)")
+                content_widget.update(self.MSG_NO_COMMAND_SELECTED)
                 return
             
             # Create content lines for the widget
@@ -325,11 +336,11 @@ class SubPane(BasePane):
                     
                     # Add "more" message if needed
                     if stdout_count > 3:
-                        content_lines.append("... (Press 'o' to view full output)")
+                        content_lines.append(self.MSG_VIEW_FULL_OUTPUT)
                 else:
                     content_lines.extend(stdout_preview)  # Will contain error message if any
             else:
-                content_lines.append("(No output file available)")
+                content_lines.append(self.MSG_NO_OUTPUT_FILE)
             
             # Add stderr content if available
             content_lines.append("")
@@ -349,11 +360,11 @@ class SubPane(BasePane):
                     
                     # Add "more" message if needed
                     if stderr_count > 3:
-                        content_lines.append("... (Press 'e' to view full error output)")
+                        content_lines.append(self.MSG_VIEW_FULL_ERROR)
                 else:
                     content_lines.extend(stderr_preview)  # Will contain error message if any
             else:
-                content_lines.append("(No error output file available)")
+                content_lines.append(self.MSG_NO_ERROR_FILE)
             
             # Update the content widget with markup disabled
             content_widget.markup = False
