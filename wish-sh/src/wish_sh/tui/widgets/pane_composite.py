@@ -352,10 +352,22 @@ class NewWishPaneComposite(PaneComposite):
             from wish_sh.tui.widgets.shell_terminal_widget import ShellTerminalWidget
 
             # Get shell terminal widget
-            from textual.app import App
-
-            app = App.get()
-            shell_terminal = app.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+            # 直接self.appを使用してアプリケーションインスタンスを取得
+            app = self.app
+            if not app:
+                self.logger.error("DEBUGGING: App instance not available")
+                return
+                
+            try:
+                shell_terminal = app.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+                if not shell_terminal:
+                    self.logger.error("DEBUGGING: ShellTerminalWidget not found")
+                    return
+            except Exception as e:
+                self.logger.error(f"DEBUGGING: Error finding ShellTerminalWidget: {e}")
+                import traceback
+                self.logger.error(f"DEBUGGING: Traceback: {traceback.format_exc()}")
+                return
 
             manager = WishManager(Settings())
             for cmd_num, cmd in enumerate(commands, start=1):
