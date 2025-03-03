@@ -239,6 +239,9 @@ class MainScreen(Screen):
             
             # Update panes for NEW WISH mode
             self.active_composite.update_for_mode()
+            
+            # Update New Wish UI to show input form
+            self.update_new_wish_ui()
         else:
             # Show WISH HISTORY panes
             self.wish_history_main_pane.display = True

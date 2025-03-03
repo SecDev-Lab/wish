@@ -296,3 +296,56 @@ class TestMainScreen:
             assert "active-pane" not in wish_select.classes
             assert "active-pane" in new_wish_main_pane.classes
             assert "active-pane" not in new_wish_sub_pane.classes
+    
+    @pytest.mark.asyncio
+    async def test_new_wish_ui_updated_on_mode_change(self):
+        """Test that the UI is updated when switching to NEW_WISH mode."""
+        app = MainScreenTestApp()
+        async with app.run_test() as pilot:
+            screen = app.query_one(MainScreen)
+            
+            # まず別のモードに切り替える
+            test_wish = Wish.create("Test wish")
+            screen.set_mode(WishMode.WISH_HISTORY, test_wish)
+            await pilot.pause()
+            
+            # NEW_WISHモードに切り替える
+            screen.set_mode(WishMode.NEW_WISH)
+            await pilot.pause()
+            
+            # WishInputFormがマウントされていることを確認
+            wish_input_form = app.query_one("#wish-input-form")
+            assert wish_input_form is not None
+            
+            # 入力フィールドが存在することを確認
+            input_field = app.query_one("#wish-input-field")
+            assert input_field is not None
+            
+            # 送信ボタンが存在することを確認
+            submit_button = app.query_one("#wish-submit-button")
+            assert submit_button is not None
+    
+    @pytest.mark.asyncio
+    async def test_update_new_wish_ui_called_on_mode_change(self):
+        """Test that update_new_wish_ui is called when switching to NEW_WISH mode."""
+        app = MainScreenTestApp()
+        async with app.run_test() as pilot:
+            screen = app.query_one(MainScreen)
+            
+            # update_new_wish_uiメソッドをモック化
+            original_update_new_wish_ui = screen.update_new_wish_ui
+            called = False
+            
+            def mock_update_new_wish_ui():
+                nonlocal called
+                called = True
+                return original_update_new_wish_ui()
+            
+            screen.update_new_wish_ui = mock_update_new_wish_ui
+            
+            # NEW_WISHモードに切り替える
+            screen.set_mode(WishMode.NEW_WISH)
+            await pilot.pause()
+            
+            # update_new_wish_uiが呼び出されたことを確認
+            assert called
