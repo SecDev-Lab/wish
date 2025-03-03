@@ -410,8 +410,20 @@ class MainScreen(Screen):
     # New Wish mode message handlers
     def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
         """Handle WishInputSubmitted message."""
-        self.new_wish_composite.handle_wish_input(event.wish_text)
-        self.update_new_wish_ui()
+        self.logger.debug(f"MainScreen received WishInputSubmitted event: {event.wish_text}")
+        
+        try:
+            # 入力を処理
+            self.logger.debug(f"Handling wish input: {event.wish_text}")
+            self.new_wish_composite.handle_wish_input(event.wish_text)
+            self.logger.debug("Wish input handled successfully")
+            
+            # UIを更新
+            self.logger.debug("Updating UI after wish input")
+            self.update_new_wish_ui()
+            self.logger.debug("UI updated successfully")
+        except Exception as e:
+            self.logger.error(f"Error handling WishInputSubmitted: {e}")
     
     def on_wish_detail_submitted(self, event: WishDetailSubmitted) -> None:
         """Handle WishDetailSubmitted message."""

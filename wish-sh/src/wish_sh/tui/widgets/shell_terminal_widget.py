@@ -2,10 +2,11 @@
 
 from typing import List, Optional
 import string
+import asyncio
 
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Static, RichLog
+from textual.widgets import Static, RichLog, Input
 from textual.reactive import reactive
 from textual.timer import Timer
 
@@ -15,6 +16,12 @@ from wish_sh.logging import setup_logger
 
 class ShellTerminalWidget(Static):
     """A terminal-like widget that emulates a shell experience."""
+    
+    # キーイベントを直接キャプチャするためのフラグ
+    can_focus = True
+    
+    # 入力処理中フラグ
+    _processing_input = False
     
     def __init__(self, prompt: str = "wish✨️ ", *args, **kwargs):
         """Initialize the widget.
@@ -38,19 +45,20 @@ class ShellTerminalWidget(Static):
         self.cursor_visible = True
         # カーソル点滅用タイマー
         self.cursor_timer: Optional[Timer] = None
-        
-        # キーイベントを直接キャプチャするためのフラグ
-        self.can_focus = True
     
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        # 単一のRichLogウィジェットのみを使用
+        # 出力表示用のRichLogウィジェット
         yield RichLog(id="terminal-output", wrap=False, highlight=True, markup=False)
+        # 非表示の入力フィールド（キーイベントのバックアップ用）
+        yield Input(id="hidden-input", classes="hidden")
     
     def on_mount(self) -> None:
         """Event handler called when the widget is mounted."""
         # 出力領域への参照を取得
         self.output = self.query_one("#terminal-output", RichLog)
+        # 非表示入力フィールドへの参照を取得
+        self.hidden_input = self.query_one("#hidden-input", Input)
         
         # ウィジェットにフォーカスを設定
         self.focus()
@@ -171,48 +179,71 @@ class ShellTerminalWidget(Static):
     
     def submit_current_input(self) -> None:
         """現在の入力を送信する"""
-        command = self.current_input
-        
-        if not command.strip():
-            # 空の入力は送信しない
+        # 処理中フラグを設定
+        if self._processing_input:
+            self.logger.debug("Already processing input, ignoring")
             return
         
-        # 入力行を確定（カーソルなしで表示）
-        self.output.refresh()
-        lines = self.output.lines
+        self._processing_input = True
         
-        # 出力をクリア
-        self.output.clear()
-        
-        # 最後の行がある場合のみ処理
-        if lines and len(lines) > 1:
-            # 現在の内容を保存（最後の行以外）
-            for i in range(len(lines) - 1):
-                line_text = ""
-                for segment in lines[i].segments:
-                    line_text += segment.text
-                # 保存した行を再度追加
-                self.output.write(line_text)
-        
-        # 確定した入力を表示
-        self.output.write(f"{self.prompt}{command}")
-        
-        # コマンド履歴に追加
-        if command not in self.command_history:
-            self.command_history.append(command)
-        self.command_history_index = -1
-        
-        # 入力メッセージを送信
-        self.post_message(WishInputSubmitted(command))
-        
-        # 入力をクリア
-        self.current_input = ""
-        self.cursor_position = 0
-        
-        # 新しいプロンプトラインを表示
-        self.update_prompt_line()
-        
-        self.logger.debug(f"Input submitted: {command}")
+        try:
+            command = self.current_input
+            
+            self.logger.debug(f"Attempting to submit input: '{command}'")
+            
+            if not command.strip():
+                # 空の入力は送信しない
+                self.logger.debug("Empty input, not submitting")
+                self._processing_input = False
+                return
+            
+            # 入力行を確定（カーソルなしで表示）
+            self.output.refresh()
+            lines = self.output.lines
+            
+            # 出力をクリア
+            self.output.clear()
+            
+            # 最後の行がある場合のみ処理
+            if lines and len(lines) > 1:
+                # 現在の内容を保存（最後の行以外）
+                for i in range(len(lines) - 1):
+                    line_text = ""
+                    for segment in lines[i].segments:
+                        line_text += segment.text
+                    # 保存した行を再度追加
+                    self.output.write(line_text)
+            
+            # 確定した入力を表示
+            self.output.write(f"{self.prompt}{command}")
+            
+            # コマンド履歴に追加
+            if command not in self.command_history:
+                self.command_history.append(command)
+            self.command_history_index = -1
+            
+            # 入力をクリア
+            old_input = self.current_input
+            self.current_input = ""
+            self.cursor_position = 0
+            
+            # 新しいプロンプトラインを表示
+            self.update_prompt_line()
+            
+            # 入力メッセージを送信
+            self.logger.debug(f"Creating WishInputSubmitted message for command: '{old_input}'")
+            message = WishInputSubmitted(old_input)
+            
+            # メッセージを直接送信
+            self.logger.debug(f"Posting message: {message}")
+            self.post_message(message)
+            
+            self.logger.debug(f"Input submitted successfully: '{old_input}'")
+        except Exception as e:
+            self.logger.error(f"Error in submit_current_input: {e}")
+        finally:
+            # 処理中フラグをリセット
+            self._processing_input = False
     
     def on_key(self, event) -> None:
         """キーイベントを処理する（キーが押された時）"""

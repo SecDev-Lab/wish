@@ -98,8 +98,17 @@ class WishInputForm(Static):
 
     def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
         """Handle wish input submitted event."""
-        # Forward the message to parent
-        self.post_message(event)
+        # ログ出力
+        logger = setup_logger("wish_sh.tui.WishInputForm")
+        logger.debug(f"WishInputForm received WishInputSubmitted event: {event.wish_text}")
+        
+        try:
+            # Forward the message to parent
+            logger.debug("Forwarding WishInputSubmitted message to parent")
+            self.post_message(event)
+            logger.debug("WishInputSubmitted message forwarded successfully")
+        except Exception as e:
+            logger.error(f"Error forwarding WishInputSubmitted message: {e}")
 
 
 class WishDetailForm(Static):

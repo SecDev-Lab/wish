@@ -218,6 +218,14 @@ LogViewerScreen {
     align: center middle;
 }
 
+/* ShellTerminalWidget styles */
+.hidden {
+    display: none;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+}
+
 #log-viewer-dialog {
     width: 80%;
     height: 80%;

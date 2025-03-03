@@ -175,36 +175,53 @@ class NewWishPaneComposite(PaneComposite):
         Args:
             wish_text: The wish text.
         """
-        # Analyze the wish content
-        if self.is_wish_sufficient(wish_text):
-            # If there is sufficient information, proceed to command suggestion
-            from wish_models import Wish
+        self.logger.debug(f"NewWishPaneComposite handling wish input: '{wish_text}'")
+        
+        try:
+            # Analyze the wish content
+            if self.is_wish_sufficient(wish_text):
+                self.logger.debug("Wish is sufficient, proceeding to command suggestion")
+                # If there is sufficient information, proceed to command suggestion
+                from wish_models import Wish
 
-            wish = Wish.create(wish_text)
-            self.new_wish_turns.set_current_wish(wish)
+                wish = Wish.create(wish_text)
+                self.logger.debug(f"Created wish: {wish}")
+                self.new_wish_turns.set_current_wish(wish)
 
-            # Generate commands
-            from wish_sh.wish_manager import WishManager
-            from wish_sh.settings import Settings
+                # Generate commands
+                from wish_sh.wish_manager import WishManager
+                from wish_sh.settings import Settings
 
-            manager = WishManager(Settings())
-            commands = manager.generate_commands(wish_text)
-            self.new_wish_turns.set_current_commands(commands)
-            
-            # State transition
-            self.new_wish_turns.transition(NewWishEvent.SUFFICIENT_WISH)
-        else:
-            # If information is insufficient, proceed to detail input
-            from wish_models import Wish
+                manager = WishManager(Settings())
+                self.logger.debug("Generating commands")
+                commands = manager.generate_commands(wish_text)
+                self.logger.debug(f"Generated commands: {commands}")
+                self.new_wish_turns.set_current_commands(commands)
+                
+                # State transition
+                self.logger.debug("Transitioning to SUFFICIENT_WISH state")
+                self.new_wish_turns.transition(NewWishEvent.SUFFICIENT_WISH)
+                self.logger.debug(f"New state: {self.new_wish_turns.current_state}")
+            else:
+                self.logger.debug("Wish is insufficient, proceeding to detail input")
+                # If information is insufficient, proceed to detail input
+                from wish_models import Wish
 
-            wish = Wish.create(wish_text)
-            self.new_wish_turns.set_current_wish(wish)
+                wish = Wish.create(wish_text)
+                self.logger.debug(f"Created wish: {wish}")
+                self.new_wish_turns.set_current_wish(wish)
 
-            # State transition
-            self.new_wish_turns.transition(NewWishEvent.INSUFFICIENT_WISH)
+                # State transition
+                self.logger.debug("Transitioning to INSUFFICIENT_WISH state")
+                self.new_wish_turns.transition(NewWishEvent.INSUFFICIENT_WISH)
+                self.logger.debug(f"New state: {self.new_wish_turns.current_state}")
 
-        # Update UI
-        self.update_for_state()
+            # Update UI
+            self.logger.debug("Updating UI for new state")
+            self.update_for_state()
+            self.logger.debug("UI updated successfully")
+        except Exception as e:
+            self.logger.error(f"Error in handle_wish_input: {e}")
 
     def is_wish_sufficient(self, wish_text: str) -> bool:
         """Determine if the wish has sufficient information.
