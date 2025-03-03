@@ -336,8 +336,12 @@ class NewWishPaneComposite(PaneComposite):
         # Update UI
         self.update_for_state()
 
-    def handle_execution_confirmed(self) -> None:
-        """Handle execution confirmed."""
+    def handle_execution_confirmed(self, app=None) -> None:
+        """Handle execution confirmed.
+        
+        Args:
+            app: The application instance.
+        """
         # State transition
         self.new_wish_turns.transition(NewWishEvent.EXECUTION_CONFIRMED)
 
@@ -352,8 +356,6 @@ class NewWishPaneComposite(PaneComposite):
             from wish_sh.tui.widgets.shell_terminal_widget import ShellTerminalWidget
 
             # Get shell terminal widget
-            # 直接self.appを使用してアプリケーションインスタンスを取得
-            app = self.app
             if not app:
                 self.logger.error("DEBUGGING: App instance not available")
                 return

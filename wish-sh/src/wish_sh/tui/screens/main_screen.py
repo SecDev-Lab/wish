@@ -574,7 +574,7 @@ class MainScreen(Screen):
     
     def on_execution_confirmed(self, event: ExecutionConfirmed) -> None:
         """Handle ExecutionConfirmed message."""
-        self.new_wish_composite.handle_execution_confirmed()
+        self.new_wish_composite.handle_execution_confirmed(app=self.app)
         self.update_new_wish_ui()
     
     def on_execution_cancelled(self, event: ExecutionCancelled) -> None:
