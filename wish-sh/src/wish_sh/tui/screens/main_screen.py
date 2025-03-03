@@ -130,11 +130,11 @@ class MainScreen(Screen):
         # Update help text for initial active pane
         self.help_pane.update_help("main-pane")
         
-        # Initialize with NEW_WISH mode
-        self.set_mode(WishMode.NEW_WISH)
-        
         # Hide all forms initially
         self._unmount_new_wish_forms()
+        
+        # Initialize with NEW_WISH mode
+        self.set_mode(WishMode.NEW_WISH)
     
     def on_key(self, event) -> None:
         """Handle key events."""
