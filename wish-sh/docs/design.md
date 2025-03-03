@@ -35,28 +35,83 @@ The TUI is organized into a 2x2 grid layout with four main panes:
                 HelpPane
 ```
 
-### 2.1 WishSelectPane
+### 2.1 Mode-Specific Layout
+
+The MainPane and SubPane are replaced with mode-specific panes depending on the current mode:
+
+```
+WISH_HISTORY Mode:
++------------------+------------------------+
+|                  |                        |
+|                  |                        |
+|  WishSelectPane  | WishHistoryMainPane    |
+|                  |                        |
+|                  |                        |
++------------------+------------------------+
+|                  |                        |
+|                  |                        |
+|  WishSelectPane  | WishHistorySubPane     |
+|  (continued)     |                        |
+|                  |                        |
++------------------+------------------------+
+                HelpPane
+
+NEW_WISH Mode:
++------------------+------------------------+
+|                  |                        |
+|                  |                        |
+|  WishSelectPane  | NewWishMainPane        |
+|                  |                        |
+|                  |                        |
++------------------+------------------------+
+|                  |                        |
+|                  |                        |
+|  WishSelectPane  | NewWishSubPane         |
+|  (continued)     |                        |
+|                  |                        |
++------------------+------------------------+
+                HelpPane
+```
+
+### 2.2 WishSelectPane
 
 - **Location**: Left column, spans both rows
 - **Purpose**: Displays a list of past wishes that can be selected
 - **Content**: Scrollable list of wish items with status indicators
 - **Interaction**: Up/down navigation to select wishes
 
-### 2.2 MainPane
+### 2.3 Mode-Specific Panes
 
-- **Location**: Top-right cell
-- **Purpose**: Displays details of the selected wish or new wish interface
+#### 2.3.1 WishHistoryMainPane
+
+- **Location**: Top-right cell in WISH_HISTORY mode
+- **Purpose**: Displays details of the selected wish
 - **Content**: Wish details and list of commands with their status
 - **Interaction**: Up/down navigation to select commands
 
-### 2.3 SubPane
+#### 2.3.2 WishHistorySubPane
 
-- **Location**: Bottom-right cell
+- **Location**: Bottom-right cell in WISH_HISTORY mode
 - **Purpose**: Displays command output details
 - **Content**: Command text, standard output, and standard error
 - **Interaction**: Scrollable view with options to view full logs
 
+#### 2.3.3 NewWishMainPane
+
+- **Location**: Top-right cell in NEW_WISH mode
+- **Purpose**: Interface for creating a new wish
+- **Content**: Forms for wish input, command suggestions, and confirmation
+- **Interaction**: Form input and navigation
+
+#### 2.3.4 NewWishSubPane
+
+- **Location**: Bottom-right cell in NEW_WISH mode
+- **Purpose**: Provides context for the current new wish state
+- **Content**: Guidance messages based on the current state
+- **Interaction**: Read-only view
+
 ### 2.4 HelpPane
+
 
 - **Location**: Overlay at the bottom of the screen
 - **Purpose**: Provides context-sensitive help information
@@ -213,11 +268,64 @@ The TUI implementation follows several best practices:
 - **MainScreen**: Primary screen containing the panes
 - **BasePane**: Base class for all panes
 - **WishSelectPane**: Left pane for wish selection
-- **MainPane**: Top-right pane for wish details
-- **SubPane**: Bottom-right pane for command output
 - **HelpPane**: Bottom overlay for help text
 
-### 9.2 Utility Functions
+#### 9.1.1 Mode-Specific Panes
+
+The application uses mode-specific panes to separate concerns based on the current mode:
+
+- **WishHistoryMainPane**: Top-right pane for wish history details
+- **WishHistorySubPane**: Bottom-right pane for command output in history mode
+- **NewWishMainPane**: Top-right pane for new wish creation
+- **NewWishSubPane**: Bottom-right pane for new wish command output
+
+#### 9.1.2 Composite Pattern
+
+The application uses the Composite pattern to manage mode-specific panes:
+
+```
+                  ┌───────────────┐
+                  │ PaneComposite │
+                  │   (Abstract)  │
+                  └───────┬───────┘
+                          │
+            ┌─────────────┴─────────────┐
+            │                           │
+┌───────────▼───────────┐   ┌───────────▼───────────┐
+│ WishHistoryPaneComposite│   │  NewWishPaneComposite │
+└───────────┬───────────┘   └───────────┬───────────┘
+            │                           │
+    ┌───────┴────────┐         ┌───────┴────────┐
+    │                │         │                │
+┌───▼───┐        ┌───▼───┐ ┌───▼───┐        ┌───▼───┐
+│WishHist│        │WishHist│ │NewWish│        │NewWish│
+│oryMain │        │orySub  │ │Main   │        │Sub    │
+│Pane    │        │Pane    │ │Pane   │        │Pane   │
+└────────┘        └────────┘ └───────┘        └───────┘
+```
+
+- **PaneComposite**: Abstract base class for pane composites
+- **WishHistoryPaneComposite**: Manages WishHistoryMainPane and WishHistorySubPane
+- **NewWishPaneComposite**: Manages NewWishMainPane and NewWishSubPane
+
+This pattern allows for:
+- Encapsulation of mode-specific behavior
+- Cleaner mode switching logic
+- Better separation of concerns
+- Improved testability
+
+### 9.2 Mode Switching
+
+The MainScreen class manages mode switching by:
+
+1. Hiding all panes
+2. Showing the appropriate mode-specific panes
+3. Setting the active composite
+4. Delegating to the active composite for mode-specific updates
+
+This approach provides a clean separation between different modes and makes it easier to add new modes in the future.
+
+### 9.3 Utility Functions
 
 - **make_markup_safe**: Safely escapes markup characters
 - **sanitize_command_text**: Replaces problematic characters in command text
