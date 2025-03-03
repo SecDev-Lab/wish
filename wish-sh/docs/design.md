@@ -283,25 +283,61 @@ The application uses mode-specific panes to separate concerns based on the curre
 
 The application uses the Composite pattern to manage mode-specific panes:
 
-```
-                  ┌───────────────┐
-                  │ PaneComposite │
-                  │   (Abstract)  │
-                  └───────┬───────┘
-                          │
-            ┌─────────────┴─────────────┐
-            │                           │
-┌───────────▼───────────┐   ┌───────────▼───────────┐
-│ WishHistoryPaneComposite│   │  NewWishPaneComposite │
-└───────────┬───────────┘   └───────────┬───────────┘
-            │                           │
-    ┌───────┴────────┐         ┌───────┴────────┐
-    │                │         │                │
-┌───▼───┐        ┌───▼───┐ ┌───▼───┐        ┌───▼───┐
-│WishHist│        │WishHist│ │NewWish│        │NewWish│
-│oryMain │        │orySub  │ │Main   │        │Sub    │
-│Pane    │        │Pane    │ │Pane   │        │Pane   │
-└────────┘        └────────┘ └───────┘        └───────┘
+```mermaid
+classDiagram
+    class PaneComposite {
+        <<abstract>>
+        +main_pane: BasePane
+        +sub_pane: BasePane
+        +update_for_mode()
+        +handle_key_event(event)
+        +set_active_pane(pane_id)
+    }
+    
+    class WishHistoryPaneComposite {
+        +update_for_mode()
+        +update_wish(wish)
+        +display_command(command_result)
+    }
+    
+    class NewWishPaneComposite {
+        +update_for_mode()
+        +handle_wish_input(wish_text)
+        +handle_wish_detail(detail)
+        +handle_commands_accepted()
+        +handle_commands_rejected()
+    }
+    
+    class WishHistoryMainPane {
+        +update_for_wish_history_mode()
+        +update_wish(wish)
+    }
+    
+    class WishHistorySubPane {
+        +update_for_wish_history_mode()
+        +update_command_output(command_result)
+    }
+    
+    class NewWishMainPane {
+        +update_for_input_wish()
+        +update_for_ask_wish_detail()
+        +update_for_suggest_commands(commands)
+    }
+    
+    class NewWishSubPane {
+        +update_for_input_wish()
+        +update_for_ask_wish_detail()
+        +update_for_suggest_commands()
+    }
+    
+    PaneComposite <|-- WishHistoryPaneComposite
+    PaneComposite <|-- NewWishPaneComposite
+    
+    WishHistoryPaneComposite o-- WishHistoryMainPane
+    WishHistoryPaneComposite o-- WishHistorySubPane
+    
+    NewWishPaneComposite o-- NewWishMainPane
+    NewWishPaneComposite o-- NewWishSubPane
 ```
 
 - **PaneComposite**: Abstract base class for pane composites
