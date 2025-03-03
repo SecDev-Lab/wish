@@ -14,9 +14,9 @@ from wish_sh.tui.widgets.base_pane import BasePane
 class SubPane(BasePane):
     """Sub content pane for displaying command output details."""
 
-    # メッセージ定数
+    # Message constants
     MSG_NO_COMMAND_SELECTED = "(Select a command to view details)"
-    MSG_NEW_WISH_MODE = "新しいWishのコマンド出力がここに表示されます"
+    MSG_NEW_WISH_MODE = "Command output for new Wish will be displayed here"
     MSG_NO_OUTPUT_FILE = "(No output file available)"
     MSG_NO_ERROR_FILE = "(No error output file available)"
     MSG_NO_OUTPUT = "(No output)"
@@ -55,27 +55,27 @@ class SubPane(BasePane):
     # New Wish mode state-specific update methods
     def update_for_input_wish(self):
         """Update for INPUT_WISH state."""
-        self.update_content("sub-pane-content", "Wishを入力してください。例: scan all ports")
+        self.update_content("sub-pane-content", "Please enter your Wish. Example: scan all ports")
     
     def update_for_ask_wish_detail(self):
         """Update for ASK_WISH_DETAIL state."""
-        self.update_content("sub-pane-content", "ターゲットのIPアドレスまたはホスト名を入力してください。")
+        self.update_content("sub-pane-content", "Please enter the target IP address or hostname.")
     
     def update_for_suggest_commands(self):
         """Update for SUGGEST_COMMANDS state."""
-        self.update_content("sub-pane-content", "コマンドを確認し、実行するかどうかを選択してください。")
+        self.update_content("sub-pane-content", "Please check the commands and choose whether to execute them.")
     
     def update_for_adjust_commands(self):
         """Update for ADJUST_COMMANDS state."""
-        self.update_content("sub-pane-content", "コマンドを修正してください。")
+        self.update_content("sub-pane-content", "Please modify the commands.")
     
     def update_for_confirm_commands(self):
         """Update for CONFIRM_COMMANDS state."""
-        self.update_content("sub-pane-content", "コマンドの実行を確認してください。")
+        self.update_content("sub-pane-content", "Please confirm the execution of commands.")
     
     def update_for_execute_commands(self):
         """Update for EXECUTE_COMMANDS state."""
-        self.update_content("sub-pane-content", "コマンドを実行中です。しばらくお待ちください。")
+        self.update_content("sub-pane-content", "Executing commands. Please wait a moment.")
     
     def set_active(self, active: bool) -> None:
         """Set the active state of the pane.

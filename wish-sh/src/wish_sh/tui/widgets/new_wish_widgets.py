@@ -19,27 +19,30 @@ from wish_sh.tui.new_wish_messages import (
 )
 
 
+from wish_sh.tui.widgets.shell_terminal_widget import ShellTerminalWidget
+
+
 class WishInputForm(Static):
     """Form for inputting a wish."""
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Label("Enter your wish:", id="wish-input-label")
-        yield Input(placeholder="e.g. scan all ports", id="wish-input-field")
-        
-        with Horizontal(id="wish-input-buttons"):
-            yield Button("Submit", id="wish-submit-button", variant="primary")
-            yield Button("Cancel", id="wish-cancel-button")
+        yield ShellTerminalWidget(id="shell-terminal")
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button press events."""
-        if event.button.id == "wish-submit-button":
-            wish_text = self.query_one("#wish-input-field").value
-            if wish_text:
-                self.post_message(WishInputSubmitted(wish_text))
-        elif event.button.id == "wish-cancel-button":
-            # Clear the input field
-            self.query_one("#wish-input-field").value = ""
+    def on_mount(self) -> None:
+        """Event handler called when the widget is mounted."""
+        # Ensure the shell terminal gets focus
+        self.query_one("#shell-terminal").focus()
+
+    def on_show(self) -> None:
+        """Event handler called when the widget is shown."""
+        # Ensure the shell terminal gets focus when shown
+        self.query_one("#shell-terminal").focus()
+
+    def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
+        """Handle wish input submitted event."""
+        # Forward the message to parent
+        self.post_message(event)
 
 
 class WishDetailForm(Static):

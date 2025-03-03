@@ -98,14 +98,14 @@ class WishTUIApp(App):
             return
             
         if active_pane.id == "sub-pane":
-            # Sub paneの場合はスクロール
+            # Scroll if it's a Sub pane
             content = active_pane.query_one("#sub-pane-content")
             content.scroll_up()
         elif active_pane.id == "wish-select":
-            # Wish Select paneの場合は前のアイテムを選択
+            # Select previous item if it's a Wish Select pane
             active_pane.select_previous()
         elif active_pane.id == "main-pane":
-            # Main paneの場合は前のコマンドを選択
+            # Select previous command if it's a Main pane
             active_pane.select_previous_command()
     
     def action_scroll_down_line(self) -> None:
@@ -115,14 +115,14 @@ class WishTUIApp(App):
             return
             
         if active_pane.id == "sub-pane":
-            # Sub paneの場合はスクロール
+            # Scroll if it's a Sub pane
             content = active_pane.query_one("#sub-pane-content")
             content.scroll_down()
         elif active_pane.id == "wish-select":
-            # Wish Select paneの場合は次のアイテムを選択
+            # Select next item if it's a Wish Select pane
             active_pane.select_next()
         elif active_pane.id == "main-pane":
-            # Main paneの場合は次のコマンドを選択
+            # Select next command if it's a Main pane
             active_pane.select_next_command()
     
     def action_scroll_page_up(self) -> None:
@@ -159,22 +159,22 @@ class WishTUIApp(App):
         """Get the currently active pane."""
         main_screen = self.screen
         
-        # wish_selectは共通
+        # wish_select is common
         if hasattr(main_screen, "wish_select") and main_screen.wish_select.has_class("active-pane"):
             return main_screen.wish_select
         
-        # 現在のモードに応じて適切なmain_paneとsub_paneを参照
+        # Reference appropriate main_pane and sub_pane according to the current mode
         if hasattr(main_screen, "current_mode"):
             from wish_sh.tui.modes import WishMode
             
             if main_screen.current_mode == WishMode.WISH_HISTORY:
-                # WISH_HISTORYモードの場合
+                # In WISH_HISTORY mode
                 if hasattr(main_screen, "wish_history_main_pane") and main_screen.wish_history_main_pane.has_class("active-pane"):
                     return main_screen.wish_history_main_pane
                 elif hasattr(main_screen, "wish_history_sub_pane") and main_screen.wish_history_sub_pane.has_class("active-pane"):
                     return main_screen.wish_history_sub_pane
             else:
-                # NEW_WISHモードの場合
+                # In NEW_WISH mode
                 if hasattr(main_screen, "new_wish_main_pane") and main_screen.new_wish_main_pane.has_class("active-pane"):
                     return main_screen.new_wish_main_pane
                 elif hasattr(main_screen, "new_wish_sub_pane") and main_screen.new_wish_sub_pane.has_class("active-pane"):
@@ -188,11 +188,11 @@ class WishTUIApp(App):
         active_pane = self.get_active_pane()
         
         if active_pane and active_pane.id == "wish-select":
-            # Wish Select Paneがアクティブな場合、Main Paneをアクティベート
+            # If Wish Select Pane is active, activate Main Pane
             self.logger.debug("Wish Select Pane is active, activating Main Pane")
             self.action_focus_main()
         elif active_pane and active_pane.id == "main-pane":
-            # Main Paneがアクティブな場合、Sub Paneをアクティベート
+            # If Main Pane is active, activate Sub Pane
             self.logger.debug("Main Pane is active, activating Sub Pane")
             self.action_focus_sub()
     

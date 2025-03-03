@@ -28,6 +28,7 @@ from wish_sh.tui.widgets.wish_history_sub_pane import WishHistorySubPane
 from wish_sh.tui.widgets.new_wish_main_pane import NewWishMainPane
 from wish_sh.tui.widgets.new_wish_sub_pane import NewWishSubPane
 from wish_sh.tui.widgets.wish_select_pane import WishSelectPane, WishSelected
+from wish_sh.tui.widgets.shell_terminal_widget import ShellTerminalWidget
 
 
 class ActivatePane(Message):
@@ -268,6 +269,7 @@ class MainScreen(Screen):
             CommandConfirmForm,
             CommandExecuteStatus,
         )
+        from wish_sh.tui.widgets.shell_terminal_widget import ShellTerminalWidget
         
         # 現在のフォームをアンマウント
         self._unmount_new_wish_forms()
@@ -277,34 +279,63 @@ class MainScreen(Screen):
         
         # 現在の状態に応じてUIを更新
         if current_state == NewWishState.INPUT_WISH:
+            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
+            import time
+            unique_id = f"wish-input-form-{int(time.time())}"
+            self.logger.debug(f"Creating WishInputForm with unique ID: {unique_id}")
+            
             # WishInputFormをマウント
-            self.wish_input_form = WishInputForm(id="wish-input-form")
+            self.wish_input_form = WishInputForm(id=unique_id)
             self.new_wish_main_pane.mount(self.wish_input_form)
             
+            # ShellTerminalWidgetにフォーカスを設定
+            self.logger.debug("Setting focus to ShellTerminalWidget")
+            self.call_after_refresh(self._focus_shell_terminal)
+            
         elif current_state == NewWishState.ASK_WISH_DETAIL:
+            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
+            import time
+            unique_id = f"wish-detail-form-{int(time.time())}"
+            self.logger.debug(f"Creating WishDetailForm with unique ID: {unique_id}")
+            
             # WishDetailFormをマウント
-            self.wish_detail_form = WishDetailForm(id="wish-detail-form")
+            self.wish_detail_form = WishDetailForm(id=unique_id)
             self.new_wish_main_pane.mount(self.wish_detail_form)
             
         elif current_state == NewWishState.SUGGEST_COMMANDS:
             commands = self.new_wish_composite.new_wish_turns.get_current_commands()
             
+            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
+            import time
+            unique_id = f"command-suggest-form-{int(time.time())}"
+            self.logger.debug(f"Creating CommandSuggestForm with unique ID: {unique_id}")
+            
             # CommandSuggestFormをマウント
-            self.command_suggest_form = CommandSuggestForm(commands, id="command-suggest-form")
+            self.command_suggest_form = CommandSuggestForm(commands, id=unique_id)
             self.new_wish_main_pane.mount(self.command_suggest_form)
             
         elif current_state == NewWishState.ADJUST_COMMANDS:
             commands = self.new_wish_composite.new_wish_turns.get_current_commands()
             
+            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
+            import time
+            unique_id = f"command-adjust-form-{int(time.time())}"
+            self.logger.debug(f"Creating CommandAdjustForm with unique ID: {unique_id}")
+            
             # CommandAdjustFormをマウント
-            self.command_adjust_form = CommandAdjustForm(commands, id="command-adjust-form")
+            self.command_adjust_form = CommandAdjustForm(commands, id=unique_id)
             self.new_wish_main_pane.mount(self.command_adjust_form)
             
         elif current_state == NewWishState.CONFIRM_COMMANDS:
             commands = self.new_wish_composite.new_wish_turns.get_selected_commands() or self.new_wish_composite.new_wish_turns.get_current_commands()
             
+            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
+            import time
+            unique_id = f"command-confirm-form-{int(time.time())}"
+            self.logger.debug(f"Creating CommandConfirmForm with unique ID: {unique_id}")
+            
             # CommandConfirmFormをマウント
-            self.command_confirm_form = CommandConfirmForm(commands, id="command-confirm-form")
+            self.command_confirm_form = CommandConfirmForm(commands, id=unique_id)
             self.new_wish_main_pane.mount(self.command_confirm_form)
             
         elif current_state == NewWishState.EXECUTE_COMMANDS:
@@ -323,11 +354,36 @@ class MainScreen(Screen):
         """Unmount all New Wish forms."""
         # 直接new_wish_main_paneの子ウィジェットをチェックして、フォームをアンマウント
         try:
-            # new_wish_main_paneの子ウィジェットをコピーして反復処理
+            # 既存のフォームを削除
+            if hasattr(self, "wish_input_form") and self.wish_input_form.parent:
+                self.logger.debug(f"Removing wish_input_form")
+                self.wish_input_form.remove()
+            
+            if hasattr(self, "wish_detail_form") and self.wish_detail_form.parent:
+                self.logger.debug(f"Removing wish_detail_form")
+                self.wish_detail_form.remove()
+            
+            if hasattr(self, "command_suggest_form") and hasattr(self.command_suggest_form, "parent") and self.command_suggest_form.parent:
+                self.logger.debug(f"Removing command_suggest_form")
+                self.command_suggest_form.remove()
+            
+            if hasattr(self, "command_adjust_form") and hasattr(self.command_adjust_form, "parent") and self.command_adjust_form.parent:
+                self.logger.debug(f"Removing command_adjust_form")
+                self.command_adjust_form.remove()
+            
+            if hasattr(self, "command_confirm_form") and hasattr(self.command_confirm_form, "parent") and self.command_confirm_form.parent:
+                self.logger.debug(f"Removing command_confirm_form")
+                self.command_confirm_form.remove()
+            
+            if hasattr(self, "command_execute_status") and hasattr(self.command_execute_status, "parent") and self.command_execute_status.parent:
+                self.logger.debug(f"Removing command_execute_status")
+                self.command_execute_status.remove()
+            
+            # 念のため、new_wish_main_paneの子ウィジェットをチェックして、フォームをアンマウント
             children = list(self.new_wish_main_pane._nodes)
             for child in children:
                 # main-pane-content以外のウィジェットをアンマウント
-                if child.id != "main-pane-content":
+                if child.id != "main-pane-content" and child.id.endswith("-form"):
                     self.logger.debug(f"Removing widget with ID: {child.id}")
                     child.remove()
         except Exception as e:
@@ -388,6 +444,16 @@ class MainScreen(Screen):
         self.update_new_wish_ui()
     
     def on_execution_cancelled(self, event: ExecutionCancelled) -> None:
-        """Handle ExecutionCancelled message."""
+        """Handle execution cancelled message."""
         self.new_wish_composite.handle_execution_cancelled()
         self.update_new_wish_ui()
+    
+    def _focus_shell_terminal(self) -> None:
+        """Focus the shell terminal widget."""
+        try:
+            shell_terminal = self.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+            if shell_terminal:
+                self.logger.debug("Focusing ShellTerminalWidget")
+                shell_terminal.focus()
+        except Exception as e:
+            self.logger.error(f"Error focusing ShellTerminalWidget: {e}")

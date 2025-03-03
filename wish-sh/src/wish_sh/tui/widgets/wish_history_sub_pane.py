@@ -13,9 +13,9 @@ from wish_sh.tui.widgets.base_pane import BasePane
 class WishHistorySubPane(BasePane):
     """Sub content pane for displaying command output details in wish history mode."""
 
-    # メッセージ定数
+    # Message constants
     MSG_NO_COMMAND_SELECTED = "(Select a command to view details)"
-    MSG_WISH_HISTORY_MODE = "コマンド出力の詳細がここに表示されます"
+    MSG_WISH_HISTORY_MODE = "Command output details will be displayed here"
     MSG_NO_OUTPUT_FILE = "(No output file available)"
     MSG_NO_ERROR_FILE = "(No error output file available)"
     MSG_NO_OUTPUT = "(No output)"
