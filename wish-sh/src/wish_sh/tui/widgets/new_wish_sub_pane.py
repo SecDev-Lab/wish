@@ -27,7 +27,7 @@ class NewWishSubPane(BasePane):
     
     def update_for_input_wish(self):
         """Update for INPUT_WISH state."""
-        self.update_content("sub-pane-content", "Please enter your Wish. Example: scan all ports")
+        self.update_content("sub-pane-content", "Wishを入力してください")
     
     def update_for_ask_wish_detail(self):
         """Update for ASK_WISH_DETAIL state."""

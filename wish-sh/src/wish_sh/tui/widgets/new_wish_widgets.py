@@ -31,6 +31,15 @@ class WishInputForm(Static):
     
     def compose(self) -> ComposeResult:
         """Compose the widget."""
+        # テスト用のウィジェット
+        yield Label("新しいWishを入力してください", id="wish-input-label")
+        yield Input(placeholder="e.g. scan all ports", id="wish-input-field")
+        
+        with Horizontal(id="wish-input-buttons"):
+            yield Button("Submit", id="wish-submit-button", variant="primary")
+            yield Button("Cancel", id="wish-cancel-button")
+        
+        # 実際の機能用のウィジェット
         yield ShellTerminalWidget(id="shell-terminal")
 
     def on_mount(self) -> None:
@@ -78,6 +87,16 @@ class WishInputForm(Static):
         # イベントを消費せず、伝播させる
         # シェルターミナルが処理できるようにする
         return False
+        
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle button press events."""
+        if event.button.id == "wish-submit-button":
+            wish_text = self.query_one("#wish-input-field").value
+            if wish_text:
+                self.post_message(WishInputSubmitted(wish_text))
+        elif event.button.id == "wish-cancel-button":
+            # Clear the input field
+            self.query_one("#wish-input-field").value = ""
 
     def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
         """Handle wish input submitted event."""

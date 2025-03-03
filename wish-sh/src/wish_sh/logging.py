@@ -23,7 +23,7 @@ def setup_logger(name: str, level: str | None = None) -> logging.Logger:
         level = os.environ.get("WISH_LOG_LEVEL", "INFO").upper()
     
     # Set the log level
-    logger.setLevel(getattr(logging, level, logging.WARNING))
+    logger.setLevel(getattr(logging, level, logging.INFO))
     
     # Only add handler if not already added to avoid duplicate handlers
     if not logger.handlers:

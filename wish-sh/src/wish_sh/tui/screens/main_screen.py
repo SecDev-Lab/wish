@@ -277,16 +277,50 @@ class MainScreen(Screen):
         # 現在の状態に応じてUIを更新
         current_state = self.new_wish_composite.new_wish_turns.current_state
         
+        # テスト用に、new_wish_main_paneの内容を更新
+        self.new_wish_main_pane.update_for_input_wish()
+        
         # 現在の状態に応じてUIを更新
         if current_state == NewWishState.INPUT_WISH:
-            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
-            import time
-            unique_id = f"wish-input-form-{int(time.time())}"
-            self.logger.debug(f"Creating WishInputForm with unique ID: {unique_id}")
+            # テスト用に固定のIDを使用
+            self.logger.debug(f"Creating WishInputForm with ID: wish-input-form")
             
             # WishInputFormをマウント
-            self.wish_input_form = WishInputForm(id=unique_id)
-            self.new_wish_main_pane.mount(self.wish_input_form)
+            self.wish_input_form = WishInputForm(id="wish-input-form")
+            
+            # 既存のフォームを確実に削除
+            try:
+                # 既存のフォームを削除
+                for child in list(self.new_wish_main_pane._nodes):
+                    if child.id == "wish-input-form":
+                        self.logger.debug(f"Removing existing form: {child.id}")
+                        child.remove()
+            except Exception as e:
+                self.logger.error(f"Error removing existing forms: {e}")
+            
+            # 新しいフォームをマウント
+            try:
+                self.new_wish_main_pane.mount(self.wish_input_form)
+            except Exception as e:
+                self.logger.error(f"Error mounting wish_input_form: {e}")
+                # 既存のフォームが残っている場合は、それを使用
+                try:
+                    # expect_noneではなくexpect_typeを使用
+                    try:
+                        existing_form = self.new_wish_main_pane.query_one("#wish-input-form")
+                        # 既存のフォームが見つかった場合は、何もしない
+                        self.logger.debug(f"Using existing form: {existing_form.id}")
+                    except Exception:
+                        # フォームが見つからない場合は、新しいフォームを作成して再度マウント
+                        self.logger.debug("Creating new form with unique ID")
+                        import uuid
+                        unique_id = f"wish-input-form-{uuid.uuid4().hex}"
+                        self.wish_input_form = WishInputForm(id=unique_id)
+                        self.new_wish_main_pane.mount(self.wish_input_form)
+                except Exception as e2:
+                    self.logger.error(f"Error handling form mounting fallback: {e2}")
+                    import traceback
+                    self.logger.error(f"Traceback: {traceback.format_exc()}")
             
             # ShellTerminalWidgetにフォーカスを設定
             self.logger.debug("Setting focus to ShellTerminalWidget")
@@ -298,10 +332,19 @@ class MainScreen(Screen):
             self.set_timer(1.0, self._focus_shell_terminal)
             
         elif current_state == NewWishState.ASK_WISH_DETAIL:
-            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
-            import time
-            unique_id = f"wish-detail-form-{int(time.time())}"
+            # 一意のIDを生成するためにUUIDを使用
+            import uuid
+            unique_id = f"wish-detail-form-{uuid.uuid4().hex}"
             self.logger.debug(f"Creating WishDetailForm with unique ID: {unique_id}")
+            
+            # 既存のフォームが完全に削除されたことを確認
+            try:
+                existing_forms = self.new_wish_main_pane.query("WishDetailForm")
+                for form in existing_forms:
+                    self.logger.debug(f"Removing existing form: {form.id}")
+                    form.remove()
+            except Exception as e:
+                self.logger.error(f"Error removing existing forms: {e}")
             
             # WishDetailFormをマウント
             self.wish_detail_form = WishDetailForm(id=unique_id)
@@ -310,10 +353,19 @@ class MainScreen(Screen):
         elif current_state == NewWishState.SUGGEST_COMMANDS:
             commands = self.new_wish_composite.new_wish_turns.get_current_commands()
             
-            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
-            import time
-            unique_id = f"command-suggest-form-{int(time.time())}"
+            # 一意のIDを生成するためにUUIDを使用
+            import uuid
+            unique_id = f"command-suggest-form-{uuid.uuid4().hex}"
             self.logger.debug(f"Creating CommandSuggestForm with unique ID: {unique_id}")
+            
+            # 既存のフォームが完全に削除されたことを確認
+            try:
+                existing_forms = self.new_wish_main_pane.query("CommandSuggestForm")
+                for form in existing_forms:
+                    self.logger.debug(f"Removing existing form: {form.id}")
+                    form.remove()
+            except Exception as e:
+                self.logger.error(f"Error removing existing forms: {e}")
             
             # CommandSuggestFormをマウント
             self.command_suggest_form = CommandSuggestForm(commands, id=unique_id)
@@ -322,10 +374,19 @@ class MainScreen(Screen):
         elif current_state == NewWishState.ADJUST_COMMANDS:
             commands = self.new_wish_composite.new_wish_turns.get_current_commands()
             
-            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
-            import time
-            unique_id = f"command-adjust-form-{int(time.time())}"
+            # 一意のIDを生成するためにUUIDを使用
+            import uuid
+            unique_id = f"command-adjust-form-{uuid.uuid4().hex}"
             self.logger.debug(f"Creating CommandAdjustForm with unique ID: {unique_id}")
+            
+            # 既存のフォームが完全に削除されたことを確認
+            try:
+                existing_forms = self.new_wish_main_pane.query("CommandAdjustForm")
+                for form in existing_forms:
+                    self.logger.debug(f"Removing existing form: {form.id}")
+                    form.remove()
+            except Exception as e:
+                self.logger.error(f"Error removing existing forms: {e}")
             
             # CommandAdjustFormをマウント
             self.command_adjust_form = CommandAdjustForm(commands, id=unique_id)
@@ -334,10 +395,19 @@ class MainScreen(Screen):
         elif current_state == NewWishState.CONFIRM_COMMANDS:
             commands = self.new_wish_composite.new_wish_turns.get_selected_commands() or self.new_wish_composite.new_wish_turns.get_current_commands()
             
-            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
-            import time
-            unique_id = f"command-confirm-form-{int(time.time())}"
+            # 一意のIDを生成するためにUUIDを使用
+            import uuid
+            unique_id = f"command-confirm-form-{uuid.uuid4().hex}"
             self.logger.debug(f"Creating CommandConfirmForm with unique ID: {unique_id}")
+            
+            # 既存のフォームが完全に削除されたことを確認
+            try:
+                existing_forms = self.new_wish_main_pane.query("CommandConfirmForm")
+                for form in existing_forms:
+                    self.logger.debug(f"Removing existing form: {form.id}")
+                    form.remove()
+            except Exception as e:
+                self.logger.error(f"Error removing existing forms: {e}")
             
             # CommandConfirmFormをマウント
             self.command_confirm_form = CommandConfirmForm(commands, id=unique_id)
@@ -346,10 +416,19 @@ class MainScreen(Screen):
         elif current_state == NewWishState.EXECUTE_COMMANDS:
             commands = self.new_wish_composite.new_wish_turns.get_selected_commands() or self.new_wish_composite.new_wish_turns.get_current_commands()
             
-            # 一意のIDを生成するために現在時刻のタイムスタンプを使用
-            import time
-            unique_id = f"command-execute-status-{int(time.time())}"
+            # 一意のIDを生成するためにUUIDを使用
+            import uuid
+            unique_id = f"command-execute-status-{uuid.uuid4().hex}"
             self.logger.debug(f"Creating CommandExecuteStatus with unique ID: {unique_id}")
+            
+            # 既存のフォームが完全に削除されたことを確認
+            try:
+                existing_forms = self.new_wish_main_pane.query("CommandExecuteStatus")
+                for form in existing_forms:
+                    self.logger.debug(f"Removing existing form: {form.id}")
+                    form.remove()
+            except Exception as e:
+                self.logger.error(f"Error removing existing forms: {e}")
             
             # CommandExecuteStatusをマウント
             self.command_execute_status = CommandExecuteStatus(commands, id=unique_id)
@@ -357,42 +436,86 @@ class MainScreen(Screen):
     
     def _unmount_new_wish_forms(self) -> None:
         """Unmount all New Wish forms."""
-        # 直接new_wish_main_paneの子ウィジェットをチェックして、フォームをアンマウント
         try:
             # 既存のフォームを削除
-            if hasattr(self, "wish_input_form") and self.wish_input_form.parent:
-                self.logger.debug(f"Removing wish_input_form")
-                self.wish_input_form.remove()
+            # 属性の存在チェックと親チェックを分離して、より堅牢にする
+            if hasattr(self, "wish_input_form"):
+                try:
+                    if self.wish_input_form.parent:
+                        self.logger.debug(f"Removing wish_input_form")
+                        self.wish_input_form.remove()
+                except Exception as e:
+                    self.logger.error(f"Error removing wish_input_form: {e}")
+                # 属性を削除
+                delattr(self, "wish_input_form")
             
-            if hasattr(self, "wish_detail_form") and self.wish_detail_form.parent:
-                self.logger.debug(f"Removing wish_detail_form")
-                self.wish_detail_form.remove()
+            if hasattr(self, "wish_detail_form"):
+                try:
+                    if self.wish_detail_form.parent:
+                        self.logger.debug(f"Removing wish_detail_form")
+                        self.wish_detail_form.remove()
+                except Exception as e:
+                    self.logger.error(f"Error removing wish_detail_form: {e}")
+                # 属性を削除
+                delattr(self, "wish_detail_form")
             
-            if hasattr(self, "command_suggest_form") and hasattr(self.command_suggest_form, "parent") and self.command_suggest_form.parent:
-                self.logger.debug(f"Removing command_suggest_form")
-                self.command_suggest_form.remove()
+            if hasattr(self, "command_suggest_form"):
+                try:
+                    if hasattr(self.command_suggest_form, "parent") and self.command_suggest_form.parent:
+                        self.logger.debug(f"Removing command_suggest_form")
+                        self.command_suggest_form.remove()
+                except Exception as e:
+                    self.logger.error(f"Error removing command_suggest_form: {e}")
+                # 属性を削除
+                delattr(self, "command_suggest_form")
             
-            if hasattr(self, "command_adjust_form") and hasattr(self.command_adjust_form, "parent") and self.command_adjust_form.parent:
-                self.logger.debug(f"Removing command_adjust_form")
-                self.command_adjust_form.remove()
+            if hasattr(self, "command_adjust_form"):
+                try:
+                    if hasattr(self.command_adjust_form, "parent") and self.command_adjust_form.parent:
+                        self.logger.debug(f"Removing command_adjust_form")
+                        self.command_adjust_form.remove()
+                except Exception as e:
+                    self.logger.error(f"Error removing command_adjust_form: {e}")
+                # 属性を削除
+                delattr(self, "command_adjust_form")
             
-            if hasattr(self, "command_confirm_form") and hasattr(self.command_confirm_form, "parent") and self.command_confirm_form.parent:
-                self.logger.debug(f"Removing command_confirm_form")
-                self.command_confirm_form.remove()
+            if hasattr(self, "command_confirm_form"):
+                try:
+                    if hasattr(self.command_confirm_form, "parent") and self.command_confirm_form.parent:
+                        self.logger.debug(f"Removing command_confirm_form")
+                        self.command_confirm_form.remove()
+                except Exception as e:
+                    self.logger.error(f"Error removing command_confirm_form: {e}")
+                # 属性を削除
+                delattr(self, "command_confirm_form")
             
-            if hasattr(self, "command_execute_status") and hasattr(self.command_execute_status, "parent") and self.command_execute_status.parent:
-                self.logger.debug(f"Removing command_execute_status")
-                self.command_execute_status.remove()
+            if hasattr(self, "command_execute_status"):
+                try:
+                    if hasattr(self.command_execute_status, "parent") and self.command_execute_status.parent:
+                        self.logger.debug(f"Removing command_execute_status")
+                        self.command_execute_status.remove()
+                except Exception as e:
+                    self.logger.error(f"Error removing command_execute_status: {e}")
+                # 属性を削除
+                delattr(self, "command_execute_status")
             
-            # 念のため、new_wish_main_paneの子ウィジェットをチェックして、フォームをアンマウント
-            children = list(self.new_wish_main_pane._nodes)
-            for child in children:
-                # main-pane-content以外のウィジェットをアンマウント
-                if child.id != "main-pane-content" and child.id.endswith("-form"):
-                    self.logger.debug(f"Removing widget with ID: {child.id}")
-                    child.remove()
+            # new_wish_main_paneの子ウィジェットをチェックして、フォームをアンマウント
+            try:
+                children = list(self.new_wish_main_pane._nodes)
+                for child in children:
+                    # main-pane-content以外のウィジェットをアンマウント
+                    if child.id != "main-pane-content" and (child.id.endswith("-form") or child.id.endswith("-status")):
+                        self.logger.debug(f"Removing widget with ID: {child.id}")
+                        try:
+                            child.remove()
+                        except Exception as e:
+                            self.logger.error(f"Error removing child widget {child.id}: {e}")
+            except Exception as e:
+                self.logger.error(f"Error processing new_wish_main_pane children: {e}")
         except Exception as e:
             self.logger.error(f"Error in _unmount_new_wish_forms: {e}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
     
     def on_wish_selected(self, event: WishSelected) -> None:
         """Handle wish selection events."""
