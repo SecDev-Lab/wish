@@ -286,4 +286,4 @@ class CommandExecuteStatus(Static):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button press events."""
         if event.button.id == "command-back-button":
-            self.post_message(CommandsRejected())  # Use this to go back to input state
+            self.post_message(CommandAdjustCancelled())  # Use this to go back to input state
