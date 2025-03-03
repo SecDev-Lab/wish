@@ -229,29 +229,13 @@ class ShellTerminalWidget(Static):
             self.update_prompt_line()
             
             # 入力メッセージを送信
-            self.logger.debug(f"Creating WishInputSubmitted message for command: '{old_input}'")
             message = WishInputSubmitted(old_input)
             
-            # メッセージを直接送信
-            self.logger.debug(f"Posting message: {message}")
+            # メッセージを送信
             try:
-                self.logger.debug("DEBUGGING: About to post WishInputSubmitted message")
-                self.logger.debug(f"DEBUGGING: Message content: {message.wish_text}")
-                self.logger.debug(f"DEBUGGING: Message type: {type(message)}")
-                self.logger.debug(f"DEBUGGING: Current widget: {self}")
-                self.logger.debug(f"DEBUGGING: Parent widget: {self.parent}")
-                
-                # メッセージを送信
                 self.post_message(message)
-                
-                self.logger.debug("DEBUGGING: WishInputSubmitted message posted successfully")
-                self.logger.debug(f"DEBUGGING: Message successfully posted from {self} to parent")
             except Exception as e:
-                self.logger.error(f"DEBUGGING: Error posting message: {e}")
-                import traceback
-                self.logger.error(f"DEBUGGING: Traceback: {traceback.format_exc()}")
-            
-            self.logger.debug(f"Input submitted successfully: '{old_input}'")
+                self.logger.error(f"Error posting message: {e}")
         except Exception as e:
             self.logger.error(f"Error in submit_current_input: {e}")
         finally:

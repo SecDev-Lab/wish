@@ -102,41 +102,22 @@ class WishInputForm(Static):
         """Handle wish input submitted event."""
         # ログ出力
         logger = setup_logger("wish_sh.tui.WishInputForm")
-        logger.debug(f"WishInputForm received WishInputSubmitted event: {event.wish_text}")
-        logger.debug(f"DEBUGGING: WishInputForm received WishInputSubmitted event: {event.wish_text}")
-        logger.debug(f"DEBUGGING: Event type: {type(event)}")
-        logger.debug(f"DEBUGGING: Current widget: {self}")
-        logger.debug(f"DEBUGGING: Parent widget: {self.parent}")
-        logger.debug(f"DEBUGGING: App: {self.app}")
         
         try:
             # Forward the message to parent
-            logger.debug("Forwarding WishInputSubmitted message to parent")
-            logger.debug("DEBUGGING: About to forward WishInputSubmitted message to parent")
-            
             # 直接MainScreenにメッセージを送信
             from textual.app import App
             app = App.get()
             main_screen = app.screen
-            
-            logger.debug(f"DEBUGGING: Main screen: {main_screen}")
-            logger.debug(f"DEBUGGING: Main screen type: {type(main_screen)}")
             
             # メッセージを送信（通常の方法と直接的な方法の両方を試す）
             self.post_message(event)
             
             # 直接スクリーンにもメッセージを送信
             if hasattr(main_screen, "on_wish_input_submitted"):
-                logger.debug("DEBUGGING: Directly calling main_screen.on_wish_input_submitted")
                 main_screen.on_wish_input_submitted(event)
-            
-            logger.debug("DEBUGGING: WishInputSubmitted message forwarded successfully to parent")
-            logger.debug("WishInputSubmitted message forwarded successfully")
         except Exception as e:
-            logger.error(f"DEBUGGING: Error forwarding WishInputSubmitted message: {e}")
             logger.error(f"Error forwarding WishInputSubmitted message: {e}")
-            import traceback
-            logger.error(f"DEBUGGING: Traceback: {traceback.format_exc()}")
 
 
 class WishDetailForm(Static):

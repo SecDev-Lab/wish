@@ -533,41 +533,14 @@ class MainScreen(Screen):
     # New Wish mode message handlers
     def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
         """Handle WishInputSubmitted message."""
-        self.logger.debug(f"MainScreen received WishInputSubmitted event: {event.wish_text}")
-        self.logger.debug(f"DEBUGGING: MainScreen received WishInputSubmitted event: {event.wish_text}")
-        self.logger.debug(f"DEBUGGING: Event type: {type(event)}")
-        self.logger.debug(f"DEBUGGING: Current screen: {self}")
-        self.logger.debug(f"DEBUGGING: new_wish_composite: {self.new_wish_composite}")
-        
         try:
-            # 入力を処理
-            self.logger.debug(f"Handling wish input: {event.wish_text}")
-            self.logger.debug(f"DEBUGGING: About to call new_wish_composite.handle_wish_input with: {event.wish_text}")
-            
-            # 現在の状態を確認
-            self.logger.debug(f"DEBUGGING: Current state before handling: {self.new_wish_composite.new_wish_turns.current_state}")
-            
             # 入力を処理
             self.new_wish_composite.handle_wish_input(event.wish_text)
             
-            # 処理後の状態を確認
-            self.logger.debug(f"DEBUGGING: Current state after handling: {self.new_wish_composite.new_wish_turns.current_state}")
-            self.logger.debug(f"DEBUGGING: Generated commands: {self.new_wish_composite.new_wish_turns.get_current_commands()}")
-            
-            self.logger.debug("DEBUGGING: new_wish_composite.handle_wish_input completed successfully")
-            self.logger.debug("Wish input handled successfully")
-            
             # UIを更新
-            self.logger.debug("Updating UI after wish input")
-            self.logger.debug("DEBUGGING: About to call update_new_wish_ui")
             self.update_new_wish_ui()
-            self.logger.debug("DEBUGGING: update_new_wish_ui completed successfully")
-            self.logger.debug("UI updated successfully")
         except Exception as e:
-            self.logger.error(f"DEBUGGING: Error in on_wish_input_submitted: {e}")
             self.logger.error(f"Error handling WishInputSubmitted: {e}")
-            import traceback
-            self.logger.error(f"DEBUGGING: Traceback: {traceback.format_exc()}")
     
     def on_wish_detail_submitted(self, event: WishDetailSubmitted) -> None:
         """Handle WishDetailSubmitted message."""
