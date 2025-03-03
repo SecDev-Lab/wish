@@ -176,52 +176,74 @@ class NewWishPaneComposite(PaneComposite):
             wish_text: The wish text.
         """
         self.logger.debug(f"NewWishPaneComposite handling wish input: '{wish_text}'")
+        self.logger.debug(f"DEBUGGING: NewWishPaneComposite handling wish input: '{wish_text}'")
         
         try:
             # Analyze the wish content
+            self.logger.debug("DEBUGGING: About to check if wish is sufficient")
             if self.is_wish_sufficient(wish_text):
                 self.logger.debug("Wish is sufficient, proceeding to command suggestion")
+                self.logger.debug("DEBUGGING: Wish is sufficient, proceeding to command suggestion")
                 # If there is sufficient information, proceed to command suggestion
                 from wish_models import Wish
 
+                self.logger.debug("DEBUGGING: About to create Wish object")
                 wish = Wish.create(wish_text)
                 self.logger.debug(f"Created wish: {wish}")
+                self.logger.debug(f"DEBUGGING: Created wish: {wish}")
                 self.new_wish_turns.set_current_wish(wish)
+                self.logger.debug("DEBUGGING: Set current wish")
 
                 # Generate commands
                 from wish_sh.wish_manager import WishManager
                 from wish_sh.settings import Settings
 
+                self.logger.debug("DEBUGGING: Creating WishManager")
                 manager = WishManager(Settings())
                 self.logger.debug("Generating commands")
+                self.logger.debug("DEBUGGING: About to generate commands")
                 commands = manager.generate_commands(wish_text)
                 self.logger.debug(f"Generated commands: {commands}")
+                self.logger.debug(f"DEBUGGING: Generated commands: {commands}")
                 self.new_wish_turns.set_current_commands(commands)
+                self.logger.debug("DEBUGGING: Set current commands")
                 
                 # State transition
                 self.logger.debug("Transitioning to SUFFICIENT_WISH state")
+                self.logger.debug("DEBUGGING: About to transition to SUFFICIENT_WISH state")
                 self.new_wish_turns.transition(NewWishEvent.SUFFICIENT_WISH)
                 self.logger.debug(f"New state: {self.new_wish_turns.current_state}")
+                self.logger.debug(f"DEBUGGING: New state: {self.new_wish_turns.current_state}")
             else:
                 self.logger.debug("Wish is insufficient, proceeding to detail input")
+                self.logger.debug("DEBUGGING: Wish is insufficient, proceeding to detail input")
                 # If information is insufficient, proceed to detail input
                 from wish_models import Wish
 
                 wish = Wish.create(wish_text)
                 self.logger.debug(f"Created wish: {wish}")
+                self.logger.debug(f"DEBUGGING: Created wish: {wish}")
                 self.new_wish_turns.set_current_wish(wish)
+                self.logger.debug("DEBUGGING: Set current wish")
 
                 # State transition
                 self.logger.debug("Transitioning to INSUFFICIENT_WISH state")
+                self.logger.debug("DEBUGGING: About to transition to INSUFFICIENT_WISH state")
                 self.new_wish_turns.transition(NewWishEvent.INSUFFICIENT_WISH)
                 self.logger.debug(f"New state: {self.new_wish_turns.current_state}")
+                self.logger.debug(f"DEBUGGING: New state: {self.new_wish_turns.current_state}")
 
             # Update UI
             self.logger.debug("Updating UI for new state")
+            self.logger.debug("DEBUGGING: About to update UI for new state")
             self.update_for_state()
             self.logger.debug("UI updated successfully")
+            self.logger.debug("DEBUGGING: UI updated successfully")
         except Exception as e:
             self.logger.error(f"Error in handle_wish_input: {e}")
+            self.logger.error(f"DEBUGGING: Error in handle_wish_input: {e}")
+            import traceback
+            self.logger.error(f"DEBUGGING: Traceback: {traceback.format_exc()}")
 
     def is_wish_sufficient(self, wish_text: str) -> bool:
         """Determine if the wish has sufficient information.

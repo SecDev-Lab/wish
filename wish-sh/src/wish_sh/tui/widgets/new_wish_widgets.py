@@ -43,10 +43,6 @@ class WishInputForm(Static):
         self.set_timer(0.1, self._ensure_shell_terminal_focus)
         # 定期的にフォーカスを確認するタイマーを設定
         self.set_interval(1.0, self._ensure_shell_terminal_focus)
-        
-        # ログ出力
-        logger = setup_logger("wish_sh.tui.WishInputForm")
-        logger.debug("WishInputForm mounted, focusing ShellTerminalWidget")
 
     def on_show(self) -> None:
         """Event handler called when the widget is shown."""
@@ -56,10 +52,6 @@ class WishInputForm(Static):
         
         # 確実にフォーカスが設定されるようにタイマーを設定
         self.set_timer(0.1, self._ensure_shell_terminal_focus)
-        
-        # ログ出力
-        logger = setup_logger("wish_sh.tui.WishInputForm")
-        logger.debug("WishInputForm shown, focusing ShellTerminalWidget")
     
     def _ensure_shell_terminal_focus(self) -> None:
         """シェルターミナルウィジェットのフォーカスを確実に設定する"""
@@ -67,15 +59,10 @@ class WishInputForm(Static):
             shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
             shell_terminal.focus()
             
-            # ログ出力
-            logger = setup_logger("wish_sh.tui.WishInputForm")
-            logger.debug("Ensuring ShellTerminalWidget focus")
-            
             # 現在のフォーカスを確認
             from textual.app import App
             app = App.get()
             if app.focused is not shell_terminal:
-                logger.warning(f"ShellTerminalWidget is not focused, current focus: {app.focused}")
                 # 再度フォーカスを設定
                 shell_terminal.focus()
         except Exception as e:
@@ -84,10 +71,6 @@ class WishInputForm(Static):
     
     def on_key(self, event) -> None:
         """キーイベントを処理する"""
-        # 全てのキーイベントをシェルターミナルに転送
-        logger = setup_logger("wish_sh.tui.WishInputForm")
-        logger.debug(f"WishInputForm received key event: {event.key}, forwarding to ShellTerminalWidget")
-        
         # シェルターミナルにフォーカスを設定
         shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
         shell_terminal.focus()
@@ -101,14 +84,40 @@ class WishInputForm(Static):
         # ログ出力
         logger = setup_logger("wish_sh.tui.WishInputForm")
         logger.debug(f"WishInputForm received WishInputSubmitted event: {event.wish_text}")
+        logger.debug(f"DEBUGGING: WishInputForm received WishInputSubmitted event: {event.wish_text}")
+        logger.debug(f"DEBUGGING: Event type: {type(event)}")
+        logger.debug(f"DEBUGGING: Current widget: {self}")
+        logger.debug(f"DEBUGGING: Parent widget: {self.parent}")
+        logger.debug(f"DEBUGGING: App: {self.app}")
         
         try:
             # Forward the message to parent
             logger.debug("Forwarding WishInputSubmitted message to parent")
+            logger.debug("DEBUGGING: About to forward WishInputSubmitted message to parent")
+            
+            # 直接MainScreenにメッセージを送信
+            from textual.app import App
+            app = App.get()
+            main_screen = app.screen
+            
+            logger.debug(f"DEBUGGING: Main screen: {main_screen}")
+            logger.debug(f"DEBUGGING: Main screen type: {type(main_screen)}")
+            
+            # メッセージを送信（通常の方法と直接的な方法の両方を試す）
             self.post_message(event)
+            
+            # 直接スクリーンにもメッセージを送信
+            if hasattr(main_screen, "on_wish_input_submitted"):
+                logger.debug("DEBUGGING: Directly calling main_screen.on_wish_input_submitted")
+                main_screen.on_wish_input_submitted(event)
+            
+            logger.debug("DEBUGGING: WishInputSubmitted message forwarded successfully to parent")
             logger.debug("WishInputSubmitted message forwarded successfully")
         except Exception as e:
+            logger.error(f"DEBUGGING: Error forwarding WishInputSubmitted message: {e}")
             logger.error(f"Error forwarding WishInputSubmitted message: {e}")
+            import traceback
+            logger.error(f"DEBUGGING: Traceback: {traceback.format_exc()}")
 
 
 class WishDetailForm(Static):
