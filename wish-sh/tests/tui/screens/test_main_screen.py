@@ -114,7 +114,7 @@ class TestMainScreen:
             
             # Check that the new wish panes are initialized for NEW_WISH mode
             new_wish_main_pane = app.query_one(NewWishMainPane)
-            assert "新しいWishを入力してください" in new_wish_main_pane.query_one("#main-pane-content").renderable
+            assert new_wish_main_pane.query_one("#main-pane-content").renderable == ""
             
             new_wish_sub_pane = app.query_one(NewWishSubPane)
             assert "Wishを入力してください" in new_wish_sub_pane.query_one("#sub-pane-content").renderable
@@ -175,7 +175,7 @@ class TestMainScreen:
             
             # Check that the new wish main pane content has been updated
             main_content = new_wish_main_pane.query_one("#main-pane-content")
-            assert "新しいWishを入力してください" in main_content.renderable
+            assert main_content.renderable == ""
             
             # Check that the new wish sub pane content has been updated
             sub_content = new_wish_sub_pane.query_one("#sub-pane-content")
@@ -320,9 +320,9 @@ class TestMainScreen:
             new_wish_sub_pane = app.query_one(NewWishSubPane)
             assert new_wish_sub_pane.display == True
             
-            # main-pane-contentに「新しいWishを入力してください」が含まれていることを確認
+            # main-pane-contentが空であることを確認
             main_content = new_wish_main_pane.query_one("#main-pane-content")
-            assert "新しいWishを入力してください" in main_content.renderable
+            assert main_content.renderable == ""
     
     @pytest.mark.asyncio
     async def test_update_new_wish_ui_called_on_mode_change(self):

@@ -25,7 +25,7 @@ class NewWishMainPane(BasePane):
     
     def update_for_input_wish(self):
         """Update for INPUT_WISH state."""
-        self.update_content("main-pane-content", "新しいWishを入力してください")
+        self.update_content("main-pane-content", "")
     
     def update_for_ask_wish_detail(self):
         """Update for ASK_WISH_DETAIL state."""

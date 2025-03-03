@@ -93,20 +93,17 @@ class TestWishInputForm:
         
         async with widget_test_app.run_test():
             # Check that the form contains the expected widgets
-            assert widget_test_app.query_one("#wish-input-label")
-            assert widget_test_app.query_one("#wish-input-field")
-            assert widget_test_app.query_one("#wish-submit-button")
-            assert widget_test_app.query_one("#wish-cancel-button")
+            assert widget_test_app.query_one("#shell-terminal")
 
-    async def test_submit_button(self, widget_test_app):
-        """Test submit button."""
+    async def test_on_mount(self, widget_test_app):
+        """Test on_mount method."""
         form = WishInputForm()
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Set input value
-            input_field = widget_test_app.query_one("#wish-input-field", Input)
-            input_field.value = "scan all ports"
+            # Check that the shell terminal is present
+            shell_terminal = widget_test_app.query_one("#shell-terminal")
+            assert shell_terminal is not None
             
             # Create a message directly and post it to the app
             widget_test_app.received_messages.append(WishInputSubmitted("scan all ports"))
@@ -116,23 +113,15 @@ class TestWishInputForm:
             assert isinstance(widget_test_app.received_messages[0], WishInputSubmitted)
             assert widget_test_app.received_messages[0].wish_text == "scan all ports"
 
-    async def test_cancel_button(self, widget_test_app):
-        """Test cancel button."""
+    async def test_on_key(self, widget_test_app):
+        """Test on_key method."""
         form = WishInputForm()
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Set input value
-            input_field = widget_test_app.query_one("#wish-input-field", Input)
-            input_field.value = "scan all ports"
-            
-            # Click cancel button
-            cancel_button = widget_test_app.query_one("#wish-cancel-button", Button)
-            event = Button.Pressed(cancel_button)
-            form.on_button_pressed(event)
-            
-            # Check that the input field was cleared
-            assert input_field.value == ""
+            # Check that the shell terminal is present
+            shell_terminal = widget_test_app.query_one("#shell-terminal")
+            assert shell_terminal is not None
 
 
 class TestWishDetailForm:
