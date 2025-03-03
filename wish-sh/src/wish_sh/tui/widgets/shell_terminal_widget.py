@@ -38,6 +38,9 @@ class ShellTerminalWidget(Static):
         self.cursor_visible = True
         # カーソル点滅用タイマー
         self.cursor_timer: Optional[Timer] = None
+        
+        # キーイベントを直接キャプチャするためのフラグ
+        self.can_focus = True
     
     def compose(self) -> ComposeResult:
         """Compose the widget."""
@@ -212,11 +215,18 @@ class ShellTerminalWidget(Static):
         self.logger.debug(f"Input submitted: {command}")
     
     def on_key(self, event) -> None:
-        """キーイベントを処理する"""
+        """キーイベントを処理する（キーが押された時）"""
+        # 必ずフォーカスを確保
+        self.focus()
+        
         key = event.key
+        
+        # デバッグログを追加
+        self.logger.debug(f"ShellTerminalWidget received key event: {key}")
         
         # エンターキーで入力を送信
         if key == "enter":
+            self.logger.debug("Enter key pressed, submitting input")
             self.submit_current_input()
             event.prevent_default()
             event.stop()
@@ -224,6 +234,7 @@ class ShellTerminalWidget(Static):
         
         # バックスペースで文字を削除
         elif key == "backspace":
+            self.logger.debug("Backspace key pressed")
             if self.cursor_position > 0:
                 self.current_input = (
                     self.current_input[:self.cursor_position-1] + 
@@ -237,6 +248,7 @@ class ShellTerminalWidget(Static):
         
         # 削除キーで文字を削除
         elif key == "delete":
+            self.logger.debug("Delete key pressed")
             if self.cursor_position < len(self.current_input):
                 self.current_input = (
                     self.current_input[:self.cursor_position] + 
@@ -249,6 +261,7 @@ class ShellTerminalWidget(Static):
         
         # 左矢印でカーソルを左に移動
         elif key == "left":
+            self.logger.debug("Left arrow key pressed")
             if self.cursor_position > 0:
                 self.cursor_position -= 1
                 self.update_prompt_line()
@@ -258,6 +271,7 @@ class ShellTerminalWidget(Static):
         
         # 右矢印でカーソルを右に移動
         elif key == "right":
+            self.logger.debug("Right arrow key pressed")
             if self.cursor_position < len(self.current_input):
                 self.cursor_position += 1
                 self.update_prompt_line()
@@ -267,6 +281,7 @@ class ShellTerminalWidget(Static):
         
         # ホームキーでカーソルを行頭に移動
         elif key == "home":
+            self.logger.debug("Home key pressed")
             self.cursor_position = 0
             self.update_prompt_line()
             event.prevent_default()
@@ -275,6 +290,7 @@ class ShellTerminalWidget(Static):
         
         # エンドキーでカーソルを行末に移動
         elif key == "end":
+            self.logger.debug("End key pressed")
             self.cursor_position = len(self.current_input)
             self.update_prompt_line()
             event.prevent_default()
@@ -283,6 +299,7 @@ class ShellTerminalWidget(Static):
         
         # 上矢印でコマンド履歴を遡る
         elif key == "up":
+            self.logger.debug("Up arrow key pressed")
             if self.command_history and self.command_history_index < len(self.command_history) - 1:
                 if self.command_history_index == -1:
                     # 履歴ナビゲーションを開始する場合、現在の入力を保存
@@ -298,6 +315,7 @@ class ShellTerminalWidget(Static):
         
         # 下矢印でコマンド履歴を進む
         elif key == "down":
+            self.logger.debug("Down arrow key pressed")
             if self.command_history_index > -1:
                 self.command_history_index -= 1
                 if self.command_history_index == -1:
@@ -313,6 +331,7 @@ class ShellTerminalWidget(Static):
         
         # 通常の文字入力
         if len(key) == 1 and (key in string.printable):
+            self.logger.debug(f"Character key pressed: {key}")
             # カーソル位置に文字を挿入
             self.current_input = (
                 self.current_input[:self.cursor_position] + 
@@ -323,6 +342,18 @@ class ShellTerminalWidget(Static):
             self.update_prompt_line()
             event.prevent_default()
             event.stop()
+    
+    def on_key_up(self, event) -> None:
+        """キーイベントを処理する（キーが離された時）"""
+        # 必ずフォーカスを確保
+        self.focus()
+        
+        key = event.key
+        self.logger.debug(f"ShellTerminalWidget received key_up event: {key}")
+        
+        # 全てのキーイベントを消費
+        event.prevent_default()
+        event.stop()
     
     def add_output(self, output: str) -> None:
         """出力テキストをターミナルに追加する

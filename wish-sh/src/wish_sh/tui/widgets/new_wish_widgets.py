@@ -6,6 +6,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Label, Static, Checkbox
 
+from wish_sh.logging import setup_logger
 from wish_sh.tui.new_wish_messages import (
     WishInputSubmitted,
     WishDetailSubmitted,
@@ -24,7 +25,10 @@ from wish_sh.tui.widgets.shell_terminal_widget import ShellTerminalWidget
 
 class WishInputForm(Static):
     """Form for inputting a wish."""
-
+    
+    # キーイベントを子ウィジェットに渡すためのフラグ
+    BINDINGS = []
+    
     def compose(self) -> ComposeResult:
         """Compose the widget."""
         yield ShellTerminalWidget(id="shell-terminal")
@@ -32,12 +36,65 @@ class WishInputForm(Static):
     def on_mount(self) -> None:
         """Event handler called when the widget is mounted."""
         # Ensure the shell terminal gets focus
-        self.query_one("#shell-terminal").focus()
+        shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
+        shell_terminal.focus()
+        
+        # 確実にフォーカスが設定されるようにタイマーを設定
+        self.set_timer(0.1, self._ensure_shell_terminal_focus)
+        # 定期的にフォーカスを確認するタイマーを設定
+        self.set_interval(1.0, self._ensure_shell_terminal_focus)
+        
+        # ログ出力
+        logger = setup_logger("wish_sh.tui.WishInputForm")
+        logger.debug("WishInputForm mounted, focusing ShellTerminalWidget")
 
     def on_show(self) -> None:
         """Event handler called when the widget is shown."""
         # Ensure the shell terminal gets focus when shown
-        self.query_one("#shell-terminal").focus()
+        shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
+        shell_terminal.focus()
+        
+        # 確実にフォーカスが設定されるようにタイマーを設定
+        self.set_timer(0.1, self._ensure_shell_terminal_focus)
+        
+        # ログ出力
+        logger = setup_logger("wish_sh.tui.WishInputForm")
+        logger.debug("WishInputForm shown, focusing ShellTerminalWidget")
+    
+    def _ensure_shell_terminal_focus(self) -> None:
+        """シェルターミナルウィジェットのフォーカスを確実に設定する"""
+        try:
+            shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
+            shell_terminal.focus()
+            
+            # ログ出力
+            logger = setup_logger("wish_sh.tui.WishInputForm")
+            logger.debug("Ensuring ShellTerminalWidget focus")
+            
+            # 現在のフォーカスを確認
+            from textual.app import App
+            app = App.get()
+            if app.focused is not shell_terminal:
+                logger.warning(f"ShellTerminalWidget is not focused, current focus: {app.focused}")
+                # 再度フォーカスを設定
+                shell_terminal.focus()
+        except Exception as e:
+            logger = setup_logger("wish_sh.tui.WishInputForm")
+            logger.error(f"Error ensuring ShellTerminalWidget focus: {e}")
+    
+    def on_key(self, event) -> None:
+        """キーイベントを処理する"""
+        # 全てのキーイベントをシェルターミナルに転送
+        logger = setup_logger("wish_sh.tui.WishInputForm")
+        logger.debug(f"WishInputForm received key event: {event.key}, forwarding to ShellTerminalWidget")
+        
+        # シェルターミナルにフォーカスを設定
+        shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
+        shell_terminal.focus()
+        
+        # イベントを消費せず、伝播させる
+        # シェルターミナルが処理できるようにする
+        return False
 
     def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
         """Handle wish input submitted event."""

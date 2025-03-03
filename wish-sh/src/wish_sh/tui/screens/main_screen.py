@@ -292,6 +292,11 @@ class MainScreen(Screen):
             self.logger.debug("Setting focus to ShellTerminalWidget")
             self.call_after_refresh(self._focus_shell_terminal)
             
+            # 確実にフォーカスが設定されるように複数回試行
+            self.set_timer(0.2, self._focus_shell_terminal)
+            self.set_timer(0.5, self._focus_shell_terminal)
+            self.set_timer(1.0, self._focus_shell_terminal)
+            
         elif current_state == NewWishState.ASK_WISH_DETAIL:
             # 一意のIDを生成するために現在時刻のタイムスタンプを使用
             import time
@@ -451,9 +456,28 @@ class MainScreen(Screen):
     def _focus_shell_terminal(self) -> None:
         """Focus the shell terminal widget."""
         try:
+            # シェルターミナルウィジェットを検索
             shell_terminal = self.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
             if shell_terminal:
                 self.logger.debug("Focusing ShellTerminalWidget")
+                # フォーカスを設定
                 shell_terminal.focus()
+                # 確実にフォーカスが設定されるようにタイマーを設定
+                self.set_timer(0.1, lambda: self._ensure_shell_terminal_focus())
         except Exception as e:
             self.logger.error(f"Error focusing ShellTerminalWidget: {e}")
+    
+    def _ensure_shell_terminal_focus(self) -> None:
+        """シェルターミナルウィジェットのフォーカスを確実に設定する"""
+        try:
+            shell_terminal = self.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+            if shell_terminal:
+                self.logger.debug("Ensuring ShellTerminalWidget focus")
+                shell_terminal.focus()
+                # 現在のフォーカスを確認
+                if self.app.focused is not shell_terminal:
+                    self.logger.warning(f"ShellTerminalWidget is not focused, current focus: {self.app.focused}")
+                    # 再度フォーカスを設定
+                    shell_terminal.focus()
+        except Exception as e:
+            self.logger.error(f"Error ensuring ShellTerminalWidget focus: {e}")
