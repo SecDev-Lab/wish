@@ -203,11 +203,11 @@ class WishHistoryMainPane(BasePane):
             self.logger.debug("on_key: No command results")
             return False
 
-        if event.key in ("up", "arrow_up"):
+        if event.key in ("up", "arrow_up", "k"):
             self.logger.debug(f"on_key: Up key pressed, current index: {self.selected_command_index}")
             self.select_previous_command()
             return True
-        elif event.key in ("down", "arrow_down"):
+        elif event.key in ("down", "arrow_down", "j"):
             self.logger.debug(f"on_key: Down key pressed, current index: {self.selected_command_index}")
             self.select_next_command()
             return True

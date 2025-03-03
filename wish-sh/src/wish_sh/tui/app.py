@@ -158,12 +158,28 @@ class WishTUIApp(App):
     def get_active_pane(self):
         """Get the currently active pane."""
         main_screen = self.screen
+        
+        # wish_selectは共通
         if hasattr(main_screen, "wish_select") and main_screen.wish_select.has_class("active-pane"):
             return main_screen.wish_select
-        elif hasattr(main_screen, "main_pane") and main_screen.main_pane.has_class("active-pane"):
-            return main_screen.main_pane
-        elif hasattr(main_screen, "sub_pane") and main_screen.sub_pane.has_class("active-pane"):
-            return main_screen.sub_pane
+        
+        # 現在のモードに応じて適切なmain_paneとsub_paneを参照
+        if hasattr(main_screen, "current_mode"):
+            from wish_sh.tui.modes import WishMode
+            
+            if main_screen.current_mode == WishMode.WISH_HISTORY:
+                # WISH_HISTORYモードの場合
+                if hasattr(main_screen, "wish_history_main_pane") and main_screen.wish_history_main_pane.has_class("active-pane"):
+                    return main_screen.wish_history_main_pane
+                elif hasattr(main_screen, "wish_history_sub_pane") and main_screen.wish_history_sub_pane.has_class("active-pane"):
+                    return main_screen.wish_history_sub_pane
+            else:
+                # NEW_WISHモードの場合
+                if hasattr(main_screen, "new_wish_main_pane") and main_screen.new_wish_main_pane.has_class("active-pane"):
+                    return main_screen.new_wish_main_pane
+                elif hasattr(main_screen, "new_wish_sub_pane") and main_screen.new_wish_sub_pane.has_class("active-pane"):
+                    return main_screen.new_wish_sub_pane
+        
         return None
     
     def action_activate_selected(self) -> None:
