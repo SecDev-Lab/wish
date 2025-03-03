@@ -52,6 +52,31 @@ class SubPane(BasePane):
             
         self.update_content("sub-pane-content", self.MSG_NEW_WISH_MODE)
     
+    # New Wish mode state-specific update methods
+    def update_for_input_wish(self):
+        """Update for INPUT_WISH state."""
+        self.update_content("sub-pane-content", "Wishを入力してください。例: scan all ports")
+    
+    def update_for_ask_wish_detail(self):
+        """Update for ASK_WISH_DETAIL state."""
+        self.update_content("sub-pane-content", "ターゲットのIPアドレスまたはホスト名を入力してください。")
+    
+    def update_for_suggest_commands(self):
+        """Update for SUGGEST_COMMANDS state."""
+        self.update_content("sub-pane-content", "コマンドを確認し、実行するかどうかを選択してください。")
+    
+    def update_for_adjust_commands(self):
+        """Update for ADJUST_COMMANDS state."""
+        self.update_content("sub-pane-content", "コマンドを修正してください。")
+    
+    def update_for_confirm_commands(self):
+        """Update for CONFIRM_COMMANDS state."""
+        self.update_content("sub-pane-content", "コマンドの実行を確認してください。")
+    
+    def update_for_execute_commands(self):
+        """Update for EXECUTE_COMMANDS state."""
+        self.update_content("sub-pane-content", "コマンドを実行中です。しばらくお待ちください。")
+    
     def set_active(self, active: bool) -> None:
         """Set the active state of the pane.
         
