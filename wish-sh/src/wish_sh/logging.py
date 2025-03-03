@@ -3,7 +3,6 @@
 import logging
 import os
 import sys
-from pathlib import Path
 
 
 def setup_logger(name: str, level: str | None = None) -> logging.Logger:
@@ -19,33 +18,19 @@ def setup_logger(name: str, level: str | None = None) -> logging.Logger:
     """
     logger = logging.getLogger(name)
     
-    # Get log level from environment variable or parameter, default to INFO
+    # Get log level from environment variable or parameter, default to WARNING
     if level is None:
         level = os.environ.get("WISH_LOG_LEVEL", "INFO").upper()
     
     # Set the log level
-    logger.setLevel(getattr(logging, level, logging.INFO))
+    logger.setLevel(getattr(logging, level, logging.WARNING))
     
     # Only add handler if not already added to avoid duplicate handlers
     if not logger.handlers:
-        # Create logs directory if it doesn't exist
-        log_dir = Path.home() / "wish_logs"
-        log_dir.mkdir(exist_ok=True)
-        
-        # Set up file handler with a formatter
-        log_file = log_dir / "wish.log"
-        file_handler = logging.FileHandler(log_file)
+        # Set up console handler with a formatter
+        console_handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
-        
-        # Also log to console if requested
-        if os.environ.get("WISH_CONSOLE_LOG", "FALSE").upper() == "TRUE":
-            console_handler = logging.StreamHandler(sys.stdout)
-            console_handler.setFormatter(formatter)
-            logger.addHandler(console_handler)
-        
-        # Log the location of the log file
-        logger.info(f"Logging to {log_file}")
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
     
     return logger
