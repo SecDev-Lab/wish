@@ -1,7 +1,7 @@
 """State machine for New Wish mode in TUI."""
 
 from enum import Enum, auto
-from typing import Callable, Dict, List, Optional
+from collections.abc import Callable
 
 from wish_models import Wish
 
@@ -36,13 +36,13 @@ class NewWishTurns:
 
     def __init__(self):
         self.current_state = NewWishState.INPUT_WISH
-        self.current_wish: Optional[Wish] = None
-        self.current_commands: List[str] = []
-        self.selected_commands: List[str] = []
-        self.wish_detail: Optional[str] = None
+        self.current_wish: Wish | None = None
+        self.current_commands: list[str] = []
+        self.selected_commands: list[str] = []
+        self.wish_detail: str | None = None
 
         # Initialize the state transition table
-        self.transitions: Dict[NewWishState, Dict[NewWishEvent, NewWishState]] = {
+        self.transitions: dict[NewWishState, dict[NewWishEvent, NewWishState]] = {
             NewWishState.INPUT_WISH: {
                 NewWishEvent.SUFFICIENT_WISH: NewWishState.SUGGEST_COMMANDS,
                 NewWishEvent.INSUFFICIENT_WISH: NewWishState.ASK_WISH_DETAIL,
@@ -70,7 +70,7 @@ class NewWishTurns:
         }
 
         # Handler functions for each state
-        self.state_handlers: Dict[NewWishState, Callable] = {}
+        self.state_handlers: dict[NewWishState, Callable] = {}
 
     def register_handler(self, state: NewWishState, handler: Callable):
         """Register a handler function for a state"""
@@ -87,11 +87,11 @@ class NewWishTurns:
             return True
         return False
 
-    def handle_current_state(self) -> Optional[NewWishEvent]:
+    def handle_current_state(self) -> NewWishEvent | None:
         """Execute the handler function for the current state
 
         Returns:
-            Optional[NewWishEvent]: The event returned by the handler (if any)
+            NewWishEvent | None: The event returned by the handler (if any)
         """
         if self.current_state in self.state_handlers:
             return self.state_handlers[self.current_state]()
@@ -101,11 +101,11 @@ class NewWishTurns:
         """Set the current wish"""
         self.current_wish = wish
 
-    def set_current_commands(self, commands: List[str]):
+    def set_current_commands(self, commands: list[str]):
         """Set the current command list"""
         self.current_commands = commands
 
-    def set_selected_commands(self, commands: List[str]):
+    def set_selected_commands(self, commands: list[str]):
         """Set the selected command list"""
         self.selected_commands = commands
 
@@ -113,18 +113,18 @@ class NewWishTurns:
         """Set the wish detail"""
         self.wish_detail = detail
 
-    def get_current_wish(self) -> Optional[Wish]:
+    def get_current_wish(self) -> Wish | None:
         """Get the current wish"""
         return self.current_wish
 
-    def get_current_commands(self) -> List[str]:
+    def get_current_commands(self) -> list[str]:
         """Get the current command list"""
         return self.current_commands
 
-    def get_selected_commands(self) -> List[str]:
+    def get_selected_commands(self) -> list[str]:
         """Get the selected command list"""
         return self.selected_commands
 
-    def get_wish_detail(self) -> Optional[str]:
+    def get_wish_detail(self) -> str | None:
         """Get the wish detail"""
         return self.wish_detail

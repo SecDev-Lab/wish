@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 from wish_models import WishState
+from wish_models.test_factories.wish_factory import WishDoneFactory, WishDoingFactory
 
 from wish_sh.settings import Settings
 from wish_sh.shell_turns import ShellEvent, ShellTurns
@@ -76,7 +77,7 @@ class TestWishCLI:
     @patch.object(WishManager, "load_wishes")
     def test_handle_input_wish_wishlist(self, mock_load, mock_check, mock_input, mock_print):
         """Test that handle_input_wish handles wishlist command."""
-        mock_load.return_value = [MagicMock(), MagicMock()]
+        mock_load.return_value = [WishDoneFactory(), WishDoingFactory()]
 
         cli = WishCLI()
         event = cli.handle_input_wish()
@@ -105,7 +106,7 @@ class TestWishCLI:
         cli = WishCLI()
 
         # Setup state
-        wish = MagicMock()
+        wish = WishDoingFactory()
         commands = ["sudo nmap -p- 10.10.10.40"]
         cli.state_machine.set_current_wish(wish)
         cli.state_machine.set_current_commands(commands)
@@ -185,7 +186,7 @@ class TestWishCLI:
         cli = WishCLI()
 
         # Setup state
-        wishes = [MagicMock(), MagicMock()]
+        wishes = [WishDoneFactory(), WishDoingFactory()]
         cli.state_machine.set_wishes(wishes)
 
         event = cli.handle_show_wishlist()
@@ -201,9 +202,8 @@ class TestWishCLI:
         cli = WishCLI()
 
         # Setup state
-        wish = MagicMock()
+        wish = WishDoneFactory()
         wish.wish = "Test wish"
-        wish.state = WishState.DONE
         wish.created_at = "2023-01-01T00:00:00"
         wish.finished_at = "2023-01-01T01:00:00"
 
@@ -228,7 +228,7 @@ class TestWishCLI:
         cli = WishCLI()
 
         # Setup state
-        wish = MagicMock()
+        wish = WishDoingFactory()
         commands = ["echo 'test1'", "echo 'test2'"]
         cli.state_machine.set_current_wish(wish)
         cli.state_machine.set_current_commands(commands)

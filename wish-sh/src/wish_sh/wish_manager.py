@@ -1,7 +1,6 @@
 import json
 import subprocess
 import time
-from typing import Dict, List, Optional, Tuple
 
 from wish_models import CommandResult, CommandState, LogFiles, Wish, WishState
 
@@ -16,15 +15,15 @@ class WishManager:
         self.settings = settings
         self.paths = WishPaths(settings)
         self.paths.ensure_directories()
-        self.current_wish: Optional[Wish] = None
-        self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
+        self.current_wish: Wish | None = None
+        self.running_commands: dict[int, tuple[subprocess.Popen, CommandResult, Wish]] = {}
 
     def save_wish(self, wish: Wish):
         """Save wish to history file."""
         with open(self.paths.history_path, "a") as f:
             f.write(json.dumps(wish.to_dict()) + "\n")
 
-    def load_wishes(self, limit: int = 10) -> List[Wish]:
+    def load_wishes(self, limit: int = 10) -> list[Wish]:
         """Load recent wishes from history file."""
         wishes = []
         try:
@@ -70,7 +69,7 @@ class WishManager:
             pass
         return wishes
 
-    def generate_commands(self, wish_text: str) -> List[str]:
+    def generate_commands(self, wish_text: str) -> list[str]:
         """Generate commands based on wish text (mock implementation)."""
         # In a real implementation, this would call an LLM
         # For prototype, return some predefined responses based on keywords

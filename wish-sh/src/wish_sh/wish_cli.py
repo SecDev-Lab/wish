@@ -1,5 +1,4 @@
 import sys
-from typing import Optional
 
 from wish_models import Wish, WishState
 
@@ -40,7 +39,7 @@ class WishCLI:
         """Print the question prompt."""
         print("\nwish❓ ", end="", flush=True)
 
-    def handle_input_wish(self) -> Optional[ShellEvent]:
+    def handle_input_wish(self) -> ShellEvent | None:
         """Handle the INPUT_WISH state."""
         # Check running commands status
         self.manager.check_running_commands()
@@ -81,7 +80,7 @@ class WishCLI:
             else:
                 return ShellEvent.SUFFICIENT_WISH
 
-    def handle_ask_wish_detail(self) -> Optional[ShellEvent]:
+    def handle_ask_wish_detail(self) -> ShellEvent | None:
         """Handle the ASK_WISH_DETAIL state."""
         commands = self.state_machine.get_current_commands()
 
@@ -96,7 +95,7 @@ class WishCLI:
         else:
             return ShellEvent.NO
 
-    def handle_suggest_commands(self) -> Optional[ShellEvent]:
+    def handle_suggest_commands(self) -> ShellEvent | None:
         """Handle the SUGGEST_COMMANDS state."""
         commands = self.state_machine.get_current_commands()
 
@@ -125,14 +124,14 @@ class WishCLI:
             else:
                 return ShellEvent.OK
 
-    def handle_confirm_commands(self) -> Optional[ShellEvent]:
+    def handle_confirm_commands(self) -> ShellEvent | None:
         """Handle the CONFIRM_COMMANDS state."""
         # This state is for final confirmation before execution
         # In the current implementation, this is merged with SUGGEST_COMMANDS
         # But we keep it separate for future flexibility
         return ShellEvent.OK
 
-    def handle_adjust_commands(self) -> Optional[ShellEvent]:
+    def handle_adjust_commands(self) -> ShellEvent | None:
         """Handle the ADJUST_COMMANDS state."""
         commands = self.state_machine.get_current_commands()
 
@@ -166,7 +165,7 @@ class WishCLI:
         print("No valid commands selected.")
         return ShellEvent.NO
 
-    def handle_show_wishlist(self) -> Optional[ShellEvent]:
+    def handle_show_wishlist(self) -> ShellEvent | None:
         """Handle the SHOW_WISHLIST state."""
         wishes = self.state_machine.get_wishes()
 
@@ -193,7 +192,7 @@ class WishCLI:
         else:
             return ShellEvent.BACK_TO_INPUT
 
-    def handle_select_wish(self) -> Optional[ShellEvent]:
+    def handle_select_wish(self) -> ShellEvent | None:
         """Handle the SELECT_WISH state."""
         wish = self.state_machine.get_selected_wish()
 
@@ -209,7 +208,7 @@ class WishCLI:
 
         return ShellEvent.OK
 
-    def handle_show_commands(self) -> Optional[ShellEvent]:
+    def handle_show_commands(self) -> ShellEvent | None:
         """Handle the SHOW_COMMANDS state."""
         wish = self.state_machine.get_selected_wish()
 
@@ -228,7 +227,7 @@ class WishCLI:
         else:
             return ShellEvent.SINGLE_COMMAND
 
-    def handle_select_command(self) -> Optional[ShellEvent]:
+    def handle_select_command(self) -> ShellEvent | None:
         """Handle the SELECT_COMMAND state."""
         wish = self.state_machine.get_selected_wish()
 
@@ -248,24 +247,24 @@ class WishCLI:
 
         return ShellEvent.OK
 
-    def handle_select_commands(self) -> Optional[ShellEvent]:
+    def handle_select_commands(self) -> ShellEvent | None:
         """Handle the SELECT_COMMANDS state."""
         # This state is for selecting multiple commands from a list
         # In the current implementation, this is handled in other states
         return ShellEvent.OK
 
-    def handle_show_log_summary(self) -> Optional[ShellEvent]:
+    def handle_show_log_summary(self) -> ShellEvent | None:
         """Handle the SHOW_LOG_SUMMARY state."""
         # This state is for showing log summary
         # In the current implementation, this is handled in SELECT_COMMAND
         return ShellEvent.BACK_TO_INPUT
 
-    def handle_cancel_commands(self) -> Optional[ShellEvent]:
+    def handle_cancel_commands(self) -> ShellEvent | None:
         """Handle the CANCEL_COMMANDS state."""
         print("Commands cancelled.")
         return ShellEvent.BACK_TO_INPUT
 
-    def handle_start_commands(self) -> Optional[ShellEvent]:
+    def handle_start_commands(self) -> ShellEvent | None:
         """Handle the START_COMMANDS state."""
         wish = self.state_machine.get_current_wish()
         commands = self.state_machine.get_current_commands()

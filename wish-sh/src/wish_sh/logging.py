@@ -2,10 +2,9 @@
 
 import logging
 import os
-from typing import Optional
 
 
-def setup_logger(name: str, level: Optional[str] = None) -> logging.Logger:
+def setup_logger(name: str, level: str | None = None) -> logging.Logger:
     """Set up a logger with the specified name and level.
     
     Args:
