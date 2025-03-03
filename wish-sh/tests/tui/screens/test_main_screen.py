@@ -7,8 +7,10 @@ from wish_models import Wish
 
 from wish_sh.tui.modes import WishMode
 from wish_sh.tui.screens.main_screen import MainScreen
-from wish_sh.tui.widgets.main_pane import MainPane
-from wish_sh.tui.widgets.sub_pane import SubPane
+from wish_sh.tui.widgets.wish_history_main_pane import WishHistoryMainPane
+from wish_sh.tui.widgets.wish_history_sub_pane import WishHistorySubPane
+from wish_sh.tui.widgets.new_wish_main_pane import NewWishMainPane
+from wish_sh.tui.widgets.new_wish_sub_pane import NewWishSubPane
 from wish_sh.tui.widgets.wish_select_pane import WishSelectPane, WishSelected
 
 
@@ -38,17 +40,27 @@ class TestMainScreen:
             assert isinstance(screen, MainScreen)
             
             # Check that the screen has the expected panes
+            # Check that the screen has the expected panes
             wish_select = app.query_one(WishSelectPane)
             assert wish_select is not None
             assert wish_select.id == "wish-select"
             
-            main_pane = app.query_one(MainPane)
-            assert main_pane is not None
-            assert main_pane.id == "main-pane"
+            # Check that the screen has the expected mode-specific panes
+            wish_history_main_pane = app.query_one(WishHistoryMainPane)
+            assert wish_history_main_pane is not None
+            assert wish_history_main_pane.id == "wish-history-main-pane"
             
-            sub_pane = app.query_one(SubPane)
-            assert sub_pane is not None
-            assert sub_pane.id == "sub-pane"
+            wish_history_sub_pane = app.query_one(WishHistorySubPane)
+            assert wish_history_sub_pane is not None
+            assert wish_history_sub_pane.id == "wish-history-sub-pane"
+            
+            new_wish_main_pane = app.query_one(NewWishMainPane)
+            assert new_wish_main_pane is not None
+            assert new_wish_main_pane.id == "new-wish-main-pane"
+            
+            new_wish_sub_pane = app.query_one(NewWishSubPane)
+            assert new_wish_sub_pane is not None
+            assert new_wish_sub_pane.id == "new-wish-sub-pane"
 
     @pytest.mark.asyncio
     async def test_main_screen_activate_pane(self):
@@ -59,34 +71,36 @@ class TestMainScreen:
             
             # Get the panes
             wish_select = app.query_one(WishSelectPane)
-            main_pane = app.query_one(MainPane)
-            sub_pane = app.query_one(SubPane)
+            new_wish_main_pane = app.query_one(NewWishMainPane)
+            new_wish_sub_pane = app.query_one(NewWishSubPane)
             
-            # Initially, main_pane should be active
+            # Initially, new_wish_main_pane should be active and visible
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
+            assert new_wish_main_pane.display == True
+            assert new_wish_sub_pane.display == True
             
             # Activate wish_select
             screen.activate_pane("wish-select")
             # No need to process events, the class is added immediately
             assert "active-pane" in wish_select.classes
-            assert "active-pane" not in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" not in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
             
             # Activate sub_pane
             screen.activate_pane("sub-pane")
             # No need to process events, the class is added immediately
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" not in main_pane.classes
-            assert "active-pane" in sub_pane.classes
+            assert "active-pane" not in new_wish_main_pane.classes
+            assert "active-pane" in new_wish_sub_pane.classes
             
             # Activate main_pane
             screen.activate_pane("main-pane")
             # No need to process events, the class is added immediately
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
 
     @pytest.mark.asyncio
     async def test_main_screen_initial_mode(self):
@@ -98,13 +112,12 @@ class TestMainScreen:
             # Check that the screen initializes with NEW_WISH mode
             assert screen.current_mode == WishMode.NEW_WISH
             
-            # Check that the main pane is initialized for NEW_WISH mode
-            main_content = app.query_one("#main-pane-content")
-            assert "新しいWishを作成するモードです" in main_content.renderable
+            # Check that the new wish panes are initialized for NEW_WISH mode
+            new_wish_main_pane = app.query_one(NewWishMainPane)
+            assert "新しいWishを入力してください" in new_wish_main_pane.query_one("#main-pane-content").renderable
             
-            # Check that the sub pane is initialized for NEW_WISH mode
-            sub_content = app.query_one("#sub-pane-content")
-            assert "新しいWishのコマンド出力がここに表示されます" in sub_content.renderable
+            new_wish_sub_pane = app.query_one(NewWishSubPane)
+            assert "Wishを入力してください" in new_wish_sub_pane.query_one("#sub-pane-content").renderable
 
     @pytest.mark.asyncio
     async def test_main_screen_wish_selected_event_with_mode(self):
@@ -112,8 +125,10 @@ class TestMainScreen:
         app = MainScreenTestApp()
         async with app.run_test() as pilot:
             screen = app.query_one(MainScreen)
-            main_pane = app.query_one(MainPane)
-            sub_pane = app.query_one(SubPane)
+            wish_history_main_pane = app.query_one(WishHistoryMainPane)
+            wish_history_sub_pane = app.query_one(WishHistorySubPane)
+            new_wish_main_pane = app.query_one(NewWishMainPane)
+            new_wish_sub_pane = app.query_one(NewWishSubPane)
             
             # Create a test wish
             test_wish = Wish.create("Test wish for event")
@@ -126,16 +141,22 @@ class TestMainScreen:
             # Check that the screen mode has been updated
             assert screen.current_mode == WishMode.WISH_HISTORY
             
-            # Check that the main pane has been updated
-            assert main_pane.current_wish is test_wish
+            # Check that the wish history panes are visible and new wish panes are hidden
+            assert wish_history_main_pane.display == True
+            assert wish_history_sub_pane.display == True
+            assert new_wish_main_pane.display == False
+            assert new_wish_sub_pane.display == False
             
-            # Check that the main pane content has been updated
-            main_content = app.query_one("#main-pane-content")
+            # Check that the wish history main pane has been updated
+            assert wish_history_main_pane.current_wish is test_wish
+            
+            # Check that the wish history main pane content has been updated
+            main_content = wish_history_main_pane.query_one("#main-pane-content")
             assert "Wish:" in main_content.renderable
             assert "Test wish for event" in main_content.renderable
             
-            # Check that the sub pane has been reset
-            sub_content = app.query_one("#sub-pane-content")
+            # Check that the wish history sub pane has been reset
+            sub_content = wish_history_sub_pane.query_one("#sub-pane-content")
             assert sub_content.renderable == "(Select a command to view details)"
             
             # Now post a WishSelected event with NEW_WISH mode
@@ -146,13 +167,19 @@ class TestMainScreen:
             # Check that the screen mode has been updated
             assert screen.current_mode == WishMode.NEW_WISH
             
-            # Check that the main pane content has been updated
-            main_content = app.query_one("#main-pane-content")
-            assert "新しいWishを作成するモードです" in main_content.renderable
+            # Check that the new wish panes are visible and wish history panes are hidden
+            assert wish_history_main_pane.display == False
+            assert wish_history_sub_pane.display == False
+            assert new_wish_main_pane.display == True
+            assert new_wish_sub_pane.display == True
             
-            # Check that the sub pane content has been updated
-            sub_content = app.query_one("#sub-pane-content")
-            assert "新しいWishのコマンド出力がここに表示されます" in sub_content.renderable
+            # Check that the new wish main pane content has been updated
+            main_content = new_wish_main_pane.query_one("#main-pane-content")
+            assert "新しいWishを入力してください" in main_content.renderable
+            
+            # Check that the new wish sub pane content has been updated
+            sub_content = new_wish_sub_pane.query_one("#sub-pane-content")
+            assert "Wishを入力してください" in sub_content.renderable
 
     @pytest.mark.asyncio
     async def test_main_screen_wish_selected_focus(self):
@@ -161,12 +188,12 @@ class TestMainScreen:
         async with app.run_test() as pilot:
             screen = app.query_one(MainScreen)
             wish_select = app.query_one(WishSelectPane)
-            main_pane = app.query_one(MainPane)
+            wish_history_main_pane = app.query_one(WishHistoryMainPane)
             
             # First activate wish_select
             screen.activate_pane("wish-select")
             assert "active-pane" in wish_select.classes
-            assert "active-pane" not in main_pane.classes
+            assert "active-pane" not in wish_history_main_pane.classes
             
             # Create a test wish
             test_wish = Wish.create("Test wish for focus")
@@ -179,12 +206,12 @@ class TestMainScreen:
             # Check that the screen mode has been updated
             assert screen.current_mode == WishMode.WISH_HISTORY
             
-            # Check that the main pane has been updated
-            assert main_pane.current_wish is test_wish
+            # Check that the wish history main pane has been updated
+            assert wish_history_main_pane.current_wish is test_wish
             
             # Check that the focus remains on wish_select
             assert "active-pane" in wish_select.classes
-            assert "active-pane" not in main_pane.classes
+            assert "active-pane" not in wish_history_main_pane.classes
     
     @pytest.mark.asyncio
     async def test_main_screen_key_navigation(self):
@@ -193,37 +220,37 @@ class TestMainScreen:
         async with app.run_test() as pilot:
             # Get the panes
             wish_select = app.query_one(WishSelectPane)
-            main_pane = app.query_one(MainPane)
-            sub_pane = app.query_one(SubPane)
+            new_wish_main_pane = app.query_one(NewWishMainPane)
+            new_wish_sub_pane = app.query_one(NewWishSubPane)
             
-            # Initially, main_pane should be active
+            # Initially, new_wish_main_pane should be active
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
             
             # Press left arrow to activate wish_select
             await pilot.press("left")
             assert "active-pane" in wish_select.classes
-            assert "active-pane" not in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" not in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
             
             # Press right arrow to activate main_pane
             await pilot.press("right")
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
             
             # Press ctrl+down to activate sub_pane
             await pilot.press("ctrl+down")
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" not in main_pane.classes
-            assert "active-pane" in sub_pane.classes
+            assert "active-pane" not in new_wish_main_pane.classes
+            assert "active-pane" in new_wish_sub_pane.classes
             
             # Press ctrl+up to activate main_pane
             await pilot.press("ctrl+up")
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
     
     @pytest.mark.asyncio
     async def test_main_screen_activate_pane_message(self):
@@ -234,13 +261,13 @@ class TestMainScreen:
             
             # Get the panes
             wish_select = app.query_one(WishSelectPane)
-            main_pane = app.query_one(MainPane)
-            sub_pane = app.query_one(SubPane)
+            new_wish_main_pane = app.query_one(NewWishMainPane)
+            new_wish_sub_pane = app.query_one(NewWishSubPane)
             
-            # Initially, main_pane should be active
+            # Initially, new_wish_main_pane should be active
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
             
             # Post an ActivatePane message to activate wish_select
             from wish_sh.tui.screens.main_screen import ActivatePane
@@ -249,8 +276,8 @@ class TestMainScreen:
             
             # Check that wish_select is now active
             assert "active-pane" in wish_select.classes
-            assert "active-pane" not in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" not in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
             
             # Post an ActivatePane message to activate sub_pane
             screen.post_message(ActivatePane("sub-pane"))
@@ -258,8 +285,8 @@ class TestMainScreen:
             
             # Check that sub_pane is now active
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" not in main_pane.classes
-            assert "active-pane" in sub_pane.classes
+            assert "active-pane" not in new_wish_main_pane.classes
+            assert "active-pane" in new_wish_sub_pane.classes
             
             # Post an ActivatePane message to activate main_pane
             screen.post_message(ActivatePane("main-pane"))
@@ -267,5 +294,5 @@ class TestMainScreen:
             
             # Check that main_pane is now active
             assert "active-pane" not in wish_select.classes
-            assert "active-pane" in main_pane.classes
-            assert "active-pane" not in sub_pane.classes
+            assert "active-pane" in new_wish_main_pane.classes
+            assert "active-pane" not in new_wish_sub_pane.classes
