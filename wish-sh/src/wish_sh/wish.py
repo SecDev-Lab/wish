@@ -1,11 +1,11 @@
-from wish_sh.wish_cli import WishCLI
+from wish_sh.tui.app import WishTUIApp
 
 
 def main():
     """Entry point for the wish shell."""
     # Set environment variable for proper handling of wide characters (emojis)
-    cli = WishCLI()
-    cli.run()
+    app = WishTUIApp()
+    app.run()
 
 
 if __name__ == "__main__":

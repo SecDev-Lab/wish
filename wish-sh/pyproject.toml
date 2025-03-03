@@ -40,7 +40,7 @@ dependencies = [
 wish-models = { path = "../wish-models", editable = true }
 
 [project.scripts]
-chatbot = "wish_sh.wish:main"
+wish = "wish_sh.wish:main"
 
 [tool.uv]
 dev-dependencies = [
