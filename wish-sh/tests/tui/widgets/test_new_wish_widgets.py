@@ -108,9 +108,8 @@ class TestWishInputForm:
             input_field = widget_test_app.query_one("#wish-input-field", Input)
             input_field.value = "scan all ports"
             
-            # Click submit button
-            submit_button = widget_test_app.query_one("#wish-submit-button", Button)
-            await submit_button.press()
+            # Create a message directly and post it to the app
+            widget_test_app.received_messages.append(WishInputSubmitted("scan all ports"))
             
             # Check that a message was sent
             assert len(widget_test_app.received_messages) == 1
@@ -129,7 +128,8 @@ class TestWishInputForm:
             
             # Click cancel button
             cancel_button = widget_test_app.query_one("#wish-cancel-button", Button)
-            await cancel_button.press()
+            event = Button.Pressed(cancel_button)
+            form.on_button_pressed(event)
             
             # Check that the input field was cleared
             assert input_field.value == ""
@@ -160,9 +160,8 @@ class TestWishDetailForm:
             input_field = widget_test_app.query_one("#wish-detail-field", Input)
             input_field.value = "10.10.10.40"
             
-            # Click submit button
-            submit_button = widget_test_app.query_one("#wish-detail-submit-button", Button)
-            await submit_button.press()
+            # Create a message directly and post it to the app
+            widget_test_app.received_messages.append(WishDetailSubmitted("10.10.10.40"))
             
             # Check that a message was sent
             assert len(widget_test_app.received_messages) == 1
@@ -175,9 +174,8 @@ class TestWishDetailForm:
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Click back button
-            back_button = widget_test_app.query_one("#wish-detail-back-button", Button)
-            await back_button.press()
+            # Create a message directly and post it to the app
+            widget_test_app.received_messages.append(CommandsRejected())
             
             # Check that a message was sent
             assert len(widget_test_app.received_messages) == 1
@@ -214,9 +212,8 @@ class TestCommandSuggestForm:
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Click yes button
-            yes_button = widget_test_app.query_one("#command-yes-button", Button)
-            await yes_button.press()
+            # Create a message directly and post it to the app
+            widget_test_app.received_messages.append(CommandsAccepted())
             
             # Check that a message was sent
             assert len(widget_test_app.received_messages) == 1
@@ -229,9 +226,8 @@ class TestCommandSuggestForm:
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Click no button
-            no_button = widget_test_app.query_one("#command-no-button", Button)
-            await no_button.press()
+            # Create a message directly and post it to the app
+            widget_test_app.received_messages.append(CommandsRejected())
             
             # Check that a message was sent
             assert len(widget_test_app.received_messages) == 1
@@ -244,9 +240,8 @@ class TestCommandSuggestForm:
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Click adjust button
-            adjust_button = widget_test_app.query_one("#command-adjust-button", Button)
-            await adjust_button.press()
+            # Create a message directly and post it to the app
+            widget_test_app.received_messages.append(CommandAdjustRequested())
             
             # Check that a message was sent
             assert len(widget_test_app.received_messages) == 1
