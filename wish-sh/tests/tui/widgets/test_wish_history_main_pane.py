@@ -1,43 +1,43 @@
-"""Tests for the MainPane widget."""
+"""Tests for the WishHistoryMainPane widget."""
 
 import pytest
 from textual.app import App, ComposeResult
 from wish_models import CommandResult, CommandState, LogFiles, Wish
 
-from wish_sh.tui.widgets.main_pane import MainPane
+from wish_sh.tui.widgets.wish_history_main_pane import WishHistoryMainPane
 
 
-class MainPaneTestApp(App):
-    """Test application for MainPane."""
+class WishHistoryMainPaneTestApp(App):
+    """Test application for WishHistoryMainPane."""
 
     def compose(self) -> ComposeResult:
         """Compose the application."""
-        yield MainPane(id="main-pane")
+        yield WishHistoryMainPane(id="wish-history-main-pane")
 
 
-class TestMainPane:
-    """Tests for the MainPane widget."""
+class TestWishHistoryMainPane:
+    """Tests for the WishHistoryMainPane widget."""
 
     @pytest.mark.asyncio
     async def test_main_pane_creation(self):
-        """Test that a MainPane can be created."""
-        app = MainPaneTestApp()
+        """Test that a WishHistoryMainPane can be created."""
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             assert pane is not None
-            assert pane.id == "main-pane"
+            assert pane.id == "wish-history-main-pane"
             
             # Check that the pane shows the placeholder message
             content = app.query_one("#main-pane-content")
             assert content is not None
-            assert content.renderable == "(Main content will be displayed here)"
+            assert content.renderable == "(Wish history will be displayed here)"
 
     @pytest.mark.asyncio
     async def test_main_pane_update_wish_none(self):
-        """Test that a MainPane can be updated with no wish."""
-        app = MainPaneTestApp()
+        """Test that a WishHistoryMainPane can be updated with no wish."""
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
             # Skip this test if we're getting ID conflicts
             # In a real application, this would be handled differently
@@ -57,7 +57,7 @@ class TestMainPane:
 
     @pytest.mark.asyncio
     async def test_main_pane_update_wish(self):
-        """Test that a MainPane can be updated with a wish."""
+        """Test that a WishHistoryMainPane can be updated with a wish."""
         # Create a test wish
         test_wish = Wish.create("Test wish")
         
@@ -67,9 +67,9 @@ class TestMainPane:
         cmd_result.state = CommandState.SUCCESS
         test_wish.command_results.append(cmd_result)
         
-        app = MainPaneTestApp()
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
             # Update with the test wish
             pane.update_wish(test_wish)
@@ -88,7 +88,7 @@ class TestMainPane:
 
     @pytest.mark.asyncio
     async def test_main_pane_update_wish_with_multiple_commands(self):
-        """Test that a MainPane can be updated with a wish that has multiple commands."""
+        """Test that a WishHistoryMainPane can be updated with a wish that has multiple commands."""
         # Create a test wish
         test_wish = Wish.create("Test wish with multiple commands")
         
@@ -111,9 +111,9 @@ class TestMainPane:
         cmd4.state = CommandState.USER_CANCELLED
         test_wish.command_results.append(cmd4)
         
-        app = MainPaneTestApp()
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
             # Update with the test wish
             pane.update_wish(test_wish)
@@ -138,47 +138,26 @@ class TestMainPane:
             assert "🚫" in content.renderable  # Cancelled emoji
 
     @pytest.mark.asyncio
-    async def test_main_pane_update_for_new_wish_mode(self):
-        """Test that a MainPane can be updated for New Wish mode."""
-        app = MainPaneTestApp()
+    async def test_main_pane_update_for_wish_history_mode(self):
+        """Test that a WishHistoryMainPane can be updated for Wish History mode."""
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
-            # Update for New Wish mode
-            pane.update_for_new_wish_mode()
+            # Update for Wish History mode
+            pane.update_for_wish_history_mode()
             
             # Check that the content has been updated
             content = app.query_one("#main-pane-content")
             assert content is not None
-            assert "新しいWishを作成するモードです" in content.renderable
-    
-    @pytest.mark.asyncio
-    async def test_main_pane_content_update_on_wish_mode_switch(self):
-        """Test that the MainPane content is updated correctly when switching modes."""
-        app = MainPaneTestApp()
-        async with app.run_test():
-            pane = app.query_one(MainPane)
-            
-            # First update for New Wish mode
-            pane.update_for_new_wish_mode()
-            content = app.query_one("#main-pane-content")
-            assert "新しいWishを作成するモードです" in content.renderable
-            
-            # Then update with a wish (Wish History mode)
-            test_wish = Wish.create("Test wish")
-            pane.update_wish(test_wish)
-            
-            # Check that the content has been updated
-            content = app.query_one("#main-pane-content")
-            assert "Wish:" in content.renderable
-            assert "Test wish" in content.renderable
+            assert "Wish履歴表示モードです" in content.renderable
     
     @pytest.mark.asyncio
     async def test_main_pane_active_state(self):
-        """Test that a MainPane can be set to active."""
-        app = MainPaneTestApp()
+        """Test that a WishHistoryMainPane can be set to active."""
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
             # Initially not active
             assert "active-pane" not in pane.classes
@@ -193,7 +172,7 @@ class TestMainPane:
     
     @pytest.mark.asyncio
     async def test_main_pane_with_markup_characters(self):
-        """Test that a MainPane can handle wish and commands with markup characters."""
+        """Test that a WishHistoryMainPane can handle wish and commands with markup characters."""
         # Create a test wish with markup characters
         test_wish = Wish.create("Test wish with [markup] characters")
         
@@ -212,9 +191,9 @@ class TestMainPane:
         cmd3.state = CommandState.SUCCESS
         test_wish.command_results.append(cmd3)
         
-        app = MainPaneTestApp()
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
             # Update with the test wish
             pane.update_wish(test_wish)
@@ -236,7 +215,7 @@ class TestMainPane:
     
     @pytest.mark.asyncio
     async def test_main_pane_with_problematic_command(self):
-        """Test that a MainPane can handle commands with problematic characters."""
+        """Test that a WishHistoryMainPane can handle commands with problematic characters."""
         # Create a test wish
         test_wish = Wish.create("Test wish with problematic command")
         
@@ -247,9 +226,9 @@ class TestMainPane:
         cmd.state = CommandState.NETWORK_ERROR
         test_wish.command_results.append(cmd)
         
-        app = MainPaneTestApp()
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
             # Update with the test wish
             pane.update_wish(test_wish)
@@ -281,9 +260,9 @@ class TestMainPane:
             cmd.state = CommandState.SUCCESS
             test_wish.command_results.append(cmd)
         
-        app = MainPaneTestApp()
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
             # Update with the test wish
             pane.update_wish(test_wish)
@@ -320,9 +299,9 @@ class TestMainPane:
             cmd.state = CommandState.SUCCESS
             test_wish.command_results.append(cmd)
         
-        app = MainPaneTestApp()
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
             # Update with the test wish
             pane.update_wish(test_wish)
@@ -355,7 +334,7 @@ class TestMainPane:
     
     @pytest.mark.asyncio
     async def test_main_pane_command_selection_with_keys(self):
-        """Test that commands can be selected with up/down keys in the MainPane."""
+        """Test that commands can be selected with up/down keys in the WishHistoryMainPane."""
         # Create a test wish with multiple commands
         test_wish = Wish.create("Test wish with multiple commands")
         
@@ -367,9 +346,9 @@ class TestMainPane:
             cmd.state = CommandState.SUCCESS
             test_wish.command_results.append(cmd)
         
-        app = MainPaneTestApp()
+        app = WishHistoryMainPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(MainPane)
+            pane = app.query_one(WishHistoryMainPane)
             
             # Update with the test wish
             pane.update_wish(test_wish)

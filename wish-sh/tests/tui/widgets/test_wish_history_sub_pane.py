@@ -1,4 +1,4 @@
-"""Tests for the SubPane widget."""
+"""Tests for the WishHistorySubPane widget."""
 
 import os
 import tempfile
@@ -8,55 +8,70 @@ import pytest
 from textual.app import App, ComposeResult
 from wish_models import CommandResult, LogFiles, CommandState, UtcDatetime
 
-from wish_sh.tui.widgets.sub_pane import SubPane
+from wish_sh.tui.widgets.wish_history_sub_pane import WishHistorySubPane
 
 
-class SubPaneTestApp(App):
-    """Test application for SubPane."""
+class WishHistorySubPaneTestApp(App):
+    """Test application for WishHistorySubPane."""
 
     def compose(self) -> ComposeResult:
         """Compose the application."""
-        yield SubPane(id="sub-pane")
+        yield WishHistorySubPane(id="wish-history-sub-pane")
 
 
-class TestSubPane:
-    """Tests for the SubPane widget."""
+class TestWishHistorySubPane:
+    """Tests for the WishHistorySubPane widget."""
 
     @pytest.mark.asyncio
     async def test_sub_pane_creation(self):
-        """Test that a SubPane can be created."""
-        app = SubPaneTestApp()
+        """Test that a WishHistorySubPane can be created."""
+        app = WishHistorySubPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(SubPane)
+            pane = app.query_one(WishHistorySubPane)
             assert pane is not None
-            assert pane.id == "sub-pane"
+            assert pane.id == "wish-history-sub-pane"
             
             # Check that the pane shows the placeholder message
             content = app.query_one("#sub-pane-content")
             assert content is not None
-            assert content.renderable == "(Select a command to view details)"
+            assert content.renderable == pane.MSG_NO_COMMAND_SELECTED
 
     @pytest.mark.asyncio
-    async def test_sub_pane_update_for_new_wish_mode(self):
-        """Test that a SubPane can be updated for New Wish mode."""
-        app = SubPaneTestApp()
+    async def test_sub_pane_update_for_wish_history_mode(self):
+        """Test that a WishHistorySubPane can be updated for Wish History mode."""
+        app = WishHistorySubPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(SubPane)
+            pane = app.query_one(WishHistorySubPane)
             
-            # Update for New Wish mode
-            pane.update_for_new_wish_mode()
+            # Update for Wish History mode
+            pane.update_for_wish_history_mode()
             
             # Check that the content has been updated
             content = app.query_one("#sub-pane-content")
             assert content is not None
-            assert pane.MSG_NEW_WISH_MODE in content.renderable
+            assert pane.MSG_WISH_HISTORY_MODE in content.renderable
+
+    @pytest.mark.asyncio
+    async def test_sub_pane_clear_command_output(self):
+        """Test that a WishHistorySubPane can clear command output."""
+        app = WishHistorySubPaneTestApp()
+        async with app.run_test():
+            pane = app.query_one(WishHistorySubPane)
+            
+            # Clear command output
+            pane.clear_command_output()
+            
+            # Check that the pane shows the "No command selected" message
+            content = app.query_one("#sub-pane-content")
+            assert content is not None
+            assert content.renderable == pane.MSG_NO_COMMAND_SELECTED
 
     @pytest.mark.asyncio
     async def test_sub_pane_update_command_output_none(self):
-        """Test that a SubPane can be updated with no command result."""
-        app = SubPaneTestApp()
+        """Test that a WishHistorySubPane can be updated with no command result."""
+        app = WishHistorySubPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(SubPane)
+            pane = app.query_one(WishHistorySubPane)
             
             # Update with no command result
             pane.update_command_output(None)
@@ -68,7 +83,7 @@ class TestSubPane:
 
     @pytest.mark.asyncio
     async def test_sub_pane_update_command_output(self):
-        """Test that a SubPane can be updated with a command result."""
+        """Test that a WishHistorySubPane can be updated with a command result."""
         # Create a temporary file for stdout
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stdout_file:
             stdout_file.write("Hello, world!\n")
@@ -90,9 +105,9 @@ class TestSubPane:
             cmd_result.log_summary = "Command executed successfully"
             cmd_result.finished_at = UtcDatetime.now()
             
-            app = SubPaneTestApp()
+            app = WishHistorySubPaneTestApp()
             async with app.run_test():
-                pane = app.query_one(SubPane)
+                pane = app.query_one(WishHistorySubPane)
                 
                 # Update with the test command result
                 pane.update_command_output(cmd_result)
@@ -128,10 +143,10 @@ class TestSubPane:
 
     @pytest.mark.asyncio
     async def test_sub_pane_active_state(self):
-        """Test that a SubPane can be set to active."""
-        app = SubPaneTestApp()
+        """Test that a WishHistorySubPane can be set to active."""
+        app = WishHistorySubPaneTestApp()
         async with app.run_test():
-            pane = app.query_one(SubPane)
+            pane = app.query_one(WishHistorySubPane)
             
             # Initially not active
             assert "active-pane" not in pane.classes
@@ -146,7 +161,7 @@ class TestSubPane:
     
     @pytest.mark.asyncio
     async def test_sub_pane_with_markup_characters(self):
-        """Test that a SubPane can handle commands with markup characters."""
+        """Test that a WishHistorySubPane can handle commands with markup characters."""
         # Create a temporary file for stdout with markup characters
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stdout_file:
             stdout_file.write("Output with [bold]markup[/bold] characters\n")
@@ -168,9 +183,9 @@ class TestSubPane:
             cmd_result.state = CommandState.SUCCESS
             cmd_result.exit_code = 0
             
-            app = SubPaneTestApp()
+            app = WishHistorySubPaneTestApp()
             async with app.run_test():
-                pane = app.query_one(SubPane)
+                pane = app.query_one(WishHistorySubPane)
                 
                 # Update with the test command result
                 pane.update_command_output(cmd_result)
@@ -198,7 +213,7 @@ class TestSubPane:
     
     @pytest.mark.asyncio
     async def test_sub_pane_with_problematic_command(self):
-        """Test that a SubPane can handle problematic commands."""
+        """Test that a WishHistorySubPane can handle problematic commands."""
         # Create empty temporary files for stdout and stderr
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stdout_file:
             stdout_path = stdout_file.name
@@ -218,9 +233,9 @@ class TestSubPane:
             cmd_result.log_summary = "Network connection failed"
             cmd_result.finished_at = UtcDatetime.now()
             
-            app = SubPaneTestApp()
+            app = WishHistorySubPaneTestApp()
             async with app.run_test():
-                pane = app.query_one(SubPane)
+                pane = app.query_one(WishHistorySubPane)
                 
                 # Update with the test command result
                 pane.update_command_output(cmd_result)
@@ -251,9 +266,10 @@ class TestSubPane:
             # Clean up temporary files
             os.unlink(stdout_path)
             os.unlink(stderr_path)
+    
     @pytest.mark.asyncio
     async def test_sub_pane_with_running_command(self):
-        """Test that a SubPane can handle a running command."""
+        """Test that a WishHistorySubPane can handle a running command."""
         # Create empty temporary files for stdout and stderr
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as stdout_file:
             stdout_file.write("Running command output...\n")
@@ -270,9 +286,9 @@ class TestSubPane:
             # State should be DOING for a running command
             # finished_at and exit_code should be None
             
-            app = SubPaneTestApp()
+            app = WishHistorySubPaneTestApp()
             async with app.run_test():
-                pane = app.query_one(SubPane)
+                pane = app.query_one(WishHistorySubPane)
                 
                 # Update with the test command result
                 pane.update_command_output(cmd_result)
