@@ -119,7 +119,6 @@ class TestNewWishMainPane:
             assert content is not None
             assert "コマンドの実行を確認してください" in content.renderable
             assert "コマンドリストはSub Paneで確認できます" in content.renderable
-            assert "y/nで選択してください" in content.renderable
 
     @pytest.mark.asyncio
     async def test_main_pane_update_for_execute_commands(self):

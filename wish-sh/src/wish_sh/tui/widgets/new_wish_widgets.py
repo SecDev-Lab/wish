@@ -37,22 +37,30 @@ class WishInputForm(Static):
     def on_mount(self) -> None:
         """Event handler called when the widget is mounted."""
         # Ensure the shell terminal gets focus
-        shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
-        shell_terminal.focus()
-        
-        # 確実にフォーカスが設定されるようにタイマーを設定
-        self.set_timer(0.1, self._ensure_shell_terminal_focus)
-        # 定期的にフォーカスを確認するタイマーを設定
-        self.set_interval(1.0, self._ensure_shell_terminal_focus)
+        try:
+            shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
+            shell_terminal.focus()
+            
+            # 確実にフォーカスが設定されるようにタイマーを設定
+            self.set_timer(0.1, self._ensure_shell_terminal_focus)
+            # 定期的にフォーカスを確認するタイマーを設定
+            self.set_interval(1.0, self._ensure_shell_terminal_focus)
+        except Exception as e:
+            logger = setup_logger("wish_sh.tui.WishInputForm")
+            logger.error(f"Error focusing shell terminal: {e}")
 
     def on_show(self) -> None:
         """Event handler called when the widget is shown."""
         # Ensure the shell terminal gets focus when shown
-        shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
-        shell_terminal.focus()
-        
-        # 確実にフォーカスが設定されるようにタイマーを設定
-        self.set_timer(0.1, self._ensure_shell_terminal_focus)
+        try:
+            shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
+            shell_terminal.focus()
+            
+            # 確実にフォーカスが設定されるようにタイマーを設定
+            self.set_timer(0.1, self._ensure_shell_terminal_focus)
+        except Exception as e:
+            logger = setup_logger("wish_sh.tui.WishInputForm")
+            logger.error(f"Error focusing shell terminal: {e}")
     
     def _ensure_shell_terminal_focus(self) -> None:
         """シェルターミナルウィジェットのフォーカスを確実に設定する"""
@@ -73,8 +81,12 @@ class WishInputForm(Static):
     def on_key(self, event) -> None:
         """キーイベントを処理する"""
         # シェルターミナルにフォーカスを設定
-        shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
-        shell_terminal.focus()
+        try:
+            shell_terminal = self.query_one("#shell-terminal", ShellTerminalWidget)
+            shell_terminal.focus()
+        except Exception as e:
+            logger = setup_logger("wish_sh.tui.WishInputForm")
+            logger.error(f"Error focusing shell terminal: {e}")
         
         # イベントを消費せず、伝播させる
         # シェルターミナルが処理できるようにする

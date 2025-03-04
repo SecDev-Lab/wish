@@ -156,8 +156,10 @@ class NewWishPaneComposite(PaneComposite):
                     child.remove()
             
             # 新しいフォームをマウント
-            wish_input_form = WishInputForm(id="wish-input-form")
-            self.logger.debug("Mounting WishInputForm")
+            import uuid
+            unique_id = f"wish-input-form-{uuid.uuid4().hex[:8]}"
+            wish_input_form = WishInputForm(id=unique_id)
+            self.logger.debug(f"Mounting WishInputForm with ID: {unique_id}")
             self.main_pane.mount(wish_input_form)
             
             # ShellTerminalWidgetにフォーカスを設定

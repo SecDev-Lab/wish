@@ -42,12 +42,12 @@ class NewWishSubPane(BasePane):
     def update_for_input_wish(self):
         """Update for INPUT_WISH state."""
         # 入力状態では、コマンド関連の情報を表示（まだコマンドはない）
-        self.update_content("sub-pane-content", "コマンドはまだありません。Wishを入力するとコマンドが表示されます。")
+        self.update_content("sub-pane-content", "Wishを入力してください")
     
     def update_for_ask_wish_detail(self):
         """Update for ASK_WISH_DETAIL state."""
         # 詳細入力状態では、コマンド関連の情報を表示（まだコマンドはない）
-        self.update_content("sub-pane-content", "コマンドはまだありません。詳細情報を入力するとコマンドが生成されます。")
+        self.update_content("sub-pane-content", "Please enter the target IP address or hostname")
     
     def update_for_suggest_commands(self, commands: List[str] = None):
         """Update for SUGGEST_COMMANDS state.

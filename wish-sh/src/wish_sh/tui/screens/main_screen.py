@@ -223,9 +223,19 @@ class MainScreen(Screen):
             # Update panes for NEW WISH mode
             self.active_composite.update_for_mode()
             
-            # SUGGEST_COMMANDS状態の場合は、Sub Paneにフォーカスを移動
+            # Update UI for NEW WISH mode
+            self.update_new_wish_ui()
+            
+            # SUGGEST_COMMANDS状態の場合は、Sub Paneにフォーカスを移動（Main Paneの内容はクリアしない）
             if self.new_wish_composite.new_wish_turns.current_state == NewWishState.SUGGEST_COMMANDS:
-                self.activate_pane("sub-pane")
+                # Sub Paneをアクティブにするが、Main Paneの内容はそのまま
+                self.new_wish_sub_pane.set_active(True)
+                self.new_wish_main_pane.set_active(False)
+                self.wish_select.set_active(False)
+                self.new_wish_sub_pane.focus()
+                
+                # ヘルプテキストを更新
+                self.help_pane.update_help("sub-pane")
         else:
             # Show WISH HISTORY panes
             self.wish_history_main_pane.display = True
@@ -269,9 +279,16 @@ class MainScreen(Screen):
             # UIを更新
             self.new_wish_composite.update_for_state()
             
-            # SUGGEST_COMMANDS状態の場合は、Sub Paneにフォーカスを移動
+            # SUGGEST_COMMANDS状態の場合は、Sub Paneにフォーカスを移動（Main Paneの内容はクリアしない）
             if self.new_wish_composite.new_wish_turns.current_state == NewWishState.SUGGEST_COMMANDS:
-                self.activate_pane("sub-pane")
+                # Sub Paneをアクティブにするが、Main Paneの内容はそのまま
+                self.new_wish_sub_pane.set_active(True)
+                self.new_wish_main_pane.set_active(False)
+                self.wish_select.set_active(False)
+                self.new_wish_sub_pane.focus()
+                
+                # ヘルプテキストを更新
+                self.help_pane.update_help("sub-pane")
         except Exception as e:
             self.logger.error(f"Error handling WishInputSubmitted: {e}")
     
@@ -280,9 +297,16 @@ class MainScreen(Screen):
         self.new_wish_composite.handle_wish_detail(event.detail)
         self.new_wish_composite.update_for_state()
         
-        # SUGGEST_COMMANDS状態の場合は、Sub Paneにフォーカスを移動
+        # SUGGEST_COMMANDS状態の場合は、Sub Paneにフォーカスを移動（Main Paneの内容はクリアしない）
         if self.new_wish_composite.new_wish_turns.current_state == NewWishState.SUGGEST_COMMANDS:
-            self.activate_pane("sub-pane")
+            # Sub Paneをアクティブにするが、Main Paneの内容はそのまま
+            self.new_wish_sub_pane.set_active(True)
+            self.new_wish_main_pane.set_active(False)
+            self.wish_select.set_active(False)
+            self.new_wish_sub_pane.focus()
+            
+            # ヘルプテキストを更新
+            self.help_pane.update_help("sub-pane")
     
     def on_commands_accepted(self, event: CommandsAccepted) -> None:
         """Handle CommandsAccepted message."""
@@ -304,9 +328,16 @@ class MainScreen(Screen):
         self.new_wish_composite.handle_commands_adjusted(event.commands)
         self.new_wish_composite.update_for_state()
         
-        # SUGGEST_COMMANDS状態の場合は、Sub Paneにフォーカスを移動
+        # SUGGEST_COMMANDS状態の場合は、Sub Paneにフォーカスを移動（Main Paneの内容はクリアしない）
         if self.new_wish_composite.new_wish_turns.current_state == NewWishState.SUGGEST_COMMANDS:
-            self.activate_pane("sub-pane")
+            # Sub Paneをアクティブにするが、Main Paneの内容はそのまま
+            self.new_wish_sub_pane.set_active(True)
+            self.new_wish_main_pane.set_active(False)
+            self.wish_select.set_active(False)
+            self.new_wish_sub_pane.focus()
+            
+            # ヘルプテキストを更新
+            self.help_pane.update_help("sub-pane")
     
     def on_command_adjust_cancelled(self, event: CommandAdjustCancelled) -> None:
         """Handle CommandAdjustCancelled message."""
@@ -386,6 +417,12 @@ class MainScreen(Screen):
                 self.logger.error("ShellTerminalWidget not found in Sub Pane")
         except Exception as e:
             self.logger.error(f"Error focusing ShellTerminalWidget in Sub Pane: {e}")
+    
+    def update_new_wish_ui(self) -> None:
+        """Update the UI for NEW_WISH mode."""
+        # Update the new wish panes
+        self.new_wish_main_pane.update_for_input_wish()
+        self.new_wish_sub_pane.update_for_input_wish()
     
     def _ensure_shell_terminal_focus(self, shell_terminal=None) -> None:
         """シェルターミナルウィジェットのフォーカスを確実に設定する"""

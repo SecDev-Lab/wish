@@ -75,9 +75,11 @@ class NewWishMainPane(BasePane):
         if self.current_wish_text:
             content = f"[b]Wish:[/b] {self.current_wish_text}\n\n"
             content += "[b]コマンドを修正してください[/b]"
+            content += "\nコマンドリストはSub Paneで確認できます"
             self.update_content("main-pane-content", content)
         else:
             content = "[b]コマンドを修正してください[/b]"
+            content += "\nコマンドリストはSub Paneで確認できます"
             self.update_content("main-pane-content", content)
     
     def update_for_confirm_commands(self, commands: List[str] = None):
@@ -90,9 +92,11 @@ class NewWishMainPane(BasePane):
         if self.current_wish_text:
             content = f"[b]Wish:[/b] {self.current_wish_text}\n\n"
             content += "[b]コマンドの実行を確認してください[/b]"
+            content += "\nコマンドリストはSub Paneで確認できます"
             self.update_content("main-pane-content", content)
         else:
             content = "[b]コマンドの実行を確認してください[/b]"
+            content += "\nコマンドリストはSub Paneで確認できます"
             self.update_content("main-pane-content", content)
     
     def update_for_execute_commands(self, commands: List[str] = None):
@@ -105,9 +109,11 @@ class NewWishMainPane(BasePane):
         if self.current_wish_text:
             content = f"[b]Wish:[/b] {self.current_wish_text}\n\n"
             content += "[b]コマンドを実行中...[/b]"
+            content += "\n実行中のコマンドはSub Paneで確認できます"
             self.update_content("main-pane-content", content)
         else:
             content = "[b]コマンドを実行中...[/b]"
+            content += "\n実行中のコマンドはSub Paneで確認できます"
             self.update_content("main-pane-content", content)
     
     def set_wish_text(self, wish_text: str):
