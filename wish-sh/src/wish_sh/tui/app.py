@@ -19,6 +19,7 @@ class WishTUIApp(App):
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),
         Binding("q", "confirm_quit", "Confirm Quit"),
+        Binding("escape", "confirm_quit", "Quit"),
         Binding("left", "focus_wish_select", "Focus Wish Select"),
         Binding("ctrl+h", "focus_wish_select", "Focus Wish Select"),
         Binding("right", "focus_main", "Focus Main"),

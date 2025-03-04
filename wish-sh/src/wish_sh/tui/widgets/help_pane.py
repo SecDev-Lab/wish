@@ -45,7 +45,7 @@ class HelpPane(Container):
             f"{self._style_shortcut('→/Ctrl+l')} Main | "
             f"{self._style_shortcut('Ctrl+↑/k')} Main | "
             f"{self._style_shortcut('Ctrl+↓/j')} Sub | "
-            f"{self._style_shortcut('q')} Confirm Quit | "
+            f"{self._style_shortcut('Esc/q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
         )
     
@@ -59,7 +59,7 @@ class HelpPane(Container):
             f"Help: {self._style_shortcut('↑↓/k j')} Select Wish | "
             f"{self._style_shortcut('Enter/Space')} Decide & Go to Main | "
             f"{self._style_shortcut('→/Ctrl+l')} Main | "
-            f"{self._style_shortcut('q')} Confirm Quit | "
+            f"{self._style_shortcut('Esc/q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
         )
     
@@ -74,7 +74,7 @@ class HelpPane(Container):
             f"{self._style_shortcut('↑↓/k j')} Select Command | "
             f"{self._style_shortcut('Enter/Space')} Decide & Go to Sub | "
             f"{self._style_shortcut('Ctrl+↓/j')} Sub | "
-            f"{self._style_shortcut('q')} Confirm Quit | "
+            f"{self._style_shortcut('Esc/q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
         )
     
@@ -90,7 +90,7 @@ class HelpPane(Container):
             f"{self._style_shortcut('j/k')} Line Down/Up | "
             f"{self._style_shortcut('o')} View Full Output | "
             f"{self._style_shortcut('e')} View Full Error | "
-            f"{self._style_shortcut('q')} Confirm Quit | "
+            f"{self._style_shortcut('Esc/q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
         )
 
