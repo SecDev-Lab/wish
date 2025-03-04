@@ -276,9 +276,7 @@ class MainScreen(Screen):
         
         # 現在の状態に応じてUIを更新
         current_state = self.new_wish_composite.new_wish_turns.current_state
-        
-        # テスト用に、new_wish_main_paneの内容を更新
-        self.new_wish_main_pane.update_for_input_wish()
+        self.logger.debug(f"Updating UI for state: {current_state}")
         
         # 現在の状態に応じてUIを更新
         if current_state == NewWishState.INPUT_WISH:

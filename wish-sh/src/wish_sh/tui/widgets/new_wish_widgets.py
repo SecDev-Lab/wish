@@ -120,25 +120,89 @@ class WishDetailForm(Static):
         """
         super().__init__(*args, **kwargs)
         self.question = question
+        self.logger = setup_logger("wish_sh.tui.WishDetailForm")
+        self.waiting_for_response = False
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Label(self.question, id="wish-detail-label")
-        yield Input(placeholder="e.g. 10.10.10.40", id="wish-detail-field")
-        
-        with Horizontal(id="wish-detail-buttons"):
-            yield Button("Submit", id="wish-detail-submit-button", variant="primary")
-            yield Button("Back", id="wish-detail-back-button")
+        # シェルターミナルウィジェットを使用
+        yield ShellTerminalWidget(id="shell-terminal-detail")
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button press events."""
-        if event.button.id == "wish-detail-submit-button":
-            detail = self.query_one("#wish-detail-field").value
-            if detail:
-                self.post_message(WishDetailSubmitted(detail))
-        elif event.button.id == "wish-detail-back-button":
-            # Post a message to go back to the input state
+    def on_mount(self) -> None:
+        """Event handler called when the widget is mounted."""
+        try:
+            # デバッグログを追加
+            self.logger.debug("WishDetailForm.on_mount() called")
+            
+            # シェルターミナルを取得
+            self.shell_terminal = self.query_one("#shell-terminal-detail", ShellTerminalWidget)
+            self.logger.debug(f"Shell terminal found: {self.shell_terminal}")
+            
+            # 質問を表示
+            message = f"{self.question}\n(e.g. 10.10.10.40, or type 'back' to return)\n> "
+            self.logger.debug(f"Adding output to shell terminal: {message}")
+            self.shell_terminal.add_output(message)
+            
+            # 入力待機状態に設定
+            self.waiting_for_response = True
+            
+            # シェルターミナルにフォーカスを設定
+            self.logger.debug("Setting focus to shell terminal")
+            self.shell_terminal.focus()
+            
+            # 確実にフォーカスが設定されるようにタイマーを設定
+            self.set_timer(0.1, self._ensure_shell_terminal_focus)
+            # 定期的にフォーカスを確認するタイマーを設定
+            self.set_interval(1.0, self._ensure_shell_terminal_focus)
+            
+            # WishInputSubmittedメッセージをハンドリング
+            self.shell_terminal.on_wish_input_submitted = self.on_wish_input_submitted
+            
+            # 出力が表示されていることを確認
+            self.logger.debug("WishDetailForm.on_mount() completed")
+        except Exception as e:
+            self.logger.error(f"Error in WishDetailForm.on_mount(): {e}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+    
+    def _ensure_shell_terminal_focus(self) -> None:
+        """シェルターミナルウィジェットのフォーカスを確実に設定する"""
+        try:
+            shell_terminal = self.query_one("#shell-terminal-detail", ShellTerminalWidget)
+            shell_terminal.focus()
+            
+            # 現在のフォーカスを確認
+            from textual.app import App
+            app = App.get()
+            if app.focused is not shell_terminal:
+                self.logger.warning(f"Shell terminal is not focused, current focus: {app.focused}")
+                # 再度フォーカスを設定
+                shell_terminal.focus()
+        except Exception as e:
+            self.logger.error(f"Error ensuring shell terminal focus: {e}")
+
+    def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
+        """Handle wish input submitted event."""
+        if not self.waiting_for_response:
+            return
+            
+        response = event.wish_text.strip()
+        self.logger.debug(f"WishDetailForm received response: {response}")
+        
+        if response.lower() == 'back':
+            self.logger.debug("Posting CommandsRejected message")
             self.post_message(CommandsRejected())
+            # メッセージが処理されるまでフラグをリセットしない
+            # self.waiting_for_response = False
+        elif response:
+            self.logger.debug(f"Posting WishDetailSubmitted message with detail: {response}")
+            self.post_message(WishDetailSubmitted(response))
+            # メッセージが処理されるまでフラグをリセットしない
+            # self.waiting_for_response = False
+        else:
+            # 空の応答の場合、再度入力を促す
+            self.logger.debug("Empty response, prompting again")
+            self.shell_terminal.add_output("Please enter a valid value or type 'back' to return.\n> ")
 
 
 class CommandSuggestForm(Static):
@@ -154,28 +218,95 @@ class CommandSuggestForm(Static):
         """
         super().__init__(*args, **kwargs)
         self.commands = commands
+        self.logger = setup_logger("wish_sh.tui.CommandSuggestForm")
+        self.waiting_for_response = False
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Label("Do you want to execute these commands?", id="command-suggest-label")
-        
-        with Vertical(id="command-list"):
-            for i, cmd in enumerate(self.commands, 1):
-                yield Static(f"[{i}] {cmd}", id=f"command-{i}", markup=False)
-        
-        with Horizontal(id="command-suggest-buttons"):
-            yield Button("Yes", id="command-yes-button", variant="primary")
-            yield Button("No", id="command-no-button")
-            yield Button("Adjust", id="command-adjust-button")
+        # シェルターミナルウィジェットを使用
+        yield ShellTerminalWidget(id="shell-terminal-suggest")
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button press events."""
-        if event.button.id == "command-yes-button":
+    def on_mount(self) -> None:
+        """Event handler called when the widget is mounted."""
+        try:
+            # デバッグログを追加
+            self.logger.debug("CommandSuggestForm.on_mount() called")
+            
+            # シェルターミナルを取得
+            self.shell_terminal = self.query_one("#shell-terminal-suggest", ShellTerminalWidget)
+            self.logger.debug(f"Shell terminal found: {self.shell_terminal}")
+            
+            # コマンドリストを表示
+            command_list = "\n".join([f"[{i}] {cmd}" for i, cmd in enumerate(self.commands, 1)])
+            message = f"Do you want to execute these commands?\n\n{command_list}\n\n(y/n/a) > "
+            self.logger.debug(f"Adding output to shell terminal: {message}")
+            self.shell_terminal.add_output(message)
+            
+            # 入力待機状態に設定
+            self.waiting_for_response = True
+            
+            # シェルターミナルにフォーカスを設定
+            self.logger.debug("Setting focus to shell terminal")
+            self.shell_terminal.focus()
+            
+            # 確実にフォーカスが設定されるようにタイマーを設定
+            self.set_timer(0.1, self._ensure_shell_terminal_focus)
+            # 定期的にフォーカスを確認するタイマーを設定
+            self.set_interval(1.0, self._ensure_shell_terminal_focus)
+            
+            # WishInputSubmittedメッセージをハンドリング
+            self.shell_terminal.on_wish_input_submitted = self.on_wish_input_submitted
+            
+            # 出力が表示されていることを確認
+            self.logger.debug("CommandSuggestForm.on_mount() completed")
+        except Exception as e:
+            self.logger.error(f"Error in CommandSuggestForm.on_mount(): {e}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+    
+    def _ensure_shell_terminal_focus(self) -> None:
+        """シェルターミナルウィジェットのフォーカスを確実に設定する"""
+        try:
+            shell_terminal = self.query_one("#shell-terminal-suggest", ShellTerminalWidget)
+            shell_terminal.focus()
+            
+            # 現在のフォーカスを確認
+            from textual.app import App
+            app = App.get()
+            if app.focused is not shell_terminal:
+                self.logger.warning(f"Shell terminal is not focused, current focus: {app.focused}")
+                # 再度フォーカスを設定
+                shell_terminal.focus()
+        except Exception as e:
+            self.logger.error(f"Error ensuring shell terminal focus: {e}")
+
+    def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
+        """Handle wish input submitted event."""
+        if not self.waiting_for_response:
+            return
+            
+        response = event.wish_text.lower().strip()
+        self.logger.debug(f"CommandSuggestForm received response: {response}")
+        
+        if response in ['y', 'yes']:
+            self.logger.debug("Posting CommandsAccepted message")
             self.post_message(CommandsAccepted())
-        elif event.button.id == "command-no-button":
+            # メッセージが処理されるまでフラグをリセットしない
+            # self.waiting_for_response = False
+        elif response in ['n', 'no']:
+            self.logger.debug("Posting CommandsRejected message")
             self.post_message(CommandsRejected())
-        elif event.button.id == "command-adjust-button":
+            # メッセージが処理されるまでフラグをリセットしない
+            # self.waiting_for_response = False
+        elif response in ['a', 'adjust']:
+            self.logger.debug("Posting CommandAdjustRequested message")
             self.post_message(CommandAdjustRequested())
+            # メッセージが処理されるまでフラグをリセットしない
+            # self.waiting_for_response = False
+        else:
+            # 無効な応答の場合、再度入力を促す
+            self.logger.debug(f"Invalid response: {response}, prompting again")
+            self.shell_terminal.add_output("Invalid response. Please enter 'y', 'n', or 'a'.\n(y/n/a) > ")
 
 
 class CommandAdjustForm(Static):
@@ -191,37 +322,139 @@ class CommandAdjustForm(Static):
         """
         super().__init__(*args, **kwargs)
         self.commands = commands
-        self.command_inputs = []
+        self.logger = setup_logger("wish_sh.tui.CommandAdjustForm")
+        self.waiting_for_response = False
+        self.current_command_index = 0
+        self.adjusted_commands = list(commands)  # コピーを作成
+        self.skipped_commands = [False] * len(commands)  # スキップフラグ
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Label("Specify which commands to execute or adjust:", id="command-adjust-label")
-        
-        with Vertical(id="command-adjust-list"):
-            for i, cmd in enumerate(self.commands, 1):
-                with Horizontal(id=f"command-row-{i}"):
-                    yield Checkbox(value=True, id=f"command-check-{i}")
-                    yield Input(value=cmd, id=f"command-input-{i}")
-                    self.command_inputs.append(f"command-input-{i}")
-        
-        with Horizontal(id="command-adjust-buttons"):
-            yield Button("Apply", id="command-apply-button", variant="primary")
-            yield Button("Cancel", id="command-cancel-button")
+        # シェルターミナルウィジェットを使用
+        yield ShellTerminalWidget(id="shell-terminal-adjust")
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button press events."""
-        if event.button.id == "command-apply-button":
-            adjusted_commands = []
-            for i, input_id in enumerate(self.command_inputs, 1):
-                checkbox = self.query_one(f"#command-check-{i}")
-                input_field = self.query_one(f"#{input_id}")
-                if checkbox.value:
-                    adjusted_commands.append(input_field.value)
+    def on_mount(self) -> None:
+        """Event handler called when the widget is mounted."""
+        try:
+            # デバッグログを追加
+            self.logger.debug("CommandAdjustForm.on_mount() called")
             
-            if adjusted_commands:
-                self.post_message(CommandsAdjusted(adjusted_commands))
-        elif event.button.id == "command-cancel-button":
+            # シェルターミナルを取得
+            self.shell_terminal = self.query_one("#shell-terminal-adjust", ShellTerminalWidget)
+            self.logger.debug(f"Shell terminal found: {self.shell_terminal}")
+            
+            # 初期メッセージを表示
+            self.logger.debug("Adding initial message to shell terminal")
+            self.shell_terminal.add_output("Specify which commands to execute or adjust:\n\n")
+            
+            # コマンドリストを表示
+            self.logger.debug("Displaying command list")
+            self._display_commands()
+            
+            # 最初のコマンドの調整を開始
+            self.logger.debug("Prompting for first command")
+            self._prompt_for_next_command()
+            
+            # 入力待機状態に設定
+            self.waiting_for_response = True
+            
+            # シェルターミナルにフォーカスを設定
+            self.logger.debug("Setting focus to shell terminal")
+            self.shell_terminal.focus()
+            
+            # 確実にフォーカスが設定されるようにタイマーを設定
+            self.set_timer(0.1, self._ensure_shell_terminal_focus)
+            # 定期的にフォーカスを確認するタイマーを設定
+            self.set_interval(1.0, self._ensure_shell_terminal_focus)
+            
+            # WishInputSubmittedメッセージをハンドリング
+            self.shell_terminal.on_wish_input_submitted = self.on_wish_input_submitted
+            
+            # 出力が表示されていることを確認
+            self.logger.debug("CommandAdjustForm.on_mount() completed")
+        except Exception as e:
+            self.logger.error(f"Error in CommandAdjustForm.on_mount(): {e}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+    
+    def _ensure_shell_terminal_focus(self) -> None:
+        """シェルターミナルウィジェットのフォーカスを確実に設定する"""
+        try:
+            shell_terminal = self.query_one("#shell-terminal-adjust", ShellTerminalWidget)
+            shell_terminal.focus()
+            
+            # 現在のフォーカスを確認
+            from textual.app import App
+            app = App.get()
+            if app.focused is not shell_terminal:
+                self.logger.warning(f"Shell terminal is not focused, current focus: {app.focused}")
+                # 再度フォーカスを設定
+                shell_terminal.focus()
+        except Exception as e:
+            self.logger.error(f"Error ensuring shell terminal focus: {e}")
+
+    def _display_commands(self) -> None:
+        """現在のコマンドリストを表示する"""
+        command_list = ""
+        for i, cmd in enumerate(self.adjusted_commands, 1):
+            status = "[スキップ]" if self.skipped_commands[i-1] else ""
+            command_list += f"[{i}] {cmd} {status}\n"
+        self.shell_terminal.add_output(f"{command_list}\n")
+
+    def _prompt_for_next_command(self) -> None:
+        """次のコマンドの調整を促す"""
+        if self.current_command_index < len(self.adjusted_commands):
+            cmd = self.adjusted_commands[self.current_command_index]
+            self.shell_terminal.add_output(f"Command [{self.current_command_index + 1}]: {cmd}\n")
+            self.shell_terminal.add_output("Enter new command (or 'skip' to skip, 'keep' to keep as is, 'done' to finish, 'cancel' to cancel):\n> ")
+        else:
+            # すべてのコマンドを処理した場合
+            self.shell_terminal.add_output("All commands processed. Type 'done' to apply changes or 'cancel' to cancel:\n> ")
+
+    def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
+        """Handle wish input submitted event."""
+        if not self.waiting_for_response:
+            return
+            
+        response = event.wish_text.strip()
+        
+        if response.lower() == 'cancel':
             self.post_message(CommandAdjustCancelled())
+            self.waiting_for_response = False
+            return
+            
+        if response.lower() == 'done':
+            # スキップされていないコマンドのみを含める
+            final_commands = [cmd for i, cmd in enumerate(self.adjusted_commands) if not self.skipped_commands[i]]
+            if final_commands:
+                self.post_message(CommandsAdjusted(final_commands))
+            else:
+                self.shell_terminal.add_output("No commands selected. Please select at least one command or cancel.\n> ")
+                return
+            self.waiting_for_response = False
+            return
+            
+        if self.current_command_index < len(self.adjusted_commands):
+            if response.lower() == 'skip':
+                # このコマンドをスキップ
+                self.skipped_commands[self.current_command_index] = True
+                self.current_command_index += 1
+            elif response.lower() == 'keep':
+                # このコマンドをそのまま保持
+                self.current_command_index += 1
+            elif response:
+                # コマンドを更新
+                self.adjusted_commands[self.current_command_index] = response
+                self.current_command_index += 1
+            
+            # 更新されたコマンドリストを表示
+            self.shell_terminal.add_output("\nCurrent commands:\n")
+            self._display_commands()
+            
+            # 次のコマンドの処理へ
+            self._prompt_for_next_command()
+        else:
+            self.shell_terminal.add_output("All commands processed. Type 'done' to apply changes or 'cancel' to cancel:\n> ")
 
 
 class CommandConfirmForm(Static):
@@ -237,25 +470,90 @@ class CommandConfirmForm(Static):
         """
         super().__init__(*args, **kwargs)
         self.commands = commands
+        self.logger = setup_logger("wish_sh.tui.CommandConfirmForm")
+        self.waiting_for_response = False
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Label("The following commands will be executed:", id="command-confirm-label")
-        
-        with Vertical(id="command-confirm-list"):
-            for i, cmd in enumerate(self.commands, 1):
-                yield Static(f"[{i}] {cmd}", id=f"command-confirm-{i}", markup=False)
-        
-        with Horizontal(id="command-confirm-buttons"):
-            yield Button("Execute", id="command-execute-button", variant="primary")
-            yield Button("Cancel", id="command-cancel-button")
+        # シェルターミナルウィジェットを使用
+        yield ShellTerminalWidget(id="shell-terminal-confirm")
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button press events."""
-        if event.button.id == "command-execute-button":
+    def on_mount(self) -> None:
+        """Event handler called when the widget is mounted."""
+        try:
+            # デバッグログを追加
+            self.logger.debug("CommandConfirmForm.on_mount() called")
+            
+            # シェルターミナルを取得
+            self.shell_terminal = self.query_one("#shell-terminal-confirm", ShellTerminalWidget)
+            self.logger.debug(f"Shell terminal found: {self.shell_terminal}")
+            
+            # コマンドリストを表示
+            command_list = "\n".join([f"[{i}] {cmd}" for i, cmd in enumerate(self.commands, 1)])
+            message = f"The following commands will be executed:\n\n{command_list}\n\nExecute? (y/n) > "
+            self.logger.debug(f"Adding output to shell terminal: {message}")
+            self.shell_terminal.add_output(message)
+            
+            # 入力待機状態に設定
+            self.waiting_for_response = True
+            
+            # シェルターミナルにフォーカスを設定
+            self.logger.debug("Setting focus to shell terminal")
+            self.shell_terminal.focus()
+            
+            # 確実にフォーカスが設定されるようにタイマーを設定
+            self.set_timer(0.1, self._ensure_shell_terminal_focus)
+            # 定期的にフォーカスを確認するタイマーを設定
+            self.set_interval(1.0, self._ensure_shell_terminal_focus)
+            
+            # WishInputSubmittedメッセージをハンドリング
+            self.shell_terminal.on_wish_input_submitted = self.on_wish_input_submitted
+            
+            # 出力が表示されていることを確認
+            self.logger.debug("CommandConfirmForm.on_mount() completed")
+        except Exception as e:
+            self.logger.error(f"Error in CommandConfirmForm.on_mount(): {e}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+    
+    def _ensure_shell_terminal_focus(self) -> None:
+        """シェルターミナルウィジェットのフォーカスを確実に設定する"""
+        try:
+            shell_terminal = self.query_one("#shell-terminal-confirm", ShellTerminalWidget)
+            shell_terminal.focus()
+            
+            # 現在のフォーカスを確認
+            from textual.app import App
+            app = App.get()
+            if app.focused is not shell_terminal:
+                self.logger.warning(f"Shell terminal is not focused, current focus: {app.focused}")
+                # 再度フォーカスを設定
+                shell_terminal.focus()
+        except Exception as e:
+            self.logger.error(f"Error ensuring shell terminal focus: {e}")
+
+    def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
+        """Handle wish input submitted event."""
+        if not self.waiting_for_response:
+            return
+            
+        response = event.wish_text.lower().strip()
+        self.logger.debug(f"CommandConfirmForm received response: {response}")
+        
+        if response in ['y', 'yes']:
+            self.logger.debug("Posting ExecutionConfirmed message")
             self.post_message(ExecutionConfirmed())
-        elif event.button.id == "command-cancel-button":
+            # メッセージが処理されるまでフラグをリセットしない
+            # self.waiting_for_response = False
+        elif response in ['n', 'no']:
+            self.logger.debug("Posting ExecutionCancelled message")
             self.post_message(ExecutionCancelled())
+            # メッセージが処理されるまでフラグをリセットしない
+            # self.waiting_for_response = False
+        else:
+            # 無効な応答の場合、再度入力を促す
+            self.logger.debug(f"Invalid response: {response}, prompting again")
+            self.shell_terminal.add_output("Invalid response. Please enter 'y' or 'n'.\n(y/n) > ")
 
 
 class CommandExecuteStatus(Static):
@@ -271,19 +569,82 @@ class CommandExecuteStatus(Static):
         """
         super().__init__(*args, **kwargs)
         self.commands = commands
+        self.logger = setup_logger("wish_sh.tui.CommandExecuteStatus")
+        self.waiting_for_response = False
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield Label("Executing commands:", id="command-execute-label")
-        
-        with Vertical(id="command-execute-list"):
-            for i, cmd in enumerate(self.commands, 1):
-                yield Static(f"[{i}] {cmd} [🔄 Running]", id=f"command-execute-{i}", markup=False)
-        
-        with Horizontal(id="command-execute-buttons"):
-            yield Button("Back to Input", id="command-back-button")
+        # シェルターミナルウィジェットを使用
+        yield ShellTerminalWidget(id="shell-terminal-execute")
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button press events."""
-        if event.button.id == "command-back-button":
-            self.post_message(CommandAdjustCancelled())  # Use this to go back to input state
+    def on_mount(self) -> None:
+        """Event handler called when the widget is mounted."""
+        try:
+            # デバッグログを追加
+            self.logger.debug("CommandExecuteStatus.on_mount() called")
+            
+            # シェルターミナルを取得
+            self.shell_terminal = self.query_one("#shell-terminal-execute", ShellTerminalWidget)
+            self.logger.debug(f"Shell terminal found: {self.shell_terminal}")
+            
+            # コマンドリストと実行状態を表示
+            command_list = "\n".join([f"[{i}] {cmd} [🔄 Running]" for i, cmd in enumerate(self.commands, 1)])
+            message = f"Executing commands:\n\n{command_list}\n\nType 'back' to return to input mode > "
+            self.logger.debug(f"Adding output to shell terminal: {message}")
+            self.shell_terminal.add_output(message)
+            
+            # 入力待機状態に設定
+            self.waiting_for_response = True
+            
+            # シェルターミナルにフォーカスを設定
+            self.logger.debug("Setting focus to shell terminal")
+            self.shell_terminal.focus()
+            
+            # 確実にフォーカスが設定されるようにタイマーを設定
+            self.set_timer(0.1, self._ensure_shell_terminal_focus)
+            # 定期的にフォーカスを確認するタイマーを設定
+            self.set_interval(1.0, self._ensure_shell_terminal_focus)
+            
+            # WishInputSubmittedメッセージをハンドリング
+            self.shell_terminal.on_wish_input_submitted = self.on_wish_input_submitted
+            
+            # 出力が表示されていることを確認
+            self.logger.debug("CommandExecuteStatus.on_mount() completed")
+        except Exception as e:
+            self.logger.error(f"Error in CommandExecuteStatus.on_mount(): {e}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+    
+    def _ensure_shell_terminal_focus(self) -> None:
+        """シェルターミナルウィジェットのフォーカスを確実に設定する"""
+        try:
+            shell_terminal = self.query_one("#shell-terminal-execute", ShellTerminalWidget)
+            shell_terminal.focus()
+            
+            # 現在のフォーカスを確認
+            from textual.app import App
+            app = App.get()
+            if app.focused is not shell_terminal:
+                self.logger.warning(f"Shell terminal is not focused, current focus: {app.focused}")
+                # 再度フォーカスを設定
+                shell_terminal.focus()
+        except Exception as e:
+            self.logger.error(f"Error ensuring shell terminal focus: {e}")
+
+    def on_wish_input_submitted(self, event: WishInputSubmitted) -> None:
+        """Handle wish input submitted event."""
+        if not self.waiting_for_response:
+            return
+            
+        response = event.wish_text.lower().strip()
+        self.logger.debug(f"CommandExecuteStatus received response: {response}")
+        
+        if response == 'back':
+            self.logger.debug("Posting CommandAdjustCancelled message")
+            self.post_message(CommandAdjustCancelled())
+            # メッセージが処理されるまでフラグをリセットしない
+            # self.waiting_for_response = False
+        else:
+            # 無効な応答の場合、再度入力を促す
+            self.logger.debug(f"Invalid response: {response}, prompting again")
+            self.shell_terminal.add_output("Invalid response. Type 'back' to return to input mode.\n> ")
