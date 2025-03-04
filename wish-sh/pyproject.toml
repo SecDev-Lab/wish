@@ -33,13 +33,14 @@ classifiers = [
 license = {file = "../LICENSE"}
 dependencies = [
     "wish-models>=0.0.1",
+    "textual>=0.52.1",
 ]
 
 [tool.uv.sources]
 wish-models = { path = "../wish-models", editable = true }
 
 [project.scripts]
-chatbot = "wish_sh.wish:main"
+wish = "wish_sh.wish:main"
 
 [tool.uv]
 dev-dependencies = [
