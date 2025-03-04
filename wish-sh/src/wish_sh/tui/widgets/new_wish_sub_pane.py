@@ -40,11 +40,34 @@ class NewWishSubPane(BasePane):
         Args:
             commands: The commands to suggest.
         """
-        content = "Please check the commands and choose whether to execute them.\n\n"
+        # ログ出力を追加
+        from wish_sh.logging import setup_logger
+        logger = setup_logger("wish_sh.tui.NewWishSubPane")
+        logger.debug(f"update_for_suggest_commands called with commands: {commands}")
+        
+        content = "以下のコマンドを実行しますか？ (y/n/a)\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
                 content += f"[{i}] {cmd}\n"
-        self.update_content("sub-pane-content", content)
+            logger.debug(f"Content to display: {content}")
+        else:
+            content += "コマンドがありません。"
+            logger.debug("No commands to display")
+        
+        # 強制的に更新
+        try:
+            static = self.query_one("#sub-pane-content")
+            if static:
+                static.update(content)
+                logger.debug("Content updated via static.update()")
+            else:
+                logger.debug("Static widget not found")
+                self.update_content("sub-pane-content", content)
+                logger.debug("Content updated via update_content()")
+        except Exception as e:
+            logger.error(f"Error updating content: {e}")
+            self.update_content("sub-pane-content", content)
+            logger.debug("Content updated via update_content() after error")
     
     def update_for_adjust_commands(self, commands: List[str] = None):
         """Update for ADJUST_COMMANDS state.
@@ -52,11 +75,34 @@ class NewWishSubPane(BasePane):
         Args:
             commands: The commands to adjust.
         """
-        content = "Please modify the commands.\n\n"
+        # ログ出力を追加
+        from wish_sh.logging import setup_logger
+        logger = setup_logger("wish_sh.tui.NewWishSubPane")
+        logger.debug(f"update_for_adjust_commands called with commands: {commands}")
+        
+        content = "コマンドを修正してください。\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
                 content += f"[{i}] {cmd}\n"
-        self.update_content("sub-pane-content", content)
+            logger.debug(f"Content to display: {content}")
+        else:
+            content += "コマンドがありません。"
+            logger.debug("No commands to display")
+        
+        # 強制的に更新
+        try:
+            static = self.query_one("#sub-pane-content")
+            if static:
+                static.update(content)
+                logger.debug("Content updated via static.update()")
+            else:
+                logger.debug("Static widget not found")
+                self.update_content("sub-pane-content", content)
+                logger.debug("Content updated via update_content()")
+        except Exception as e:
+            logger.error(f"Error updating content: {e}")
+            self.update_content("sub-pane-content", content)
+            logger.debug("Content updated via update_content() after error")
     
     def update_for_confirm_commands(self, commands: List[str] = None):
         """Update for CONFIRM_COMMANDS state.
@@ -64,11 +110,34 @@ class NewWishSubPane(BasePane):
         Args:
             commands: The commands to confirm.
         """
-        content = "Please confirm the execution of commands.\n\n"
+        # ログ出力を追加
+        from wish_sh.logging import setup_logger
+        logger = setup_logger("wish_sh.tui.NewWishSubPane")
+        logger.debug(f"update_for_confirm_commands called with commands: {commands}")
+        
+        content = "以下のコマンドを実行します。よろしいですか？ (y/n)\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
                 content += f"[{i}] {cmd}\n"
-        self.update_content("sub-pane-content", content)
+            logger.debug(f"Content to display: {content}")
+        else:
+            content += "コマンドがありません。"
+            logger.debug("No commands to display")
+        
+        # 強制的に更新
+        try:
+            static = self.query_one("#sub-pane-content")
+            if static:
+                static.update(content)
+                logger.debug("Content updated via static.update()")
+            else:
+                logger.debug("Static widget not found")
+                self.update_content("sub-pane-content", content)
+                logger.debug("Content updated via update_content()")
+        except Exception as e:
+            logger.error(f"Error updating content: {e}")
+            self.update_content("sub-pane-content", content)
+            logger.debug("Content updated via update_content() after error")
     
     def update_for_execute_commands(self, commands: List[str] = None):
         """Update for EXECUTE_COMMANDS state.
@@ -76,8 +145,31 @@ class NewWishSubPane(BasePane):
         Args:
             commands: The commands being executed.
         """
-        content = "Executing commands. Please wait a moment.\n\n"
+        # ログ出力を追加
+        from wish_sh.logging import setup_logger
+        logger = setup_logger("wish_sh.tui.NewWishSubPane")
+        logger.debug(f"update_for_execute_commands called with commands: {commands}")
+        
+        content = "コマンドを実行中です。しばらくお待ちください。\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
                 content += f"[{i}] {cmd}\n"
-        self.update_content("sub-pane-content", content)
+            logger.debug(f"Content to display: {content}")
+        else:
+            content += "コマンドがありません。"
+            logger.debug("No commands to display")
+        
+        # 強制的に更新
+        try:
+            static = self.query_one("#sub-pane-content")
+            if static:
+                static.update(content)
+                logger.debug("Content updated via static.update()")
+            else:
+                logger.debug("Static widget not found")
+                self.update_content("sub-pane-content", content)
+                logger.debug("Content updated via update_content()")
+        except Exception as e:
+            logger.error(f"Error updating content: {e}")
+            self.update_content("sub-pane-content", content)
+            logger.debug("Content updated via update_content() after error")

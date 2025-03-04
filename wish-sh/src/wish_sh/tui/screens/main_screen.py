@@ -296,7 +296,7 @@ class MainScreen(Screen):
             except Exception as e:
                 self.logger.error(f"Error removing existing forms: {e}")
             
-            # 新しいフォームをマウント
+            # 新しいフォームをMain Paneにマウント
             try:
                 self.new_wish_main_pane.mount(self.wish_input_form)
             except Exception as e:
@@ -344,7 +344,7 @@ class MainScreen(Screen):
             except Exception as e:
                 self.logger.error(f"Error removing existing forms: {e}")
             
-            # WishDetailFormをマウント
+            # WishDetailFormをMain Paneにマウント
             self.wish_detail_form = WishDetailForm(id=unique_id)
             self.new_wish_main_pane.mount(self.wish_detail_form)
             
@@ -365,7 +365,7 @@ class MainScreen(Screen):
             except Exception as e:
                 self.logger.error(f"Error removing existing forms: {e}")
             
-            # CommandSuggestFormをマウント
+            # CommandSuggestFormをMain Paneにマウント
             self.command_suggest_form = CommandSuggestForm(commands, id=unique_id)
             self.new_wish_main_pane.mount(self.command_suggest_form)
             
@@ -386,7 +386,7 @@ class MainScreen(Screen):
             except Exception as e:
                 self.logger.error(f"Error removing existing forms: {e}")
             
-            # CommandAdjustFormをマウント
+            # CommandAdjustFormをMain Paneにマウント
             self.command_adjust_form = CommandAdjustForm(commands, id=unique_id)
             self.new_wish_main_pane.mount(self.command_adjust_form)
             
@@ -407,7 +407,7 @@ class MainScreen(Screen):
             except Exception as e:
                 self.logger.error(f"Error removing existing forms: {e}")
             
-            # CommandConfirmFormをマウント
+            # CommandConfirmFormをMain Paneにマウント
             self.command_confirm_form = CommandConfirmForm(commands, id=unique_id)
             self.new_wish_main_pane.mount(self.command_confirm_form)
             
@@ -428,7 +428,7 @@ class MainScreen(Screen):
             except Exception as e:
                 self.logger.error(f"Error removing existing forms: {e}")
             
-            # CommandExecuteStatusをマウント
+            # CommandExecuteStatusをMain Paneにマウント
             self.command_execute_status = CommandExecuteStatus(commands, id=unique_id)
             self.new_wish_main_pane.mount(self.command_execute_status)
     
@@ -497,19 +497,31 @@ class MainScreen(Screen):
                 # 属性を削除
                 delattr(self, "command_execute_status")
             
-            # new_wish_main_paneの子ウィジェットをチェックして、フォームをアンマウント
+            # new_wish_main_paneとnew_wish_sub_paneの子ウィジェットをチェックして、フォームをアンマウント
             try:
+                # Main Paneのフォームをアンマウント
                 children = list(self.new_wish_main_pane._nodes)
                 for child in children:
                     # main-pane-content以外のウィジェットをアンマウント
                     if child.id != "main-pane-content" and (child.id.endswith("-form") or child.id.endswith("-status")):
-                        self.logger.debug(f"Removing widget with ID: {child.id}")
+                        self.logger.debug(f"Removing widget with ID: {child.id} from Main Pane")
                         try:
                             child.remove()
                         except Exception as e:
-                            self.logger.error(f"Error removing child widget {child.id}: {e}")
+                            self.logger.error(f"Error removing child widget {child.id} from Main Pane: {e}")
+                
+                # Sub Paneのフォームをアンマウント
+                children = list(self.new_wish_sub_pane._nodes)
+                for child in children:
+                    # sub-pane-content以外のウィジェットをアンマウント
+                    if child.id != "sub-pane-content" and (child.id.endswith("-form") or child.id.endswith("-status")):
+                        self.logger.debug(f"Removing widget with ID: {child.id} from Sub Pane")
+                        try:
+                            child.remove()
+                        except Exception as e:
+                            self.logger.error(f"Error removing child widget {child.id} from Sub Pane: {e}")
             except Exception as e:
-                self.logger.error(f"Error processing new_wish_main_pane children: {e}")
+                self.logger.error(f"Error processing pane children: {e}")
         except Exception as e:
             self.logger.error(f"Error in _unmount_new_wish_forms: {e}")
             import traceback
@@ -583,21 +595,68 @@ class MainScreen(Screen):
     def _focus_shell_terminal(self) -> None:
         """Focus the shell terminal widget."""
         try:
-            # シェルターミナルウィジェットを検索
-            shell_terminal = self.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+            # Sub Pane内のシェルターミナルウィジェットを検索
+            shell_terminal = None
+            
+            # まずSub Pane内を検索
+            try:
+                shell_terminal = self.new_wish_sub_pane.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+                self.logger.debug("Found ShellTerminalWidget in Sub Pane")
+            except Exception:
+                self.logger.debug("ShellTerminalWidget not found in Sub Pane")
+            
+            # 見つからなければMain Pane内も検索（後方互換性のため）
+            if not shell_terminal:
+                try:
+                    shell_terminal = self.new_wish_main_pane.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+                    self.logger.debug("Found ShellTerminalWidget in Main Pane")
+                except Exception:
+                    self.logger.debug("ShellTerminalWidget not found in Main Pane")
+            
+            # 最後に全体を検索
+            if not shell_terminal:
+                try:
+                    shell_terminal = self.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+                    self.logger.debug("Found ShellTerminalWidget in global scope")
+                except Exception:
+                    self.logger.debug("ShellTerminalWidget not found in global scope")
+            
             if shell_terminal:
                 self.logger.debug("Focusing ShellTerminalWidget")
                 # フォーカスを設定
                 shell_terminal.focus()
                 # 確実にフォーカスが設定されるようにタイマーを設定
-                self.set_timer(0.1, lambda: self._ensure_shell_terminal_focus())
+                self.set_timer(0.1, lambda: self._ensure_shell_terminal_focus(shell_terminal))
+            else:
+                self.logger.error("ShellTerminalWidget not found anywhere")
         except Exception as e:
             self.logger.error(f"Error focusing ShellTerminalWidget: {e}")
     
-    def _ensure_shell_terminal_focus(self) -> None:
+    def _ensure_shell_terminal_focus(self, shell_terminal=None) -> None:
         """シェルターミナルウィジェットのフォーカスを確実に設定する"""
         try:
-            shell_terminal = self.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+            if not shell_terminal:
+                # Sub Pane内のシェルターミナルウィジェットを検索
+                try:
+                    shell_terminal = self.new_wish_sub_pane.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+                except Exception:
+                    pass
+                
+                # 見つからなければMain Pane内も検索
+                if not shell_terminal:
+                    try:
+                        shell_terminal = self.new_wish_main_pane.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+                    except Exception:
+                        pass
+                
+                # 最後に全体を検索
+                if not shell_terminal:
+                    try:
+                        shell_terminal = self.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+                    except Exception:
+                        self.logger.error("ShellTerminalWidget not found")
+                        return
+            
             if shell_terminal:
                 self.logger.debug("Ensuring ShellTerminalWidget focus")
                 shell_terminal.focus()

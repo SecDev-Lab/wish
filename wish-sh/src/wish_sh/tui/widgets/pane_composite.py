@@ -151,23 +151,83 @@ class NewWishPaneComposite(PaneComposite):
 
         elif current_state == NewWishState.SUGGEST_COMMANDS:
             commands = self.new_wish_turns.get_current_commands()
+            # ログ出力を追加
+            from wish_sh.logging import setup_logger
+            logger = setup_logger("wish_sh.tui.NewWishPaneComposite")
+            logger.debug(f"SUGGEST_COMMANDS state: commands={commands}")
+            
+            # Main Paneを更新
             self.main_pane.update_for_suggest_commands(commands)
-            self.sub_pane.update_for_suggest_commands(commands)  # コマンドリストを渡す
+            logger.debug("Main Pane updated")
+            
+            # Sub Paneを更新
+            try:
+                self.sub_pane.update_for_suggest_commands(commands)
+                logger.debug("Sub Pane updated")
+            except Exception as e:
+                logger.error(f"Error updating Sub Pane: {e}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
 
         elif current_state == NewWishState.ADJUST_COMMANDS:
             commands = self.new_wish_turns.get_current_commands()
+            # ログ出力を追加
+            from wish_sh.logging import setup_logger
+            logger = setup_logger("wish_sh.tui.NewWishPaneComposite")
+            logger.debug(f"ADJUST_COMMANDS state: commands={commands}")
+            
+            # Main Paneを更新
             self.main_pane.update_for_adjust_commands(commands)
-            self.sub_pane.update_for_adjust_commands(commands)  # コマンドリストを渡す
+            logger.debug("Main Pane updated for ADJUST_COMMANDS")
+            
+            # Sub Paneを更新
+            try:
+                self.sub_pane.update_for_adjust_commands(commands)
+                logger.debug("Sub Pane updated for ADJUST_COMMANDS")
+            except Exception as e:
+                logger.error(f"Error updating Sub Pane for ADJUST_COMMANDS: {e}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
 
         elif current_state == NewWishState.CONFIRM_COMMANDS:
             commands = self.new_wish_turns.get_selected_commands() or self.new_wish_turns.get_current_commands()
+            # ログ出力を追加
+            from wish_sh.logging import setup_logger
+            logger = setup_logger("wish_sh.tui.NewWishPaneComposite")
+            logger.debug(f"CONFIRM_COMMANDS state: commands={commands}")
+            
+            # Main Paneを更新
             self.main_pane.update_for_confirm_commands(commands)
-            self.sub_pane.update_for_confirm_commands(commands)  # コマンドリストを渡す
+            logger.debug("Main Pane updated for CONFIRM_COMMANDS")
+            
+            # Sub Paneを更新
+            try:
+                self.sub_pane.update_for_confirm_commands(commands)
+                logger.debug("Sub Pane updated for CONFIRM_COMMANDS")
+            except Exception as e:
+                logger.error(f"Error updating Sub Pane for CONFIRM_COMMANDS: {e}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
 
         elif current_state == NewWishState.EXECUTE_COMMANDS:
             commands = self.new_wish_turns.get_selected_commands() or self.new_wish_turns.get_current_commands()
+            # ログ出力を追加
+            from wish_sh.logging import setup_logger
+            logger = setup_logger("wish_sh.tui.NewWishPaneComposite")
+            logger.debug(f"EXECUTE_COMMANDS state: commands={commands}")
+            
+            # Main Paneを更新
             self.main_pane.update_for_execute_commands(commands)
-            self.sub_pane.update_for_execute_commands(commands)  # コマンドリストを渡す
+            logger.debug("Main Pane updated for EXECUTE_COMMANDS")
+            
+            # Sub Paneを更新
+            try:
+                self.sub_pane.update_for_execute_commands(commands)
+                logger.debug("Sub Pane updated for EXECUTE_COMMANDS")
+            except Exception as e:
+                logger.error(f"Error updating Sub Pane for EXECUTE_COMMANDS: {e}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
 
     def handle_wish_input(self, wish_text: str) -> None:
         """Handle wish input.
