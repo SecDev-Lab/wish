@@ -152,22 +152,22 @@ class NewWishPaneComposite(PaneComposite):
         elif current_state == NewWishState.SUGGEST_COMMANDS:
             commands = self.new_wish_turns.get_current_commands()
             self.main_pane.update_for_suggest_commands(commands)
-            self.sub_pane.update_for_suggest_commands()
+            self.sub_pane.update_for_suggest_commands(commands)  # コマンドリストを渡す
 
         elif current_state == NewWishState.ADJUST_COMMANDS:
             commands = self.new_wish_turns.get_current_commands()
             self.main_pane.update_for_adjust_commands(commands)
-            self.sub_pane.update_for_adjust_commands()
+            self.sub_pane.update_for_adjust_commands(commands)  # コマンドリストを渡す
 
         elif current_state == NewWishState.CONFIRM_COMMANDS:
             commands = self.new_wish_turns.get_selected_commands() or self.new_wish_turns.get_current_commands()
             self.main_pane.update_for_confirm_commands(commands)
-            self.sub_pane.update_for_confirm_commands()
+            self.sub_pane.update_for_confirm_commands(commands)  # コマンドリストを渡す
 
         elif current_state == NewWishState.EXECUTE_COMMANDS:
             commands = self.new_wish_turns.get_selected_commands() or self.new_wish_turns.get_current_commands()
             self.main_pane.update_for_execute_commands(commands)
-            self.sub_pane.update_for_execute_commands()
+            self.sub_pane.update_for_execute_commands(commands)  # コマンドリストを渡す
 
     def handle_wish_input(self, wish_text: str) -> None:
         """Handle wish input.

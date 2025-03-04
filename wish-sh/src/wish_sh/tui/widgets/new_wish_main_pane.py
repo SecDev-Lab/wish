@@ -31,46 +31,44 @@ class NewWishMainPane(BasePane):
         """Update for ASK_WISH_DETAIL state."""
         self.update_content("main-pane-content", "[b]What's the target IP address or hostname?[/b]")
     
-    def update_for_suggest_commands(self, commands: List[str]):
+    def update_for_suggest_commands(self, commands: List[str] = None):
         """Update for SUGGEST_COMMANDS state.
         
         Args:
             commands: The commands to suggest.
         """
-        content = "[b]以下のコマンドを実行しますか？[/b]\n\n"
-        for i, cmd in enumerate(commands, 1):
-            content += f"[{i}] {cmd}\n"
+        content = "[b]コマンドを確認してください[/b]\n\n"
+        content += "コマンドリストはSub Paneで確認できます。\n"
+        content += "y/n/aで選択してください。"
         self.update_content("main-pane-content", content)
     
-    def update_for_adjust_commands(self, commands: List[str]):
+    def update_for_adjust_commands(self, commands: List[str] = None):
         """Update for ADJUST_COMMANDS state.
         
         Args:
             commands: The commands to adjust.
         """
-        content = "[b]修正内容を指定してください[/b]\n\n"
-        for i, cmd in enumerate(commands, 1):
-            content += f"[{i}] {cmd}\n"
+        content = "[b]コマンドを修正してください[/b]\n\n"
+        content += "コマンドリストはSub Paneで確認できます。"
         self.update_content("main-pane-content", content)
     
-    def update_for_confirm_commands(self, commands: List[str]):
+    def update_for_confirm_commands(self, commands: List[str] = None):
         """Update for CONFIRM_COMMANDS state.
         
         Args:
             commands: The commands to confirm.
         """
-        content = "[b]以下のコマンドを実行します[/b]\n\n"
-        for i, cmd in enumerate(commands, 1):
-            content += f"[{i}] {cmd}\n"
+        content = "[b]コマンドの実行を確認してください[/b]\n\n"
+        content += "コマンドリストはSub Paneで確認できます。\n"
+        content += "y/nで選択してください。"
         self.update_content("main-pane-content", content)
     
-    def update_for_execute_commands(self, commands: List[str]):
+    def update_for_execute_commands(self, commands: List[str] = None):
         """Update for EXECUTE_COMMANDS state.
         
         Args:
             commands: The commands being executed.
         """
         content = "[b]コマンドを実行中...[/b]\n\n"
-        for i, cmd in enumerate(commands, 1):
-            content += f"[{i}] {cmd}\n"
+        content += "実行中のコマンドはSub Paneで確認できます。"
         self.update_content("main-pane-content", content)
