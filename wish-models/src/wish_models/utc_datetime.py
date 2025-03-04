@@ -44,3 +44,18 @@ class UtcDatetime(BaseModel):
         dt = datetime.now(tz=timezone.utc)
         dt_no_microsec = dt.replace(microsecond=0)
         return cls(v=dt_no_microsec)
+        
+    def to_local_str(self, format_str: str = '%Y-%m-%d %H:%M:%S', tz = None) -> str:
+        """Convert UTC datetime to specified timezone (or local timezone if None) and format as string.
+        
+        Args:
+            format_str: Format string for strftime (default: '%Y-%m-%d %H:%M:%S')
+            tz: Timezone to convert to (default: None, which uses the system's local timezone)
+            
+        Returns:
+            Formatted string representation of the datetime in the specified timezone
+        """
+        # Convert to specified timezone or local timezone if None
+        local_dt = self.v.astimezone(tz)
+        # Format according to the specified format
+        return local_dt.strftime(format_str)
