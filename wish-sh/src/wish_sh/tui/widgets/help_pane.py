@@ -41,8 +41,8 @@ class HelpPane(Container):
             デフォルトのヘルプテキスト
         """
         return (
-            f"Help: {self._style_shortcut('←/h')} Wish Select | "
-            f"{self._style_shortcut('→/l')} Main | "
+            f"Help: {self._style_shortcut('←/Ctrl+h')} Wish Select | "
+            f"{self._style_shortcut('→/Ctrl+l')} Main | "
             f"{self._style_shortcut('Ctrl+↑/k')} Main | "
             f"{self._style_shortcut('Ctrl+↓/j')} Sub | "
             f"{self._style_shortcut('q')} Confirm Quit | "
@@ -58,7 +58,7 @@ class HelpPane(Container):
         return (
             f"Help: {self._style_shortcut('↑↓/k j')} Select Wish | "
             f"{self._style_shortcut('Enter/Space')} Decide & Go to Main | "
-            f"{self._style_shortcut('→/l')} Main | "
+            f"{self._style_shortcut('→/Ctrl+l')} Main | "
             f"{self._style_shortcut('q')} Confirm Quit | "
             f"{self._style_shortcut('Ctrl+Q')} Quit"
         )
@@ -70,7 +70,7 @@ class HelpPane(Container):
             Main ペイン用のヘルプテキスト
         """
         return (
-            f"Help: {self._style_shortcut('←/h')} Wish Select | "
+            f"Help: {self._style_shortcut('←/Ctrl+h')} Wish Select | "
             f"{self._style_shortcut('↑↓/k j')} Select Command | "
             f"{self._style_shortcut('Enter/Space')} Decide & Go to Sub | "
             f"{self._style_shortcut('Ctrl+↓/j')} Sub | "
@@ -85,7 +85,7 @@ class HelpPane(Container):
             Sub ペイン用のヘルプテキスト
         """
         return (
-            f"Help: {self._style_shortcut('←/h')} Wish Select | "
+            f"Help: {self._style_shortcut('←/Ctrl+h')} Wish Select | "
             f"{self._style_shortcut('Ctrl+↑/k')} Main | "
             f"{self._style_shortcut('j/k')} Line Down/Up | "
             f"{self._style_shortcut('o')} View Full Output | "
