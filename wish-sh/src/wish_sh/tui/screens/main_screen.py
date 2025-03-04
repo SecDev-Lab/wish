@@ -225,6 +225,7 @@ class MainScreen(Screen):
             
             # Update UI for NEW WISH mode - 初期状態の場合のみ呼び出す
             # コマンド実行後の状態では呼び出さない
+            # SUGGEST_COMMANDS状態の場合も呼び出さない（コマンド候補を表示するため）
             current_state = self.new_wish_composite.new_wish_turns.current_state
             if current_state == NewWishState.INPUT_WISH and not hasattr(self.new_wish_composite.new_wish_turns, "_execution_confirmed"):
                 self.update_new_wish_ui()

@@ -79,9 +79,25 @@ class NewWishSubPane(BasePane):
                 self.logger.debug("Static widget not found")
                 self.update_content("sub-pane-content", content, markup=False)
                 self.logger.debug("Content updated via update_content()")
+            
+            # 画面を強制的に更新
+            self.refresh()
+            self.logger.debug("Forced refresh called")
+            
+            # アプリケーション全体の更新を促す
+            if hasattr(self, 'app') and self.app:
+                self.app.refresh()
+                self.logger.debug("App refresh called")
         except Exception as e:
             self.logger.error(f"Error updating content: {e}")
             self.update_content("sub-pane-content", content, markup=False)
+            # エラー時にも強制的に更新を試みる
+            try:
+                self.refresh()
+                if hasattr(self, 'app') and self.app:
+                    self.app.refresh()
+            except Exception as refresh_error:
+                self.logger.error(f"Error during refresh: {refresh_error}")
             self.logger.debug("Content updated via update_content() after error")
     
     def update_for_adjust_commands(self, commands: List[str] = None):

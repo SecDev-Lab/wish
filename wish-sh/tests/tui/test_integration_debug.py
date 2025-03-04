@@ -215,3 +215,124 @@ class TestIntegrationDebug:
             # Check if the content contains the confirmation message
             assert "コマンドが実行されました" in content_widget.renderable, "Sub pane should display confirmation message"
             assert "Wishを入力してください" not in content_widget.renderable, "Sub pane should not display 'Wishを入力してください'"
+    
+    @pytest.mark.asyncio
+    async def test_wish_input_shows_command_suggestions(self):
+        """
+        TODO Remove this test (for debugging)
+        
+        Test that after inputting a wish, the sub pane displays command suggestions instead of 'Wishを入力してください'.
+        """
+        # Create a test app with MainScreen
+        from textual.app import App
+        from wish_sh.tui.screens.main_screen import MainScreen
+        from wish_sh.tui.new_wish_messages import WishInputSubmitted
+        
+        class TestApp(App):
+            def compose(self):
+                yield MainScreen()
+        
+        app = TestApp()
+        
+        async with app.run_test() as pilot:
+            # Get the main screen
+            screen = app.query_one(MainScreen)
+            
+            # 1. Input wish
+            screen.on_wish_input_submitted(WishInputSubmitted("scan port"))
+            await pilot.pause(0.1)
+            
+            # Get the sub pane content
+            sub_pane = screen.new_wish_sub_pane
+            content_widget = sub_pane.query_one("#sub-pane-content")
+            
+            # Check if the content contains command suggestions
+            assert "コマンドを確認してください" in content_widget.renderable, "Sub pane should display command confirmation message"
+            assert "以下のコマンドを実行しますか？ (y/n/a)" in content_widget.renderable, "Sub pane should display command confirmation prompt"
+            assert "Wishを入力してください" not in content_widget.renderable, "Sub pane should not display 'Wishを入力してください'"
+    
+    @pytest.mark.asyncio
+    async def test_sub_pane_refresh_after_wish_input(self):
+        """
+        TODO Remove this test (for debugging)
+        
+        Test that the sub pane is properly refreshed after wish input.
+        """
+        # Create a test app with MainScreen
+        from textual.app import App
+        from wish_sh.tui.screens.main_screen import MainScreen
+        from wish_sh.tui.new_wish_messages import WishInputSubmitted
+        from unittest.mock import patch
+        
+        class TestApp(App):
+            def compose(self):
+                yield MainScreen()
+        
+        app = TestApp()
+        
+        async with app.run_test() as pilot:
+            # Get the main screen
+            screen = app.query_one(MainScreen)
+            
+            # Patch the refresh method to track calls
+            with patch.object(screen.new_wish_sub_pane, 'refresh') as mock_refresh:
+                # 1. Input wish
+                screen.on_wish_input_submitted(WishInputSubmitted("scan port"))
+                await pilot.pause(0.1)
+                
+                # Check if refresh was called
+                assert mock_refresh.called, "Sub pane refresh should be called after wish input"
+                
+                # Get the sub pane content
+                sub_pane = screen.new_wish_sub_pane
+                content_widget = sub_pane.query_one("#sub-pane-content")
+                
+                # Check if the content contains command suggestions
+                assert "コマンドを確認してください" in content_widget.renderable, "Sub pane should display command confirmation message"
+                assert "Wishを入力してください" not in content_widget.renderable, "Sub pane should not display 'Wishを入力してください'"
+    
+    @pytest.mark.asyncio
+    async def test_sub_pane_update_with_explicit_refresh(self):
+        """
+        TODO Remove this test (for debugging)
+        
+        Test that the sub pane is properly updated with explicit refresh calls.
+        """
+        # Create a test app with MainScreen
+        from textual.app import App
+        from wish_sh.tui.screens.main_screen import MainScreen
+        from wish_sh.tui.new_wish_messages import WishInputSubmitted
+        from wish_sh.tui.new_wish_turns import NewWishState
+        
+        class TestApp(App):
+            def compose(self):
+                yield MainScreen()
+        
+        app = TestApp()
+        
+        async with app.run_test() as pilot:
+            # Get the main screen
+            screen = app.query_one(MainScreen)
+            
+            # Verify initial state
+            sub_pane = screen.new_wish_sub_pane
+            initial_content = sub_pane.query_one("#sub-pane-content").renderable
+            assert "Wishを入力してください" in initial_content or "Command output for new Wish will be displayed here" in initial_content, "Initial content should be the default message"
+            
+            # 1. Input wish
+            screen.on_wish_input_submitted(WishInputSubmitted("scan port"))
+            await pilot.pause(0.1)
+            
+            # Verify state after wish input
+            assert screen.new_wish_composite.new_wish_turns.current_state == NewWishState.SUGGEST_COMMANDS, "State should be SUGGEST_COMMANDS after wish input"
+            
+            # Force refresh
+            sub_pane.refresh()
+            await pilot.pause(0.1)
+            
+            # Get the sub pane content after refresh
+            content_widget = sub_pane.query_one("#sub-pane-content")
+            
+            # Check if the content contains command suggestions
+            assert "コマンドを確認してください" in content_widget.renderable, "Sub pane should display command confirmation message after refresh"
+            assert "Wishを入力してください" not in content_widget.renderable, "Sub pane should not display 'Wishを入力してください' after refresh"
