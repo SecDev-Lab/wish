@@ -133,9 +133,11 @@ class NewWishPaneComposite(PaneComposite):
 
     def update_for_mode(self) -> None:
         """Update panes for new wish mode."""
-        # Reset NewWishTurns to initial state
-        self.new_wish_turns.current_state = NewWishState.INPUT_WISH
-        self.update_for_state()
+        # コマンド実行後の状態では初期状態にリセットしない
+        if not hasattr(self.new_wish_turns, "_execution_confirmed"):
+            # Reset NewWishTurns to initial state
+            self.new_wish_turns.current_state = NewWishState.INPUT_WISH
+            self.update_for_state()
 
     def update_for_state(self) -> None:
         """Update UI based on current NewWishState."""
@@ -424,6 +426,9 @@ class NewWishPaneComposite(PaneComposite):
         """
         # State transition
         self.new_wish_turns.transition(NewWishEvent.EXECUTION_CONFIRMED)
+        
+        # コマンド実行後の状態を記録
+        self.new_wish_turns._execution_confirmed = True
 
         # Execute commands
         wish = self.new_wish_turns.get_current_wish()
@@ -476,8 +481,19 @@ class NewWishPaneComposite(PaneComposite):
             if shell_terminal:
                 shell_terminal.add_output("\nAll commands have been executed.\n")
 
-        # Update UI
-        self.update_for_state()
+        # Update UI for the current state
+        # update_for_stateは呼び出さない
+        # self.update_for_state()
+        
+        # update sub pane with confirmation message
+        if commands:
+            try:
+                self.sub_pane.update_for_execution_confirmed(commands)
+                self.logger.debug("Sub pane updated with execution confirmation message")
+            except Exception as e:
+                self.logger.error(f"Error updating sub pane with execution confirmation: {e}")
+                import traceback
+                self.logger.error(f"Traceback: {traceback.format_exc()}")
 
     def handle_execution_cancelled(self) -> None:
         """Handle execution cancelled."""

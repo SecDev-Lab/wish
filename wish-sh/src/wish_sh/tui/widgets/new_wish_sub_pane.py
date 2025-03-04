@@ -42,7 +42,7 @@ class NewWishSubPane(BasePane):
     def update_for_input_wish(self):
         """Update for INPUT_WISH state."""
         # 入力状態では、コマンド関連の情報を表示（まだコマンドはない）
-        self.update_content("sub-pane-content", "Wishを入力してください")
+        self.update_content("sub-pane-content", "[SUB PANE] Wishを入力してください")
     
     def update_for_ask_wish_detail(self):
         """Update for ASK_WISH_DETAIL state."""
@@ -159,6 +159,39 @@ class NewWishSubPane(BasePane):
         
         # コマンド実行メッセージとコマンドリストを表示
         content = "[b]コマンドを実行中です。しばらくお待ちください。[/b]\n\n"
+        if commands:
+            for i, cmd in enumerate(commands, 1):
+                content += f"[{i}] {cmd}\n"
+            self.logger.debug(f"Content to display: {content}")
+        else:
+            content += "コマンドがありません。"
+            self.logger.debug("No commands to display")
+        
+        # 強制的に更新
+        try:
+            static = self.query_one("#sub-pane-content")
+            if static:
+                static.update(content)
+                self.logger.debug("Content updated via static.update()")
+            else:
+                self.logger.debug("Static widget not found")
+                self.update_content("sub-pane-content", content)
+                self.logger.debug("Content updated via update_content()")
+        except Exception as e:
+            self.logger.error(f"Error updating content: {e}")
+            self.update_content("sub-pane-content", content)
+            self.logger.debug("Content updated via update_content() after error")
+    
+    def update_for_execution_confirmed(self, commands: List[str] = None):
+        """Update for execution confirmed state.
+        
+        Args:
+            commands: The commands that were executed.
+        """
+        self.logger.debug(f"update_for_execution_confirmed called with commands: {commands}")
+        
+        # コマンド実行完了メッセージとコマンドリストを表示
+        content = "[b][SUB PANE] コマンドが実行されました[/b]\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
                 content += f"[{i}] {cmd}\n"

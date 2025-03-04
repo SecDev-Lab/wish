@@ -223,8 +223,11 @@ class MainScreen(Screen):
             # Update panes for NEW WISH mode
             self.active_composite.update_for_mode()
             
-            # Update UI for NEW WISH mode
-            self.update_new_wish_ui()
+            # Update UI for NEW WISH mode - 初期状態の場合のみ呼び出す
+            # コマンド実行後の状態では呼び出さない
+            current_state = self.new_wish_composite.new_wish_turns.current_state
+            if current_state == NewWishState.INPUT_WISH and not hasattr(self.new_wish_composite.new_wish_turns, "_execution_confirmed"):
+                self.update_new_wish_ui()
             
             # SUGGEST_COMMANDS状態の場合は、Sub Paneにフォーカスを移動（Main Paneの内容はクリアしない）
             if self.new_wish_composite.new_wish_turns.current_state == NewWishState.SUGGEST_COMMANDS:
@@ -347,7 +350,8 @@ class MainScreen(Screen):
     def on_execution_confirmed(self, event: ExecutionConfirmed) -> None:
         """Handle ExecutionConfirmed message."""
         self.new_wish_composite.handle_execution_confirmed(app=self.app)
-        self.new_wish_composite.update_for_state()
+        # update_for_stateは呼び出さない
+        # self.new_wish_composite.update_for_state()
     
     def on_execution_cancelled(self, event: ExecutionCancelled) -> None:
         """Handle execution cancelled message."""
