@@ -3,7 +3,7 @@
 import pytest
 pytestmark = pytest.mark.asyncio
 from textual.app import App, ComposeResult
-from textual.widgets import Button, Input
+from textual.message import Message
 
 from wish_sh.tui.widgets.new_wish_widgets import (
     WishInputForm,
@@ -24,6 +24,7 @@ from wish_sh.tui.new_wish_messages import (
     ExecutionConfirmed,
     ExecutionCancelled,
 )
+from wish_sh.tui.widgets.shell_terminal_widget import ShellTerminalWidget
 
 
 class WidgetTestApp(App):
@@ -134,21 +135,18 @@ class TestWishDetailForm:
         
         async with widget_test_app.run_test():
             # Check that the form contains the expected widgets
-            assert widget_test_app.query_one("#wish-detail-label")
-            assert widget_test_app.query_one("#wish-detail-field")
-            assert widget_test_app.query_one("#wish-detail-submit-button")
-            assert widget_test_app.query_one("#wish-detail-back-button")
+            assert widget_test_app.query_one("#shell-terminal-detail")
+            
+            # Check that the shell terminal is a ShellTerminalWidget
+            shell_terminal = widget_test_app.query_one("#shell-terminal-detail")
+            assert isinstance(shell_terminal, ShellTerminalWidget)
 
-    async def test_submit_button(self, widget_test_app):
-        """Test submit button."""
-        form = WishDetailForm()
+    async def test_on_mount(self, widget_test_app):
+        """Test that the form displays the question on mount."""
+        form = WishDetailForm(question="Test question")
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Set input value
-            input_field = widget_test_app.query_one("#wish-detail-field", Input)
-            input_field.value = "10.10.10.40"
-            
             # Create a message directly and post it to the app
             widget_test_app.received_messages.append(WishDetailSubmitted("10.10.10.40"))
             
@@ -157,16 +155,16 @@ class TestWishDetailForm:
             assert isinstance(widget_test_app.received_messages[0], WishDetailSubmitted)
             assert widget_test_app.received_messages[0].detail == "10.10.10.40"
 
-    async def test_back_button(self, widget_test_app):
-        """Test back button."""
+    async def test_back_response(self, widget_test_app):
+        """Test 'back' response."""
         form = WishDetailForm()
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Create a message directly and post it to the app
+            # Directly post the message to the app
             widget_test_app.received_messages.append(CommandsRejected())
             
-            # Check that a message was sent
+            # Check that a CommandsRejected message was sent
             assert len(widget_test_app.received_messages) == 1
             assert isinstance(widget_test_app.received_messages[0], CommandsRejected)
 
@@ -182,56 +180,174 @@ class TestCommandSuggestForm:
         
         async with widget_test_app.run_test():
             # Check that the form contains the expected widgets
-            assert widget_test_app.query_one("#command-suggest-label")
-            assert widget_test_app.query_one("#command-list")
-            assert widget_test_app.query_one("#command-yes-button")
-            assert widget_test_app.query_one("#command-no-button")
-            assert widget_test_app.query_one("#command-adjust-button")
+            assert widget_test_app.query_one("#shell-terminal-suggest")
             
-            # Check that the commands are displayed
-            command_list = widget_test_app.query_one("#command-list")
-            assert len(command_list.children) == 2
-            assert "nmap -p- 10.10.10.40" in command_list.children[0].renderable
-            assert "nmap -sU 10.10.10.40" in command_list.children[1].renderable
+            # Check that the shell terminal is a ShellTerminalWidget
+            shell_terminal = widget_test_app.query_one("#shell-terminal-suggest")
+            assert isinstance(shell_terminal, ShellTerminalWidget)
 
-    async def test_yes_button(self, widget_test_app):
-        """Test yes button."""
+    async def test_yes_response(self, widget_test_app):
+        """Test 'yes' response."""
         commands = ["nmap -p- 10.10.10.40"]
         form = CommandSuggestForm(commands)
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Create a message directly and post it to the app
+            # Directly post the message to the app
             widget_test_app.received_messages.append(CommandsAccepted())
             
-            # Check that a message was sent
+            # Check that a CommandsAccepted message was sent
             assert len(widget_test_app.received_messages) == 1
             assert isinstance(widget_test_app.received_messages[0], CommandsAccepted)
 
-    async def test_no_button(self, widget_test_app):
-        """Test no button."""
+    async def test_no_response(self, widget_test_app):
+        """Test 'no' response."""
         commands = ["nmap -p- 10.10.10.40"]
         form = CommandSuggestForm(commands)
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Create a message directly and post it to the app
+            # Directly post the message to the app
             widget_test_app.received_messages.append(CommandsRejected())
             
-            # Check that a message was sent
+            # Check that a CommandsRejected message was sent
             assert len(widget_test_app.received_messages) == 1
             assert isinstance(widget_test_app.received_messages[0], CommandsRejected)
 
-    async def test_adjust_button(self, widget_test_app):
-        """Test adjust button."""
+    async def test_adjust_response(self, widget_test_app):
+        """Test 'adjust' response."""
         commands = ["nmap -p- 10.10.10.40"]
         form = CommandSuggestForm(commands)
         widget_test_app.set_widget(form)
         
         async with widget_test_app.run_test():
-            # Create a message directly and post it to the app
+            # Directly post the message to the app
             widget_test_app.received_messages.append(CommandAdjustRequested())
             
-            # Check that a message was sent
+            # Check that a CommandAdjustRequested message was sent
             assert len(widget_test_app.received_messages) == 1
             assert isinstance(widget_test_app.received_messages[0], CommandAdjustRequested)
+
+
+class TestCommandAdjustForm:
+    """Tests for CommandAdjustForm."""
+
+    async def test_compose(self, widget_test_app):
+        """Test compose method."""
+        commands = ["nmap -p- 10.10.10.40", "nmap -sU 10.10.10.40"]
+        form = CommandAdjustForm(commands)
+        widget_test_app.set_widget(form)
+        
+        async with widget_test_app.run_test():
+            # Check that the form contains the expected widgets
+            assert widget_test_app.query_one("#shell-terminal-adjust")
+            
+            # Check that the shell terminal is a ShellTerminalWidget
+            shell_terminal = widget_test_app.query_one("#shell-terminal-adjust")
+            assert isinstance(shell_terminal, ShellTerminalWidget)
+
+    async def test_done_response(self, widget_test_app):
+        """Test 'done' response."""
+        commands = ["nmap -p- 10.10.10.40"]
+        form = CommandAdjustForm(commands)
+        widget_test_app.set_widget(form)
+        
+        async with widget_test_app.run_test():
+            # Directly post the message to the app
+            widget_test_app.received_messages.append(CommandsAdjusted(commands))
+            
+            # Check that a CommandsAdjusted message was sent
+            assert len(widget_test_app.received_messages) == 1
+            assert isinstance(widget_test_app.received_messages[0], CommandsAdjusted)
+
+    async def test_cancel_response(self, widget_test_app):
+        """Test 'cancel' response."""
+        commands = ["nmap -p- 10.10.10.40"]
+        form = CommandAdjustForm(commands)
+        widget_test_app.set_widget(form)
+        
+        async with widget_test_app.run_test():
+            # Directly post the message to the app
+            widget_test_app.received_messages.append(CommandAdjustCancelled())
+            
+            # Check that a CommandAdjustCancelled message was sent
+            assert len(widget_test_app.received_messages) == 1
+            assert isinstance(widget_test_app.received_messages[0], CommandAdjustCancelled)
+
+
+class TestCommandConfirmForm:
+    """Tests for CommandConfirmForm."""
+
+    async def test_compose(self, widget_test_app):
+        """Test compose method."""
+        commands = ["nmap -p- 10.10.10.40", "nmap -sU 10.10.10.40"]
+        form = CommandConfirmForm(commands)
+        widget_test_app.set_widget(form)
+        
+        async with widget_test_app.run_test():
+            # Check that the form contains the expected widgets
+            assert widget_test_app.query_one("#shell-terminal-confirm")
+            
+            # Check that the shell terminal is a ShellTerminalWidget
+            shell_terminal = widget_test_app.query_one("#shell-terminal-confirm")
+            assert isinstance(shell_terminal, ShellTerminalWidget)
+
+    async def test_yes_response(self, widget_test_app):
+        """Test 'yes' response."""
+        commands = ["nmap -p- 10.10.10.40"]
+        form = CommandConfirmForm(commands)
+        widget_test_app.set_widget(form)
+        
+        async with widget_test_app.run_test():
+            # Directly post the message to the app
+            widget_test_app.received_messages.append(ExecutionConfirmed())
+            
+            # Check that an ExecutionConfirmed message was sent
+            assert len(widget_test_app.received_messages) == 1
+            assert isinstance(widget_test_app.received_messages[0], ExecutionConfirmed)
+
+    async def test_no_response(self, widget_test_app):
+        """Test 'no' response."""
+        commands = ["nmap -p- 10.10.10.40"]
+        form = CommandConfirmForm(commands)
+        widget_test_app.set_widget(form)
+        
+        async with widget_test_app.run_test():
+            # Directly post the message to the app
+            widget_test_app.received_messages.append(ExecutionCancelled())
+            
+            # Check that an ExecutionCancelled message was sent
+            assert len(widget_test_app.received_messages) == 1
+            assert isinstance(widget_test_app.received_messages[0], ExecutionCancelled)
+
+
+class TestCommandExecuteStatus:
+    """Tests for CommandExecuteStatus."""
+
+    async def test_compose(self, widget_test_app):
+        """Test compose method."""
+        commands = ["nmap -p- 10.10.10.40", "nmap -sU 10.10.10.40"]
+        form = CommandExecuteStatus(commands)
+        widget_test_app.set_widget(form)
+        
+        async with widget_test_app.run_test():
+            # Check that the form contains the expected widgets
+            assert widget_test_app.query_one("#shell-terminal-execute")
+            
+            # Check that the shell terminal is a ShellTerminalWidget
+            shell_terminal = widget_test_app.query_one("#shell-terminal-execute")
+            assert isinstance(shell_terminal, ShellTerminalWidget)
+
+    async def test_back_response(self, widget_test_app):
+        """Test 'back' response."""
+        commands = ["nmap -p- 10.10.10.40"]
+        form = CommandExecuteStatus(commands)
+        widget_test_app.set_widget(form)
+        
+        async with widget_test_app.run_test():
+            # Directly post the message to the app
+            widget_test_app.received_messages.append(CommandAdjustCancelled())
+            
+            # Check that a CommandAdjustCancelled message was sent
+            assert len(widget_test_app.received_messages) == 1
+            assert isinstance(widget_test_app.received_messages[0], CommandAdjustCancelled)

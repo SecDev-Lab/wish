@@ -18,7 +18,7 @@ def setup_logger(name: str, level: str | None = None) -> logging.Logger:
     """
     logger = logging.getLogger(name)
     
-    # Get log level from environment variable or parameter, default to WARNING
+    # Get log level from environment variable or parameter, default to INFO
     if level is None:
         level = os.environ.get("WISH_LOG_LEVEL", "INFO").upper()
     
