@@ -142,8 +142,26 @@ class NewWishPaneComposite(PaneComposite):
         current_state = self.new_wish_turns.current_state
 
         if current_state == NewWishState.INPUT_WISH:
+            # Main PaneとSub Paneを更新
             self.main_pane.update_for_input_wish()
             self.sub_pane.update_for_input_wish()
+            
+            # WishInputFormをマウント
+            from wish_sh.tui.widgets.new_wish_widgets import WishInputForm
+            
+            # 既存のフォームを削除
+            for child in list(self.main_pane._nodes):
+                if isinstance(child, WishInputForm) or (hasattr(child, "id") and child.id and child.id.startswith("wish-input-form")):
+                    self.logger.debug(f"Removing existing form: {child.id}")
+                    child.remove()
+            
+            # 新しいフォームをマウント
+            wish_input_form = WishInputForm(id="wish-input-form")
+            self.logger.debug("Mounting WishInputForm")
+            self.main_pane.mount(wish_input_form)
+            
+            # ShellTerminalWidgetにフォーカスを設定
+            self.main_pane.app.call_after_refresh(self._focus_shell_terminal)
 
         elif current_state == NewWishState.ASK_WISH_DETAIL:
             self.main_pane.update_for_ask_wish_detail()
@@ -466,3 +484,42 @@ class NewWishPaneComposite(PaneComposite):
 
         # Update UI
         self.update_for_state()
+    
+    def _focus_shell_terminal(self) -> None:
+        """Focus the shell terminal widget."""
+        try:
+            # Main Pane内のシェルターミナルウィジェットを検索
+            from wish_sh.tui.widgets.shell_terminal_widget import ShellTerminalWidget
+            
+            shell_terminal = None
+            
+            # まずMain Pane内を検索
+            try:
+                shell_terminal = self.main_pane.query_one("#shell-terminal", expect_type=ShellTerminalWidget)
+                self.logger.debug("Found ShellTerminalWidget in Main Pane")
+            except Exception:
+                self.logger.debug("ShellTerminalWidget not found in Main Pane")
+            
+            if shell_terminal:
+                self.logger.debug("Focusing ShellTerminalWidget")
+                # フォーカスを設定
+                shell_terminal.focus()
+                # 確実にフォーカスが設定されるようにタイマーを設定
+                self.main_pane.app.set_timer(0.1, lambda: self._ensure_shell_terminal_focus(shell_terminal))
+            else:
+                self.logger.error("ShellTerminalWidget not found anywhere")
+        except Exception as e:
+            self.logger.error(f"Error focusing ShellTerminalWidget: {e}")
+    
+    def _ensure_shell_terminal_focus(self, shell_terminal) -> None:
+        """シェルターミナルウィジェットのフォーカスを確実に設定する"""
+        try:
+            shell_terminal.focus()
+            
+            # 現在のフォーカスを確認
+            if self.main_pane.app.focused is not shell_terminal:
+                self.logger.warning(f"ShellTerminalWidget is not focused, current focus: {self.main_pane.app.focused}")
+                # 再度フォーカスを設定
+                shell_terminal.focus()
+        except Exception as e:
+            self.logger.error(f"Error ensuring ShellTerminalWidget focus: {e}")

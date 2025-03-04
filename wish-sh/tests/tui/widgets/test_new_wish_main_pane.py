@@ -69,18 +69,18 @@ class TestNewWishMainPane:
         async with app.run_test():
             pane = app.query_one(NewWishMainPane)
             
+            # 初期状態の内容を保存
+            content_before = app.query_one("#main-pane-content").renderable
+            
             # Create test commands
             commands = ["echo 'Hello'", "ls -la", "pwd"]
             
             # Update for SUGGEST_COMMANDS state
             pane.update_for_suggest_commands(commands)
             
-            # Check that the content has been updated
-            content = app.query_one("#main-pane-content")
-            assert content is not None
-            assert "コマンドを確認してください" in content.renderable
-            assert "コマンドリストはSub Paneで確認できます" in content.renderable
-            assert "y/n/aで選択してください" in content.renderable
+            # Check that the content has not been changed (main paneの内容はクリアしない)
+            content_after = app.query_one("#main-pane-content").renderable
+            assert content_after == content_before
 
     @pytest.mark.asyncio
     async def test_main_pane_update_for_adjust_commands(self):

@@ -77,6 +77,8 @@ class TestNewWishSubPane:
             # Check that the content has been updated
             content = app.query_one("#sub-pane-content")
             assert content is not None
+            # main paneから移動したメッセージを確認
+            assert "コマンドを確認してください" in content.renderable
             assert "以下のコマンドを実行しますか？ (y/n/a)" in content.renderable
             
             # Check that all commands are displayed
@@ -96,6 +98,8 @@ class TestNewWishSubPane:
             # Check that the content has been updated
             content = app.query_one("#sub-pane-content")
             assert content is not None
+            # main paneから移動したメッセージを確認
+            assert "コマンドを確認してください" in content.renderable
             assert "以下のコマンドを実行しますか？ (y/n/a)" in content.renderable
             assert "コマンドがありません" in content.renderable
 
