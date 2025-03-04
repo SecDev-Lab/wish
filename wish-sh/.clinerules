@@ -1,5 +1,11 @@
 # Python アプリケーションプロジェクトガイドライン
 
+## 現在のブランチで達成したいゴール
+
+- wishがTUIで動作する
+  - New Wish Mode
+  - Wish History Mode
+
 ## プロジェクト概要
 
 Pythonアプリケーションプロジェクト用のガイドラインです。
