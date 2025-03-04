@@ -42,12 +42,12 @@ class NewWishSubPane(BasePane):
     def update_for_input_wish(self):
         """Update for INPUT_WISH state."""
         # 入力状態では、コマンド関連の情報を表示（まだコマンドはない）
-        self.update_content("sub-pane-content", "[SUB PANE] Wishを入力してください")
+        self.update_content("sub-pane-content", "(SUB PANE) Wishを入力してください", markup=False)
     
     def update_for_ask_wish_detail(self):
         """Update for ASK_WISH_DETAIL state."""
         # 詳細入力状態では、コマンド関連の情報を表示（まだコマンドはない）
-        self.update_content("sub-pane-content", "Please enter the target IP address or hostname")
+        self.update_content("sub-pane-content", "Please enter the target IP address or hostname", markup=False)
     
     def update_for_suggest_commands(self, commands: List[str] = None):
         """Update for SUGGEST_COMMANDS state.
@@ -58,7 +58,7 @@ class NewWishSubPane(BasePane):
         self.logger.debug(f"update_for_suggest_commands called with commands: {commands}")
         
         # コマンド確認メッセージとコマンドリストを表示
-        content = "[b]コマンドを確認してください[/b]\n\n"
+        content = "コマンドを確認してください\n\n"
         content += "以下のコマンドを実行しますか？ (y/n/a)\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
@@ -72,15 +72,16 @@ class NewWishSubPane(BasePane):
         try:
             static = self.query_one("#sub-pane-content")
             if static:
+                static.markup = False
                 static.update(content)
                 self.logger.debug("Content updated via static.update()")
             else:
                 self.logger.debug("Static widget not found")
-                self.update_content("sub-pane-content", content)
+                self.update_content("sub-pane-content", content, markup=False)
                 self.logger.debug("Content updated via update_content()")
         except Exception as e:
             self.logger.error(f"Error updating content: {e}")
-            self.update_content("sub-pane-content", content)
+            self.update_content("sub-pane-content", content, markup=False)
             self.logger.debug("Content updated via update_content() after error")
     
     def update_for_adjust_commands(self, commands: List[str] = None):
@@ -92,7 +93,7 @@ class NewWishSubPane(BasePane):
         self.logger.debug(f"update_for_adjust_commands called with commands: {commands}")
         
         # コマンド修正メッセージとコマンドリストを表示
-        content = "[b]コマンドを修正してください[/b]\n\n"
+        content = "コマンドを修正してください\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
                 content += f"[{i}] {cmd}\n"
@@ -105,15 +106,16 @@ class NewWishSubPane(BasePane):
         try:
             static = self.query_one("#sub-pane-content")
             if static:
+                static.markup = False
                 static.update(content)
                 self.logger.debug("Content updated via static.update()")
             else:
                 self.logger.debug("Static widget not found")
-                self.update_content("sub-pane-content", content)
+                self.update_content("sub-pane-content", content, markup=False)
                 self.logger.debug("Content updated via update_content()")
         except Exception as e:
             self.logger.error(f"Error updating content: {e}")
-            self.update_content("sub-pane-content", content)
+            self.update_content("sub-pane-content", content, markup=False)
             self.logger.debug("Content updated via update_content() after error")
     
     def update_for_confirm_commands(self, commands: List[str] = None):
@@ -125,7 +127,7 @@ class NewWishSubPane(BasePane):
         self.logger.debug(f"update_for_confirm_commands called with commands: {commands}")
         
         # コマンド確認メッセージとコマンドリストを表示
-        content = "[b]以下のコマンドを実行します。よろしいですか？ (y/n)[/b]\n\n"
+        content = "以下のコマンドを実行します。よろしいですか？ (y/n)\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
                 content += f"[{i}] {cmd}\n"
@@ -138,15 +140,16 @@ class NewWishSubPane(BasePane):
         try:
             static = self.query_one("#sub-pane-content")
             if static:
+                static.markup = False
                 static.update(content)
                 self.logger.debug("Content updated via static.update()")
             else:
                 self.logger.debug("Static widget not found")
-                self.update_content("sub-pane-content", content)
+                self.update_content("sub-pane-content", content, markup=False)
                 self.logger.debug("Content updated via update_content()")
         except Exception as e:
             self.logger.error(f"Error updating content: {e}")
-            self.update_content("sub-pane-content", content)
+            self.update_content("sub-pane-content", content, markup=False)
             self.logger.debug("Content updated via update_content() after error")
     
     def update_for_execute_commands(self, commands: List[str] = None):
@@ -158,7 +161,7 @@ class NewWishSubPane(BasePane):
         self.logger.debug(f"update_for_execute_commands called with commands: {commands}")
         
         # コマンド実行メッセージとコマンドリストを表示
-        content = "[b]コマンドを実行中です。しばらくお待ちください。[/b]\n\n"
+        content = "コマンドを実行中です。しばらくお待ちください。\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
                 content += f"[{i}] {cmd}\n"
@@ -171,15 +174,16 @@ class NewWishSubPane(BasePane):
         try:
             static = self.query_one("#sub-pane-content")
             if static:
+                static.markup = False
                 static.update(content)
                 self.logger.debug("Content updated via static.update()")
             else:
                 self.logger.debug("Static widget not found")
-                self.update_content("sub-pane-content", content)
+                self.update_content("sub-pane-content", content, markup=False)
                 self.logger.debug("Content updated via update_content()")
         except Exception as e:
             self.logger.error(f"Error updating content: {e}")
-            self.update_content("sub-pane-content", content)
+            self.update_content("sub-pane-content", content, markup=False)
             self.logger.debug("Content updated via update_content() after error")
     
     def update_for_execution_confirmed(self, commands: List[str] = None):
@@ -191,7 +195,7 @@ class NewWishSubPane(BasePane):
         self.logger.debug(f"update_for_execution_confirmed called with commands: {commands}")
         
         # コマンド実行完了メッセージとコマンドリストを表示
-        content = "[b][SUB PANE] コマンドが実行されました[/b]\n\n"
+        content = "(SUB PANE) コマンドが実行されました\n\n"
         if commands:
             for i, cmd in enumerate(commands, 1):
                 content += f"[{i}] {cmd}\n"
@@ -204,15 +208,16 @@ class NewWishSubPane(BasePane):
         try:
             static = self.query_one("#sub-pane-content")
             if static:
+                static.markup = False
                 static.update(content)
                 self.logger.debug("Content updated via static.update()")
             else:
                 self.logger.debug("Static widget not found")
-                self.update_content("sub-pane-content", content)
+                self.update_content("sub-pane-content", content, markup=False)
                 self.logger.debug("Content updated via update_content()")
         except Exception as e:
             self.logger.error(f"Error updating content: {e}")
-            self.update_content("sub-pane-content", content)
+            self.update_content("sub-pane-content", content, markup=False)
             self.logger.debug("Content updated via update_content() after error")
     
     def set_active(self, active: bool) -> None:

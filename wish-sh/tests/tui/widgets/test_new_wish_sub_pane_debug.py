@@ -36,7 +36,7 @@ class TestNewWishSubPaneDebug:
         
         # Check the content of the update
         update_content = mock_static.update.call_args[0][0]
-        assert "[b]コマンドを確認してください[/b]" in update_content
+        assert "コマンドを確認してください" in update_content
         assert "以下のコマンドを実行しますか？ (y/n/a)" in update_content
         assert "[1] command1" in update_content
         assert "[2] command2" in update_content
@@ -65,7 +65,7 @@ class TestNewWishSubPaneDebug:
         
         # Check the content of the update
         update_content = mock_static.update.call_args[0][0]
-        assert "[b]コマンドを確認してください[/b]" in update_content
+        assert "コマンドを確認してください" in update_content
         assert "以下のコマンドを実行しますか？ (y/n/a)" in update_content
         assert "コマンドがありません。" in update_content
 
@@ -95,7 +95,7 @@ class TestNewWishSubPaneDebug:
         
         # Check the content of the update
         update_content = sub_pane.update_content.call_args[0][1]
-        assert "[b]コマンドを確認してください[/b]" in update_content
+        assert "コマンドを確認してください" in update_content
         assert "以下のコマンドを実行しますか？ (y/n/a)" in update_content
         assert "[1] command1" in update_content
         assert "[2] command2" in update_content

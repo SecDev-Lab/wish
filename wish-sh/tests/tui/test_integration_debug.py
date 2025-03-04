@@ -32,7 +32,7 @@ class TestIntegrationDebug:
         sub_pane.update_for_execution_confirmed(commands)
         
         # Assert that update_content was called with the confirmation message
-        sub_pane.update_content.assert_called_with("sub-pane-content", "[b][SUB PANE] コマンドが実行されました[/b]\n\n[1] echo 'test'\n[2] ls -la\n")
+        sub_pane.update_content.assert_called_with("sub-pane-content", "(SUB PANE) コマンドが実行されました\n\n[1] echo 'test'\n[2] ls -la\n", markup=False)
     
     @pytest.mark.asyncio
     async def test_execution_confirmed_updates_sub_pane_display(self):
