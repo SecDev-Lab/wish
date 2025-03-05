@@ -111,7 +111,7 @@ class TestWishManager:
 
         # Test with other wish text
         commands = manager.generate_commands("some other wish")
-        assert len(commands) == 2
+        assert len(commands) == 3
         assert any("echo" in cmd for cmd in commands)
 
     @patch("subprocess.Popen")
@@ -170,9 +170,9 @@ class TestWishManager:
                 assert result.exit_code == 1
                 assert result.state == CommandState.OTHERS
                 assert result.finished_at is not None
-                assert result.log_summary == "Test summary"
-                # Verify summarize_log was called with the log_files
-                mock_summarize.assert_called_once_with(result.log_files)
+                assert result.log_summary == "予期せぬエラー: Test exception"
+                # Verify that the error message was written to stderr
+                mock_open_file().write.assert_any_call("予期せぬエラー: Test exception")
 
     def test_summarize_log_empty_files(self):
         """Test that summarize_log handles empty log files."""

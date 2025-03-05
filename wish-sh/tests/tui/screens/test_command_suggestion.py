@@ -24,15 +24,21 @@ class TestCommandSuggestion:
         screen, app_mock = CommandSuggestionFactory.create_with_mocked_app()
         wish_manager = app_mock.wish_manager
         
-        # Call on_yes_button_pressed
-        screen.on_yes_button_pressed()
+        # Create a property mock
+        app_property_mock = MagicMock()
+        app_property_mock.__get__ = MagicMock(return_value=app_mock)
         
-        # Check that push_screen was called with CommandExecutionScreen
-        # and the correct arguments
-        app_mock.push_screen.assert_called_once()
-        args, kwargs = app_mock.push_screen.call_args
-        assert len(args) == 1
-        assert isinstance(args[0], CommandExecutionScreen)
-        assert args[0].wish == screen.wish
-        assert args[0].commands == screen.commands
-        assert args[0].wish_manager == wish_manager
+        # Patch the CommandSuggestion.app property
+        with patch('wish_sh.wish_tui.CommandSuggestion.app', app_property_mock):
+            # Call on_yes_button_pressed
+            screen.on_yes_button_pressed()
+            
+            # Check that push_screen was called with CommandExecutionScreen
+            # and the correct arguments
+            app_mock.push_screen.assert_called_once()
+            args, kwargs = app_mock.push_screen.call_args
+            assert len(args) == 1
+            assert isinstance(args[0], CommandExecutionScreen)
+            assert args[0].wish == screen.wish
+            assert args[0].commands == screen.commands
+            assert args[0].wish_manager == wish_manager

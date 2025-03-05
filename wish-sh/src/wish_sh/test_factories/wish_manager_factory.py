@@ -90,5 +90,7 @@ class WishManagerFactory(factory.Factory):
         manager.execute_command = MagicMock()
         manager.check_running_commands = MagicMock()
         manager.save_wish = MagicMock()
+        manager.generate_commands = MagicMock(return_value=["echo 'Test command 1'", "echo 'Test command 2'"])
+        manager.cancel_command = MagicMock(return_value="Command 1 cancelled.")
         
         return manager

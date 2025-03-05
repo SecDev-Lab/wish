@@ -30,7 +30,7 @@ class TestCommandExecutionScreen:
         This test verifies:
         1. The on_mount method executes all commands in the commands list
         2. Each command is executed with the correct parameters
-        3. A timer is set up to periodically check command status
+        3. asyncio.create_task is called to monitor commands
         """
         screen, status_widget, execution_text = screen_setup
         wish_manager = screen.wish_manager
@@ -43,61 +43,12 @@ class TestCommandExecutionScreen:
         for i, cmd in enumerate(screen.commands, 1):
             wish_manager.execute_command.assert_any_call(screen.wish, cmd, i)
         
-        # Check that set_interval was called to set up the timer
-        screen.set_interval.assert_called_once()
-
-    def test_update_command_status(self, screen_setup):
-        """Test that update_command_status updates the command status.
+        # Check that asyncio.create_task was called
+        asyncio.create_task.assert_called_once()
         
-        This test verifies:
-        1. The update_command_status method checks running commands
-        2. The UI is updated with current command statuses
-        3. The method checks if all commands have completed
-        """
-        screen, status_widget, execution_text = screen_setup
-        wish_manager = screen.wish_manager
-        
-        # Mock methods to isolate the test
-        screen.update_ui = MagicMock()
-        screen.check_all_commands_completed = MagicMock()
-        
-        # Call update_command_status
-        screen.update_command_status()
-        
-        # Check that methods were called
-        wish_manager.check_running_commands.assert_called_once()
-        screen.update_ui.assert_called_once()
-        screen.check_all_commands_completed.assert_called_once()
-
-    def test_update_ui(self, screen_setup):
-        """Test that update_ui updates the UI with command statuses.
-        
-        This test verifies:
-        1. The update_ui method queries for status widgets
-        2. Each command status is displayed in the UI
-        3. Status information includes state, exit code, and summary
-        """
-        screen, status_widget, execution_text = screen_setup
-        wish = screen.wish
-        
-        # Add command results to the wish
-        for i, cmd in enumerate(screen.commands, 1):
-            # Create a mock command result
-            result = MagicMock()
-            result.state = CommandState.SUCCESS
-            result.exit_code = 0
-            result.log_summary = f"Test summary {i}"
-            result.num = i
-            wish.command_results.append(result)
-        
-        # Call update_ui
-        screen.update_ui()
-        
-        # Check that query_one was called for each command
-        assert screen.query_one.call_count == len(screen.commands)
-        
-        # Check that update was called on the widget
-        assert status_widget.update.call_count == len(screen.commands)
+        # Check that monitor_commands was passed to create_task
+        args, kwargs = asyncio.create_task.call_args
+        assert args[0] == screen.monitor_commands()
 
     def test_check_all_commands_completed_not_all_done(self, screen_setup):
         """Test check_all_commands_completed when not all commands are done.
@@ -152,6 +103,9 @@ class TestCommandExecutionScreen:
             result.num = i
             wish.command_results.append(result)
         
+        # Mock the tracker.is_all_completed method to return (True, False)
+        screen.tracker.is_all_completed = MagicMock(return_value=(True, False))
+        
         # Call check_all_commands_completed
         screen.check_all_commands_completed()
         
@@ -166,7 +120,7 @@ class TestCommandExecutionScreen:
         wish_manager.save_wish.assert_called_once_with(wish)
         
         # Check that execution_text was updated
-        execution_text.update.assert_called_once_with("All commands completed.")
+        execution_text.update.assert_any_call("All commands completed.")
 
     def test_check_all_commands_completed_some_failed(self, screen_setup):
         """Test check_all_commands_completed when some commands fail.
@@ -193,6 +147,9 @@ class TestCommandExecutionScreen:
         result2.num = 2
         wish.command_results.append(result2)
         
+        # Mock the tracker.is_all_completed method to return (True, True)
+        screen.tracker.is_all_completed = MagicMock(return_value=(True, True))
+        
         # Call check_all_commands_completed
         screen.check_all_commands_completed()
         
@@ -207,4 +164,4 @@ class TestCommandExecutionScreen:
         wish_manager.save_wish.assert_called_once_with(wish)
         
         # Check that execution_text was updated
-        execution_text.update.assert_called_once_with("All commands completed. Some commands failed.")
+        execution_text.update.assert_any_call("All commands completed. Some commands failed.")

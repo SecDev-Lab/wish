@@ -30,18 +30,24 @@ class TestWishInput:
         mock_commands = ["echo 'Test command 1'", "echo 'Test command 2'"]
         wish_manager.generate_commands.return_value = mock_commands
         
-        # Call on_input_submitted
-        screen.on_input_submitted(mock_event)
+        # Create a property mock
+        app_property_mock = MagicMock()
+        app_property_mock.__get__ = MagicMock(return_value=app_mock)
         
-        # Check that generate_commands was called with the correct wish text
-        wish_manager.generate_commands.assert_called_once_with(wish_text)
-        
-        # Check that push_screen was called with CommandSuggestion
-        # and the correct arguments
-        app_mock.push_screen.assert_called_once()
-        args, kwargs = app_mock.push_screen.call_args
-        assert len(args) == 1
-        assert isinstance(args[0], CommandSuggestion)
-        assert args[0].wish.wish == wish_text
-        assert args[0].wish.state == WishState.DOING
-        assert args[0].commands == mock_commands
+        # Patch the WishInput.app property
+        with patch('wish_sh.wish_tui.WishInput.app', app_property_mock):
+            # Call on_input_submitted
+            screen.on_input_submitted(mock_event)
+            
+            # Check that generate_commands was called with the correct wish text
+            wish_manager.generate_commands.assert_called_once_with(wish_text)
+            
+            # Check that push_screen was called with CommandSuggestion
+            # and the correct arguments
+            app_mock.push_screen.assert_called_once()
+            args, kwargs = app_mock.push_screen.call_args
+            assert len(args) == 1
+            assert isinstance(args[0], CommandSuggestion)
+            assert args[0].wish.wish == wish_text
+            assert args[0].wish.state == WishState.DOING
+            assert args[0].commands == mock_commands

@@ -72,7 +72,7 @@ class TestUIUpdater:
         # Verify that the status text contains the expected information
         for i in range(3):
             call_args = status_widget.update.call_args_list[i][0][0]
-            assert f"Status: {CommandState.SUCCESS}" in call_args
+            assert f"Status: {CommandState.SUCCESS.value}" in call_args
             assert "exit code: 0" in call_args
             assert f"Summary: Test summary {i + 1}" in call_args
 
@@ -103,7 +103,7 @@ class TestUIUpdater:
         
         # Verify that the status text contains the expected information
         call_args = status_widget.update.call_args[0][0]
-        assert f"Status: {CommandState.OTHERS}" in call_args
+        assert f"Status: {CommandState.OTHERS.value}" in call_args
         assert "exit code: 1" in call_args
         assert "Summary: Error occurred" in call_args
 
@@ -134,7 +134,7 @@ class TestUIUpdater:
         
         # Verify that the status text contains the expected information
         call_args = status_widget.update.call_args[0][0]
-        assert f"Status: {CommandState.SUCCESS}" in call_args
+        assert f"Status: {CommandState.SUCCESS.value}" in call_args
         assert "exit code: 0" in call_args
         assert "Summary:" not in call_args
 

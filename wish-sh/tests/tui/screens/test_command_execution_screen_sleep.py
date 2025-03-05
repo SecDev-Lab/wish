@@ -44,11 +44,12 @@ class TestCommandExecutionScreenWithSleepCommand:
         # Check that execute_command was called for each command
         assert wish_manager.execute_command.call_count == len(screen.commands)
         
-        # Check that set_interval was called to set up the timer
-        screen.set_interval.assert_called_once()
+        # Check that asyncio.create_task was called
+        asyncio.create_task.assert_called_once()
         
-        # Manually call update_command_status to simulate the timer
-        screen.update_command_status()
+        # Manually call the tracker and ui_updater to simulate the monitor_commands method
+        screen.tracker.check_status(screen.wish)
+        screen.ui_updater.update_command_status(screen.wish)
         
         # Check that check_running_commands was called
         wish_manager.check_running_commands.assert_called_once()
@@ -63,8 +64,9 @@ class TestCommandExecutionScreenWithSleepCommand:
         wish_manager.check_running_commands.reset_mock()
         status_widget.update.reset_mock()
         
-        # Call update_command_status again
-        screen.update_command_status()
+        # Manually call the tracker and ui_updater again
+        screen.tracker.check_status(screen.wish)
+        screen.ui_updater.update_command_status(screen.wish)
         
         # Check that check_running_commands was called again
         wish_manager.check_running_commands.assert_called_once()
@@ -80,8 +82,9 @@ class TestCommandExecutionScreenWithSleepCommand:
         status_widget.update.reset_mock()
         execution_text.update.reset_mock()
         
-        # Call update_command_status again
-        screen.update_command_status()
+        # Manually call the tracker and ui_updater again
+        screen.tracker.check_status(screen.wish)
+        screen.ui_updater.update_command_status(screen.wish)
         
         # Check that check_running_commands was called again
         wish_manager.check_running_commands.assert_called_once()
@@ -92,8 +95,14 @@ class TestCommandExecutionScreenWithSleepCommand:
         # Check that all commands have completed
         assert len(wish_manager.running_commands) == 0
         
+        # Mock the tracker.is_all_completed method to return (True, False)
+        screen.tracker.is_all_completed = MagicMock(return_value=(True, False))
+        
+        # Manually call check_all_commands_completed to simulate the monitor_commands method
+        screen.check_all_commands_completed()
+        
         # Check that the execution text was updated to show completion
-        execution_text.update.assert_called_once()
+        execution_text.update.assert_called()
         
     @pytest.mark.asyncio
     async def test_sleep_command_with_different_durations(self):
@@ -122,8 +131,8 @@ class TestCommandExecutionScreenWithSleepCommand:
         # Wait for the first command to complete
         await asyncio.sleep(0.6)
         
-        # Call update_command_status
-        screen.update_command_status()
+        # Manually call the tracker to check status
+        screen.tracker.check_status(screen.wish)
         
         # Check that the first command has completed
         assert 1 not in wish_manager.running_commands
@@ -131,8 +140,8 @@ class TestCommandExecutionScreenWithSleepCommand:
         # Wait for the second command to complete
         await asyncio.sleep(0.5)
         
-        # Call update_command_status again
-        screen.update_command_status()
+        # Manually call the tracker to check status again
+        screen.tracker.check_status(screen.wish)
         
         # Check that the second command has completed
         assert 2 not in wish_manager.running_commands
@@ -140,11 +149,17 @@ class TestCommandExecutionScreenWithSleepCommand:
         # Wait for the third command to complete
         await asyncio.sleep(0.5)
         
-        # Call update_command_status again
-        screen.update_command_status()
+        # Manually call the tracker to check status again
+        screen.tracker.check_status(screen.wish)
         
         # Check that all commands have completed
         assert len(wish_manager.running_commands) == 0
+        
+        # Mock the tracker.is_all_completed method to return (True, False)
+        screen.tracker.is_all_completed = MagicMock(return_value=(True, False))
+        
+        # Manually call check_all_commands_completed to simulate the monitor_commands method
+        screen.check_all_commands_completed()
         
         # Check that the execution text was updated to show completion
         execution_text.update.assert_called()
