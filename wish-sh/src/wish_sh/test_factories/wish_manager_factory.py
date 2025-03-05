@@ -6,6 +6,8 @@ from unittest.mock import MagicMock, patch
 import factory
 from wish_models import CommandState, UtcDatetime
 
+from wish_command_execution import CommandExecutor, CommandStatusTracker
+from wish_command_execution.backend import BashBackend
 from wish_sh.settings import Settings
 from wish_sh.wish_manager import WishManager
 
@@ -24,8 +26,10 @@ class WishManagerFactory(factory.Factory):
         with patch.object(Path, "mkdir"):  # Mock directory creation
             manager = super().create(**kwargs)
 
-            # Initialize running_commands
-            manager.running_commands = {}
+            # Initialize backend for testing
+            backend = BashBackend(log_summarizer=manager.summarize_log)
+            manager.executor = CommandExecutor(backend=backend, log_dir_creator=manager.create_command_log_dirs)
+            manager.tracker = CommandStatusTracker(manager.executor, wish_saver=manager.save_wish)
 
             return manager
 
@@ -60,7 +64,7 @@ class WishManagerFactory(factory.Factory):
             process = subprocess.Popen(command, shell=True)
 
             # Store in running commands dict
-            manager.running_commands[cmd_num] = (process, result, wish)
+            manager.executor.backend.running_commands[cmd_num] = (process, result, wish)
 
             return result
 
@@ -68,7 +72,7 @@ class WishManagerFactory(factory.Factory):
 
         # Make check_running_commands actually check the commands
         def check_running_commands_side_effect():
-            for cmd_num, (process, result, _wish) in list(manager.running_commands.items()):
+            for cmd_num, (process, result, _wish) in list(manager.executor.backend.running_commands.items()):
                 if process.poll() is not None:  # Process has finished
                     # Update the result
                     result.state = CommandState.SUCCESS if process.returncode == 0 else CommandState.OTHERS
@@ -76,7 +80,7 @@ class WishManagerFactory(factory.Factory):
                     result.finished_at = UtcDatetime.now()
 
                     # Remove from running commands
-                    del manager.running_commands[cmd_num]
+                    del manager.executor.backend.running_commands[cmd_num]
 
         manager.check_running_commands = MagicMock(side_effect=check_running_commands_side_effect)
 
