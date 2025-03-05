@@ -32,8 +32,8 @@ class WishInput(Screen):
             wish = Wish.create(wish_text)
             wish.state = WishState.DOING
 
-            # Generate mock commands (in a real app, this would call an LLM)
-            commands = [f"echo 'Executing wish: {wish_text}'", f"echo 'Processing {wish_text}' && ls -la"]
+            # Generate commands using WishManager
+            commands = self.app.wish_manager.generate_commands(wish_text)
 
             # Switch to command suggestion screen
             self.app.push_screen(CommandSuggestion(wish, commands))
