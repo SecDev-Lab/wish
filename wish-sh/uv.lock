@@ -325,7 +325,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "textual", specifier = ">=0.52.1" },
+    { name = "textual", specifier = ">=2.1.2" },
     { name = "wish-models", editable = "../wish-models" },
 ]
 

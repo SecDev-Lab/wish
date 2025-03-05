@@ -33,7 +33,7 @@ classifiers = [
 license = {file = "../LICENSE"}
 dependencies = [
     "wish-models>=0.0.1",
-    "textual>=0.52.1",
+    "textual>=2.1.2",
 ]
 
 [tool.uv.sources]
