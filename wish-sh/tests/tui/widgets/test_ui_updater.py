@@ -46,7 +46,7 @@ class TestUIUpdater:
 
     def test_update_command_status(self, ui_updater, screen, wish):
         """Test update_command_status method.
-        
+
         This test verifies that the update_command_status method correctly
         updates the UI with command statuses.
         """
@@ -79,7 +79,7 @@ class TestUIUpdater:
 
     def test_update_command_status_with_exit_code(self, ui_updater, screen, wish):
         """Test update_command_status method with exit code.
-        
+
         This test verifies that the update_command_status method correctly
         includes the exit code in the status text.
         """
@@ -110,7 +110,7 @@ class TestUIUpdater:
 
     def test_update_command_status_without_log_summary(self, ui_updater, screen, wish):
         """Test update_command_status method without log summary.
-        
+
         This test verifies that the update_command_status method correctly
         handles command results without a log summary.
         """
@@ -141,7 +141,7 @@ class TestUIUpdater:
 
     def test_show_completion_message(self, ui_updater, screen):
         """Test show_completion_message method.
-        
+
         This test verifies that the show_completion_message method correctly
         updates the execution text widget with the completion message.
         """

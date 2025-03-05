@@ -22,7 +22,7 @@ class TestCommandExecutionScreenWithSleepCommand:
     @pytest.mark.asyncio
     async def test_sleep_command_execution_and_ui_update(self, screen_setup):
         """Test that sleep commands are executed and the UI is updated correctly.
-        
+
         This test verifies:
         1. Commands are properly executed when the screen is mounted
         2. The UI is updated as commands progress
@@ -45,7 +45,7 @@ class TestCommandExecutionScreenWithSleepCommand:
     @pytest.mark.asyncio
     async def test_sleep_command_with_different_durations(self):
         """Test that sleep commands with different durations are executed and tracked correctly.
-        
+
         This test verifies:
         1. Multiple commands with different durations are executed properly
         2. Each command's completion is tracked independently

@@ -11,7 +11,7 @@ class TestWishInput:
 
     def test_on_input_submitted_uses_wish_manager(self):
         """Test that on_input_submitted uses WishManager.generate_commands.
-        
+
         This test verifies:
         1. The on_input_submitted method calls WishManager.generate_commands with the wish text
         2. A new Wish object is created with the correct text and state

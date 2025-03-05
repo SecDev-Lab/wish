@@ -18,7 +18,7 @@ class TestWishManagerWithSleepCommand:
     @pytest.mark.asyncio
     async def test_execute_sleep_command(self, wish):
         """Test that a sleep command is executed and tracked correctly.
-        
+
         This test verifies:
         1. A sleep command is properly executed by WishManager
         2. The command is tracked while executing
@@ -47,7 +47,7 @@ class TestWishManagerWithSleepCommand:
     @pytest.mark.asyncio
     async def test_multiple_sleep_commands(self, wish):
         """Test that multiple sleep commands are executed and tracked correctly.
-        
+
         This test verifies:
         1. Multiple commands with different durations are executed properly
         2. All commands are initially tracked

@@ -26,7 +26,7 @@ class TestCommandExecutionScreen:
 
     def test_on_mount_executes_commands(self, screen_setup):
         """Test that on_mount executes commands.
-        
+
         This test verifies:
         1. The on_mount method executes all commands in the commands list
         2. Each command is executed with the correct parameters
@@ -47,7 +47,7 @@ class TestCommandExecutionScreen:
 
     def test_check_all_commands_completed_not_all_done(self, screen_setup):
         """Test check_all_commands_completed when not all commands are done.
-        
+
         This test verifies:
         1. The all_completed flag remains False when commands are still running
         2. The wish state is not updated when commands are still running
@@ -81,7 +81,7 @@ class TestCommandExecutionScreen:
 
     def test_check_all_commands_completed_all_success(self, screen_setup):
         """Test check_all_commands_completed when all commands succeed.
-        
+
         This test verifies:
         1. The all_completed flag is set to True when all commands complete
         2. The wish state is updated to DONE when all commands succeed
@@ -95,7 +95,7 @@ class TestCommandExecutionScreen:
         context = wish_manager
 
         # Add command results that are all SUCCESS
-        for i, cmd in enumerate(screen.commands, 1):
+        for i, _cmd in enumerate(screen.commands, 1):
             # Create a mock command result
             result = MagicMock()
             result.state = CommandState.SUCCESS
@@ -129,7 +129,7 @@ class TestCommandExecutionScreen:
 
     def test_check_all_commands_completed_some_failed(self, screen_setup):
         """Test check_all_commands_completed when some commands fail.
-        
+
         This test verifies:
         1. The all_completed flag is set to True when all commands complete
         2. The wish state is updated to FAILED when any command fails

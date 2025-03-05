@@ -14,7 +14,7 @@ class TestWishManagerCommands:
 
     def test_generate_commands_scan_port(self):
         """Test generate_commands with 'scan port' wish text.
-        
+
         This test verifies that the generate_commands method returns appropriate
         commands when the wish text contains 'scan' and 'port'.
         """
@@ -32,7 +32,7 @@ class TestWishManagerCommands:
 
     def test_generate_commands_find_suid(self):
         """Test generate_commands with 'find suid' wish text.
-        
+
         This test verifies that the generate_commands method returns appropriate
         commands when the wish text contains 'find' and 'suid'.
         """
@@ -49,7 +49,7 @@ class TestWishManagerCommands:
 
     def test_generate_commands_reverse_shell(self):
         """Test generate_commands with 'reverse shell' wish text.
-        
+
         This test verifies that the generate_commands method returns appropriate
         commands when the wish text contains 'reverse shell'.
         """
@@ -68,7 +68,7 @@ class TestWishManagerCommands:
 
     def test_generate_commands_default(self):
         """Test generate_commands with default case.
-        
+
         This test verifies that the generate_commands method returns default
         commands when the wish text doesn't match any specific patterns.
         """
@@ -87,7 +87,7 @@ class TestWishManagerCommands:
 
     def test_save_wish(self):
         """Test save_wish method.
-        
+
         This test verifies that the save_wish method correctly serializes and
         saves a wish to the history file.
         """
@@ -127,7 +127,7 @@ class TestWishManagerCommands:
 
     def test_load_wishes_success(self):
         """Test load_wishes method with successful file read.
-        
+
         This test verifies that the load_wishes method correctly loads and
         deserializes wishes from the history file.
         """
@@ -173,7 +173,7 @@ class TestWishManagerCommands:
 
     def test_load_wishes_file_not_found(self):
         """Test load_wishes method when the history file doesn't exist.
-        
+
         This test verifies that the load_wishes method returns an empty list
         when the history file doesn't exist.
         """
@@ -190,7 +190,7 @@ class TestWishManagerCommands:
 
     def test_load_wishes_invalid_json(self):
         """Test load_wishes method with invalid JSON in the history file.
-        
+
         This test verifies that the load_wishes method returns an empty list
         when the history file contains invalid JSON.
         """
@@ -207,7 +207,7 @@ class TestWishManagerCommands:
 
     def test_format_wish_list_item_done(self):
         """Test format_wish_list_item with a completed wish.
-        
+
         This test verifies that the format_wish_list_item method correctly
         formats a completed wish for display.
         """
@@ -231,7 +231,7 @@ class TestWishManagerCommands:
 
     def test_format_wish_list_item_in_progress(self):
         """Test format_wish_list_item with an in-progress wish.
-        
+
         This test verifies that the format_wish_list_item method correctly
         formats an in-progress wish for display.
         """
@@ -255,7 +255,7 @@ class TestWishManagerCommands:
 
     def test_format_wish_list_item_long_wish(self):
         """Test format_wish_list_item with a long wish text.
-        
+
         This test verifies that the format_wish_list_item method correctly
         truncates long wish texts.
         """

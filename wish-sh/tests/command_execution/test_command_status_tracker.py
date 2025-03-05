@@ -48,7 +48,7 @@ class TestCommandStatusTracker:
 
     def test_check_status(self, tracker, executor, wish):
         """Test check_status method.
-        
+
         This test verifies that the check_status method correctly delegates
         to the CommandExecutor's check_running_commands method.
         """
@@ -60,7 +60,7 @@ class TestCommandStatusTracker:
 
     def test_is_all_completed_not_all_done(self, tracker, wish):
         """Test is_all_completed method when not all commands are done.
-        
+
         This test verifies that the is_all_completed method correctly returns
         (False, False) when some commands are still running.
         """
@@ -79,7 +79,7 @@ class TestCommandStatusTracker:
 
     def test_is_all_completed_all_success(self, tracker, wish):
         """Test is_all_completed method when all commands succeed.
-        
+
         This test verifies that the is_all_completed method correctly returns
         (True, False) when all commands have completed successfully.
         """
@@ -99,7 +99,7 @@ class TestCommandStatusTracker:
 
     def test_is_all_completed_some_failed(self, tracker, wish):
         """Test is_all_completed method when some commands fail.
-        
+
         This test verifies that the is_all_completed method correctly returns
         (True, True) when all commands have completed but some have failed.
         """
@@ -123,7 +123,7 @@ class TestCommandStatusTracker:
 
     def test_update_wish_state_not_all_done(self, tracker, wish, wish_manager):
         """Test update_wish_state method when not all commands are done.
-        
+
         This test verifies that the update_wish_state method does not update
         the wish state when some commands are still running.
         """
@@ -147,7 +147,7 @@ class TestCommandStatusTracker:
 
     def test_update_wish_state_all_success(self, tracker, wish, wish_manager):
         """Test update_wish_state method when all commands succeed.
-        
+
         This test verifies that the update_wish_state method correctly updates
         the wish state to DONE when all commands have completed successfully.
         """
@@ -174,7 +174,7 @@ class TestCommandStatusTracker:
 
     def test_update_wish_state_some_failed(self, tracker, wish, wish_manager):
         """Test update_wish_state method when some commands fail.
-        
+
         This test verifies that the update_wish_state method correctly updates
         the wish state to FAILED when some commands have failed.
         """
@@ -205,7 +205,7 @@ class TestCommandStatusTracker:
 
     def test_get_completion_message_all_success(self, tracker, wish):
         """Test get_completion_message method when all commands succeed.
-        
+
         This test verifies that the get_completion_message method returns the
         correct message when all commands have completed successfully.
         """
@@ -224,7 +224,7 @@ class TestCommandStatusTracker:
 
     def test_get_completion_message_some_failed(self, tracker, wish):
         """Test get_completion_message method when some commands fail.
-        
+
         This test verifies that the get_completion_message method returns the
         correct message when some commands have failed.
         """

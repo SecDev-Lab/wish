@@ -42,7 +42,7 @@ class TestCommandExecutor:
     @patch("builtins.open")
     def test_execute_command(self, mock_open, mock_popen, executor, wish_manager, wish):
         """Test execute_command method.
-        
+
         This test verifies that the execute_command method correctly executes
         a command and creates the necessary log files.
         """
@@ -77,7 +77,7 @@ class TestCommandExecutor:
 
     def test_execute_commands(self, executor, wish):
         """Test execute_commands method.
-        
+
         This test verifies that the execute_commands method correctly executes
         multiple commands.
         """
@@ -97,7 +97,7 @@ class TestCommandExecutor:
 
     def test_check_running_commands(self, executor, wish_manager, wish):
         """Test check_running_commands method.
-        
+
         This test verifies that the check_running_commands method correctly
         updates the status of running commands.
         """
@@ -126,7 +126,7 @@ class TestCommandExecutor:
 
     def test_cancel_command(self, executor, wish_manager, wish):
         """Test cancel_command method.
-        
+
         This test verifies that the cancel_command method correctly cancels
         a running command.
         """

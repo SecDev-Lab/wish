@@ -9,7 +9,7 @@ class TestCommandSuggestion:
 
     def test_on_yes_button_pressed_passes_wish_manager(self):
         """Test that on_yes_button_pressed passes the wish_manager to CommandExecutionScreen.
-        
+
         This test verifies:
         1. The on_yes_button_pressed method creates a CommandExecutionScreen
         2. The wish, commands, and wish_manager are correctly passed to the screen
