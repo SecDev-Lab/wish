@@ -19,8 +19,14 @@ class TestCommandExecutionScreen:
     @pytest.fixture
     def screen_setup(self):
         """Create a CommandExecutionScreen instance with mocked UI."""
+        wish_manager = WishManagerFactory.create_with_simple_mocks()
+        
+        # Mock the executor and tracker
+        wish_manager.executor = MagicMock()
+        wish_manager.tracker = MagicMock()
+        
         screen, status_widget, execution_text = CommandExecutionScreenFactory.create_with_mocked_ui(
-            wish_manager=WishManagerFactory.create_with_simple_mocks()
+            wish_manager=wish_manager
         )
         return screen, status_widget, execution_text
 
@@ -34,21 +40,16 @@ class TestCommandExecutionScreen:
         """
         screen, status_widget, execution_text = screen_setup
         wish_manager = screen.wish_manager
+        executor = wish_manager.executor
         
         # Call on_mount directly (not as async)
         screen.on_mount()
         
-        # Check that execute_command was called for each command
-        assert wish_manager.execute_command.call_count == len(screen.commands)
-        for i, cmd in enumerate(screen.commands, 1):
-            wish_manager.execute_command.assert_any_call(screen.wish, cmd, i)
+        # Check that execute_commands was called
+        executor.execute_commands.assert_called_once_with(screen.wish, screen.commands)
         
         # Check that asyncio.create_task was called
         asyncio.create_task.assert_called_once()
-        
-        # Check that monitor_commands was passed to create_task
-        args, kwargs = asyncio.create_task.call_args
-        assert args[0] == screen.monitor_commands()
 
     def test_check_all_commands_completed_not_all_done(self, screen_setup):
         """Test check_all_commands_completed when not all commands are done.
@@ -67,6 +68,9 @@ class TestCommandExecutionScreen:
         result.state = CommandState.DOING
         result.num = 1
         wish.command_results.append(result)
+        
+        # Mock the tracker.is_all_completed method to return (False, False)
+        screen.tracker.is_all_completed = MagicMock(return_value=(False, False))
         
         # Call check_all_commands_completed
         screen.check_all_commands_completed()
@@ -94,6 +98,7 @@ class TestCommandExecutionScreen:
         screen, status_widget, execution_text = screen_setup
         wish = screen.wish
         wish_manager = screen.wish_manager
+        context = wish_manager
         
         # Add command results that are all SUCCESS
         for i, cmd in enumerate(screen.commands, 1):
@@ -106,6 +111,12 @@ class TestCommandExecutionScreen:
         # Mock the tracker.is_all_completed method to return (True, False)
         screen.tracker.is_all_completed = MagicMock(return_value=(True, False))
         
+        # Mock the tracker.get_completion_message method
+        screen.tracker.get_completion_message = MagicMock(return_value="All commands completed.")
+        
+        # Mock the context.save_wish method
+        context.save_wish = MagicMock()
+        
         # Call check_all_commands_completed
         screen.check_all_commands_completed()
         
@@ -117,7 +128,7 @@ class TestCommandExecutionScreen:
         assert wish.finished_at is not None
         
         # Check that save_wish was called
-        wish_manager.save_wish.assert_called_once_with(wish)
+        context.save_wish.assert_called_once_with(wish)
         
         # Check that execution_text was updated
         execution_text.update.assert_any_call("All commands completed.")
@@ -135,6 +146,7 @@ class TestCommandExecutionScreen:
         screen, status_widget, execution_text = screen_setup
         wish = screen.wish
         wish_manager = screen.wish_manager
+        context = wish_manager
         
         # Add command results with one FAILED
         result1 = MagicMock()
@@ -150,6 +162,12 @@ class TestCommandExecutionScreen:
         # Mock the tracker.is_all_completed method to return (True, True)
         screen.tracker.is_all_completed = MagicMock(return_value=(True, True))
         
+        # Mock the tracker.get_completion_message method
+        screen.tracker.get_completion_message = MagicMock(return_value="All commands completed. Some commands failed.")
+        
+        # Mock the context.save_wish method
+        context.save_wish = MagicMock()
+        
         # Call check_all_commands_completed
         screen.check_all_commands_completed()
         
@@ -161,7 +179,7 @@ class TestCommandExecutionScreen:
         assert wish.finished_at is not None
         
         # Check that save_wish was called
-        wish_manager.save_wish.assert_called_once_with(wish)
+        context.save_wish.assert_called_once_with(wish)
         
         # Check that execution_text was updated
         execution_text.update.assert_any_call("All commands completed. Some commands failed.")

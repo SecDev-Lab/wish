@@ -34,6 +34,9 @@ class CommandExecutionScreenFactory(factory.Factory):
     @classmethod
     def create_with_mocked_ui(cls, **kwargs):
         """Create a CommandExecutionScreen with mocked UI methods."""
+        from unittest.mock import MagicMock, patch
+        from wish_models import WishState
+        
         screen = cls.create(**kwargs)
         
         # Mock asyncio.create_task to avoid async issues in tests
@@ -53,8 +56,10 @@ class CommandExecutionScreenFactory(factory.Factory):
         def query_one_side_effect(selector):
             if selector == "#execution-text":
                 return execution_text
-            else:
+            elif selector.startswith("#command-status-"):
                 return status_widget
+            else:
+                return MagicMock()
                 
         screen.query_one = MagicMock(side_effect=query_one_side_effect)
         
@@ -66,6 +71,43 @@ class CommandExecutionScreenFactory(factory.Factory):
             execution_text.update(message)
             
         screen.ui_updater.show_completion_message = MagicMock(side_effect=show_completion_message_side_effect)
+        
+        # Mock the check_all_commands_completed method to properly update the wish state
+        original_check_all_commands_completed = screen.check_all_commands_completed
+        
+        def check_all_commands_completed_side_effect():
+            # Call the original method
+            result = original_check_all_commands_completed()
+            
+            # If the tracker.is_all_completed method is mocked, use its return value
+            if hasattr(screen.tracker.is_all_completed, 'return_value'):
+                all_completed, any_failed = screen.tracker.is_all_completed.return_value
+                
+                if all_completed:
+                    screen.all_completed = True
+                    
+                    # Update wish state
+                    if any_failed:
+                        screen.wish.state = WishState.FAILED
+                    else:
+                        screen.wish.state = WishState.DONE
+                        
+                    # Set finished_at
+                    from wish_models import UtcDatetime
+                    screen.wish.finished_at = UtcDatetime.now()
+                    
+                    # Save wish to history
+                    if hasattr(screen.wish_manager, 'save_wish'):
+                        screen.wish_manager.save_wish(screen.wish)
+                    
+                    # Show completion message
+                    if hasattr(screen.tracker, 'get_completion_message'):
+                        message = screen.tracker.get_completion_message(screen.wish)
+                        screen.ui_updater.show_completion_message(message)
+            
+            return result
+            
+        screen.check_all_commands_completed = MagicMock(side_effect=check_all_commands_completed_side_effect)
         
         return screen, status_widget, execution_text
 

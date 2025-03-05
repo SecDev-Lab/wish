@@ -84,6 +84,8 @@ class WishManagerFactory(factory.Factory):
     @classmethod
     def create_with_simple_mocks(cls, **kwargs):
         """Create a WishManager with simple mocked methods."""
+        from unittest.mock import MagicMock
+        
         manager = cls.create(**kwargs)
         
         # Mock methods
@@ -92,5 +94,18 @@ class WishManagerFactory(factory.Factory):
         manager.save_wish = MagicMock()
         manager.generate_commands = MagicMock(return_value=["echo 'Test command 1'", "echo 'Test command 2'"])
         manager.cancel_command = MagicMock(return_value="Command 1 cancelled.")
+        
+        # Mock command execution components
+        manager.executor = MagicMock()
+        manager.executor.execute_commands = MagicMock()
+        manager.executor.execute_command = MagicMock()
+        manager.executor.check_running_commands = MagicMock()
+        manager.executor.cancel_command = MagicMock(return_value="Command 1 cancelled.")
+        
+        manager.tracker = MagicMock()
+        manager.tracker.check_status = MagicMock()
+        manager.tracker.is_all_completed = MagicMock(return_value=(False, False))
+        manager.tracker.update_wish_state = MagicMock()
+        manager.tracker.get_completion_message = MagicMock(return_value="All commands completed.")
         
         return manager

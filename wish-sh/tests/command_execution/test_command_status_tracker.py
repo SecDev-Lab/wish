@@ -6,16 +6,33 @@ from unittest.mock import MagicMock, patch
 from wish_models import CommandState, Wish, WishState, UtcDatetime
 from wish_models.test_factories import WishDoingFactory
 from wish_sh.command_execution import CommandStatusTracker
-from wish_sh.test_factories import WishManagerFactory
+from wish_sh.command_execution.interfaces import CommandExecutionContext
+from wish_sh.command_execution.command_executor import CommandExecutor
+
+
+class MockCommandExecutionContext(CommandExecutionContext):
+    """Mock implementation of CommandExecutionContext for testing."""
+    
+    def __init__(self):
+        self.create_command_log_dirs = MagicMock()
+        self.save_wish = MagicMock()
+        self.summarize_log = MagicMock(return_value="Mock log summary")
 
 
 class TestCommandStatusTracker:
     """Tests for CommandStatusTracker."""
 
     @pytest.fixture
-    def wish_manager(self):
-        """Create a mock WishManager."""
-        return WishManagerFactory.create_with_simple_mocks()
+    def context(self):
+        """Create a mock CommandExecutionContext."""
+        return MockCommandExecutionContext()
+
+    @pytest.fixture
+    def executor(self):
+        """Create a mock CommandExecutor."""
+        executor = MagicMock(spec=CommandExecutor)
+        executor.check_running_commands = MagicMock()
+        return executor
 
     @pytest.fixture
     def wish(self):
@@ -25,21 +42,21 @@ class TestCommandStatusTracker:
         return wish
 
     @pytest.fixture
-    def tracker(self, wish_manager):
+    def tracker(self, context, executor):
         """Create a CommandStatusTracker instance."""
-        return CommandStatusTracker(wish_manager)
+        return CommandStatusTracker(context, executor)
 
-    def test_check_status(self, tracker, wish_manager, wish):
+    def test_check_status(self, tracker, executor, wish):
         """Test check_status method.
         
         This test verifies that the check_status method correctly delegates
-        to the WishManager's check_running_commands method.
+        to the CommandExecutor's check_running_commands method.
         """
         # Check status
         tracker.check_status(wish)
         
-        # Verify that WishManager.check_running_commands was called
-        wish_manager.check_running_commands.assert_called_once()
+        # Verify that CommandExecutor.check_running_commands was called
+        executor.check_running_commands.assert_called_once()
 
     def test_is_all_completed_not_all_done(self, tracker, wish):
         """Test is_all_completed method when not all commands are done.
@@ -104,7 +121,7 @@ class TestCommandStatusTracker:
         assert all_completed
         assert any_failed
 
-    def test_update_wish_state_not_all_done(self, tracker, wish, wish_manager):
+    def test_update_wish_state_not_all_done(self, tracker, wish, context):
         """Test update_wish_state method when not all commands are done.
         
         This test verifies that the update_wish_state method does not update
@@ -126,9 +143,9 @@ class TestCommandStatusTracker:
         assert wish.finished_at is None
         
         # Verify that save_wish was not called
-        wish_manager.save_wish.assert_not_called()
+        context.save_wish.assert_not_called()
 
-    def test_update_wish_state_all_success(self, tracker, wish, wish_manager):
+    def test_update_wish_state_all_success(self, tracker, wish, context):
         """Test update_wish_state method when all commands succeed.
         
         This test verifies that the update_wish_state method correctly updates
@@ -153,9 +170,9 @@ class TestCommandStatusTracker:
         assert wish.finished_at == '2023-01-01T12:00:00Z'
         
         # Verify that save_wish was called
-        wish_manager.save_wish.assert_called_once_with(wish)
+        context.save_wish.assert_called_once_with(wish)
 
-    def test_update_wish_state_some_failed(self, tracker, wish, wish_manager):
+    def test_update_wish_state_some_failed(self, tracker, wish, context):
         """Test update_wish_state method when some commands fail.
         
         This test verifies that the update_wish_state method correctly updates
@@ -184,7 +201,7 @@ class TestCommandStatusTracker:
         assert wish.finished_at == '2023-01-01T12:00:00Z'
         
         # Verify that save_wish was called
-        wish_manager.save_wish.assert_called_once_with(wish)
+        context.save_wish.assert_called_once_with(wish)
 
     def test_get_completion_message_all_success(self, tracker, wish):
         """Test get_completion_message method when all commands succeed.

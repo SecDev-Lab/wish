@@ -91,8 +91,8 @@ class CommandExecutionScreen(Screen):
         self.all_completed = False
         
         # Initialize command execution components
-        self.executor = CommandExecutor(wish_manager)
-        self.tracker = CommandStatusTracker(wish_manager)
+        self.executor = wish_manager.executor
+        self.tracker = wish_manager.tracker
         self.ui_updater = UIUpdater(self)
 
     def compose(self) -> ComposeResult:
