@@ -6,6 +6,7 @@ from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
 
 from wish_models import CommandState, Wish, WishState, UtcDatetime
+from wish_sh.command_execution import CommandExecutor, CommandStatusTracker, UIUpdater
 from wish_sh.settings import Settings
 from wish_sh.wish_manager import WishManager
 
@@ -88,6 +89,11 @@ class CommandExecutionScreen(Screen):
         self.wish_manager = wish_manager
         self.command_statuses: dict[int, str] = {}  # コマンド番号とステータスのマッピング
         self.all_completed = False
+        
+        # Initialize command execution components
+        self.executor = CommandExecutor(wish_manager)
+        self.tracker = CommandStatusTracker(wish_manager)
+        self.ui_updater = UIUpdater(self)
 
     def compose(self) -> ComposeResult:
         """Compose the command execution screen."""
@@ -111,69 +117,45 @@ class CommandExecutionScreen(Screen):
     def on_mount(self) -> None:
         """Handle screen mount event."""
         # コマンドの実行を開始
-        for i, cmd in enumerate(self.commands, 1):
-            self.wish_manager.execute_command(self.wish, cmd, i)
+        self.executor.execute_commands(self.wish, self.commands)
 
-        # 定期的に実行状態を確認するタイマーを設定
+        # 非同期でコマンドの状態を監視
         self.set_interval(0.5, self.update_command_status)
+        
+        # 将来的には以下のような非同期処理に置き換えることも検討
+        # asyncio.create_task(self.monitor_commands())
+
+    async def monitor_commands(self) -> None:
+        """非同期でコマンドの実行状態を監視する."""
+        while not self.all_completed:
+            self.update_command_status()
+            await asyncio.sleep(0.5)
 
     def update_command_status(self) -> None:
         """Update the status of running commands."""
         # 実行中のコマンドのステータスを確認
-        self.wish_manager.check_running_commands()
+        self.tracker.check_status(self.wish)
 
         # UIを更新
-        self.update_ui()
+        self.ui_updater.update_command_status(self.wish)
 
         # すべてのコマンドが完了したかチェック
         if not self.all_completed:
             self.check_all_commands_completed()
 
-    def update_ui(self) -> None:
-        """Update the UI with current command statuses."""
-        # 各コマンドの状態を表示するUIを更新
-        for i, cmd in enumerate(self.commands, 1):
-            result = self.wish.get_command_result_by_num(i)
-            if result:
-                # マークアップ文字をエスケープ
-                status = f"Status: {result.state.value}"  # .valueを使用して列挙型の値を取得
-                if result.exit_code is not None:
-                    status += f" (exit code: {result.exit_code})"
-                if result.log_summary:
-                    status += f"\nSummary: {result.log_summary}"
-                self.query_one(f"#command-status-{i}").update(status)
-
     def check_all_commands_completed(self) -> None:
         """Check if all commands have completed and update wish state."""
         # すべてのコマンドが完了したかチェック
-        all_completed = True
-        any_failed = False
-
-        for result in self.wish.command_results:
-            if result.state == CommandState.DOING:
-                all_completed = False
-                break
-            if result.state != CommandState.SUCCESS:
-                any_failed = True
-
+        all_completed, _ = self.tracker.is_all_completed(self.wish)
+        
         if all_completed:
-            self.all_completed = True
             # Wishの状態を更新
-            if any_failed:
-                self.wish.state = WishState.FAILED
-            else:
-                self.wish.state = WishState.DONE
-
-            self.wish.finished_at = UtcDatetime.now()
-
-            # 履歴に保存
-            self.wish_manager.save_wish(self.wish)
-
+            self.tracker.update_wish_state(self.wish)
+            self.all_completed = self.tracker.all_completed
+            
             # 実行完了メッセージを表示
-            status_text = "All commands completed."
-            if any_failed:
-                status_text += " Some commands failed."
-            self.query_one("#execution-text").update(status_text)
+            completion_message = self.tracker.get_completion_message(self.wish)
+            self.ui_updater.show_completion_message(completion_message)
 
     @on(Button.Pressed, "#back-button")
     def on_back_button_pressed(self) -> None:

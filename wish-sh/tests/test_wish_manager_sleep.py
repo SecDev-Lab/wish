@@ -8,18 +8,12 @@ from wish_models import CommandState, Wish, WishState
 from wish_models.test_factories import WishDoingFactory
 
 from wish_sh.settings import Settings
+from wish_sh.test_factories import WishManagerFactory
 from wish_sh.wish_manager import WishManager
 
 
 class TestWishManagerWithSleepCommand:
     """Test WishManager with sleep commands."""
-
-    @pytest.fixture
-    def wish_manager(self):
-        """Create a WishManager instance."""
-        settings = Settings()
-        with patch.object(Path, "mkdir"):  # Mock directory creation
-            return WishManager(settings)
 
     @pytest.fixture
     def wish(self):
@@ -29,11 +23,18 @@ class TestWishManagerWithSleepCommand:
         return wish
 
     @pytest.mark.asyncio
-    async def test_execute_sleep_command(self, wish_manager, wish):
+    async def test_execute_sleep_command(self, wish):
         """Test that a sleep command is executed and tracked correctly.
         
-        TODO Remove this test (for debugging)
+        This test verifies:
+        1. A sleep command is properly executed by WishManager
+        2. The command is tracked in running_commands while executing
+        3. The command state is updated to SUCCESS when completed
+        4. The command is removed from running_commands when finished
         """
+        # Create a WishManager with mocked file operations
+        wish_manager = WishManagerFactory.create()
+        
         # Mock the create_command_log_dirs method to avoid file system operations
         with patch.object(wish_manager.paths, "create_command_log_dirs") as mock_create_dirs:
             mock_create_dirs.return_value = Path("/path/to/log/dir")
@@ -66,11 +67,19 @@ class TestWishManagerWithSleepCommand:
                 assert wish.command_results[0].finished_at is not None
 
     @pytest.mark.asyncio
-    async def test_multiple_sleep_commands(self, wish_manager, wish):
+    async def test_multiple_sleep_commands(self, wish):
         """Test that multiple sleep commands are executed and tracked correctly.
         
-        TODO Remove this test (for debugging)
+        This test verifies:
+        1. Multiple commands with different durations are executed properly
+        2. All commands are initially tracked in running_commands
+        3. Commands are removed from running_commands as they complete
+        4. Command states are updated correctly based on exit codes
+        5. Command completion is tracked in the correct order
         """
+        # Create a WishManager with mocked file operations
+        wish_manager = WishManagerFactory.create()
+        
         # Mock the create_command_log_dirs method to avoid file system operations
         with patch.object(wish_manager.paths, "create_command_log_dirs") as mock_create_dirs:
             mock_create_dirs.return_value = Path("/path/to/log/dir")
@@ -133,11 +142,17 @@ class TestWishManagerWithSleepCommand:
                     assert wish.command_results[i].finished_at is not None
 
     @pytest.mark.asyncio
-    async def test_wish_state_update_after_commands_complete(self, wish_manager, wish):
+    async def test_wish_state_update_after_commands_complete(self, wish):
         """Test that the wish state is updated after all commands complete.
         
-        TODO Remove this test (for debugging)
+        This test verifies:
+        1. The wish state remains DOING while commands are executing
+        2. The wish state can be updated to DONE after commands complete
+        3. The wish is properly saved to history after completion
         """
+        # Create a WishManager with mocked file operations
+        wish_manager = WishManagerFactory.create()
+        
         # Mock the create_command_log_dirs method to avoid file system operations
         with patch.object(wish_manager.paths, "create_command_log_dirs") as mock_create_dirs:
             mock_create_dirs.return_value = Path("/path/to/log/dir")

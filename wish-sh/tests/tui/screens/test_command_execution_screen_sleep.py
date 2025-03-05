@@ -6,7 +6,9 @@ from textual.app import App
 from textual.widgets import Static
 
 from wish_models import CommandState, Wish, WishState, UtcDatetime
+from wish_models.test_factories import WishDoingFactory
 from wish_sh.settings import Settings
+from wish_sh.test_factories import CommandExecutionScreenFactory, WishManagerFactory
 from wish_sh.wish_manager import WishManager
 from wish_sh.wish_tui import CommandExecutionScreen
 
@@ -15,98 +17,26 @@ class TestCommandExecutionScreenWithSleepCommand:
     """Test CommandExecutionScreen with sleep commands."""
 
     @pytest.fixture
-    def wish(self):
-        """Create a test wish."""
-        wish = Wish.create("Test sleep command")
-        wish.state = WishState.DOING
-        return wish
-
-    @pytest.fixture
-    def commands(self):
-        """Create test commands with sleep."""
-        return ["sleep 1", "sleep 2"]
-
-    @pytest.fixture
-    def wish_manager(self):
-        """Create a mock WishManager."""
-        manager = MagicMock(spec=WishManager)
-        
-        # Add running_commands attribute explicitly
-        manager.running_commands = {}
-        
-        # Make execute_command actually execute the command
-        def execute_command_side_effect(wish, command, cmd_num):
-            import subprocess
-            from pathlib import Path
-            
-            # Create a simple log files structure
-            log_files = MagicMock()
-            log_files.stdout = Path(f"/tmp/stdout_{cmd_num}.log")
-            log_files.stderr = Path(f"/tmp/stderr_{cmd_num}.log")
-            
-            # Create a command result
-            result = MagicMock()
-            result.command = command
-            result.state = CommandState.DOING
-            result.num = cmd_num
-            result.log_files = log_files
-            result.exit_code = None
-            result.finished_at = None
-            
-            # Add the result to the wish
-            wish.command_results.append(result)
-            
-            # Start the process
-            process = subprocess.Popen(command, shell=True)
-            
-            # Store in running commands dict
-            manager.running_commands[cmd_num] = (process, result, wish)
-            
-            return result
-            
-        manager.execute_command.side_effect = execute_command_side_effect
-        
-        # Make check_running_commands actually check the commands
-        def check_running_commands_side_effect():
-            for cmd_num, (process, result, wish) in list(manager.running_commands.items()):
-                if process.poll() is not None:  # Process has finished
-                    # Update the result
-                    result.state = CommandState.SUCCESS if process.returncode == 0 else CommandState.OTHERS
-                    result.exit_code = process.returncode
-                    result.finished_at = UtcDatetime.now()
-                    
-                    # Remove from running commands
-                    del manager.running_commands[cmd_num]
-                    
-        manager.check_running_commands.side_effect = check_running_commands_side_effect
-        
-        return manager
-
-    @pytest.fixture
-    def screen(self, wish, commands, wish_manager):
-        """Create a CommandExecutionScreen instance."""
-        return CommandExecutionScreen(wish, commands, wish_manager)
+    def screen_setup(self):
+        """Create a CommandExecutionScreen instance with mocked UI."""
+        screen, status_widget, execution_text = CommandExecutionScreenFactory.create_with_mocked_ui(
+            commands=["sleep 1", "sleep 2"],
+            wish_manager=WishManagerFactory.create_with_mock_execute()
+        )
+        return screen, status_widget, execution_text
 
     @pytest.mark.asyncio
-    async def test_sleep_command_execution_and_ui_update(self, screen, wish_manager):
+    async def test_sleep_command_execution_and_ui_update(self, screen_setup):
         """Test that sleep commands are executed and the UI is updated correctly.
         
-        TODO Remove this test (for debugging)
+        This test verifies:
+        1. Commands are properly executed when the screen is mounted
+        2. The UI is updated as commands progress
+        3. The execution status is correctly tracked
+        4. The completion message is displayed when all commands finish
         """
-        # Mock the set_interval method to avoid timer issues in tests
-        screen.set_interval = MagicMock()
-        
-        # Mock the query_one method to return a mock Static widget
-        status_widget = MagicMock(spec=Static)
-        execution_text = MagicMock(spec=Static)
-        
-        def query_one_side_effect(selector):
-            if selector == "#execution-text":
-                return execution_text
-            else:
-                return status_widget
-                
-        screen.query_one = MagicMock(side_effect=query_one_side_effect)
+        screen, status_widget, execution_text = screen_setup
+        wish_manager = screen.wish_manager
         
         # Call on_mount to start command execution
         screen.on_mount()
@@ -166,37 +96,28 @@ class TestCommandExecutionScreenWithSleepCommand:
         execution_text.update.assert_called_once()
         
     @pytest.mark.asyncio
-    async def test_sleep_command_with_different_durations(self, wish, wish_manager):
+    async def test_sleep_command_with_different_durations(self):
         """Test that sleep commands with different durations are executed and tracked correctly.
         
-        TODO Remove this test (for debugging)
+        This test verifies:
+        1. Multiple commands with different durations are executed properly
+        2. Each command's completion is tracked independently
+        3. The running_commands dictionary is updated correctly as commands complete
+        4. All commands eventually complete and the final status is updated
         """
-        # Create commands with different sleep durations
-        commands = ["sleep 0.5", "sleep 1", "sleep 1.5"]
+        # Create a screen with commands of different durations
+        screen, status_widget, execution_text = CommandExecutionScreenFactory.create_with_mocked_ui(
+            commands=["sleep 0.5", "sleep 1", "sleep 1.5"],
+            wish_manager=WishManagerFactory.create_with_mock_execute()
+        )
         
-        # Create a screen with these commands
-        screen = CommandExecutionScreen(wish, commands, wish_manager)
-        
-        # Mock the set_interval method to avoid timer issues in tests
-        screen.set_interval = MagicMock()
-        
-        # Mock the query_one method to return a mock Static widget
-        status_widget = MagicMock(spec=Static)
-        execution_text = MagicMock(spec=Static)
-        
-        def query_one_side_effect(selector):
-            if selector == "#execution-text":
-                return execution_text
-            else:
-                return status_widget
-                
-        screen.query_one = MagicMock(side_effect=query_one_side_effect)
+        wish_manager = screen.wish_manager
         
         # Call on_mount to start command execution
         screen.on_mount()
         
         # Check that execute_command was called for each command
-        assert wish_manager.execute_command.call_count == len(commands)
+        assert wish_manager.execute_command.call_count == len(screen.commands)
         
         # Wait for the first command to complete
         await asyncio.sleep(0.6)
