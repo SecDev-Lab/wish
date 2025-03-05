@@ -69,7 +69,7 @@ class WishManager:
             ]
         else:
             # Default responses
-            commands = [f"echo 'Executing wish: {wish_text}'", f"echo 'Processing {wish_text}' && ls -la"]
+            commands = [f"echo 'Executing wish: {wish_text}'", f"echo 'Processing {wish_text}' && ls -la", "sleep 5"]
 
         return commands
 
