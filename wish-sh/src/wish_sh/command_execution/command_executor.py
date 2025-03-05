@@ -6,19 +6,18 @@ from pathlib import Path
 from typing import Dict, Tuple, Optional
 
 from wish_models import Wish, CommandResult, CommandState, LogFiles
-from wish_sh.command_execution.interfaces import CommandExecutionContext
 
 
 class CommandExecutor:
     """Executes commands for a wish."""
 
-    def __init__(self, context: CommandExecutionContext):
+    def __init__(self, wish_manager):
         """Initialize the command executor.
         
         Args:
-            context: The context providing necessary functionality for command execution.
+            wish_manager: The WishManager instance providing necessary functionality.
         """
-        self.context = context
+        self.wish_manager = wish_manager
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
 
     def execute_commands(self, wish: Wish, commands: list[str]) -> None:
@@ -40,7 +39,7 @@ class CommandExecutor:
             cmd_num: The command number.
         """
         # Create log directories and files
-        log_dir = self.context.create_command_log_dirs(wish.id)
+        log_dir = self.wish_manager.create_command_log_dirs(wish.id)
         stdout_path = log_dir / f"{cmd_num}.stdout"
         stderr_path = log_dir / f"{cmd_num}.stderr"
         log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
@@ -100,7 +99,7 @@ class CommandExecutor:
                 result.finish(
                     exit_code=process.returncode,
                     state=state,
-                    log_summarizer=self.context.summarize_log
+                    log_summarizer=self.wish_manager.summarize_log
                 )
 
                 # Update the command result in the wish object
@@ -137,7 +136,7 @@ class CommandExecutor:
             result.finish(
                 exit_code=-1,  # Use -1 for cancelled commands
                 state=CommandState.USER_CANCELLED,
-                log_summarizer=self.context.summarize_log
+                log_summarizer=self.wish_manager.summarize_log
             )
 
             # Update the command result in the wish object

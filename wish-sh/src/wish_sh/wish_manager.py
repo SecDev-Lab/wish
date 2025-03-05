@@ -4,7 +4,6 @@ from typing import List, Optional
 
 from wish_models import CommandResult, LogFiles, Wish, WishState
 
-from wish_sh.command_execution.interfaces import CommandExecutionContext
 from wish_sh.command_execution.command_executor import CommandExecutor
 from wish_sh.command_execution.command_status_tracker import CommandStatusTracker
 from wish_sh.command_generation import CommandGenerator, MockCommandGenerator, LlmCommandGenerator
@@ -12,7 +11,7 @@ from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
 
 
-class WishManager(CommandExecutionContext):
+class WishManager:
     """Core functionality for wish."""
 
     def __init__(self, settings: Settings):
@@ -31,7 +30,7 @@ class WishManager(CommandExecutionContext):
         self.executor = CommandExecutor(self)
         self.tracker = CommandStatusTracker(self, self.executor)
 
-    # CommandExecutionContext インターフェースの実装
+    # コマンド実行に必要な機能
     def create_command_log_dirs(self, wish_id: str) -> Path:
         """コマンドログディレクトリを作成する。"""
         return self.paths.create_command_log_dirs(wish_id)

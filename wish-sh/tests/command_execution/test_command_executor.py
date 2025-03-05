@@ -7,11 +7,10 @@ from pathlib import Path
 from wish_models import Wish, CommandResult, LogFiles
 from wish_models.test_factories import WishDoingFactory
 from wish_sh.command_execution import CommandExecutor
-from wish_sh.command_execution.interfaces import CommandExecutionContext
 
 
-class MockCommandExecutionContext(CommandExecutionContext):
-    """Mock implementation of CommandExecutionContext for testing."""
+class MockWishManager:
+    """Mock implementation of WishManager for testing."""
     
     def __init__(self):
         self.create_command_log_dirs = MagicMock(return_value=Path("/mock/log/dir"))
@@ -23,9 +22,9 @@ class TestCommandExecutor:
     """Tests for CommandExecutor."""
 
     @pytest.fixture
-    def context(self):
-        """Create a mock CommandExecutionContext."""
-        return MockCommandExecutionContext()
+    def wish_manager(self):
+        """Create a mock WishManager."""
+        return MockWishManager()
 
     @pytest.fixture
     def wish(self):
@@ -35,13 +34,13 @@ class TestCommandExecutor:
         return wish
 
     @pytest.fixture
-    def executor(self, context):
+    def executor(self, wish_manager):
         """Create a CommandExecutor instance."""
-        return CommandExecutor(context)
+        return CommandExecutor(wish_manager)
 
     @patch("subprocess.Popen")
     @patch("builtins.open")
-    def test_execute_command(self, mock_open, mock_popen, executor, context, wish):
+    def test_execute_command(self, mock_open, mock_popen, executor, wish_manager, wish):
         """Test execute_command method.
         
         This test verifies that the execute_command method correctly executes
@@ -62,7 +61,7 @@ class TestCommandExecutor:
         executor.execute_command(wish, cmd, cmd_num)
         
         # Verify that create_command_log_dirs was called
-        context.create_command_log_dirs.assert_called_once_with(wish.id)
+        wish_manager.create_command_log_dirs.assert_called_once_with(wish.id)
         
         # Verify that Popen was called with the correct arguments
         mock_popen.assert_called_once()
@@ -96,7 +95,7 @@ class TestCommandExecutor:
         for i, cmd in enumerate(commands, 1):
             executor.execute_command.assert_any_call(wish, cmd, i)
 
-    def test_check_running_commands(self, executor, context, wish):
+    def test_check_running_commands(self, executor, wish_manager, wish):
         """Test check_running_commands method.
         
         This test verifies that the check_running_commands method correctly
@@ -125,7 +124,7 @@ class TestCommandExecutor:
         # Verify that the command was removed from running_commands
         assert cmd_num not in executor.running_commands
 
-    def test_cancel_command(self, executor, context, wish):
+    def test_cancel_command(self, executor, wish_manager, wish):
         """Test cancel_command method.
         
         This test verifies that the cancel_command method correctly cancels
