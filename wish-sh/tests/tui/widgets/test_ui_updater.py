@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 from wish_models import CommandState
 from wish_models.test_factories import WishDoingFactory
-from wish_sh.command_execution import UIUpdater
+from wish_sh.tui.widgets import UIUpdater
 
 
 class TestUIUpdater:

@@ -6,8 +6,9 @@ from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
 
 from wish_models import CommandState, Wish, WishState, UtcDatetime
-from wish_sh.command_execution import CommandExecutor, CommandStatusTracker, UIUpdater
+from wish_sh.command_execution import CommandExecutor, CommandStatusTracker
 from wish_sh.settings import Settings
+from wish_sh.tui.widgets import UIUpdater
 from wish_sh.wish_manager import WishManager
 
 
