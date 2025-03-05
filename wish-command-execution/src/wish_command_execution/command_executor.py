@@ -1,9 +1,9 @@
 """Command executor for wish-command-execution."""
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
-from wish_models import CommandResult, LogFiles, Wish
+from wish_models import LogFiles, Wish
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.backend.bash import BashBackend

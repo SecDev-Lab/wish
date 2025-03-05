@@ -1,8 +1,6 @@
 """Base backend interface for command execution."""
 
-from typing import Dict, Tuple
-import subprocess
-from wish_models import CommandResult, CommandState, Wish
+from wish_models import Wish
 
 
 class Backend:
