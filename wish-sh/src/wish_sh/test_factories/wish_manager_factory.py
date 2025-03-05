@@ -4,10 +4,10 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import factory
-from wish_models import CommandState, UtcDatetime
-
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
+from wish_models import CommandState, UtcDatetime
+
 from wish_sh.settings import Settings
 from wish_sh.wish_manager import WishManager
 

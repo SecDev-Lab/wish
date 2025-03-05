@@ -2,11 +2,10 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
-from wish_models import LogFiles, Wish, WishState
-
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
-from wish_command_execution.utils import summarize_log
+from wish_models import LogFiles, Wish, WishState
+
 from wish_sh.command_generation import LlmCommandGenerator, MockCommandGenerator
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
