@@ -1,12 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
-from textual.widgets import Input
+from wish_models import WishState
 
-from wish_models import Wish, WishState
 from wish_sh.test_factories import WishInputFactory
-from wish_sh.wish_manager import WishManager
-from wish_sh.wish_tui import CommandSuggestion, WishInput
+from wish_sh.wish_tui import CommandSuggestion
 
 
 class TestWishInput:
@@ -25,23 +22,23 @@ class TestWishInput:
         wish_text = "Test wish"
         screen, app_mock, mock_event = WishInputFactory.create_with_mock_event(wish_text=wish_text)
         wish_manager = app_mock.wish_manager
-        
+
         # Set up the mock commands
         mock_commands = ["echo 'Test command 1'", "echo 'Test command 2'"]
         wish_manager.generate_commands.return_value = mock_commands
-        
+
         # Create a property mock
         app_property_mock = MagicMock()
         app_property_mock.__get__ = MagicMock(return_value=app_mock)
-        
+
         # Patch the WishInput.app property
         with patch('wish_sh.wish_tui.WishInput.app', app_property_mock):
             # Call on_input_submitted
             screen.on_input_submitted(mock_event)
-            
+
             # Check that generate_commands was called with the correct wish text
             wish_manager.generate_commands.assert_called_once_with(wish_text)
-            
+
             # Check that push_screen was called with CommandSuggestion
             # and the correct arguments
             app_mock.push_screen.assert_called_once()

@@ -1,9 +1,7 @@
 import asyncio
-import pytest
-from unittest.mock import MagicMock, patch
 
-from wish_models import CommandState, Wish
-from wish_models.test_factories import WishDoingFactory
+import pytest
+
 from wish_sh.test_factories import CommandExecutionScreenFactory, WishManagerFactory
 
 
@@ -14,7 +12,7 @@ class TestCommandExecutionScreenWithSleepCommand:
     def screen_setup(self):
         """Create a CommandExecutionScreen instance with sleep commands."""
         wish_manager = WishManagerFactory.create_with_simple_mocks()
-        
+
         screen, status_widget, execution_text = CommandExecutionScreenFactory.create_with_mocked_ui(
             commands=["sleep 1", "sleep 2"],
             wish_manager=wish_manager
@@ -34,13 +32,13 @@ class TestCommandExecutionScreenWithSleepCommand:
         screen, status_widget, execution_text = screen_setup
         wish_manager = screen.wish_manager
         executor = wish_manager.executor
-        
+
         # Call on_mount to start command execution
         screen.on_mount()
-        
+
         # Check that execute_commands was called with the correct arguments
         executor.execute_commands.assert_called_once_with(screen.wish, screen.commands)
-        
+
         # Check that asyncio.create_task was called
         asyncio.create_task.assert_called_once()
 
@@ -56,19 +54,19 @@ class TestCommandExecutionScreenWithSleepCommand:
         """
         # Create a screen with commands of different durations
         wish_manager = WishManagerFactory.create_with_simple_mocks()
-        
+
         screen, status_widget, execution_text = CommandExecutionScreenFactory.create_with_mocked_ui(
             commands=["sleep 0.5", "sleep 1", "sleep 1.5"],
             wish_manager=wish_manager
         )
-        
+
         executor = wish_manager.executor
-        
+
         # Call on_mount to start command execution
         screen.on_mount()
-        
+
         # Check that execute_commands was called with the correct arguments
         executor.execute_commands.assert_called_once_with(screen.wish, screen.commands)
-        
+
         # Check that asyncio.create_task was called
         asyncio.create_task.assert_called_once()

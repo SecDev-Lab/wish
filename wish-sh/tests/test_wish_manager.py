@@ -1,10 +1,8 @@
 import json
-from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
-from wish_models import CommandResult, CommandState, LogFiles, WishState
-from wish_models.test_factories import LogFilesFactory, WishDoingFactory, WishDoneFactory
-from wish_models.test_factories.command_result_factory import CommandResultDoingFactory
+from wish_models import WishState
+from wish_models.test_factories import WishDoingFactory, WishDoneFactory
 
 from wish_sh.settings import Settings
 from wish_sh.wish_manager import WishManager
@@ -119,17 +117,17 @@ class TestWishManager:
         """Test that execute_command delegates to the executor."""
         settings = Settings()
         manager = WishManager(settings)
-        
+
         # Mock the executor
         manager.executor = MagicMock()
-        
+
         wish = WishDoingFactory.create()
         command = wish.command_results[0].command
         cmd_num = 1
-        
+
         # Execute the command
         manager.execute_command(wish, command, cmd_num)
-        
+
         # Verify that executor.execute_command was called with the correct arguments
         manager.executor.execute_command.assert_called_once_with(wish, command, cmd_num)
 
@@ -137,13 +135,13 @@ class TestWishManager:
         """Test that check_running_commands delegates to the executor."""
         settings = Settings()
         manager = WishManager(settings)
-        
+
         # Mock the executor
         manager.executor = MagicMock()
-        
+
         # Check running commands
         manager.check_running_commands()
-        
+
         # Verify that executor.check_running_commands was called
         manager.executor.check_running_commands.assert_called_once()
 
@@ -152,15 +150,15 @@ class TestWishManager:
         settings = Settings()
         manager = WishManager(settings)
         wish = WishDoingFactory.create()
-        
+
         # Mock the executor
         manager.executor = MagicMock()
         manager.executor.cancel_command.return_value = "Command 1 cancelled."
-        
+
         # Cancel a command
         cmd_index = 1
         response = manager.cancel_command(wish, cmd_index)
-        
+
         # Verify that executor.cancel_command was called with the correct arguments
         manager.executor.cancel_command.assert_called_once_with(wish, cmd_index)
         assert response == "Command 1 cancelled."

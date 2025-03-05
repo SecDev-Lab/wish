@@ -1,17 +1,18 @@
 """Tests for CommandStatusTracker."""
 
-import pytest
 from unittest.mock import MagicMock, patch
 
-from wish_models import CommandState, Wish, WishState, UtcDatetime
+import pytest
+from wish_models import CommandState, UtcDatetime, WishState
 from wish_models.test_factories import WishDoingFactory
+
 from wish_sh.command_execution import CommandStatusTracker
 from wish_sh.command_execution.command_executor import CommandExecutor
 
 
 class MockWishManager:
     """Mock implementation of WishManager for testing."""
-    
+
     def __init__(self):
         self.create_command_log_dirs = MagicMock()
         self.save_wish = MagicMock()
@@ -53,7 +54,7 @@ class TestCommandStatusTracker:
         """
         # Check status
         tracker.check_status(wish)
-        
+
         # Verify that CommandExecutor.check_running_commands was called
         executor.check_running_commands.assert_called_once()
 
@@ -68,10 +69,10 @@ class TestCommandStatusTracker:
         result.state = CommandState.DOING
         result.num = 1
         wish.command_results.append(result)
-        
+
         # Check if all commands are completed
         all_completed, any_failed = tracker.is_all_completed(wish)
-        
+
         # Verify that all_completed is False and any_failed is False
         assert not all_completed
         assert not any_failed
@@ -88,10 +89,10 @@ class TestCommandStatusTracker:
             result.state = CommandState.SUCCESS
             result.num = i + 1
             wish.command_results.append(result)
-        
+
         # Check if all commands are completed
         all_completed, any_failed = tracker.is_all_completed(wish)
-        
+
         # Verify that all_completed is True and any_failed is False
         assert all_completed
         assert not any_failed
@@ -107,15 +108,15 @@ class TestCommandStatusTracker:
         result1.state = CommandState.SUCCESS
         result1.num = 1
         wish.command_results.append(result1)
-        
+
         result2 = MagicMock()
         result2.state = CommandState.OTHERS
         result2.num = 2
         wish.command_results.append(result2)
-        
+
         # Check if all commands are completed
         all_completed, any_failed = tracker.is_all_completed(wish)
-        
+
         # Verify that all_completed is True and any_failed is True
         assert all_completed
         assert any_failed
@@ -131,16 +132,16 @@ class TestCommandStatusTracker:
         result.state = CommandState.DOING
         result.num = 1
         wish.command_results.append(result)
-        
+
         # Update wish state
         updated = tracker.update_wish_state(wish)
-        
+
         # Verify that the wish state was not updated
         assert not updated
         assert not tracker.all_completed
         assert wish.state == WishState.DOING
         assert wish.finished_at is None
-        
+
         # Verify that save_wish was not called
         wish_manager.save_wish.assert_not_called()
 
@@ -156,18 +157,18 @@ class TestCommandStatusTracker:
             result.state = CommandState.SUCCESS
             result.num = i + 1
             wish.command_results.append(result)
-        
+
         # Mock UtcDatetime.now to return a fixed timestamp
         with patch.object(UtcDatetime, 'now', return_value='2023-01-01T12:00:00Z'):
             # Update wish state
             updated = tracker.update_wish_state(wish)
-        
+
         # Verify that the wish state was updated
         assert updated
         assert tracker.all_completed
         assert wish.state == WishState.DONE
         assert wish.finished_at == '2023-01-01T12:00:00Z'
-        
+
         # Verify that save_wish was called
         wish_manager.save_wish.assert_called_once_with(wish)
 
@@ -182,23 +183,23 @@ class TestCommandStatusTracker:
         result1.state = CommandState.SUCCESS
         result1.num = 1
         wish.command_results.append(result1)
-        
+
         result2 = MagicMock()
         result2.state = CommandState.OTHERS
         result2.num = 2
         wish.command_results.append(result2)
-        
+
         # Mock UtcDatetime.now to return a fixed timestamp
         with patch.object(UtcDatetime, 'now', return_value='2023-01-01T12:00:00Z'):
             # Update wish state
             updated = tracker.update_wish_state(wish)
-        
+
         # Verify that the wish state was updated
         assert updated
         assert tracker.all_completed
         assert wish.state == WishState.FAILED
         assert wish.finished_at == '2023-01-01T12:00:00Z'
-        
+
         # Verify that save_wish was called
         wish_manager.save_wish.assert_called_once_with(wish)
 
@@ -214,10 +215,10 @@ class TestCommandStatusTracker:
             result.state = CommandState.SUCCESS
             result.num = i + 1
             wish.command_results.append(result)
-        
+
         # Get completion message
         message = tracker.get_completion_message(wish)
-        
+
         # Verify the message
         assert message == "All commands completed."
 
@@ -232,14 +233,14 @@ class TestCommandStatusTracker:
         result1.state = CommandState.SUCCESS
         result1.num = 1
         wish.command_results.append(result1)
-        
+
         result2 = MagicMock()
         result2.state = CommandState.OTHERS
         result2.num = 2
         wish.command_results.append(result2)
-        
+
         # Get completion message
         message = tracker.get_completion_message(wish)
-        
+
         # Verify the message
         assert message == "All commands completed. Some commands failed."

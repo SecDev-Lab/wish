@@ -1,10 +1,9 @@
-import asyncio
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from wish_models import CommandState, Wish
+import pytest
 from wish_models.test_factories import WishDoingFactory
+
 from wish_sh.test_factories import WishManagerFactory
 
 
@@ -28,20 +27,20 @@ class TestWishManagerWithSleepCommand:
         """
         # Create a WishManager with mocked file operations
         wish_manager = WishManagerFactory.create()
-        
+
         # Mock the executor
         wish_manager.executor = MagicMock()
-        
+
         # Mock the create_command_log_dirs method to avoid file system operations
         with patch.object(wish_manager.paths, "create_command_log_dirs") as mock_create_dirs:
             mock_create_dirs.return_value = Path("/path/to/log/dir")
-            
+
             # Mock open to avoid file operations
             with patch("builtins.open", MagicMock()):
                 # Execute a sleep command
                 cmd = "sleep 1"
                 wish_manager.execute_command(wish, cmd, 1)
-                
+
                 # Verify that the executor.execute_command was called
                 wish_manager.executor.execute_command.assert_called_once_with(wish, cmd, 1)
 
@@ -58,14 +57,14 @@ class TestWishManagerWithSleepCommand:
         """
         # Create a WishManager with mocked file operations
         wish_manager = WishManagerFactory.create()
-        
+
         # Mock the executor
         wish_manager.executor = MagicMock()
-        
+
         # Mock the create_command_log_dirs method to avoid file system operations
         with patch.object(wish_manager.paths, "create_command_log_dirs") as mock_create_dirs:
             mock_create_dirs.return_value = Path("/path/to/log/dir")
-            
+
             # Mock open to avoid file operations
             with patch("builtins.open", MagicMock()):
                 # Execute multiple sleep commands with different durations
@@ -74,10 +73,10 @@ class TestWishManagerWithSleepCommand:
                     "sleep 1",
                     "sleep 1.5",
                 ]
-                
+
                 for i, cmd in enumerate(cmds, 1):
                     wish_manager.execute_command(wish, cmd, i)
-                
+
                 # Verify that the executor.execute_command was called for each command
                 assert wish_manager.executor.execute_command.call_count == 3
                 for i, cmd in enumerate(cmds, 1):
@@ -88,12 +87,12 @@ class TestWishManagerWithSleepCommand:
         """Test that check_running_commands updates the status of running commands."""
         # Create a WishManager with mocked file operations
         wish_manager = WishManagerFactory.create()
-        
+
         # Mock the executor
         wish_manager.executor = MagicMock()
-        
+
         # Check running commands
         wish_manager.check_running_commands()
-        
+
         # Verify that executor.check_running_commands was called
         wish_manager.executor.check_running_commands.assert_called_once()

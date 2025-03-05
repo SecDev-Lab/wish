@@ -1,12 +1,12 @@
 import asyncio
+
 from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
+from wish_models import Wish, WishState
 
-from wish_models import CommandState, Wish, WishState, UtcDatetime
-from wish_sh.command_execution import CommandExecutor, CommandStatusTracker
 from wish_sh.settings import Settings
 from wish_sh.tui.widgets import UIUpdater
 from wish_sh.wish_manager import WishManager
@@ -90,7 +90,7 @@ class CommandExecutionScreen(Screen):
         self.wish_manager = wish_manager
         self.command_statuses: dict[int, str] = {}  # Mapping of command numbers to statuses
         self.all_completed = False
-        
+
         # Initialize command execution components
         self.executor = wish_manager.executor
         self.tracker = wish_manager.tracker
@@ -135,19 +135,19 @@ class CommandExecutionScreen(Screen):
             # Check if all commands have completed
             if not self.all_completed:
                 self.check_all_commands_completed()
-                
+
             await asyncio.sleep(0.5)
 
     def check_all_commands_completed(self) -> None:
         """Check if all commands have completed and update wish state."""
         # Check if all commands have completed
         all_completed, any_failed = self.tracker.is_all_completed(self.wish)
-        
+
         if all_completed:
             # Update wish state
             self.tracker.update_wish_state(self.wish)
             self.all_completed = True
-            
+
             # Display completion message
             completion_message = self.tracker.get_completion_message(self.wish)
             self.ui_updater.show_completion_message(completion_message)

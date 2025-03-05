@@ -1,11 +1,9 @@
 """Command executor for wish_sh."""
 
-import json
 import subprocess
-from pathlib import Path
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple
 
-from wish_models import Wish, CommandResult, CommandState, LogFiles
+from wish_models import CommandResult, CommandState, LogFiles, Wish
 
 
 class CommandExecutor:
@@ -13,7 +11,7 @@ class CommandExecutor:
 
     def __init__(self, wish_manager):
         """Initialize the command executor.
-        
+
         Args:
             wish_manager: The WishManager instance providing necessary functionality.
         """
@@ -22,7 +20,7 @@ class CommandExecutor:
 
     def execute_commands(self, wish: Wish, commands: list[str]) -> None:
         """Execute a list of commands for a wish.
-        
+
         Args:
             wish: The wish to execute commands for.
             commands: The list of commands to execute.
@@ -32,7 +30,7 @@ class CommandExecutor:
 
     def execute_command(self, wish: Wish, command: str, cmd_num: int) -> None:
         """Execute a single command for a wish.
-        
+
         Args:
             wish: The wish to execute the command for.
             command: The command to execute.
@@ -63,23 +61,25 @@ class CommandExecutor:
                 error_msg = f"Subprocess error: {str(e)}"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 1, CommandState.OTHERS, error_msg)
-                
-            except PermissionError as e:
+
+            except PermissionError:
                 error_msg = f"Permission error: No execution permission for command '{command}'"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 126, CommandState.OTHERS, error_msg)
-                
-            except FileNotFoundError as e:
+
+            except FileNotFoundError:
                 error_msg = f"Command not found: '{command}'"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 127, CommandState.OTHERS, error_msg)
-                
+
             except Exception as e:
                 error_msg = f"Unexpected error: {str(e)}"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 1, CommandState.OTHERS, error_msg)
 
-    def _handle_command_failure(self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState, log_summary: str):
+    def _handle_command_failure(
+        self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState, log_summary: str
+    ):
         """Common command failure handling."""
         result.finish(
             exit_code=exit_code,
@@ -110,16 +110,16 @@ class CommandExecutor:
 
     def cancel_command(self, wish: Wish, cmd_num: int) -> str:
         """Cancel a running command.
-        
+
         Args:
             wish: The wish to cancel the command for.
             cmd_num: The command number to cancel.
-            
+
         Returns:
             A message indicating the result of the cancellation.
         """
         import time
-        
+
         if cmd_num in self.running_commands:
             process, result, _ = self.running_commands[cmd_num]
 

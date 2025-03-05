@@ -2,11 +2,11 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
-from wish_models import CommandResult, LogFiles, Wish, WishState
+from wish_models import LogFiles, Wish, WishState
 
 from wish_sh.command_execution.command_executor import CommandExecutor
 from wish_sh.command_execution.command_status_tracker import CommandStatusTracker
-from wish_sh.command_generation import CommandGenerator, MockCommandGenerator, LlmCommandGenerator
+from wish_sh.command_generation import LlmCommandGenerator, MockCommandGenerator
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
 
@@ -19,13 +19,16 @@ class WishManager:
         self.paths = WishPaths(settings)
         self.paths.ensure_directories()
         self.current_wish: Optional[Wish] = None
-        
+
         # Initialize command generator based on settings
-        if hasattr(settings, 'use_llm') and settings.use_llm and hasattr(settings, 'llm_api_key') and settings.llm_api_key:
-            self.command_generator = LlmCommandGenerator(settings.llm_api_key, getattr(settings, 'llm_model', 'gpt-4'))
+        if (hasattr(settings, 'use_llm') and settings.use_llm and
+                hasattr(settings, 'llm_api_key') and settings.llm_api_key):
+            self.command_generator = LlmCommandGenerator(
+                settings.llm_api_key, getattr(settings, 'llm_model', 'gpt-4')
+            )
         else:
             self.command_generator = MockCommandGenerator()
-            
+
         # Initialize command execution components
         self.executor = CommandExecutor(self)
         self.tracker = CommandStatusTracker(self, self.executor)
@@ -34,12 +37,12 @@ class WishManager:
     def create_command_log_dirs(self, wish_id: str) -> Path:
         """Create command log directories."""
         return self.paths.create_command_log_dirs(wish_id)
-    
+
     def save_wish(self, wish: Wish):
         """Save wish to history file."""
         with open(self.paths.history_path, "a") as f:
             f.write(json.dumps(wish.to_dict()) + "\n")
-    
+
     def summarize_log(self, log_files: LogFiles) -> str:
         """Generate a simple summary of command logs."""
         summary = []

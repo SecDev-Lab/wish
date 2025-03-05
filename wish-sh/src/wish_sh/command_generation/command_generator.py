@@ -6,14 +6,14 @@ from typing import List
 
 class CommandGenerator(ABC):
     """Abstract base class for command generation."""
-    
+
     @abstractmethod
     def generate_commands(self, wish_text: str) -> List[str]:
         """Generate commands from wish text.
-        
+
         Args:
             wish_text: The wish text
-            
+
         Returns:
             List of generated commands
         """
@@ -22,13 +22,13 @@ class CommandGenerator(ABC):
 
 class MockCommandGenerator(CommandGenerator):
     """Mock implementation of command generator."""
-    
+
     def generate_commands(self, wish_text: str) -> List[str]:
         """Generate commands based on keywords.
-        
+
         Args:
             wish_text: The wish text
-            
+
         Returns:
             List of generated commands
         """
@@ -61,10 +61,10 @@ class MockCommandGenerator(CommandGenerator):
 
 class LlmCommandGenerator(CommandGenerator):
     """Command generator using LLM."""
-    
+
     def __init__(self, api_key: str, model: str = "gpt-4"):
         """Initialize.
-        
+
         Args:
             api_key: LLM API key
             model: Model name to use
@@ -72,13 +72,13 @@ class LlmCommandGenerator(CommandGenerator):
         self.api_key = api_key
         self.model = model
         # Initialize LLM API client, etc.
-        
+
     def generate_commands(self, wish_text: str) -> List[str]:
         """Generate commands using LLM.
-        
+
         Args:
             wish_text: The wish text
-            
+
         Returns:
             List of generated commands
         """

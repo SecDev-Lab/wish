@@ -26,7 +26,7 @@ class UIUpdater:
 
     def __init__(self, screen: WidgetQuerier):
         """Initialize the UI updater.
-        
+
         Args:
             screen: The screen to update.
         """
@@ -34,7 +34,7 @@ class UIUpdater:
 
     def update_command_status(self, wish: Wish) -> None:
         """Update the UI with current command statuses.
-        
+
         Args:
             wish: The wish to update the UI for.
         """
@@ -46,14 +46,14 @@ class UIUpdater:
                     status += f" (exit code: {result.exit_code})"
                 if result.log_summary:
                     status += f"\nSummary: {result.log_summary}"
-                
+
                 # Update the status widget
                 status_widget = self.screen.query_one(f"#command-status-{result.num}")
                 status_widget.update(status)
 
     def show_completion_message(self, message: str) -> None:
         """Show a completion message.
-        
+
         Args:
             message: The message to show.
         """

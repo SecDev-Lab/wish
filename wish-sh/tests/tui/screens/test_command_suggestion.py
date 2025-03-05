@@ -1,12 +1,7 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
-from textual.app import App
-
-from wish_models import Wish, WishState
 from wish_sh.test_factories import CommandSuggestionFactory
-from wish_sh.wish_manager import WishManager
-from wish_sh.wish_tui import CommandSuggestion, CommandExecutionScreen
+from wish_sh.wish_tui import CommandExecutionScreen
 
 
 class TestCommandSuggestion:
@@ -23,16 +18,16 @@ class TestCommandSuggestion:
         # Create a screen with mocked app
         screen, app_mock = CommandSuggestionFactory.create_with_mocked_app()
         wish_manager = app_mock.wish_manager
-        
+
         # Create a property mock
         app_property_mock = MagicMock()
         app_property_mock.__get__ = MagicMock(return_value=app_mock)
-        
+
         # Patch the CommandSuggestion.app property
         with patch('wish_sh.wish_tui.CommandSuggestion.app', app_property_mock):
             # Call on_yes_button_pressed
             screen.on_yes_button_pressed()
-            
+
             # Check that push_screen was called with CommandExecutionScreen
             # and the correct arguments
             app_mock.push_screen.assert_called_once()
