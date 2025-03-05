@@ -5,32 +5,32 @@ from typing import List
 
 
 class CommandGenerator(ABC):
-    """コマンド生成のための抽象基底クラス."""
+    """Abstract base class for command generation."""
     
     @abstractmethod
     def generate_commands(self, wish_text: str) -> List[str]:
-        """願いテキストからコマンドを生成する.
+        """Generate commands from wish text.
         
         Args:
-            wish_text: 願いテキスト
+            wish_text: The wish text
             
         Returns:
-            生成されたコマンドのリスト
+            List of generated commands
         """
         pass
 
 
 class MockCommandGenerator(CommandGenerator):
-    """モック実装のコマンドジェネレーター."""
+    """Mock implementation of command generator."""
     
     def generate_commands(self, wish_text: str) -> List[str]:
-        """キーワードに基づいてコマンドを生成する.
+        """Generate commands based on keywords.
         
         Args:
-            wish_text: 願いテキスト
+            wish_text: The wish text
             
         Returns:
-            生成されたコマンドのリスト
+            List of generated commands
         """
         commands = []
         wish_lower = wish_text.lower()
@@ -60,29 +60,29 @@ class MockCommandGenerator(CommandGenerator):
 
 
 class LlmCommandGenerator(CommandGenerator):
-    """LLMを使用したコマンドジェネレーター."""
+    """Command generator using LLM."""
     
     def __init__(self, api_key: str, model: str = "gpt-4"):
-        """初期化.
+        """Initialize.
         
         Args:
-            api_key: LLM APIのキー
-            model: 使用するモデル名
+            api_key: LLM API key
+            model: Model name to use
         """
         self.api_key = api_key
         self.model = model
-        # LLM APIクライアントの初期化など
+        # Initialize LLM API client, etc.
         
     def generate_commands(self, wish_text: str) -> List[str]:
-        """LLMを使用してコマンドを生成する.
+        """Generate commands using LLM.
         
         Args:
-            wish_text: 願いテキスト
+            wish_text: The wish text
             
         Returns:
-            生成されたコマンドのリスト
+            List of generated commands
         """
-        # 注: 実際の実装ではLLM APIを呼び出してコマンドを生成します
-        # このプロトタイプ実装では、モック実装と同じ結果を返します
+        # Note: In the actual implementation, LLM API would be called to generate commands
+        # In this prototype implementation, we return the same result as the mock implementation
         mock_generator = MockCommandGenerator()
         return mock_generator.generate_commands(wish_text)

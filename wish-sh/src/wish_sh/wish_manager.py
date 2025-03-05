@@ -20,19 +20,19 @@ class WishManager:
         self.paths.ensure_directories()
         self.current_wish: Optional[Wish] = None
         
-        # 設定に基づいてコマンドジェネレーターを初期化
+        # Initialize command generator based on settings
         if hasattr(settings, 'use_llm') and settings.use_llm and hasattr(settings, 'llm_api_key') and settings.llm_api_key:
             self.command_generator = LlmCommandGenerator(settings.llm_api_key, getattr(settings, 'llm_model', 'gpt-4'))
         else:
             self.command_generator = MockCommandGenerator()
             
-        # コマンド実行関連のコンポーネントを初期化
+        # Initialize command execution components
         self.executor = CommandExecutor(self)
         self.tracker = CommandStatusTracker(self, self.executor)
 
-    # コマンド実行に必要な機能
+    # Functions required for command execution
     def create_command_log_dirs(self, wish_id: str) -> Path:
-        """コマンドログディレクトリを作成する。"""
+        """Create command log directories."""
         return self.paths.create_command_log_dirs(wish_id)
     
     def save_wish(self, wish: Wish):
@@ -84,7 +84,7 @@ class WishManager:
 
         return "\n".join(summary)
 
-    # WishManager の機能
+    # WishManager functions
     def load_wishes(self, limit: int = 10) -> List[Wish]:
         """Load recent wishes from history file."""
         wishes = []
@@ -108,7 +108,7 @@ class WishManager:
         """Generate commands based on wish text."""
         return self.command_generator.generate_commands(wish_text)
 
-    # CommandExecutor への委譲
+    # Delegation to CommandExecutor
     def execute_command(self, wish: Wish, command: str, cmd_num: int):
         """Execute a command and capture its output."""
         self.executor.execute_command(wish, command, cmd_num)

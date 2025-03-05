@@ -88,7 +88,7 @@ class CommandExecutionScreen(Screen):
         self.wish = wish
         self.commands = commands
         self.wish_manager = wish_manager
-        self.command_statuses: dict[int, str] = {}  # コマンド番号とステータスのマッピング
+        self.command_statuses: dict[int, str] = {}  # Mapping of command numbers to statuses
         self.all_completed = False
         
         # Initialize command execution components
@@ -117,22 +117,22 @@ class CommandExecutionScreen(Screen):
 
     def on_mount(self) -> None:
         """Handle screen mount event."""
-        # コマンドの実行を開始
+        # Start command execution
         self.executor.execute_commands(self.wish, self.commands)
 
-        # 非同期でコマンドの状態を監視
+        # Asynchronously monitor command status
         asyncio.create_task(self.monitor_commands())
 
     async def monitor_commands(self) -> None:
-        """非同期でコマンドの実行状態を監視する."""
+        """Asynchronously monitor command execution status."""
         while not self.all_completed:
-            # 実行中のコマンドのステータスを確認
+            # Check status of running commands
             self.tracker.check_status(self.wish)
 
-            # UIを更新
+            # Update UI
             self.ui_updater.update_command_status(self.wish)
 
-            # すべてのコマンドが完了したかチェック
+            # Check if all commands have completed
             if not self.all_completed:
                 self.check_all_commands_completed()
                 
@@ -140,15 +140,15 @@ class CommandExecutionScreen(Screen):
 
     def check_all_commands_completed(self) -> None:
         """Check if all commands have completed and update wish state."""
-        # すべてのコマンドが完了したかチェック
+        # Check if all commands have completed
         all_completed, any_failed = self.tracker.is_all_completed(self.wish)
         
         if all_completed:
-            # Wishの状態を更新
+            # Update wish state
             self.tracker.update_wish_state(self.wish)
             self.all_completed = True
             
-            # 実行完了メッセージを表示
+            # Display completion message
             completion_message = self.tracker.get_completion_message(self.wish)
             self.ui_updater.show_completion_message(completion_message)
 

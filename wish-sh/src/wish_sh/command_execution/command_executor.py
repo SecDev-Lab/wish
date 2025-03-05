@@ -60,27 +60,27 @@ class CommandExecutor:
                 return
 
             except subprocess.SubprocessError as e:
-                error_msg = f"サブプロセスエラー: {str(e)}"
+                error_msg = f"Subprocess error: {str(e)}"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 1, CommandState.OTHERS, error_msg)
                 
             except PermissionError as e:
-                error_msg = f"権限エラー: コマンド '{command}' の実行権限がありません"
+                error_msg = f"Permission error: No execution permission for command '{command}'"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 126, CommandState.OTHERS, error_msg)
                 
             except FileNotFoundError as e:
-                error_msg = f"コマンドが見つかりません: '{command}'"
+                error_msg = f"Command not found: '{command}'"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 127, CommandState.OTHERS, error_msg)
                 
             except Exception as e:
-                error_msg = f"予期せぬエラー: {str(e)}"
+                error_msg = f"Unexpected error: {str(e)}"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 1, CommandState.OTHERS, error_msg)
 
     def _handle_command_failure(self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState, log_summary: str):
-        """共通のコマンド失敗処理."""
+        """Common command failure handling."""
         result.finish(
             exit_code=exit_code,
             state=state,
