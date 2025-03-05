@@ -1,0 +1,74 @@
+#wish-prompt {
+    margin: 1 0;
+    text-align: center;
+    width: 100%;
+    color: yellow;
+    text-style: bold;
+}
+
+#wish-container {
+    align: center middle;
+    width: 80%;
+    height: 10;
+}
+
+#wish-input {
+    width: 100%;
+}
+
+#command-container {
+    align: center middle;
+    width: 80%;
+}
+
+#wish-text {
+    margin: 1 0;
+    text-align: center;
+    width: 100%;
+}
+
+#confirmation-text {
+    margin: 1 0;
+    text-align: center;
+    width: 100%;
+    color: yellow;
+}
+
+#button-container {
+    margin: 1 0;
+    width: 100%;
+    height: 3;
+    align-horizontal: center;
+}
+
+Button {
+    margin: 0 1;
+}
+
+#execution-container {
+    align: center middle;
+    width: 80%;
+}
+
+#execution-text {
+    margin: 1 0;
+    text-align: center;
+    width: 100%;
+    color: green;
+}
+
+#back-button {
+    margin: 1 0;
+}
+
+.command-container {
+    margin: 1 0;
+    width: 100%;
+    border: solid green;
+    padding: 1;
+}
+
+.command-status {
+    margin-left: 2;
+    color: yellow;
+}

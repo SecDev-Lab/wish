@@ -1,10 +1,9 @@
-from wish_sh.wish_cli import WishCLI
+from wish_sh.wish_tui import main as tui_main
 
 
 def main():
     """Entry point for the wish shell."""
-    cli = WishCLI()
-    cli.run()
+    tui_main()
 
 
 if __name__ == "__main__":
