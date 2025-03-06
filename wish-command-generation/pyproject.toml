@@ -49,6 +49,7 @@ dev-dependencies = [
     "pytest-asyncio>=0.25.2",
     "pytest>=8.3.4",
     "ruff>=0.9.8",
+    "graphviz>=0.20.1",
 ]
 
 [tool.pdm.build]

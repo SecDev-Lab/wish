@@ -9,8 +9,15 @@ from .models import GraphState
 from .nodes import command_generation, rag
 
 
-def create_command_generation_graph():
-    """コマンド生成グラフを作成する"""
+def create_command_generation_graph(compile=True):
+    """コマンド生成グラフを作成する
+    
+    Args:
+        compile: Trueの場合、コンパイル済みのグラフを返す。Falseの場合、コンパイル前のグラフを返す。
+    
+    Returns:
+        コンパイル済みまたはコンパイル前のグラフオブジェクト
+    """
     # グラフの作成
     graph = StateGraph(GraphState)
     
@@ -25,5 +32,7 @@ def create_command_generation_graph():
     graph.add_edge("retrieve_documents", "generate_commands")
     graph.add_edge("generate_commands", END)
     
-    # グラフのコンパイル
-    return graph.compile()
+    # コンパイルするかどうか
+    if compile:
+        return graph.compile()
+    return graph
