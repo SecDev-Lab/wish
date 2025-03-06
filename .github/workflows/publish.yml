@@ -3,14 +3,6 @@ name: Publish to PyPI
 on:
   workflow_dispatch:
     inputs:
-      project:
-        description: 'Project to publish (wish-sh or wish-models)'
-        required: true
-        type: choice
-        options:
-          - wish-sh
-          - wish-command-execution
-          - wish-models
       version:
         description: 'Version to publish (e.g. 0.1.0)'
         required: true
@@ -18,8 +10,14 @@ on:
 
 jobs:
   publish:
-    name: Publish ${{ inputs.project }}
+    name: Publish wish packages
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - wish-sh
+          - wish-command-execution
+          - wish-models
 
     steps:
       - uses: actions/checkout@v4
@@ -27,24 +25,25 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version-file: "${{ inputs.project }}/.python-version"
+          python-version-file: "${{ matrix.package }}/.python-version"
 
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
           pip install build twine
 
+      # Update version in pyproject.toml
       - name: Update version in pyproject.toml
         run: |
-          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" ${{ inputs.project }}/pyproject.toml
-          echo "Updated version in pyproject.toml to ${{ inputs.version }}"
-          grep -m 1 'version = ' ${{ inputs.project }}/pyproject.toml
+          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" ${{ matrix.package }}/pyproject.toml
+          echo "Updated version in ${{ matrix.package }}/pyproject.toml to ${{ inputs.version }}"
+          grep -m 1 'version = ' ${{ matrix.package }}/pyproject.toml
 
       - name: Build package
-        run: cd ${{ inputs.project }} ; python -m build
+        run: cd ${{ matrix.package }} ; python -m build
 
       - name: Publish package to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: cd ${{ inputs.project }} ; twine upload dist/*
+        run: cd ${{ matrix.package }} ; twine upload dist/*
