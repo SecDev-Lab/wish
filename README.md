@@ -1,4 +1,4 @@
-# wish-sh - LLM-assisted shell for penetration testing
+# wish - LLM-assisted shell for penetration testing
 
 [![PyPI version](https://img.shields.io/pypi/v/wish-sh.svg)](https://pypi.org/project/wish-sh)
 
