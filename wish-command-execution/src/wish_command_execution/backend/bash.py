@@ -1,52 +1,40 @@
-"""Command executor for wish_sh."""
+"""Bash backend for command execution."""
 
 import subprocess
+import time
 from typing import Dict, Tuple
 
-from wish_models import CommandResult, CommandState, LogFiles, Wish
+from wish_models import CommandResult, CommandState, Wish
+
+from wish_command_execution.backend.base import Backend
 
 
-class CommandExecutor:
-    """Executes commands for a wish."""
+class BashBackend(Backend):
+    """Backend for executing commands using bash."""
 
-    def __init__(self, wish_manager):
-        """Initialize the command executor.
+    def __init__(self, log_summarizer=None):
+        """Initialize the bash backend.
 
         Args:
-            wish_manager: The WishManager instance providing necessary functionality.
+            log_summarizer: Function to summarize logs.
         """
-        self.wish_manager = wish_manager
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
+        self.log_summarizer = log_summarizer or (lambda _: "No log summary available")
 
-    def execute_commands(self, wish: Wish, commands: list[str]) -> None:
-        """Execute a list of commands for a wish.
-
-        Args:
-            wish: The wish to execute commands for.
-            commands: The list of commands to execute.
-        """
-        for i, cmd in enumerate(commands, 1):
-            self.execute_command(wish, cmd, i)
-
-    def execute_command(self, wish: Wish, command: str, cmd_num: int) -> None:
-        """Execute a single command for a wish.
+    def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
+        """Execute a command using bash.
 
         Args:
             wish: The wish to execute the command for.
             command: The command to execute.
             cmd_num: The command number.
+            log_files: The log files to write output to.
         """
-        # Create log directories and files
-        log_dir = self.wish_manager.create_command_log_dirs(wish.id)
-        stdout_path = log_dir / f"{cmd_num}.stdout"
-        stderr_path = log_dir / f"{cmd_num}.stderr"
-        log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
-
         # Create command result
         result = CommandResult.create(cmd_num, command, log_files)
         wish.command_results.append(result)
 
-        with open(stdout_path, "w") as stdout_file, open(stderr_path, "w") as stderr_file:
+        with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
             try:
                 # Start the process
                 process = subprocess.Popen(command, stdout=stdout_file, stderr=stderr_file, shell=True, text=True)
@@ -86,7 +74,12 @@ class CommandExecutor:
             state=state,
             log_summarizer=lambda _: log_summary
         )
-        wish.update_command_result(result)
+        # Update the command result in the wish object
+        # This is a workaround for Pydantic models that don't allow dynamic attribute assignment
+        for i, cmd_result in enumerate(wish.command_results):
+            if cmd_result.num == result.num:
+                wish.command_results[i] = result
+                break
 
     def check_running_commands(self):
         """Check status of running commands and update their status."""
@@ -99,11 +92,15 @@ class CommandExecutor:
                 result.finish(
                     exit_code=process.returncode,
                     state=state,
-                    log_summarizer=self.wish_manager.summarize_log
+                    log_summarizer=self.log_summarizer
                 )
 
                 # Update the command result in the wish object
-                wish.update_command_result(result)
+                # This is a workaround for Pydantic models that don't allow dynamic attribute assignment
+                for i, cmd_result in enumerate(wish.command_results):
+                    if cmd_result.num == result.num:
+                        wish.command_results[i] = result
+                        break
 
                 # Remove from running commands
                 del self.running_commands[idx]
@@ -118,8 +115,6 @@ class CommandExecutor:
         Returns:
             A message indicating the result of the cancellation.
         """
-        import time
-
         if cmd_num in self.running_commands:
             process, result, _ = self.running_commands[cmd_num]
 
@@ -136,11 +131,15 @@ class CommandExecutor:
             result.finish(
                 exit_code=-1,  # Use -1 for cancelled commands
                 state=CommandState.USER_CANCELLED,
-                log_summarizer=self.wish_manager.summarize_log
+                log_summarizer=self.log_summarizer
             )
 
             # Update the command result in the wish object
-            wish.update_command_result(result)
+            # This is a workaround for Pydantic models that don't allow dynamic attribute assignment
+            for i, cmd_result in enumerate(wish.command_results):
+                if cmd_result.num == result.num:
+                    wish.command_results[i] = result
+                    break
 
             del self.running_commands[cmd_num]
 

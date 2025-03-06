@@ -1,22 +1,22 @@
-"""Command status tracker for wish_sh."""
+"""Command status tracker for wish-command-execution."""
 
 from wish_models import CommandState, UtcDatetime, Wish, WishState
 
-from wish_sh.command_execution.command_executor import CommandExecutor
+from wish_command_execution.command_executor import CommandExecutor
 
 
 class CommandStatusTracker:
     """Tracks the status of commands for a wish."""
 
-    def __init__(self, wish_manager, executor: CommandExecutor):
+    def __init__(self, executor: CommandExecutor, wish_saver=None):
         """Initialize the command status tracker.
 
         Args:
-            wish_manager: The WishManager instance providing necessary functionality.
             executor: The CommandExecutor instance to use for checking running commands.
+            wish_saver: Function to save a wish.
         """
-        self.wish_manager = wish_manager
         self.executor = executor
+        self.wish_saver = wish_saver or (lambda _: None)
         self.all_completed = False
 
     def check_status(self, wish: Wish) -> None:
@@ -48,11 +48,14 @@ class CommandStatusTracker:
 
         return all_completed, any_failed
 
-    def update_wish_state(self, wish: Wish) -> None:
+    def update_wish_state(self, wish: Wish) -> bool:
         """Update the wish state based on command results.
 
         Args:
             wish: The wish to update the state for.
+
+        Returns:
+            True if all commands have completed, False otherwise.
         """
         all_completed, any_failed = self.is_all_completed(wish)
 
@@ -68,7 +71,7 @@ class CommandStatusTracker:
             wish.finished_at = UtcDatetime.now()
 
             # Save wish to history
-            self.wish_manager.save_wish(wish)
+            self.wish_saver(wish)
 
             return True
 

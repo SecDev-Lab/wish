@@ -2,10 +2,10 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
+from wish_command_execution import CommandExecutor, CommandStatusTracker
+from wish_command_execution.backend import BashBackend
 from wish_models import LogFiles, Wish, WishState
 
-from wish_sh.command_execution.command_executor import CommandExecutor
-from wish_sh.command_execution.command_status_tracker import CommandStatusTracker
 from wish_sh.command_generation import LlmCommandGenerator, MockCommandGenerator
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
@@ -30,8 +30,9 @@ class WishManager:
             self.command_generator = MockCommandGenerator()
 
         # Initialize command execution components
-        self.executor = CommandExecutor(self)
-        self.tracker = CommandStatusTracker(self, self.executor)
+        backend = BashBackend(log_summarizer=self.summarize_log)
+        self.executor = CommandExecutor(backend=backend, log_dir_creator=self.create_command_log_dirs)
+        self.tracker = CommandStatusTracker(self.executor, wish_saver=self.save_wish)
 
     # Functions required for command execution
     def create_command_log_dirs(self, wish_id: str) -> Path:

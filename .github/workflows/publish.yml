@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - wish-sh
+          - wish-command-execution
           - wish-models
       version:
         description: 'Version to publish (e.g. 0.1.0)'

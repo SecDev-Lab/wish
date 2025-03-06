@@ -24,7 +24,6 @@ keywords = ["wish", "llm", "ai", "shell"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries",
@@ -34,10 +33,12 @@ license = {file = "../LICENSE"}
 dependencies = [
     "wish-models>=0.0.1",
     "textual>=2.1.2",
+    "wish-command-execution>=0.0.1",
 ]
 
 [tool.uv.sources]
 wish-models = { path = "../wish-models", editable = true }
+wish-command-execution = { path = "../wish-command-execution", editable = true }
 
 [project.scripts]
 wish = "wish_sh.wish:main"
