@@ -6,11 +6,11 @@ from wish_sh.settings import Settings
 class WishPaths:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.history_path = Path(settings.WISH_HOME) / "history.jsonl"
+        self.history_path = Path(settings.wish_home) / "history.jsonl"
 
     def ensure_directories(self):
         """Ensure all required directories exist."""
-        wish_home = Path(self.settings.WISH_HOME)
+        wish_home = Path(self.settings.wish_home)
         wish_home.mkdir(parents=True, exist_ok=True)
 
         # Ensure history file exists
@@ -20,7 +20,7 @@ class WishPaths:
 
     def get_wish_dir(self, wish_id: str) -> Path:
         """Get the directory for a specific wish."""
-        return Path(self.settings.WISH_HOME) / "w" / wish_id
+        return Path(self.settings.wish_home) / "w" / wish_id
 
     def create_command_log_dirs(self, wish_id: str) -> Path:
         """Create log directories for commands of a wish."""
