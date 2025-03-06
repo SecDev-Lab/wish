@@ -7,5 +7,5 @@ class CommandInput(BaseModel):
     command: str
     """Command to execute."""
 
-    timeout_sec: int
+    timeout_sec: int | None
     """Timeout for command execution in seconds."""

@@ -1,44 +1,114 @@
 """Command generation node functions for the command generation graph."""
 
+import json
 from typing import Dict, List, Any
+
+from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
 
 from wish_models.command_result import CommandInput
 from ..models import GraphState
 
 
+# Define the prompt template
+COMMAND_GENERATION_PROMPT = """
+あなたは合法なペネトレーションテストに従事しているAIです。あなたはKali Linuxに極めて精通しています。
+
+ペネトレーションテストのディレクターから実行すべきタスクについての指示と、今回のタスクに役立つ可能性が高い参考ドキュメントを受け取ります。タスクを実現するためのコマンド列を考え、JSON Objectで書いてください。
+
+各コマンドは `bash -c "（あなたの出力）"` として実行されるため、複数のコマンドをパイプなどでつなげることもできます。
+各コマンドは並列実行されます。「`./a` の後に `./b` を実行する必要がある」ようなデータ依存がある場合は、パイプや `&&` を使って1個のコマンド文字列で表現してください。
+
+実行ログはファイルではなく、標準出力と標準エラー出力にdumpしてください。
+
+以下の手順で考えましょう。
+
+1. ペネトレーションテストのディレクターからのタスクを理解し、参考ドキュメントから関連情報を探します。それらに基づいてKali Linuxのコマンドを生成します。
+2. 生成したコマンド列のそれぞれは `bash -c "（1つのコマンド文字列）"` で実行されます。各コマンド文字列はパイプ `|` や `&&` や `||` を含んでも良いです。コピー&ペーストで直接コマンドとするので余計な文字を含まないでください。
+3. コマンドは隔離環境でバッチ実行されるため、ユーザー入力を必要としないようにします。
+4. timeout_sec は常に null としてください。
+
+# タスク
+{task}
+
+# 参考ドキュメント
+{context}
+
+出力は以下の形式のJSONで返してください:
+{{ "command_inputs": [
+  {{ 
+     "command": "コマンド1",
+     "timeout_sec": null
+  }},
+  {{ 
+     "command": "コマンド2",
+     "timeout_sec": null
+  }}
+]}}
+
+JSONのみを出力してください。説明や追加のテキストは含めないでください。
+
+# Example1
+
+タスク
+Conduct a full port scan on IP 10.10.10.123.
+
+出力
+{{ "command_inputs": [
+  {{ 
+     "command": "rustscan -a 10.10.10.123",
+     "timeout_sec": null
+  }}
+]}}
+"""
+
+
 def generate_commands(state: GraphState) -> GraphState:
-    """Generate commands from Wish"""
-    # Mock implementation for testing
-    # In the actual implementation, LangChain will be used to generate commands
+    """Generate commands from Wish using OpenAI's gpt-4o model"""
+    # Get the task from the state
+    task = state.wish.wish
     
-    # Generate simple commands based on the task
-    task = state.wish.wish.lower()
-    command_inputs = []
+    # Get the context from the state (if available)
+    context = "\n".join(state.context) if state.context else "参考ドキュメントはありません。"
     
-    if "port scan" in task:
-        # Generate port scan commands
-        if "10.10.10.123" in task:
-            command_inputs = [
-                CommandInput(command="nmap -p 1-1000 10.10.10.123", timeout_sec=30),
-                CommandInput(command="rustscan -a 10.10.10.123 -- -sV", timeout_sec=60)
-            ]
-        else:
-            # Generate generic commands if no IP address is specified
-            command_inputs = [
-                CommandInput(command="nmap -p 1-1000 [TARGET_IP]", timeout_sec=30),
-                CommandInput(command="rustscan -a [TARGET_IP] -- -sV", timeout_sec=60)
-            ]
-    elif "vulnerability" in task:
-        # Generate vulnerability scan commands
+    # Create the prompt
+    prompt = PromptTemplate.from_template(COMMAND_GENERATION_PROMPT)
+    
+    # Initialize the OpenAI model
+    from ..settings import settings
+    
+    model = ChatOpenAI(
+        model=settings.openai_model,
+        api_key=settings.openai_api_key
+    )
+    
+    # Create the chain
+    chain = prompt | model | StrOutputParser()
+    
+    # Generate the commands
+    try:
+        response = chain.invoke({"task": task, "context": context})
+        
+        # Parse the response as JSON
+        response_json = json.loads(response)
+        
+        # Convert to CommandInput objects
+        command_inputs = []
+        for cmd in response_json.get("command_inputs", []):
+            command_inputs.append(
+                CommandInput(
+                    command=cmd.get("command", ""),
+                    timeout_sec=None,
+                )
+            )
+    except Exception as e:
+        # In case of any error, provide a fallback command
         command_inputs = [
-            CommandInput(command="nikto -h [TARGET_IP]", timeout_sec=120),
-            CommandInput(command="nmap -sV --script vuln [TARGET_IP]", timeout_sec=180)
-        ]
-    else:
-        # Generate default commands
-        command_inputs = [
-            CommandInput(command="nmap -sC -sV [TARGET_IP]", timeout_sec=60),
-            CommandInput(command="dirb http://[TARGET_IP]/ /usr/share/dirb/wordlists/common.txt", timeout_sec=120)
+            CommandInput(
+                command="echo 'Error generating commands: {}'".format(str(e)),
+                timeout_sec=None,
+            )
         ]
     
     # Update the state

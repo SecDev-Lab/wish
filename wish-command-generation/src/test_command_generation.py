@@ -21,7 +21,7 @@ def main():
     print("Generated commands:")
     for i, cmd in enumerate(result["command_inputs"], 1):
         print(f"{i}. Command: {cmd.command}")
-        print(f"   Timeout: {cmd.timeout_sec} seconds")
+        print(f"   Timeout: {cmd.timeout_sec + "seconds" if cmd.timeout_sec else "None"}")
         print()
 
 

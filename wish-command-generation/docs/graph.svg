@@ -21,7 +21,7 @@
 <text text-anchor="middle" x="328.4" y="-11.82" font-family="Times,serif" font-size="14.00">retrieve_documents</text>
 </g>
 <!-- query_generation&#45;&gt;retrieve_documents -->
-<g id="edge1" class="edge">
+<g id="edge4" class="edge">
 <title>query_generation&#45;&gt;retrieve_documents</title>
 <path fill="none" stroke="black" d="M230.99,-18C238.79,-18 246.92,-18 255,-18"/>
 <polygon fill="black" stroke="black" points="254.84,-21.5 264.84,-18 254.84,-14.5 254.84,-21.5"/>
@@ -33,7 +33,7 @@
 <text text-anchor="middle" x="490.27" y="-11.82" font-family="Times,serif" font-size="14.00">generate_commands</text>
 </g>
 <!-- retrieve_documents&#45;&gt;generate_commands -->
-<g id="edge4" class="edge">
+<g id="edge3" class="edge">
 <title>retrieve_documents&#45;&gt;generate_commands</title>
 <path fill="none" stroke="black" d="M390.3,-18C398.15,-18 406.27,-18 414.32,-18"/>
 <polygon fill="black" stroke="black" points="414.11,-21.5 424.11,-18 414.11,-14.5 414.11,-21.5"/>
@@ -45,7 +45,7 @@
 <text text-anchor="middle" x="630.27" y="-11.82" font-family="Times,serif" font-size="14.00">__end__</text>
 </g>
 <!-- generate_commands&#45;&gt;__end__ -->
-<g id="edge3" class="edge">
+<g id="edge2" class="edge">
 <title>generate_commands&#45;&gt;__end__</title>
 <path fill="none" stroke="black" d="M555.02,-18C563,-18 571.06,-18 578.79,-18"/>
 <polygon fill="black" stroke="black" points="578.7,-21.5 588.7,-18 578.7,-14.5 578.7,-21.5"/>
@@ -57,7 +57,7 @@
 <text text-anchor="middle" x="42.14" y="-11.82" font-family="Times,serif" font-size="14.00">__start__</text>
 </g>
 <!-- __start__&#45;&gt;query_generation -->
-<g id="edge2" class="edge">
+<g id="edge1" class="edge">
 <title>__start__&#45;&gt;query_generation</title>
 <path fill="none" stroke="black" d="M84.71,-18C92.37,-18 100.55,-18 108.72,-18"/>
 <polygon fill="black" stroke="black" points="108.72,-21.5 118.72,-18 108.72,-14.5 108.72,-21.5"/>
