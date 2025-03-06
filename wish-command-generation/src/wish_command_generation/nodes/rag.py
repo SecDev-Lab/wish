@@ -4,11 +4,11 @@ from ..models import GraphState
 
 
 def generate_query(state: GraphState) -> GraphState:
-    """タスクからRAG検索用のクエリを生成する"""
-    # テスト用のモック実装
-    # 実際の実装では、LangChainを使用してクエリを生成します
+    """Generate a query for RAG search from the task"""
+    # Mock implementation for testing
+    # In the actual implementation, LangChain will be used to generate queries
     
-    # タスクに基づいて簡単なクエリを生成
+    # Generate a simple query based on the task
     task = state.wish.wish.lower()
     
     if "port scan" in task:
@@ -18,7 +18,7 @@ def generate_query(state: GraphState) -> GraphState:
     else:
         query = "penetration testing commands kali linux"
     
-    # クエリをステートに保存
+    # Save the query to the state
     state_dict = state.model_dump()
     state_dict["query"] = query
     
@@ -26,17 +26,17 @@ def generate_query(state: GraphState) -> GraphState:
 
 
 def retrieve_documents(state: GraphState) -> GraphState:
-    """生成されたクエリを使用して関連ドキュメントを取得する"""
-    # ここでは実際のRAG実装をプレースホルダーとしています
-    # 実際の実装では、ベクトルストアやリトリーバーを設定する必要があります
+    """Retrieve relevant documents using the generated query"""
+    # Here we are using a placeholder for the actual RAG implementation
+    # In the actual implementation, you need to set up a vector store or retriever
     
-    # プレースホルダーの結果
+    # Placeholder results
     context = [
-        "# nmap コマンド\nnmapはネットワークスキャンツールです。\n基本的な使い方: nmap [オプション] [ターゲット]\n\n主なオプション:\n-p: ポート指定\n-sV: バージョン検出\n-A: OS検出、バージョン検出、スクリプトスキャン、トレースルート\n-T4: スキャン速度設定（0-5、高いほど速い）",
-        "# rustscan\nrustscanは高速なポートスキャナーです。\n基本的な使い方: rustscan -a [ターゲットIP] -- [nmapオプション]\n\n主なオプション:\n-r: ポート範囲指定（例: -r 1-1000）\n-b: バッチサイズ（同時接続数）\n--scripts: nmapスクリプトの実行"
+        "# nmap command\nnmap is a network scanning tool.\nBasic usage: nmap [options] [target]\n\nMain options:\n-p: Port specification\n-sV: Version detection\n-A: OS detection, version detection, script scanning, traceroute\n-T4: Scan speed setting (0-5, higher is faster)",
+        "# rustscan\nrustscan is a fast port scanner.\nBasic usage: rustscan -a [target IP] -- [nmap options]\n\nMain options:\n-r: Port range specification (e.g., -r 1-1000)\n-b: Batch size (number of simultaneous connections)\n--scripts: Execute nmap scripts"
     ]
     
-    # ステートを更新
+    # Update the state
     state_dict = state.model_dump()
     state_dict["context"] = context
     

@@ -10,14 +10,14 @@ jobs:
   update-graph:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # トピックブランチにプッシュするための権限
-      pull-requests: write  # PRにコメントするための権限
+      contents: write  # to push to a topic branch
+      pull-requests: write  # to add a comment to a PR
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}  # PRのトピックブランチをチェックアウト
+          ref: ${{ github.head_ref }}  # checkout the topic branch in a PR
       
       - name: Set up Python
         uses: actions/setup-python@v5

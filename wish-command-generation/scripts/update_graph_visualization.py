@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-グラフ可視化スクリプト
+Graph visualization script
 
-LangGraphのグラフ定義を読み込み、SVG形式で可視化して保存します。
+Load the LangGraph graph definition and save it as an SVG visualization.
 """
 
 import os
@@ -11,32 +11,32 @@ from pathlib import Path
 import graphviz
 import importlib.util
 
-# プロジェクトのルートディレクトリを取得
+# Get the project root directory
 ROOT_DIR = Path(__file__).parent.parent.absolute()
 sys.path.insert(0, str(ROOT_DIR))
 
-# docs/designディレクトリが存在しない場合は作成
+# Create the docs/design directory if it doesn't exist
 DOCS_DIR = ROOT_DIR / "docs"
 DOCS_DIR.mkdir(exist_ok=True)
 
-# SVGファイルの出力先
+# SVG file output destination
 SVG_PATH = DOCS_DIR / "graph.svg"
 MD_PATH = DOCS_DIR / "design.md"
 
 
 def generate_graph_visualization():
-    """グラフを可視化してSVGとして保存する"""
-    # グラフモジュールをインポート
+    """Visualize the graph and save it as SVG"""
+    # Import the graph module
     from wish_command_generation.graph import create_command_generation_graph
     
-    # グラフを作成（コンパイル前のグラフオブジェクトを取得）
+    # Create the graph (get the pre-compiled graph object)
     graph = create_command_generation_graph(compile=False)
     
-    # graphvizオブジェクトを作成
+    # Create a graphviz object
     dot = graphviz.Digraph(comment="Command Generation Graph")
-    dot.attr(rankdir="LR")  # 左から右へのレイアウト
+    dot.attr(rankdir="LR")  # Layout from left to right
     
-    # ノードを追加
+    # Add nodes
     for node_name in graph.nodes:
         if node_name == "START":
             dot.node(node_name, node_name, shape="circle", style="filled", fillcolor="green")
@@ -45,15 +45,15 @@ def generate_graph_visualization():
         else:
             dot.node(node_name, node_name, shape="box", style="filled", fillcolor="lightblue")
     
-    # エッジの形式を確認
+    # Check the edge format
     print("Edges format:", graph.edges)
     print("Edges type:", type(graph.edges))
     
-    # エッジを追加
+    # Add edges
     for edge in graph.edges:
         if isinstance(edge, tuple) and len(edge) >= 2:
             source, target = edge[0], edge[1]
-            # 条件付きエッジの場合はラベルを追加（3番目の要素がある場合）
+            # Add a label for conditional edges (if there is a third element)
             if len(edge) > 2 and edge[2]:
                 dot.edge(str(source), str(target), label=str(edge[2]))
             else:
@@ -61,7 +61,7 @@ def generate_graph_visualization():
         elif isinstance(edge, dict) and "source" in edge and "target" in edge:
             source = edge["source"]
             target = edge["target"]
-            # 条件付きエッジの場合はラベルを追加
+            # Add a label for conditional edges
             if "condition" in edge:
                 dot.edge(source, target, label=edge["condition"])
             else:
@@ -69,17 +69,17 @@ def generate_graph_visualization():
         else:
             print(f"Skipping edge with unknown format: {edge}")
     
-    # SVGとして保存
+    # Save as SVG
     dot.render(SVG_PATH.with_suffix(""), format="svg", cleanup=True)
     print(f"Graph visualization saved to {SVG_PATH}")
     
-    # design.mdを更新
+    # Update design.md
     update_design_md()
 
 
 def update_design_md():
-    """design.mdファイルを更新する"""
-    # ファイルが存在しない場合は作成
+    """Update the design.md file"""
+    # Create the file if it doesn't exist
     if not MD_PATH.exists():
         MD_PATH.write_text("""# Command Generation Design
 
@@ -93,19 +93,19 @@ This document describes the design of the command generation system.
         print(f"Created {MD_PATH}")
         return
     
-    # ファイルが存在する場合は内容を読み込む
+    # Load the content if the file exists
     content = MD_PATH.read_text()
     
-    # グラフ可視化セクションがあるか確認
+    # Check if there is a graph visualization section
     if "## Graph Visualization" in content and "![Command Generation Graph](graph.svg)" in content:
-        # 既に正しい参照がある場合は何もしない
+        # Do nothing if the correct reference already exists
         print(f"No changes needed in {MD_PATH}")
     else:
-        # グラフ可視化セクションがない場合は追加
+        # Add a graph visualization section if it doesn't exist
         if "## Graph Visualization" not in content:
             content += "\n\n## Graph Visualization\n\n![Command Generation Graph](graph.svg)\n"
         else:
-            # セクションはあるが画像参照がない場合
+            # If the section exists but there is no image reference
             import re
             content = re.sub(
                 r"## Graph Visualization\s*\n",
@@ -113,7 +113,7 @@ This document describes the design of the command generation system.
                 content
             )
         
-        # 更新した内容を書き込む
+        # Write the updated content
         MD_PATH.write_text(content)
         print(f"Updated {MD_PATH}")
 

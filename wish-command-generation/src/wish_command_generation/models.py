@@ -8,21 +8,20 @@ from wish_models.wish.wish import Wish
 
 
 class GraphState(BaseModel):
-    """LangGraphの状態を表すクラス。
+    """Class representing the state of LangGraph.
     
-    このクラスはLangGraphの実行中に状態を保持し、各ノード間でデータを受け渡すために使用されます。
-    wish-command-generationは、Wishオブジェクトを受け取り、それを実現するための
-    複数のコマンド（CommandInput）を出力する役割を持ちます。
+    This class is used to maintain state during LangGraph execution and pass data between nodes.
+    wish-command-generation takes a Wish object and outputs multiple commands (CommandInput) to fulfill it.
     """
     
     wish: Wish
-    """処理対象のWishオブジェクト。Wish.wishフィールドには自然言語のコマンド要求が含まれています。"""
+    """The Wish object to be processed. The Wish.wish field contains the natural language command request."""
     
     context: Optional[List[str]] = None
-    """RAGから取得した参考ドキュメントのリスト。コマンド生成の精度向上のために使用します。"""
+    """List of reference documents retrieved from RAG. Used to improve command generation accuracy."""
     
     query: Optional[str] = None
-    """RAG検索用のクエリ。RAGシステムで関連ドキュメントを検索するために使用します。"""
+    """Query for RAG search. Used to search for relevant documents in the RAG system."""
     
     command_inputs: List[CommandInput] = Field(default_factory=list)
-    """生成されたコマンド入力のリスト。これがグラフの最終的な出力となります。"""
+    """List of generated command inputs. This is the final output of the graph."""
