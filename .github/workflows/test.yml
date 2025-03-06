@@ -41,7 +41,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [wish-sh, wish-models]
+        project:
+          - wish-sh
+          - wish-command-execution
+          - wish-models
       fail-fast: false
     steps:
       - uses: actions/checkout@v4

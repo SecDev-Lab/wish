@@ -14,7 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: [wish-models, wish-command-execution, wish-sh]
+        package:
+          - wish-sh
+          - wish-command-execution
+          - wish-models
 
     steps:
       - uses: actions/checkout@v4
