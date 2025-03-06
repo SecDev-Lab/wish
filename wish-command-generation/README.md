@@ -19,3 +19,4 @@ This will generate an SVG visualization of the graph and update the `docs/design
 ## Future work
 
 - Robust command generation (NETWORK_ERROR, TIMEOUT handling in Dify implementation)
+- Modify each command, as in Dify implementation
