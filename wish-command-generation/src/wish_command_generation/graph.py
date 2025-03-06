@@ -9,7 +9,7 @@ from .models import GraphState
 from .nodes import command_generation, rag
 
 
-def create_command_generation_graph(compile=True):
+def create_command_generation_graph(compile: bool = True) -> StateGraph:
     """Create a command generation graph
     
     Args:

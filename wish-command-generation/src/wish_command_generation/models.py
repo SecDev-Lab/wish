@@ -1,7 +1,6 @@
 """Models for the command generation graph."""
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
 
 from wish_models.command_result import CommandInput
 from wish_models.wish.wish import Wish
@@ -17,11 +16,11 @@ class GraphState(BaseModel):
     wish: Wish
     """The Wish object to be processed. The Wish.wish field contains the natural language command request."""
     
-    context: Optional[List[str]] = None
+    context: list[str] | None = None
     """List of reference documents retrieved from RAG. Used to improve command generation accuracy."""
     
-    query: Optional[str] = None
+    query: str | None = None
     """Query for RAG search. Used to search for relevant documents in the RAG system."""
     
-    command_inputs: List[CommandInput] = Field(default_factory=list)
+    command_inputs: list[CommandInput] = Field(default_factory=list)
     """List of generated command inputs. This is the final output of the graph."""
