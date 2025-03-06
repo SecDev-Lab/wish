@@ -17,6 +17,7 @@ jobs:
         project:
           - wish-sh
           - wish-command-execution
+          - wish-command-generation
           - wish-models
       fail-fast: false
     steps:
@@ -44,6 +45,7 @@ jobs:
         project:
           - wish-sh
           - wish-command-execution
+          - wish-command-generation
           - wish-models
       fail-fast: false
     steps:

@@ -17,6 +17,7 @@ jobs:
         package:
           - wish-sh
           - wish-command-execution
+          - wish-command-generation
           - wish-models
 
     steps:
