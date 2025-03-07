@@ -8,7 +8,7 @@ from click.testing import CliRunner
 from wish_models.utc_datetime import UtcDatetime
 
 from wish_knowledge_loader.cli import main
-from wish_knowledge_loader.models.knowledge_metadata import KnowledgeMetadataContainer
+from wish_models.knowledge.knowledge_metadata import KnowledgeMetadataContainer
 from wish_knowledge_loader.nodes.document_loader import DocumentLoader
 from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
 from wish_knowledge_loader.nodes.vector_store import VectorStore
