@@ -86,7 +86,7 @@ class BashBackend(Backend):
         for idx, (process, result, wish) in list(self.running_commands.items()):
             if process.poll() is not None:  # Process has finished
                 # Determine the state based on exit code
-                state = CommandState.SUCCESS if process.returncode == 0 else CommandState.OTHERS
+                state = CommandState.SUCCESS if process.returncode == 0 else None
 
                 # Mark the command as finished
                 result.finish(
