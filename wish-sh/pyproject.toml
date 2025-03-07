@@ -35,12 +35,14 @@ dependencies = [
     "textual>=2.1.2",
     "wish-command-execution>=0.0.1",
     "wish-command-generation>=0.0.1",
+    "wish-log-analysis>=0.0.1",
 ]
 
 [tool.uv.sources]
 wish-models = { path = "../wish-models", editable = true }
 wish-command-execution = { path = "../wish-command-execution", editable = true }
 wish-command-generation = { path = "../wish-command-generation", editable = true }
+wish-log-analysis = { path = "../wish-log-analysis", editable = true }
 
 [project.scripts]
 wish = "wish_sh.wish:main"

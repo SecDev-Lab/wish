@@ -129,6 +129,18 @@ class CommandExecutionScreen(Screen):
             # Check status of running commands
             self.tracker.check_status(self.wish)
 
+            # Analyze logs for completed commands that don't have log_summary yet
+            for cmd_result in self.wish.command_results:
+                if cmd_result.finished_at and not cmd_result.log_summary:
+                    # Analyze the command result
+                    analyzed_result = self.wish_manager.analyze_log(cmd_result)
+                    
+                    # Update the command result in the wish object
+                    for i, result in enumerate(self.wish.command_results):
+                        if result.num == cmd_result.num:
+                            self.wish.command_results[i] = analyzed_result
+                            break
+
             # Update UI
             self.ui_updater.update_command_status(self.wish)
 

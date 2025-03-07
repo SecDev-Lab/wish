@@ -905,6 +905,42 @@ dev = [
 ]
 
 [[package]]
+name = "wish-log-analysis"
+version = "0.0.0"
+source = { editable = "../wish-log-analysis" }
+dependencies = [
+    { name = "langchain" },
+    { name = "langchain-core" },
+    { name = "langchain-openai" },
+    { name = "langgraph" },
+    { name = "langsmith" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "wish-models" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "langchain", specifier = ">=0.3.20" },
+    { name = "langchain-core", specifier = ">=0.3.41" },
+    { name = "langchain-openai", specifier = ">=0.3.7" },
+    { name = "langgraph", specifier = ">=0.3.5" },
+    { name = "langsmith", specifier = ">=0.3.11" },
+    { name = "pydantic", specifier = ">=2.10.6" },
+    { name = "pydantic-settings", specifier = ">=2.8.1" },
+    { name = "wish-models", editable = "../wish-models" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "factory-boy", specifier = ">=3.3.1" },
+    { name = "graphviz", specifier = ">=0.20.1" },
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.2" },
+    { name = "ruff", specifier = ">=0.9.8" },
+]
+
+[[package]]
 name = "wish-models"
 version = "0.0.0"
 source = { editable = "../wish-models" }
@@ -931,6 +967,7 @@ dependencies = [
     { name = "textual" },
     { name = "wish-command-execution" },
     { name = "wish-command-generation" },
+    { name = "wish-log-analysis" },
     { name = "wish-models" },
 ]
 
@@ -947,6 +984,7 @@ requires-dist = [
     { name = "textual", specifier = ">=2.1.2" },
     { name = "wish-command-execution", editable = "../wish-command-execution" },
     { name = "wish-command-generation", editable = "../wish-command-generation" },
+    { name = "wish-log-analysis", editable = "../wish-log-analysis" },
     { name = "wish-models", editable = "../wish-models" },
 ]
 
