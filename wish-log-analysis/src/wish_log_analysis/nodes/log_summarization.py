@@ -11,14 +11,16 @@ from ..settings import settings
 
 # Define the prompt template
 LOG_SUMMARIZATION_PROMPT = """
-You are tasked with receiving a shell command and its execution results (exit_code, stdout, stderr) and summarizing the results.
+You are tasked with receiving a shell command and its execution results (exit_code, stdout, stderr)
+and summarizing the results.
 The summary will be passed to an LLM with a limited context window, so it needs to be as concise as possible.
 
 Please follow these steps to complete the task:
 
 1. Check the exit_code. The summarization method differs between exit_code 0 and non-zero.
 
-2. If the exit_code is 0, summarize as concisely as possible while retaining all information needed to understand what to do next for penetration testing.
+2. If the exit_code is 0, summarize as concisely as possible while retaining all information needed
+   to understand what to do next for penetration testing.
    Examples of important information that must be retained include:
    - IP addresses
    - Port numbers

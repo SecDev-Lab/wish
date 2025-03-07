@@ -12,7 +12,8 @@ from ..settings import settings
 
 # Define the prompt template
 COMMAND_STATE_CLASSIFIER_PROMPT = """
-As a system operations analyst, your role is to analyze command outputs and report the results. Follow these specific steps:
+As a system operations analyst, your role is to analyze command outputs and report the results.
+Follow these specific steps:
 
 1. If the `exit_code` is "0", output "SUCCESS" and end.
 2. Otherwise, check the command output from `stdout` and `stderr`.

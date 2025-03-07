@@ -62,13 +62,13 @@ class UtcDatetime(BaseModel):
 
     def __sub__(self, other: "UtcDatetime") -> timedelta:
         """Subtract another UtcDatetime from this one.
-        
+
         Args:
             other: Another UtcDatetime object to subtract
-            
+
         Returns:
             A timedelta object representing the time difference
-            
+
         Raises:
             TypeError: If other is not a UtcDatetime object
         """
