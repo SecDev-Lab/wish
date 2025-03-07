@@ -1,9 +1,8 @@
 """Factory for creating backends."""
 
-from typing import Callable, Optional, Union
+from typing import Union
 
 from pydantic import BaseModel
-from wish_models import LogFiles
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.backend.bash import BashBackend
