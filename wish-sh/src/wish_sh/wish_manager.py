@@ -109,12 +109,12 @@ class WishManager:
         try:
             # Generate commands using CommandGenerator
             command_inputs = self.command_generator.generate_commands(wish_obj)
-            
+
             # Extract commands from the result
             commands = []
             for cmd_input in command_inputs:
                 commands.append(cmd_input.command)
-                
+
             return commands, None
         except Exception as e:
             # Handle any errors during command generation

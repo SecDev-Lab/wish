@@ -93,7 +93,7 @@ def generate_commands(state: GraphState) -> GraphState:
     # Generate the commands
     try:
         response = chain.invoke({"task": task, "context": context})
-        
+
         # Log the response for debugging
         logging.debug(f"OpenAI API response: {response}")
 
@@ -109,17 +109,17 @@ def generate_commands(state: GraphState) -> GraphState:
                     timeout_sec=None,
                 )
             )
-        
+
         # Update the state
         state_dict = state.model_dump()
         state_dict["command_inputs"] = command_inputs
         state_dict["error"] = None  # No error
-        
+
     except json.JSONDecodeError as e:
         # JSON parse error
         error_message = f"Failed to parse OpenAI API response as JSON: {str(e)}"
         logging.error(f"JSON parse error: {str(e)}, Response: {response if 'response' in locals() else 'No response'}")
-        
+
         # Set error in state
         state_dict = state.model_dump()
         state_dict["command_inputs"] = []
@@ -129,7 +129,7 @@ def generate_commands(state: GraphState) -> GraphState:
         # Other errors
         error_message = f"Error generating commands: {str(e)}"
         logging.error(f"Error generating commands: {str(e)}")
-        
+
         # Set error in state
         state_dict = state.model_dump()
         state_dict["command_inputs"] = []

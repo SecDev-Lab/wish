@@ -56,7 +56,7 @@ class CommandSuggestion(Screen):
     def compose(self) -> ComposeResult:
         """Compose the command suggestion screen."""
         yield Header(show_clock=True)
-        
+
         if self.error:
             # Display error message
             yield Vertical(
@@ -94,7 +94,7 @@ class CommandSuggestion(Screen):
         """Handle no button press."""
         # Go back to wish input screen
         self.app.pop_screen()
-        
+
     @on(Button.Pressed, "#back-button")
     def on_back_button_pressed(self) -> None:
         """Handle back button press."""
