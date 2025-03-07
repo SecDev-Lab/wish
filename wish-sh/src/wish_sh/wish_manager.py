@@ -96,20 +96,31 @@ class WishManager:
             pass
         return wishes
 
-    def generate_commands(self, wish_text: str) -> List[str]:
-        """Generate commands based on wish text."""
+    def generate_commands(self, wish_text: str) -> tuple[List[str], Optional[str]]:
+        """Generate commands based on wish text.
+        
+        Returns:
+            A tuple of (commands, error_message). If error_message is not None,
+            it indicates an error occurred during command generation.
+        """
         # Create a Wish object
         wish_obj = Wish.create(wish_text)
 
-        # Generate commands using CommandGenerator
-        command_inputs = self.command_generator.generate_commands(wish_obj)
-
-        # Extract commands from the result
-        commands = []
-        for cmd_input in command_inputs:
-            commands.append(cmd_input.command)
-
-        return commands
+        try:
+            # Generate commands using CommandGenerator
+            command_inputs = self.command_generator.generate_commands(wish_obj)
+            
+            # Extract commands from the result
+            commands = []
+            for cmd_input in command_inputs:
+                commands.append(cmd_input.command)
+                
+            return commands, None
+        except Exception as e:
+            # Handle any errors during command generation
+            error_message = f"Error generating commands: {str(e)}"
+            logging.error(error_message)
+            return [], error_message
 
     # Delegation to CommandExecutor
     def execute_command(self, wish: Wish, command: str, cmd_num: int):

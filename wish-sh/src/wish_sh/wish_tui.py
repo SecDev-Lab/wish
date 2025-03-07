@@ -1,4 +1,5 @@
 import asyncio
+from typing import Optional
 
 from textual import on
 from textual.app import App, ComposeResult
@@ -36,35 +37,50 @@ class WishInput(Screen):
             wish.state = WishState.DOING
 
             # Generate commands using WishManager
-            commands = self.app.wish_manager.generate_commands(wish_text)
+            commands, error = self.app.wish_manager.generate_commands(wish_text)
 
             # Switch to command suggestion screen
-            self.app.push_screen(CommandSuggestion(wish, commands))
+            self.app.push_screen(CommandSuggestion(wish, commands, error))
 
 
 class CommandSuggestion(Screen):
     """Screen for suggesting commands."""
 
-    def __init__(self, wish: Wish, commands: list[str]) -> None:
+    def __init__(self, wish: Wish, commands: list[str], error: Optional[str] = None) -> None:
         """Initialize the command suggestion screen."""
         super().__init__()
         self.wish = wish
         self.commands = commands
+        self.error = error
 
     def compose(self) -> ComposeResult:
         """Compose the command suggestion screen."""
         yield Header(show_clock=True)
-        yield Vertical(
-            Label(f"Wish: {self.wish.wish}", id="wish-text", markup=False),
-            Static("Do you want to execute these commands?", id="confirmation-text", markup=False),
-            *(Label(f"[{i + 1}] {cmd}", id=f"command-{i + 1}", markup=False) for i, cmd in enumerate(self.commands)),
-            Container(
-                Button("Yes", id="yes-button", variant="success"),
-                Button("No", id="no-button", variant="error"),
-                id="button-container",
-            ),
-            id="command-container",
-        )
+        
+        if self.error:
+            # Display error message
+            yield Vertical(
+                Label(f"Wish: {self.wish.wish}", id="wish-text", markup=False),
+                Static(f"Error: {self.error}", id="error-text", markup=False),
+                Container(
+                    Button("Back to Wish Input", id="back-button"),
+                    id="button-container",
+                ),
+                id="error-container",
+            )
+        else:
+            # Display command suggestions
+            yield Vertical(
+                Label(f"Wish: {self.wish.wish}", id="wish-text", markup=False),
+                Static("Do you want to execute these commands?", id="confirmation-text", markup=False),
+                *(Label(f"[{i + 1}] {cmd}", id=f"command-{i + 1}", markup=False) for i, cmd in enumerate(self.commands)),
+                Container(
+                    Button("Yes", id="yes-button", variant="success"),
+                    Button("No", id="no-button", variant="error"),
+                    id="button-container",
+                ),
+                id="command-container",
+            )
         yield Footer()
 
     @on(Button.Pressed, "#yes-button")
@@ -76,6 +92,12 @@ class CommandSuggestion(Screen):
     @on(Button.Pressed, "#no-button")
     def on_no_button_pressed(self) -> None:
         """Handle no button press."""
+        # Go back to wish input screen
+        self.app.pop_screen()
+        
+    @on(Button.Pressed, "#back-button")
+    def on_back_button_pressed(self) -> None:
+        """Handle back button press."""
         # Go back to wish input screen
         self.app.pop_screen()
 
