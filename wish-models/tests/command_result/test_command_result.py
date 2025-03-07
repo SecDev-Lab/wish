@@ -79,19 +79,15 @@ class TestCommandResult:
         now = UtcDatetime.now()
         log_summary = "Command executed successfully"
 
-        # Create a mock log_summarizer function
-        log_summarizer = MagicMock(return_value=log_summary)
-
         # Act
         with patch("wish_models.utc_datetime.UtcDatetime.now", return_value=now):
-            result.finish(exit_code=exit_code, state=state, log_summarizer=log_summarizer)
+            result.finish(exit_code=exit_code, state=state, log_summary=log_summary)
 
         # Assert
         assert result.exit_code == exit_code
         assert result.state == state
         assert result.finished_at == now
         assert result.log_summary == log_summary
-        log_summarizer.assert_called_once_with(result.log_files)
 
     def test_finish_failure(self):
         """Test that finish method correctly updates a command result for failure case."""
@@ -102,19 +98,15 @@ class TestCommandResult:
         now = UtcDatetime.now()
         log_summary = "Command failed with error"
 
-        # Create a mock log_summarizer function
-        log_summarizer = MagicMock(return_value=log_summary)
-
         # Act
         with patch("wish_models.utc_datetime.UtcDatetime.now", return_value=now):
-            result.finish(exit_code=exit_code, state=state, log_summarizer=log_summarizer)
+            result.finish(exit_code=exit_code, state=state, log_summary=log_summary)
 
         # Assert
         assert result.exit_code == exit_code
         assert result.state == state
         assert result.finished_at == now
         assert result.log_summary == log_summary
-        log_summarizer.assert_called_once_with(result.log_files)
 
     def test_finish_cancelled(self):
         """Test that finish method correctly updates a command result for cancelled case."""
@@ -125,19 +117,15 @@ class TestCommandResult:
         now = UtcDatetime.now()
         log_summary = "Command was cancelled by user"
 
-        # Create a mock log_summarizer function
-        log_summarizer = MagicMock(return_value=log_summary)
-
         # Act
         with patch("wish_models.utc_datetime.UtcDatetime.now", return_value=now):
-            result.finish(exit_code=exit_code, state=state, log_summarizer=log_summarizer)
+            result.finish(exit_code=exit_code, state=state, log_summary=log_summary)
 
         # Assert
         assert result.exit_code == exit_code
         assert result.state == state
         assert result.finished_at == now
         assert result.log_summary == log_summary
-        log_summarizer.assert_called_once_with(result.log_files)
 
 
 def test_parse_command_results_json():
