@@ -33,7 +33,7 @@ class WishManagerFactory(factory.Factory):
             manager = super().create(**kwargs)
 
             # Initialize backend for testing
-            backend = BashBackend(log_summarizer=manager.summarize_log)
+            backend = BashBackend()
             manager.executor = CommandExecutor(backend=backend, log_dir_creator=manager.create_command_log_dirs)
             manager.tracker = CommandStatusTracker(manager.executor, wish_saver=manager.save_wish)
 
