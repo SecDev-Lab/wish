@@ -38,6 +38,8 @@ dependencies = [
     "langchain-openai>=0.3.7",
     "langchain-core>=0.3.41",
     "langchain>=0.3.20",
+    "langchain-community>=0.1.0",
+    "chromadb>=0.4.22",
     "pydantic-settings>=2.8.1",
 ]
 

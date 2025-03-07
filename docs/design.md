@@ -2,15 +2,18 @@
 
 ## System Architecture
 
-wish-sh consists of four main packages, each with clear responsibilities:
+wish-sh consists of six main packages, each with clear responsibilities:
 
 ```mermaid
 graph TD
     A[wish-models] --> |Basic data models| B[wish-command-execution]
     A --> |Basic data models| C[wish-sh]
     A --> |Basic data models| D[wish-log-analysis]
+    A --> |Basic data models| E[wish-command-generation]
+    A --> |Basic data models| F[wish-knowledge-loader]
     B --> |Command execution functionality| C
     D --> |Log analysis functionality| C
+    E --> |Command generation functionality| C
 ```
 
 ### Package Dependencies
@@ -18,7 +21,9 @@ graph TD
 - **wish-models**: No external dependencies except for pydantic
 - **wish-command-execution**: Depends on wish-models
 - **wish-log-analysis**: Depends on wish-models, langchain, and OpenAI
-- **wish-sh**: Depends on wish-models, wish-command-execution, and wish-log-analysis
+- **wish-command-generation**: Depends on wish-models, langchain, and OpenAI
+- **wish-knowledge-loader**: Depends on langchain and OpenAI
+- **wish-sh**: Depends on wish-models, wish-command-execution, wish-log-analysis, and wish-command-generation
 
 ## Package Descriptions
 
@@ -51,13 +56,30 @@ Analyzes command execution logs and classifies command states. Key features:
 - LangGraph-based analysis pipeline
 - Integration with OpenAI API
 
+### wish-command-generation
+
+Generates shell commands from natural language wishes using LLM. Key features:
+
+- RAG (Retrieval-Augmented Generation) for improved command accuracy
+- LangGraph-based generation pipeline
+- Integration with OpenAI API
+- Command generation with context from knowledge bases
+
+### wish-knowledge-loader
+
+CLI tool for loading knowledge bases into wish. Key features:
+
+- Clones GitHub repositories
+- Extracts content from specified files
+- Stores content in a vector database for RAG
+- Search functionality for knowledge bases
+
 ### wish-sh
 
 Provides the TUI (Text-based User Interface) for user interaction. Key components:
 
-- WishManager: Coordinates between UI, command execution, and log analysis
+- WishManager: Coordinates between UI, command execution, log analysis, and command generation
 - TUI Screens: Input, suggestion, and execution screens
-- Command generation (currently mock, will be LLM-based)
 - User interaction handling
 
 ## Responsibility Separation
@@ -80,19 +102,33 @@ The system follows a clear separation of responsibilities between packages:
   - Sets `state` if not already set by wish-command-execution
   - Provides detailed classification of command results
 
-This separation allows each package to focus on its core functionality:
-- wish-command-execution focuses on the mechanics of command execution
-- wish-log-analysis focuses on the interpretation and analysis of command results
+### wish-command-generation
+
+- **Responsibility**: Generate commands from natural language wishes
+- **Outputs**:
+  - Generates a list of CommandInput objects
+  - Uses RAG to improve command accuracy
+  - Handles error cases and provides fallback commands
+
+### wish-knowledge-loader
+
+- **Responsibility**: Manage knowledge bases for RAG
+- **Outputs**:
+  - Creates and maintains vector databases of knowledge
+  - Provides search functionality for knowledge bases
+
+This separation allows each package to focus on its core functionality.
 
 ## Data Flow
 
 1. User inputs a wish in the TUI
-2. WishManager processes the wish and generates commands
-3. User confirms the commands
-4. CommandExecutor executes the commands and sets basic result information (exit_code)
-5. LogAnalyzer analyzes the command results and sets detailed information (log_summary, state)
-6. Status updates are tracked and displayed in the TUI
-7. Results are stored in the wish history
+2. WishManager passes the wish to the CommandGenerator
+3. CommandGenerator uses RAG to retrieve relevant knowledge and generate commands
+4. User confirms the commands
+5. CommandExecutor executes the commands and sets basic result information (exit_code)
+6. LogAnalyzer analyzes the command results and sets detailed information (log_summary, state)
+7. Status updates are tracked and displayed in the TUI
+8. Results are stored in the wish history
 
 ## Command Result Processing Flow
 
@@ -100,11 +136,16 @@ This separation allows each package to focus on its core functionality:
 sequenceDiagram
     participant User
     participant WishManager
+    participant CommandGenerator
     participant CommandExecutor
     participant LogAnalyzer
     
-    User->>WishManager: Execute command
-    WishManager->>CommandExecutor: Execute command
+    User->>WishManager: Input wish
+    WishManager->>CommandGenerator: Generate commands
+    CommandGenerator-->>WishManager: CommandInput list
+    WishManager->>User: Display generated commands
+    User->>WishManager: Confirm commands
+    WishManager->>CommandExecutor: Execute commands
     CommandExecutor-->>WishManager: CommandResult with exit_code
     WishManager->>LogAnalyzer: Analyze command result
     LogAnalyzer-->>WishManager: CommandResult with log_summary and state
@@ -113,7 +154,11 @@ sequenceDiagram
 
 ## Future Enhancements
 
-- Integration with a real LLM for command generation
+- Robust command generation (NETWORK_ERROR, TIMEOUT handling)
+- Command modification capabilities
+- Additional knowledge bases for RAG
+- English prompt support
+- API client/server architecture
 - Enhanced error handling and recovery
 - Improved log summarization using AI
 - Command templates for common tasks

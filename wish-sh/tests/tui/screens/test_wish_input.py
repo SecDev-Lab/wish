@@ -25,7 +25,7 @@ class TestWishInput:
 
         # Set up the mock commands
         mock_commands = ["echo 'Test command 1'", "echo 'Test command 2'"]
-        wish_manager.generate_commands.return_value = mock_commands
+        wish_manager.generate_commands.return_value = (mock_commands, None)
 
         # Create a property mock
         app_property_mock = MagicMock()

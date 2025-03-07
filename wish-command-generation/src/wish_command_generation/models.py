@@ -1,5 +1,7 @@
 """Models for the command generation graph."""
 
+from typing import Optional
+
 from pydantic import BaseModel, Field
 from wish_models.command_result import CommandInput
 from wish_models.wish.wish import Wish
@@ -23,3 +25,6 @@ class GraphState(BaseModel):
 
     command_inputs: list[CommandInput] = Field(default_factory=list)
     """List of generated command inputs. This is the final output of the graph."""
+
+    error: Optional[str] = None
+    """Error message if command generation fails. None if successful."""
