@@ -13,10 +13,10 @@ from langchain_openai import OpenAIEmbeddings
 
 def load_full_document(file_path):
     """Load the full content of a document.
-    
+
     Args:
         file_path: Path to the document file
-        
+
     Returns:
         The full content of the document as a string
     """

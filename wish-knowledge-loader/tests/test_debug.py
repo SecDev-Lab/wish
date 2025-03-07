@@ -116,7 +116,8 @@ class TestDebug:
         # Split documents
         chunk_size = 1000
         chunk_overlap = 100
-        split_docs = document_loader.split(documents[:10], chunk_size, chunk_overlap)  # Use only 10 documents for testing
+        # Use only 10 documents for testing
+        split_docs = document_loader.split(documents[:10], chunk_size, chunk_overlap)
 
         # Create VectorStore
         vector_store = VectorStore(settings)

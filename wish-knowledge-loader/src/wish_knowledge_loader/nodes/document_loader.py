@@ -67,7 +67,9 @@ class DocumentLoader:
         Returns:
             List of split documents
         """
-        self.logger.info(f"Splitting {len(documents)} documents into chunks (size={chunk_size}, overlap={chunk_overlap})")
+        self.logger.info(
+            f"Splitting {len(documents)} documents into chunks (size={chunk_size}, overlap={chunk_overlap})"
+        )
 
         # Use RecursiveCharacterTextSplitter to split documents
         text_splitter = RecursiveCharacterTextSplitter(
