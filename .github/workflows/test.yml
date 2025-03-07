@@ -16,6 +16,7 @@ jobs:
       matrix:
         project:
           - wish-sh
+          - wish-knowledge-loader
           - wish-command-execution
           - wish-command-generation
           - wish-log-analysis
@@ -45,6 +46,7 @@ jobs:
       matrix:
         project:
           - wish-sh
+          - wish-knowledge-loader
           - wish-command-execution
           - wish-command-generation
           - wish-log-analysis

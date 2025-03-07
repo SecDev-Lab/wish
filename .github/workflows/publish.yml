@@ -16,6 +16,7 @@ jobs:
       matrix:
         package:
           - wish-sh
+          - wish-knowledge-loader
           - wish-command-execution
           - wish-command-generation
           - wish-log-analysis
