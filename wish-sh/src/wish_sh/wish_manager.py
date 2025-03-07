@@ -4,8 +4,8 @@ from typing import List, Optional
 
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
-from wish_models import LogFiles, Wish, WishState
 from wish_command_generation import CommandGenerator
+from wish_models import LogFiles, Wish, WishState
 
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
@@ -106,15 +106,15 @@ class WishManager:
         """Generate commands based on wish text."""
         # Create a Wish object
         wish_obj = Wish.create(wish_text)
-        
+
         # Generate commands using CommandGenerator
         command_inputs = self.command_generator.generate_commands(wish_obj)
-        
+
         # Extract commands from the result
         commands = []
         for cmd_input in command_inputs:
             commands.append(cmd_input.command)
-        
+
         return commands
 
     # Delegation to CommandExecutor

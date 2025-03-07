@@ -1,7 +1,7 @@
 """Tests for WishManager command generation and history management."""
 
 import json
-from unittest.mock import mock_open, patch, MagicMock
+from unittest.mock import mock_open, patch
 
 import pytest
 from wish_models import UtcDatetime, Wish, WishState

@@ -7,7 +7,6 @@ import factory
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
 from wish_models import CommandState, UtcDatetime
-from wish_models.command_result import CommandInput
 
 from wish_sh.settings import Settings
 from wish_sh.wish_manager import WishManager
@@ -33,8 +32,6 @@ class WishManagerFactory(factory.Factory):
             manager.tracker = CommandStatusTracker(manager.executor, wish_saver=manager.save_wish)
 
             # Mock generate_commands to return test-specific commands
-            original_generate_commands = manager.generate_commands
-            
             def mock_generate_commands(wish_text):
                 # For tests, return specific commands based on the wish text
                 if "scan" in wish_text.lower() and "port" in wish_text.lower():
@@ -57,11 +54,11 @@ class WishManagerFactory(factory.Factory):
                 else:
                     # Default responses
                     return [
-                        f"echo 'Executing wish: {wish_text}'", 
-                        f"echo 'Processing {wish_text}' && ls -la", 
+                        f"echo 'Executing wish: {wish_text}'",
+                        f"echo 'Processing {wish_text}' && ls -la",
                         "sleep 5"
                     ]
-            
+
             # Replace the generate_commands method with our mock
             manager.generate_commands = mock_generate_commands
 

