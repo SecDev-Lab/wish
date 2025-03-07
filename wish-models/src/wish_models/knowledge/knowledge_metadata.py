@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from pydantic import BaseModel, Field
+
 from wish_models.utc_datetime import UtcDatetime
 
 

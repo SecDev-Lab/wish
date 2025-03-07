@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
+from wish_models.knowledge.knowledge_metadata import KnowledgeMetadataContainer
 
 from wish_knowledge_loader.cli import main
-from wish_models.knowledge.knowledge_metadata import KnowledgeMetadataContainer
 
 
 class TestIntegration:

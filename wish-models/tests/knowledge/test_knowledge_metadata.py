@@ -3,9 +3,8 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from wish_models.utc_datetime import UtcDatetime
-
 from wish_models.knowledge.knowledge_metadata import KnowledgeMetadata, KnowledgeMetadataContainer
+from wish_models.utc_datetime import UtcDatetime
 
 
 class TestKnowledgeMetadata:
