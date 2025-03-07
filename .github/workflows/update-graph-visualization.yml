@@ -5,6 +5,8 @@ on:
     paths:
       - 'wish-command-generation/src/wish_command_generation/graph.py'
       - 'wish-command-generation/src/wish_command_generation/nodes/**'
+      - 'wish-log-analysis/src/wish_log_analysis/graph.py'
+      - 'wish-log-analysis/src/wish_log_analysis/nodes/**'
 
 jobs:
   update-graph:
@@ -17,6 +19,7 @@ jobs:
       matrix:
         project:
           - wish-command-generation
+          - wish-log-analysis
     
     steps:
       - name: Checkout code

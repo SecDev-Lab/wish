@@ -18,6 +18,7 @@ jobs:
           - wish-sh
           - wish-command-execution
           - wish-command-generation
+          - wish-log-analysis
           - wish-models
 
     steps:
