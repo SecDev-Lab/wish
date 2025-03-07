@@ -39,3 +39,4 @@ OPENAI_MODEL=gpt-4o
 - Modify each command, as in Dify implementation
 - HackTricks RAG (for community edition)
 - English Prompt
+- API client/server
