@@ -47,3 +47,23 @@ uv run pytest
 # Run linting
 uv run ruff check .
 ```
+
+## Verifying Search Functionality
+
+After creating a knowledge base, you can verify the search functionality using the provided script:
+
+```bash
+# Set the OpenAI API key
+export OPENAI_API_KEY="your-api-key"
+
+# Run the search script
+python scripts/search_knowledge.py "Knowledge Base Title" "your search query"
+```
+
+The script will:
+
+1. Load the vector store for the specified knowledge base
+2. Search for documents similar to your query
+3. Display the top 4 results with their content and metadata
+
+You can adjust the number of results by modifying the `k` parameter in the script.
