@@ -15,14 +15,9 @@ class TestBashBackend:
     """Tests for BashBackend."""
 
     @pytest.fixture
-    def log_summarizer(self):
-        """Create a mock log summarizer."""
-        return MagicMock(return_value="Mock log summary")
-
-    @pytest.fixture
-    def backend(self, log_summarizer):
+    def backend(self):
         """Create a BashBackend instance."""
-        return BashBackend(log_summarizer=log_summarizer)
+        return BashBackend()
 
     @pytest.fixture
     def wish(self):
@@ -106,7 +101,7 @@ class TestBashBackend:
         assert wish.command_results[0].state == CommandState.OTHERS
         assert wish.command_results[0].exit_code == 1
 
-    def test_check_running_commands(self, backend, wish, log_summarizer):
+    def test_check_running_commands(self, backend, wish):
         """Test check_running_commands method.
 
         This test verifies that the check_running_commands method correctly

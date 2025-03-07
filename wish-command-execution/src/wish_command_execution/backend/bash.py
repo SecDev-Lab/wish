@@ -12,14 +12,9 @@ from wish_command_execution.backend.base import Backend
 class BashBackend(Backend):
     """Backend for executing commands using bash."""
 
-    def __init__(self, log_summarizer=None):
-        """Initialize the bash backend.
-
-        Args:
-            log_summarizer: Function to summarize logs.
-        """
+    def __init__(self):
+        """Initialize the bash backend."""
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
-        self.log_summarizer = log_summarizer or (lambda _: "No log summary available")
 
     def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
         """Execute a command using bash.
@@ -48,31 +43,30 @@ class BashBackend(Backend):
             except subprocess.SubprocessError as e:
                 error_msg = f"Subprocess error: {str(e)}"
                 stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 1, CommandState.OTHERS, error_msg)
+                self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
             except PermissionError:
                 error_msg = f"Permission error: No execution permission for command '{command}'"
                 stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 126, CommandState.OTHERS, error_msg)
+                self._handle_command_failure(result, wish, 126, CommandState.OTHERS)
 
             except FileNotFoundError:
                 error_msg = f"Command not found: '{command}'"
                 stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 127, CommandState.OTHERS, error_msg)
+                self._handle_command_failure(result, wish, 127, CommandState.COMMAND_NOT_FOUND)
 
             except Exception as e:
                 error_msg = f"Unexpected error: {str(e)}"
                 stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 1, CommandState.OTHERS, error_msg)
+                self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
     def _handle_command_failure(
-        self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState, log_summary: str
+        self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState
     ):
         """Common command failure handling."""
         result.finish(
             exit_code=exit_code,
-            state=state,
-            log_summarizer=lambda _: log_summary
+            state=state
         )
         # Update the command result in the wish object
         # This is a workaround for Pydantic models that don't allow dynamic attribute assignment
@@ -85,14 +79,9 @@ class BashBackend(Backend):
         """Check status of running commands and update their status."""
         for idx, (process, result, wish) in list(self.running_commands.items()):
             if process.poll() is not None:  # Process has finished
-                # Determine the state based on exit code
-                state = CommandState.SUCCESS if process.returncode == 0 else CommandState.OTHERS
-
-                # Mark the command as finished
+                # Mark the command as finished with exit code
                 result.finish(
-                    exit_code=process.returncode,
-                    state=state,
-                    log_summarizer=self.log_summarizer
+                    exit_code=process.returncode
                 )
 
                 # Update the command result in the wish object
@@ -130,8 +119,7 @@ class BashBackend(Backend):
             # Mark the command as cancelled
             result.finish(
                 exit_code=-1,  # Use -1 for cancelled commands
-                state=CommandState.USER_CANCELLED,
-                log_summarizer=self.log_summarizer
+                state=CommandState.USER_CANCELLED
             )
 
             # Update the command result in the wish object

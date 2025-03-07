@@ -1,4 +1,4 @@
-"""Settings for the command generation package."""
+"""Settings for the log analysis package."""
 
 from pydantic import ConfigDict, Field
 from pydantic_settings import BaseSettings

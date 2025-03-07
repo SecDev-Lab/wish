@@ -40,10 +40,13 @@ class CommandStatusTracker:
         any_failed = False
 
         for result in wish.command_results:
+            # Check if the command is still running
             if result.state == CommandState.DOING:
                 all_completed = False
                 break
-            if result.state != CommandState.SUCCESS:
+            # Check if the command failed
+            # Note: state might be None if it's waiting for wish-log-analysis to set it
+            if result.state is not None and result.state != CommandState.SUCCESS:
                 any_failed = True
 
         return all_completed, any_failed

@@ -6,6 +6,7 @@ from textual.containers import Container, Vertical
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
 from wish_models import Wish, WishState
+from wish_models.command_result.command_state import CommandState
 
 from wish_sh.settings import Settings
 from wish_sh.tui.widgets import UIUpdater
@@ -90,6 +91,7 @@ class CommandExecutionScreen(Screen):
         self.wish_manager = wish_manager
         self.command_statuses: dict[int, str] = {}  # Mapping of command numbers to statuses
         self.all_completed = False
+        self.api_error_detected = False  # Flag to track API errors
 
         # Initialize command execution components
         self.executor = wish_manager.executor
@@ -110,7 +112,11 @@ class CommandExecutionScreen(Screen):
                 )
                 for i, cmd in enumerate(self.commands)
             ),
-            Button("Back to Wish Input", id="back-button"),
+            Container(
+                Button("Back to Wish Input", id="back-button"),
+                Button("Retry Analysis", id="retry-button", variant="primary", disabled=True),
+                id="button-container",
+            ),
             id="execution-container",
         )
         yield Footer()
@@ -128,6 +134,25 @@ class CommandExecutionScreen(Screen):
         while not self.all_completed:
             # Check status of running commands
             self.tracker.check_status(self.wish)
+
+            # Analyze logs for completed commands that don't have log_summary yet
+            for cmd_result in self.wish.command_results:
+                if cmd_result.finished_at and not cmd_result.log_summary:
+                    # Analyze the command result
+                    analyzed_result = self.wish_manager.analyze_log(cmd_result)
+
+                    # Check if API error occurred
+                    if analyzed_result.state and analyzed_result.state == CommandState.API_ERROR:
+                        self.api_error_detected = True
+                        # Enable retry button
+                        retry_button = self.query_one("#retry-button")
+                        retry_button.disabled = False
+
+                    # Update the command result in the wish object
+                    for i, result in enumerate(self.wish.command_results):
+                        if result.num == cmd_result.num:
+                            self.wish.command_results[i] = analyzed_result
+                            break
 
             # Update UI
             self.ui_updater.update_command_status(self.wish)
@@ -150,6 +175,11 @@ class CommandExecutionScreen(Screen):
 
             # Display completion message
             completion_message = self.tracker.get_completion_message(self.wish)
+
+            # Add API error message if needed
+            if self.api_error_detected:
+                completion_message += "\nAPI error detected. Please check your internet connection and API key."
+
             self.ui_updater.show_completion_message(completion_message)
 
     @on(Button.Pressed, "#back-button")
@@ -158,6 +188,33 @@ class CommandExecutionScreen(Screen):
         # Go back to wish input screen (pop twice to skip command suggestion)
         self.app.pop_screen()
         self.app.pop_screen()
+
+    @on(Button.Pressed, "#retry-button")
+    def on_retry_button_pressed(self) -> None:
+        """Handle retry button press."""
+        # Reset API error flag
+        self.api_error_detected = False
+
+        # Disable retry button
+        retry_button = self.query_one("#retry-button")
+        retry_button.disabled = True
+
+        # Retry analysis for commands with API errors
+        for cmd_result in self.wish.command_results:
+            if cmd_result.state == CommandState.API_ERROR:
+                # Reset the state to allow re-analysis
+                cmd_result.state = CommandState.DOING
+                cmd_result.log_summary = None
+
+        # Update UI to show "Retrying..." status
+        for _i, cmd_result in enumerate(self.wish.command_results):
+            if cmd_result.state == CommandState.DOING:
+                status_widget = self.query_one(f"#command-status-{cmd_result.num}")
+                status_widget.update("Retrying analysis...")
+
+        # Update execution text
+        execution_text = self.query_one("#execution-text")
+        execution_text.update("Retrying analysis...")
 
 
 class WishApp(App):

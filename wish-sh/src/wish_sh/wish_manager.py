@@ -1,11 +1,14 @@
 import json
+import logging
 from pathlib import Path
 from typing import List, Optional
 
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
 from wish_command_generation import CommandGenerator
-from wish_models import LogFiles, Wish, WishState
+from wish_log_analysis import LogAnalyzer
+from wish_models import CommandResult, Wish, WishState
+from wish_models.command_result.command_state import CommandState
 
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
@@ -23,8 +26,12 @@ class WishManager:
         # Initialize command generation component
         self.command_generator = CommandGenerator()
 
+        # Initialize log analysis component
+        self.log_analyzer = LogAnalyzer()
+
         # Initialize command execution components
-        backend = BashBackend(log_summarizer=self.summarize_log)
+        # log_summarizerを渡さない
+        backend = BashBackend()
         self.executor = CommandExecutor(backend=backend, log_dir_creator=self.create_command_log_dirs)
         self.tracker = CommandStatusTracker(self.executor, wish_saver=self.save_wish)
 
@@ -38,49 +45,36 @@ class WishManager:
         with open(self.paths.history_path, "a") as f:
             f.write(json.dumps(wish.to_dict()) + "\n")
 
-    def summarize_log(self, log_files: LogFiles) -> str:
-        """Generate a simple summary of command logs."""
-        summary = []
+    def analyze_log(self, command_result: CommandResult) -> CommandResult:
+        """Analyze command logs using LogAnalyzer.
 
-        # Read stdout
+        Args:
+            command_result: The command result to analyze.
+
+        Returns:
+            The analyzed command result with log_summary and state set.
+        """
         try:
-            with open(log_files.stdout, "r") as f:
-                stdout_content = f.read().strip()
-                if stdout_content:
-                    lines = stdout_content.split("\n")
-                    if len(lines) > 10:
-                        summary.append(f"Standard output: {len(lines)} lines")
-                        summary.append("First few lines:")
-                        summary.extend(lines[:3])
-                        summary.append("...")
-                        summary.extend(lines[-3:])
-                    else:
-                        summary.append("Standard output:")
-                        summary.extend(lines)
-                else:
-                    summary.append("Standard output: <empty>")
-        except FileNotFoundError:
-            summary.append("Standard output: <file not found>")
+            # LogAnalyzerを使用して分析
+            analyzed_result = self.log_analyzer.analyze_result(command_result)
+            return analyzed_result
+        except Exception as e:
+            # Log the error
+            logging.error(f"Error analyzing log: {str(e)}")
 
-        # Read stderr
-        try:
-            with open(log_files.stderr, "r") as f:
-                stderr_content = f.read().strip()
-                if stderr_content:
-                    lines = stderr_content.split("\n")
-                    if len(lines) > 5:
-                        summary.append(f"Standard error: {len(lines)} lines")
-                        summary.append("First few lines:")
-                        summary.extend(lines[:3])
-                        summary.append("...")
-                    else:
-                        summary.append("Standard error:")
-                        summary.extend(lines)
+            # Create a copy of the command result with error information
+            error_result = CommandResult(
+                num=command_result.num,
+                command=command_result.command,
+                exit_code=command_result.exit_code,
+                log_files=command_result.log_files,
+                log_summary=f"Error analyzing command: {str(e)}",
+                state=CommandState.API_ERROR,
+                created_at=command_result.created_at,
+                finished_at=command_result.finished_at
+            )
 
-        except FileNotFoundError:
-            pass  # Don't mention if stderr is empty or missing
-
-        return "\n".join(summary)
+            return error_result
 
     # WishManager functions
     def load_wishes(self, limit: int = 10) -> List[Wish]:

@@ -82,8 +82,8 @@ def generate_commands(state: GraphState) -> GraphState:
     from ..settings import settings
 
     model = ChatOpenAI(
-        model=settings.openai_model,
-        api_key=settings.openai_api_key
+        model=settings.OPENAI_MODEL,
+        api_key=settings.OPENAI_API_KEY
     )
 
     # Create the chain

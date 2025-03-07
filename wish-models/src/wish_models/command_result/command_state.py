@@ -1,7 +1,7 @@
-import enum
+from enum import Enum
 
 
-class CommandState(str, enum.Enum):
+class CommandState(str, Enum):
     """Enumeration of ExitClass."""
 
     DOING = "DOING"
@@ -29,6 +29,9 @@ class CommandState(str, enum.Enum):
 
     NETWORK_ERROR = "NETWORK_ERROR"
     """A network error occurred."""
+
+    API_ERROR = "API_ERROR"
+    """An error occurred when calling an external API."""
 
     OTHERS = "OTHERS"
     """Other errors."""

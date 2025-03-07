@@ -1,5 +1,4 @@
 import json
-from typing import Callable
 
 from pydantic import BaseModel
 
@@ -75,21 +74,21 @@ class CommandResult(BaseModel):
     def to_dict(self) -> dict:
         return self.model_dump()
 
-    def finish(self, exit_code: int, state: CommandState, log_summarizer: Callable[[LogFiles], str]) -> None:
+    def finish(self, exit_code: int, state: CommandState | None = None, log_summary: str | None = None) -> None:
         """Mark the command as finished and update its state.
 
         Args:
             exit_code: The exit code of the command.
-            log_summarizer: Function to generate log summary.
-                It should take LogFiles as arguments and return a string.
+            state: The state of the command. If None, it will be determined by wish-log-analysis.
+            log_summary: Optional summary of the command execution log.
+                If None, log_summary will remain None and will be set by wish-log-analysis.
         """
         self.exit_code = exit_code
-        self.state = state
+        if state is not None:
+            self.state = state
+        if log_summary is not None:
+            self.log_summary = log_summary
         self.finished_at = UtcDatetime.now()
-
-        # Generate log summary if log files exist
-        if self.log_files:
-            self.log_summary = log_summarizer(self.log_files)
 
 
 def parse_command_results_json(command_results_json: str) -> list[CommandResult]:
