@@ -163,8 +163,8 @@ def test_classify_command_state_with_exception(mock_chain):
     # Classify the command state
     result = classify_command_state(graph_state)
 
-    # Check that the command state is set to OTHERS in case of an exception
-    assert result.command_state == CommandState.OTHERS
+    # Check that the command state is set to API_ERROR in case of an exception
+    assert result.command_state == CommandState.API_ERROR
 
 
 def test_classify_command_state_invalid_response(mock_chain):
