@@ -12,15 +12,9 @@ from wish_command_execution.backend.base import Backend
 class BashBackend(Backend):
     """Backend for executing commands using bash."""
 
-    def __init__(self, log_summarizer=None):
-        """Initialize the bash backend.
-
-        Args:
-            log_summarizer: Optional function to summarize logs. If provided, it will be used
-                to generate log summaries when commands finish.
-        """
+    def __init__(self):
+        """Initialize the bash backend."""
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
-        self.log_summarizer = log_summarizer
 
     def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
         """Execute a command using bash.
@@ -70,14 +64,9 @@ class BashBackend(Backend):
         self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState
     ):
         """Common command failure handling."""
-        log_summary = None
-        if self.log_summarizer:
-            log_summary = self.log_summarizer(result.log_files)
-
         result.finish(
             exit_code=exit_code,
-            state=state,
-            log_summary=log_summary
+            state=state
         )
         # Update the command result in the wish object
         # This is a workaround for Pydantic models that don't allow dynamic attribute assignment
@@ -91,13 +80,8 @@ class BashBackend(Backend):
         for idx, (process, result, wish) in list(self.running_commands.items()):
             if process.poll() is not None:  # Process has finished
                 # Mark the command as finished with exit code
-                log_summary = None
-                if self.log_summarizer:
-                    log_summary = self.log_summarizer(result.log_files)
-
                 result.finish(
-                    exit_code=process.returncode,
-                    log_summary=log_summary
+                    exit_code=process.returncode
                 )
 
                 # Update the command result in the wish object
@@ -133,14 +117,9 @@ class BashBackend(Backend):
                 pass  # Ignore errors in termination
 
             # Mark the command as cancelled
-            log_summary = None
-            if self.log_summarizer:
-                log_summary = self.log_summarizer(result.log_files)
-
             result.finish(
                 exit_code=-1,  # Use -1 for cancelled commands
-                state=CommandState.USER_CANCELLED,
-                log_summary=log_summary
+                state=CommandState.USER_CANCELLED
             )
 
             # Update the command result in the wish object

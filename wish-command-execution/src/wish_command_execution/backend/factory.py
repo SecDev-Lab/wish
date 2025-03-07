@@ -12,7 +12,6 @@ from wish_command_execution.backend.bash import BashBackend
 class BashConfig(BaseModel):
     """Configuration for bash backend."""
     shell_path: str = "/bin/bash"
-    log_summarizer: Optional[Callable[[LogFiles], str]] = None
 
 
 class SliverConfig(BaseModel):
@@ -31,7 +30,7 @@ def create_backend(config: Union[BashConfig, SliverConfig]) -> Backend:
         A backend instance.
     """
     if isinstance(config, BashConfig):
-        return BashBackend(log_summarizer=config.log_summarizer)
+        return BashBackend()
     elif isinstance(config, SliverConfig):
         # Future implementation
         raise NotImplementedError("Sliver backend not implemented yet")
