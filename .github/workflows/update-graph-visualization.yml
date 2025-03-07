@@ -20,7 +20,7 @@ jobs:
         project:
           - wish-command-generation
           - wish-log-analysis
-    
+      fail-fast: false    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
         run: cd ${{ matrix.project }} && uv sync --all-extras --dev
       
       - name: Generate graph visualization
-        run: 
+        run: |
           cd ${{ matrix.project }}
           cp .env.example .env
           uv run python scripts/update_graph_visualization.py
