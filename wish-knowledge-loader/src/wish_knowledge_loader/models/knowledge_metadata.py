@@ -3,8 +3,7 @@
 import json
 from pathlib import Path
 
-from pydantic import BaseModel, Field, model_serializer
-
+from pydantic import BaseModel, Field
 from wish_models.utc_datetime import UtcDatetime
 
 
@@ -37,7 +36,7 @@ class KnowledgeMetadata(BaseModel):
 
     updated_at: UtcDatetime
     """Time when the knowledge base was last updated."""
-    
+
     @classmethod
     def from_json(cls, metadata_json: str) -> "KnowledgeMetadata":
         """Parse JSON string to KnowledgeMetadata.

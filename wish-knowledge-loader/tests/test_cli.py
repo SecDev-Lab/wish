@@ -1,18 +1,18 @@
 """Tests for CLI functionality."""
 
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-from click.testing import CliRunner
+from unittest.mock import MagicMock, patch
 
 import pytest
+from click.testing import CliRunner
+from wish_models.utc_datetime import UtcDatetime
 
 from wish_knowledge_loader.cli import main
-from wish_knowledge_loader.models.knowledge_metadata import KnowledgeMetadata, KnowledgeMetadataContainer
-from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
+from wish_knowledge_loader.models.knowledge_metadata import KnowledgeMetadataContainer
 from wish_knowledge_loader.nodes.document_loader import DocumentLoader
+from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
 from wish_knowledge_loader.nodes.vector_store import VectorStore
 from wish_knowledge_loader.settings import Settings
-from wish_models.utc_datetime import UtcDatetime
 
 
 class TestCli:
@@ -38,7 +38,7 @@ class TestCli:
         mock_settings.return_value = mock_settings_instance
         mock_settings_instance.WISH_HOME = "/tmp/.wish"
         mock_settings_instance.meta_path = Path("/tmp/meta.json")
-        
+
         # Create a mock logger
         mock_logger = MagicMock()
         mock_setup_logger.return_value = mock_logger
@@ -98,11 +98,11 @@ class TestCli:
         """Test error handling in the CLI."""
         # Set up mocks
         mock_settings.side_effect = Exception("Test error")
-        
+
         # Create a mock logger
         mock_logger = MagicMock()
         mock_setup_logger.return_value = mock_logger
-        
+
         # Run CLI with catch_exceptions=True to capture the output
         result = runner.invoke(main, [
             "--repo-url", "https://github.com/test/repo",

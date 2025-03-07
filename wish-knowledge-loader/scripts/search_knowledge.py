@@ -3,12 +3,12 @@
 
 import os
 import sys
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 
-from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import TextLoader
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
 
 
 def load_full_document(file_path):
@@ -76,20 +76,20 @@ def main():
     # Search for similar documents
     print(f"Searching for: {query}")
     chunks = vectorstore.similarity_search(query, k=4)
-    
+
     # Group chunks by source document
     documents_dict = defaultdict(list)
     for chunk in chunks:
         source = chunk.metadata.get('source')
         if source:
             documents_dict[source].append(chunk)
-    
+
     # Display results
     print(f"Found chunks from {len(documents_dict)} documents")
-    
+
     for i, (source, chunks) in enumerate(documents_dict.items()):
         print(f"\nDocument {i+1}: {source}")
-        
+
         # Try to load the full document
         full_path = None
         if source.startswith('/'):
@@ -103,31 +103,31 @@ def main():
                 alt_path = Path(source)
                 if alt_path.exists():
                     full_path = alt_path
-        
+
         if full_path and Path(full_path).exists():
             full_content = load_full_document(str(full_path))
             if full_content:
-                print(f"Full document content:")
+                print("Full document content:")
                 print("-" * 50)
                 print(full_content)
                 print("-" * 50)
             else:
-                print(f"Could not load full document content. Showing chunks instead:")
+                print("Could not load full document content. Showing chunks instead:")
                 for j, chunk in enumerate(chunks):
                     print(f"\nChunk {j+1}:")
                     print(f"Content: {chunk.page_content}")
                     print("-" * 30)
         else:
-            print(f"Source file not found. Showing chunks instead:")
+            print("Source file not found. Showing chunks instead:")
             for j, chunk in enumerate(chunks):
                 print(f"\nChunk {j+1}:")
                 print(f"Content: {chunk.page_content}")
                 print("-" * 30)
-        
+
         # Show metadata from first chunk
         if chunks:
             print(f"Metadata: {chunks[0].metadata}")
-        
+
         print("=" * 70)
 
 

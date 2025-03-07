@@ -1,10 +1,10 @@
 """Integration tests for wish-knowledge-loader."""
 
+import json
 import os
 import shutil
 import tempfile
 from pathlib import Path
-import json
 
 import pytest
 from click.testing import CliRunner

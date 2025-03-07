@@ -36,7 +36,7 @@ class RepoCloner:
             subprocess.CalledProcessError: If git command fails
         """
         self.logger.info(f"Cloning repository: {repo_url}")
-        
+
         # Extract host name, organization/user name, and repository name from URL
         parsed_url = urlparse(repo_url)
         host = parsed_url.netloc
@@ -55,9 +55,9 @@ class RepoCloner:
 
         # Pull if already cloned, otherwise clone
         if clone_path.exists():
-            self.logger.info(f"Repository already exists, pulling latest changes")
+            self.logger.info("Repository already exists, pulling latest changes")
             subprocess.run(["git", "-C", str(clone_path), "pull"], check=True)
-            self.logger.info(f"Successfully pulled latest changes")
+            self.logger.info("Successfully pulled latest changes")
         else:
             # Create directory
             self.logger.debug(f"Creating directory: {clone_path.parent}")
@@ -66,6 +66,6 @@ class RepoCloner:
             # Clone repository
             self.logger.info(f"Cloning repository to {clone_path}")
             subprocess.run(["git", "clone", repo_url, str(clone_path)], check=True)
-            self.logger.info(f"Successfully cloned repository")
+            self.logger.info("Successfully cloned repository")
 
         return clone_path

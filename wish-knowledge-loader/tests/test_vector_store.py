@@ -1,7 +1,7 @@
 """Tests for vector store functionality."""
 
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from langchain.schema import Document

@@ -1,12 +1,11 @@
 """Tests for knowledge metadata models."""
 
-import json
-from pathlib import Path
-import pytest
 from datetime import datetime, timezone
+from pathlib import Path
+
+from wish_models.utc_datetime import UtcDatetime
 
 from wish_knowledge_loader.models.knowledge_metadata import KnowledgeMetadata, KnowledgeMetadataContainer
-from wish_models.utc_datetime import UtcDatetime
 
 
 class TestKnowledgeMetadata:

@@ -1,7 +1,9 @@
 """Command-line interface for wish-knowledge-loader."""
 
 import logging
+
 import click
+from wish_models.utc_datetime import UtcDatetime
 
 from wish_knowledge_loader.models.knowledge_metadata import KnowledgeMetadata, KnowledgeMetadataContainer
 from wish_knowledge_loader.nodes.document_loader import DocumentLoader
@@ -9,7 +11,6 @@ from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
 from wish_knowledge_loader.nodes.vector_store import VectorStore
 from wish_knowledge_loader.settings import Settings
 from wish_knowledge_loader.utils.logging_utils import setup_logger
-from wish_models.utc_datetime import UtcDatetime
 
 
 @click.command()
@@ -25,7 +26,7 @@ def main(repo_url: str, glob: str, title: str, verbose: bool = False, debug: boo
         log_level = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
         logger = setup_logger("wish-knowledge-loader", level=log_level)
         logger.info(f"Starting knowledge loader with log level: {logging.getLevelName(log_level)}")
-        
+
         # Load settings
         logger.info("Loading settings")
         settings = Settings()
@@ -63,7 +64,7 @@ def main(repo_url: str, glob: str, title: str, verbose: bool = False, debug: boo
         logger.info(f"Storing documents in vector store: {title}")
         vector_store = VectorStore(settings, logger=logger)
         vector_store.store(title, split_docs)
-        logger.info(f"Documents stored in vector store")
+        logger.info("Documents stored in vector store")
 
         # Create metadata
         logger.info(f"Creating metadata for knowledge base: {title}")
@@ -80,14 +81,14 @@ def main(repo_url: str, glob: str, title: str, verbose: bool = False, debug: boo
         logger.debug(f"Created metadata: {metadata.title}")
 
         # Add metadata
-        logger.info(f"Adding metadata to container")
+        logger.info("Adding metadata to container")
         container.add(metadata)
         logger.debug(f"Container now has {len(container.m)} entries")
 
         # Save metadata
         logger.info(f"Saving metadata to {settings.meta_path}")
         container.save(settings.meta_path)
-        logger.info(f"Metadata saved successfully")
+        logger.info("Metadata saved successfully")
 
         logger.info(f"Knowledge base loaded successfully: {title}")
         click.echo(f"Successfully loaded knowledge base: {title}")

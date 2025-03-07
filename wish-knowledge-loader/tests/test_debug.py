@@ -2,14 +2,13 @@
 
 import os
 from pathlib import Path
+
 import pytest
 
-from wish_knowledge_loader.settings import Settings
-from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
 from wish_knowledge_loader.nodes.document_loader import DocumentLoader
+from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
 from wish_knowledge_loader.nodes.vector_store import VectorStore
-from wish_knowledge_loader.models.knowledge_metadata import KnowledgeMetadata, KnowledgeMetadataContainer
-from wish_models.utc_datetime import UtcDatetime
+from wish_knowledge_loader.settings import Settings
 
 
 class TestDebug:
