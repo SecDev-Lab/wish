@@ -39,7 +39,7 @@ jobs:
         run: sudo apt-get install -y graphviz
       
       - name: Generate graph visualization
-        run: python ${{ matrix.project }}/scripts/update_graph_visualization.py
+        run: uv run python ${{ matrix.project }}/scripts/update_graph_visualization.py
       
       - name: Check for changes
         id: check_changes
