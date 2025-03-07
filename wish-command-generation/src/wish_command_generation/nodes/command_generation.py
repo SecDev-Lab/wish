@@ -2,13 +2,12 @@
 
 import json
 
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-from langchain_core.output_parsers import StrOutputParser
-
 from wish_models.command_result import CommandInput
-from ..models import GraphState
 
+from ..models import GraphState
 
 # Define the prompt template
 COMMAND_GENERATION_PROMPT = """
@@ -67,31 +66,31 @@ def generate_commands(state: GraphState) -> GraphState:
     """Generate commands from Wish using OpenAI's gpt-4o model"""
     # Get the task from the state
     task = state.wish.wish
-    
+
     # Get the context from the state (if available)
     context = "\n".join(state.context) if state.context else "参考ドキュメントはありません。"
-    
+
     # Create the prompt
     prompt = PromptTemplate.from_template(COMMAND_GENERATION_PROMPT)
-    
+
     # Initialize the OpenAI model
     from ..settings import settings
-    
+
     model = ChatOpenAI(
         model=settings.openai_model,
         api_key=settings.openai_api_key
     )
-    
+
     # Create the chain
     chain = prompt | model | StrOutputParser()
-    
+
     # Generate the commands
     try:
         response = chain.invoke({"task": task, "context": context})
-        
+
         # Parse the response as JSON
         response_json = json.loads(response)
-        
+
         # Convert to CommandInput objects
         command_inputs = []
         for cmd in response_json.get("command_inputs", []):
@@ -109,9 +108,9 @@ def generate_commands(state: GraphState) -> GraphState:
                 timeout_sec=None,
             )
         ]
-    
+
     # Update the state
     state_dict = state.model_dump()
     state_dict["command_inputs"] = command_inputs
-    
+
     return GraphState(**state_dict)

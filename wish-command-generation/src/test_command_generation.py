@@ -1,7 +1,8 @@
 """Test script for the command generation system."""
 
-from wish_command_generation import CommandGenerator
 from wish_models.wish.wish import Wish
+
+from wish_command_generation import CommandGenerator
 
 
 def main():

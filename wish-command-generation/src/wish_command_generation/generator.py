@@ -22,9 +22,9 @@ class CommandGenerator:
         """
         # Create the command generation graph
         graph = create_command_generation_graph()
-        
+
         # Execute the graph
         result = graph.invoke({"wish": wish})
-        
+
         # Return the generated commands
         return result["command_inputs"]

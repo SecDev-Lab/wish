@@ -2,10 +2,10 @@
 
 import factory
 from factory.faker import Faker
-
 from wish_models.command_result import CommandInput
 from wish_models.wish.wish import Wish
 from wish_models.wish.wish_state import WishState
+
 from wish_command_generation.models import GraphState
 
 
