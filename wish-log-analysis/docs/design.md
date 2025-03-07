@@ -1,7 +1,7 @@
-# Command Generation Design
+# Log Analysis Design
 
-This document describes the design of the command generation system.
+This document describes the design of the log analysis system.
 
 ## Graph Visualization
 
-![Command Generation Graph](graph.svg)
+![Log Analysis Graph](graph.svg)

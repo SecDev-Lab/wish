@@ -1,12 +1,12 @@
-# wish-command-generation
+# wish-log-analysis
 
-Command generation package for wish.
+Log analysis package for wish.
 
 ## Development
 
 ### Graph Visualization
 
-The command generation graph can be visualized using the following command:
+The log analysis graph can be visualized using the following command:
 
 ```bash
 # グラフを可視化してdocs/graph.svgとdocs/design.mdを更新
@@ -37,3 +37,4 @@ OPENAI_MODEL=gpt-4o
 
 - English Prompt
 - API client/server
+
