@@ -12,6 +12,9 @@ A CLI tool for loading knowledge bases into wish.
 # Install from the repository
 cd wish-knowledge-loader
 uv sync --dev
+
+cp .env.example .env
+vim .env  # Set the OpenAI API key
 ```
 
 ## Usage
