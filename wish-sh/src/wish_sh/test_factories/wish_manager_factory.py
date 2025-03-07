@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import factory
 from wish_command_execution import CommandExecutor, CommandStatusTracker
@@ -30,13 +30,21 @@ class WishManagerFactory(factory.Factory):
     @classmethod
     def create(cls, **kwargs):
         """Create a WishManager instance with mocked file operations."""
-        with patch.object(Path, "mkdir"):  # Mock directory creation
+        # Mock all file system operations
+        with patch.object(Path, "mkdir"), \
+             patch.object(Path, "exists", return_value=True), \
+             patch("builtins.open", new_callable=mock_open), \
+             patch("wish_sh.wish_paths.WishPaths.ensure_directories"):
+            
             manager = super().create(**kwargs)
 
             # Initialize backend for testing
             backend = BashBackend(log_summarizer=manager.summarize_log)
             manager.executor = CommandExecutor(backend=backend, log_dir_creator=manager.create_command_log_dirs)
             manager.tracker = CommandStatusTracker(manager.executor, wish_saver=manager.save_wish)
+            
+            # Mock file system related methods
+            manager.paths.create_command_log_dirs = MagicMock(return_value=Path("/mock/path/to/logs"))
 
             # Mock generate_commands to return test-specific commands
             def mock_generate_commands(wish_text):
