@@ -13,6 +13,7 @@ class SettingsFactory(factory.Factory):
         model = Settings
 
     # テスト用のデフォルト値
-    openai_api_key = "sk-dummy-key-for-testing"
-    openai_model = "gpt-4o-mini"
-    wish_home = "/tmp/wish-test-home"
+    OPENAI_API_KEY = "sk-dummy-key-for-testing"
+    OPENAI_MODEL = "gpt-4o-mini"
+    WISH_HOME = "/tmp/wish-test-home"
+
