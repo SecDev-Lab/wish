@@ -59,7 +59,7 @@ class UtcDatetime(BaseModel):
         local_dt = self.v.astimezone(tz)
         # Format according to the specified format
         return local_dt.strftime(format_str)
-        
+
     def __sub__(self, other: "UtcDatetime") -> timedelta:
         """Subtract another UtcDatetime from this one.
         
@@ -74,5 +74,5 @@ class UtcDatetime(BaseModel):
         """
         if not isinstance(other, UtcDatetime):
             raise TypeError(f"unsupported operand type(s) for -: 'UtcDatetime' and '{type(other).__name__}'")
-        
+
         return self.v - other.v
