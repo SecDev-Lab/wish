@@ -32,8 +32,15 @@ def retrieve_documents(state: GraphState) -> GraphState:
 
     # Placeholder results
     context = [
-        "# nmap command\nnmap is a network scanning tool.\nBasic usage: nmap [options] [target]\n\nMain options:\n-p: Port specification\n-sV: Version detection\n-A: OS detection, version detection, script scanning, traceroute\n-T4: Scan speed setting (0-5, higher is faster)",
-        "# rustscan\nrustscan is a fast port scanner.\nBasic usage: rustscan -a [target IP] -- [nmap options]\n\nMain options:\n-r: Port range specification (e.g., -r 1-1000)\n-b: Batch size (number of simultaneous connections)\n--scripts: Execute nmap scripts"
+        "# nmap command\nnmap is a network scanning tool.\nBasic usage: nmap [options] [target]\n\n"
+        "Main options:\n-p: Port specification\n-sV: Version detection\n"
+        "-A: OS detection, version detection, script scanning, traceroute\n"
+        "-T4: Scan speed setting (0-5, higher is faster)",
+        "# rustscan\nrustscan is a fast port scanner.\n"
+        "Basic usage: rustscan -a [target IP] -- [nmap options]\n\n"
+        "Main options:\n-r: Port range specification (e.g., -r 1-1000)\n"
+        "-b: Batch size (number of simultaneous connections)\n"
+        "--scripts: Execute nmap scripts"
     ]
 
     # Update the state

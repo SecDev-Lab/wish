@@ -55,7 +55,10 @@ class TestRag:
     def test_retrieve_documents(self):
         """Test that retrieve_documents returns appropriate context documents."""
         # Arrange
-        state = GraphStateFactory.create_with_query("Conduct a full port scan on IP 10.10.10.123.", "nmap port scan techniques")
+        state = GraphStateFactory.create_with_query(
+            "Conduct a full port scan on IP 10.10.10.123.",
+            "nmap port scan techniques"
+        )
 
         # Act
         result = retrieve_documents(state)

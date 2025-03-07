@@ -96,7 +96,7 @@ class TestGraph:
 
     def test_graph_integration(self):
         """Test the integration of the graph with actual node implementations.
-        
+
         This test uses the actual node implementations but mocks external dependencies.
         """
         # This test would be more complex and require mocking external dependencies

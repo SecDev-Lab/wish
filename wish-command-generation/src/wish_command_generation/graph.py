@@ -8,10 +8,10 @@ from .nodes import command_generation, rag
 
 def create_command_generation_graph(compile: bool = True) -> StateGraph:
     """Create a command generation graph
-    
+
     Args:
         compile: If True, returns a compiled graph. If False, returns a pre-compiled graph.
-    
+
     Returns:
         Compiled or pre-compiled graph object
     """

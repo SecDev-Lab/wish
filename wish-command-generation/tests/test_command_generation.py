@@ -35,7 +35,9 @@ class TestCommandGeneration:
         # Act
         with patch("wish_command_generation.nodes.command_generation.PromptTemplate") as mock_prompt_template:
             with patch("wish_command_generation.nodes.command_generation.ChatOpenAI") as mock_chat_openai:
-                with patch("wish_command_generation.nodes.command_generation.StrOutputParser") as mock_str_output_parser:
+                with patch(
+                    "wish_command_generation.nodes.command_generation.StrOutputParser"
+                ) as mock_str_output_parser:
                     # Set up the mocks to create the chain
                     mock_prompt = MagicMock()
                     mock_prompt_template.from_template.return_value = mock_prompt
@@ -83,7 +85,9 @@ class TestCommandGeneration:
         # Act
         with patch("wish_command_generation.nodes.command_generation.PromptTemplate") as mock_prompt_template:
             with patch("wish_command_generation.nodes.command_generation.ChatOpenAI") as mock_chat_openai:
-                with patch("wish_command_generation.nodes.command_generation.StrOutputParser") as mock_str_output_parser:
+                with patch(
+                    "wish_command_generation.nodes.command_generation.StrOutputParser"
+                ) as mock_str_output_parser:
                     # Set up the mocks to create the chain
                     mock_prompt = MagicMock()
                     mock_prompt_template.from_template.return_value = mock_prompt
@@ -123,7 +127,9 @@ class TestCommandGeneration:
         # Act
         with patch("wish_command_generation.nodes.command_generation.PromptTemplate") as mock_prompt_template:
             with patch("wish_command_generation.nodes.command_generation.ChatOpenAI") as mock_chat_openai:
-                with patch("wish_command_generation.nodes.command_generation.StrOutputParser") as mock_str_output_parser:
+                with patch(
+                    "wish_command_generation.nodes.command_generation.StrOutputParser"
+                ) as mock_str_output_parser:
                     # Set up the mocks to create the chain
                     mock_prompt = MagicMock()
                     mock_prompt_template.from_template.return_value = mock_prompt

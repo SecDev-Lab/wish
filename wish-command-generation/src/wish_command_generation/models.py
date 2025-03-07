@@ -7,7 +7,7 @@ from wish_models.wish.wish import Wish
 
 class GraphState(BaseModel):
     """Class representing the state of LangGraph.
-    
+
     This class is used to maintain state during LangGraph execution and pass data between nodes.
     wish-command-generation takes a Wish object and outputs multiple commands (CommandInput) to fulfill it.
     """

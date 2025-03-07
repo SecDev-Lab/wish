@@ -13,10 +13,10 @@ class CommandGenerator:
 
     def generate_commands(self, wish: Wish) -> List[CommandInput]:
         """Generate commands based on a wish.
-        
+
         Args:
             wish: The wish to generate commands for.
-            
+
         Returns:
             A list of CommandInput objects.
         """
