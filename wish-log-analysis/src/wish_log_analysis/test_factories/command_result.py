@@ -127,11 +127,11 @@ class CommandResultFactory(factory.Factory):
             exit_code=1,
             log_files=log_files,
             state=CommandState.FILE_NOT_FOUND,
-            log_summary=f"File not found: nonexistent.txt"
+            log_summary="File not found: nonexistent.txt"
         )
 
     @classmethod
-    def create_with_log_files(cls, command: str, exit_code: int, 
+    def create_with_log_files(cls, command: str, exit_code: int,
                              stdout_content: str = "", stderr_content: str = "",
                              state: CommandState = CommandState.SUCCESS,
                              log_summary: Optional[str] = None) -> CommandResult:

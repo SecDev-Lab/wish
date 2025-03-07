@@ -20,16 +20,16 @@ def mock_chain():
                 # Set up the mock chain
                 mock_chain = MagicMock()
                 mock_chain.invoke.return_value = "Mocked summary"
-                
+
                 # Create a mock for the pipe
                 mock_pipe = MagicMock()
                 mock_pipe.invoke.return_value = "Mocked summary"
-                
+
                 # Set up the mock prompt to return a mock pipe
                 mock_prompt.from_template.return_value = MagicMock()
                 mock_prompt.from_template.return_value.__or__.return_value = MagicMock()
                 mock_prompt.from_template.return_value.__or__.return_value.__or__.return_value = mock_pipe
-                
+
                 yield mock_pipe
 
 
@@ -38,15 +38,15 @@ def test_summarize_log_with_log_files(mock_chain):
     # Create temporary files for stdout and stderr
     stdout_content = "Hello, World!"
     stderr_content = "Error message"
-    
+
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as stdout_file:
         stdout_file.write(stdout_content)
         stdout_path = stdout_file.name
-    
+
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as stderr_file:
         stderr_file.write(stderr_content)
         stderr_path = stderr_file.name
-    
+
     try:
         # Create a command result with log files
         log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
@@ -55,16 +55,16 @@ def test_summarize_log_with_log_files(mock_chain):
             exit_code=0,
             log_files=log_files
         )
-        
+
         # Create a graph state
         graph_state = GraphStateFactory.create_with_command_result(command_result)
-        
+
         # Summarize the log
         result = summarize_log(graph_state)
-        
+
         # Check that the log was summarized correctly
         assert result.log_summary == "Mocked summary"
-        
+
         # Check that the chain was invoked with the correct arguments
         mock_chain.invoke.assert_called_once()
         args = mock_chain.invoke.call_args[0][0]
@@ -72,7 +72,7 @@ def test_summarize_log_with_log_files(mock_chain):
         assert args["exit_code"] == 0
         assert args["stdout"] == stdout_content
         assert args["stderr"] == stderr_content
-    
+
     finally:
         # Clean up the temporary files
         os.unlink(stdout_path)
@@ -87,16 +87,16 @@ def test_summarize_log_without_log_files(mock_chain):
         exit_code=0,
         log_files=None
     )
-    
+
     # Create a graph state
     graph_state = GraphStateFactory.create_with_command_result(command_result)
-    
+
     # Summarize the log
     result = summarize_log(graph_state)
-    
+
     # Check that the log was summarized correctly
     assert result.log_summary == "Mocked summary"
-    
+
     # Check that the chain was invoked with the correct arguments
     mock_chain.invoke.assert_called_once()
     args = mock_chain.invoke.call_args[0][0]
@@ -115,16 +115,16 @@ def test_summarize_log_with_nonexistent_log_files(mock_chain):
         exit_code=0,
         log_files=log_files
     )
-    
+
     # Create a graph state
     graph_state = GraphStateFactory.create_with_command_result(command_result)
-    
+
     # Summarize the log
     result = summarize_log(graph_state)
-    
+
     # Check that the log was summarized correctly
     assert result.log_summary == "Mocked summary"
-    
+
     # Check that the chain was invoked with the correct arguments
     mock_chain.invoke.assert_called_once()
     args = mock_chain.invoke.call_args[0][0]
@@ -138,18 +138,18 @@ def test_summarize_log_with_exception(mock_chain):
     """Test that summarize_log handles exceptions."""
     # Set up the mock chain to raise an exception
     mock_chain.invoke.side_effect = Exception("Mocked exception")
-    
+
     # Create a command result
     command_result = CommandResultFactory(
         command="echo 'Hello, World!'",
         exit_code=0
     )
-    
+
     # Create a graph state
     graph_state = GraphStateFactory.create_with_command_result(command_result)
-    
+
     # Summarize the log
     result = summarize_log(graph_state)
-    
+
     # Check that the log summary contains the exception message
     assert "Error generating summary: Mocked exception" in result.log_summary

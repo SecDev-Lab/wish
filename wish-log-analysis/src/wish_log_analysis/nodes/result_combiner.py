@@ -1,6 +1,5 @@
 """Result combiner node functions for the log analysis graph."""
 
-import os
 
 from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
@@ -24,7 +23,7 @@ def combine_results(state: GraphState) -> GraphState:
         command_state=state.command_state,
         api_error=state.api_error
     )
-    
+
     # Check if log_summary and command_state are both set
     if state.log_summary is None or state.command_state is None:
         # If there was an API error, we can still proceed with what we have
@@ -35,7 +34,7 @@ def combine_results(state: GraphState) -> GraphState:
             logging.error(f"command_state: {state.command_state}")
             logging.error(f"api_error: {state.api_error}")
             raise ValueError("log_summary and command_state must be set")
-    
+
     # If there was an API error, ensure the command state is set to API_ERROR
     command_state = state.command_state
     if state.api_error and command_state != CommandState.API_ERROR:

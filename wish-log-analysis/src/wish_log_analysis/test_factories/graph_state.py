@@ -60,7 +60,7 @@ class GraphStateFactory(factory.Factory):
         return cls(command_result=command_result, command_state=command_state)
 
     @classmethod
-    def create_complete(cls, command_result: CommandResult, log_summary: str, 
+    def create_complete(cls, command_result: CommandResult, log_summary: str,
                        command_state: CommandState, analyzed_command_result: CommandResult) -> GraphState:
         """Create a complete GraphState with all fields set.
 

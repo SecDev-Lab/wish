@@ -7,7 +7,7 @@ from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
 from wish_command_generation import CommandGenerator
 from wish_log_analysis import LogAnalyzer
-from wish_models import CommandResult, LogFiles, Wish, WishState
+from wish_models import CommandResult, Wish, WishState
 from wish_models.command_result.command_state import CommandState
 
 from wish_sh.settings import Settings
@@ -61,7 +61,7 @@ class WishManager:
         except Exception as e:
             # Log the error
             logging.error(f"Error analyzing log: {str(e)}")
-            
+
             # Create a copy of the command result with error information
             error_result = CommandResult(
                 num=command_result.num,
@@ -73,7 +73,7 @@ class WishManager:
                 created_at=command_result.created_at,
                 finished_at=command_result.finished_at
             )
-            
+
             return error_result
 
     # WishManager functions

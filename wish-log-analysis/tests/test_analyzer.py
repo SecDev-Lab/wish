@@ -16,7 +16,7 @@ def mock_graph():
         # Set up the mock graph
         mock_graph = MagicMock()
         mock_create_graph.return_value = mock_graph
-        
+
         yield mock_graph
 
 
@@ -24,7 +24,7 @@ def test_analyze_result(mock_graph):
     """Test that analyze_result calls the graph with the correct arguments and returns the result."""
     # Create a command result
     command_result = CommandResultFactory()
-    
+
     # Set up the mock graph to return a command result
     analyzed_command_result = CommandResultFactory(
         command=command_result.command,
@@ -34,17 +34,17 @@ def test_analyze_result(mock_graph):
         state=CommandState.SUCCESS
     )
     mock_graph.invoke.return_value = {"analyzed_command_result": analyzed_command_result}
-    
+
     # Create a log analyzer
     analyzer = LogAnalyzer()
-    
+
     # Analyze the command result
     result = analyzer.analyze_result(command_result)
-    
+
     # Check that the graph was called with the correct arguments
     mock_graph.invoke.assert_called_once()
     args = mock_graph.invoke.call_args[0][0]
     assert args["command_result"] == command_result
-    
+
     # Check that the result is correct
     assert result == analyzed_command_result

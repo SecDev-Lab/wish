@@ -1,6 +1,5 @@
 """Log summarization node functions for the log analysis graph."""
 
-import json
 import os
 
 from langchain_core.output_parsers import StrOutputParser
@@ -62,7 +61,7 @@ def summarize_log(state: GraphState) -> GraphState:
         analyzed_command_result=state.analyzed_command_result,
         api_error=state.api_error
     )
-    
+
     # Get the command and exit code from the state
     command = state.command_result.command
     exit_code = state.command_result.exit_code
@@ -98,20 +97,20 @@ def summarize_log(state: GraphState) -> GraphState:
             "stdout": stdout,
             "stderr": stderr
         })
-        
+
         # Set the log summary in the new state
         new_state.log_summary = summary
-        
+
     except Exception as e:
         # In case of any error, provide a fallback summary and log the error
         error_message = f"Error generating summary: {str(e)}"
-        
+
         # Log the error
         import logging
         logging.error(error_message)
         logging.error(f"Command: {command}")
         logging.error(f"Exit code: {exit_code}")
-        
+
         # Set error information in the new state
         new_state.log_summary = error_message
         new_state.api_error = True

@@ -1,7 +1,5 @@
 """Tests for models.py."""
 
-import pytest
-from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
 
 from wish_log_analysis.models import GraphState
