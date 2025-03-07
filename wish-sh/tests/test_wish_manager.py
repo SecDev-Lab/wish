@@ -5,6 +5,7 @@ from wish_models import WishState
 from wish_models.test_factories import WishDoingFactory, WishDoneFactory
 
 from wish_sh.settings import Settings
+from wish_sh.test_factories.settings_factory import SettingsFactory
 from wish_sh.wish_manager import WishManager
 from wish_sh.wish_paths import WishPaths
 
@@ -12,7 +13,7 @@ from wish_sh.wish_paths import WishPaths
 class TestWishManager:
     def test_initialization(self):
         """Test that WishManager initializes with the correct attributes."""
-        settings = Settings()
+        settings = SettingsFactory.create()
 
         with patch.object(WishPaths, "ensure_directories") as mock_ensure_dirs:
             manager = WishManager(settings)
@@ -27,7 +28,7 @@ class TestWishManager:
     @patch("builtins.open", new_callable=mock_open)
     def test_save_wish(self, mock_file):
         """Test that save_wish writes the wish to the history file."""
-        settings = Settings()
+        settings = SettingsFactory.create()
         manager = WishManager(settings)
         wish = WishDoneFactory.create()
 
@@ -46,7 +47,7 @@ class TestWishManager:
         """Test that load_wishes returns an empty list when the history file is empty."""
         mock_file.return_value.__enter__.return_value.readlines.return_value = []
 
-        settings = Settings()
+        settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         wishes = manager.load_wishes()
@@ -75,7 +76,7 @@ class TestWishManager:
             json.dumps(wish2) + "\n",
         ]
 
-        settings = Settings()
+        settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         wishes = manager.load_wishes()
@@ -90,7 +91,7 @@ class TestWishManager:
 
     def test_generate_commands(self):
         """Test that generate_commands returns the expected commands based on the wish text."""
-        settings = Settings()
+        settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         # Mock the generate_commands method
@@ -143,7 +144,7 @@ class TestWishManager:
 
     def test_execute_command(self):
         """Test that execute_command delegates to the executor."""
-        settings = Settings()
+        settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         # Mock the executor
@@ -161,7 +162,7 @@ class TestWishManager:
 
     def test_check_running_commands(self):
         """Test that check_running_commands delegates to the executor."""
-        settings = Settings()
+        settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         # Mock the executor
@@ -175,7 +176,7 @@ class TestWishManager:
 
     def test_cancel_command(self):
         """Test that cancel_command delegates to the executor."""
-        settings = Settings()
+        settings = SettingsFactory.create()
         manager = WishManager(settings)
         wish = WishDoingFactory.create()
 
@@ -193,7 +194,7 @@ class TestWishManager:
 
     def test_format_wish_list_item_doing(self):
         """Test that format_wish_list_item formats a wish in DOING state correctly."""
-        settings = Settings()
+        settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         wish = WishDoingFactory.create()
@@ -207,7 +208,7 @@ class TestWishManager:
 
     def test_format_wish_list_item_done(self):
         """Test that format_wish_list_item formats a wish in DONE state correctly."""
-        settings = Settings()
+        settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         wish = WishDoneFactory.create()

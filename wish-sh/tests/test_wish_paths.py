@@ -2,13 +2,14 @@ from pathlib import Path
 from unittest.mock import mock_open, patch
 
 from wish_sh.settings import Settings
+from wish_sh.test_factories.settings_factory import SettingsFactory
 from wish_sh.wish_paths import WishPaths
 
 
 class TestWishPaths:
     def test_initialization(self):
         """Test that WishPaths initializes with the correct attributes."""
-        settings = Settings()
+        settings = SettingsFactory.create()
 
         paths = WishPaths(settings)
 
@@ -22,7 +23,7 @@ class TestWishPaths:
         """Test that ensure_directories creates the necessary directories and files."""
         mock_exists.return_value = False
 
-        settings = Settings()
+        settings = SettingsFactory.create()
         paths = WishPaths(settings)
 
         paths.ensure_directories()
@@ -35,7 +36,7 @@ class TestWishPaths:
 
     def test_get_wish_dir(self):
         """Test that get_wish_dir returns the expected path."""
-        settings = Settings()
+        settings = SettingsFactory.create()
         paths = WishPaths(settings)
         wish_id = "test_id"
 
@@ -46,7 +47,7 @@ class TestWishPaths:
     @patch("pathlib.Path.mkdir")
     def test_create_command_log_dirs(self, mock_mkdir):
         """Test that create_command_log_dirs creates the necessary directories and returns the expected path."""
-        settings = Settings()
+        settings = SettingsFactory.create()
         paths = WishPaths(settings)
         wish_id = "test_id"
 
