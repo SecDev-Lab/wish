@@ -1,5 +1,6 @@
 """Factory for WishManager."""
 
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -18,7 +19,13 @@ class WishManagerFactory(factory.Factory):
     class Meta:
         model = WishManager
 
-    settings = factory.LazyFunction(lambda: Settings())
+    @factory.lazy_attribute
+    def settings(self):
+        """Create Settings with test values for required fields."""
+        with patch.dict(os.environ, {
+            "OPENAI_API_KEY": "test-api-key",
+        }, clear=False):
+            return Settings()
 
     @classmethod
     def create(cls, **kwargs):
