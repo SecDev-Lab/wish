@@ -5,7 +5,7 @@ from typing import List, Optional
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
 from wish_models import LogFiles, Wish, WishState
-from wish_command_generation import create_command_generation_graph
+from wish_command_generation import CommandGenerator
 
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
@@ -19,6 +19,9 @@ class WishManager:
         self.paths = WishPaths(settings)
         self.paths.ensure_directories()
         self.current_wish: Optional[Wish] = None
+
+        # Initialize command generation component
+        self.command_generator = CommandGenerator()
 
         # Initialize command execution components
         backend = BashBackend(log_summarizer=self.summarize_log)
@@ -104,15 +107,12 @@ class WishManager:
         # Create a Wish object
         wish_obj = Wish.create(wish_text)
         
-        # Create the command generation graph
-        graph = create_command_generation_graph()
-        
-        # Execute the graph
-        result = graph.invoke({"wish": wish_obj})
+        # Generate commands using CommandGenerator
+        command_inputs = self.command_generator.generate_commands(wish_obj)
         
         # Extract commands from the result
         commands = []
-        for cmd_input in result["command_inputs"]:
+        for cmd_input in command_inputs:
             commands.append(cmd_input.command)
         
         return commands

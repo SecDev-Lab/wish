@@ -4,7 +4,8 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from wish_command_generation import create_command_generation_graph
+from wish_command_generation import CommandGenerator
+from wish_command_generation.graph import create_command_generation_graph
 from wish_command_generation.models import GraphState
 from wish_models.command_result import CommandInput
 from wish_models.wish.wish import Wish
@@ -13,6 +14,36 @@ from wish_command_generation.test_factories.state_factory import GraphStateFacto
 
 class TestGraph:
     """Test class for the command generation graph."""
+
+    def test_command_generator(self):
+        """Test that CommandGenerator correctly generates commands."""
+        # Arrange
+        wish = Wish.create(wish="Conduct a full port scan on IP 10.10.10.123.")
+        command_generator = CommandGenerator()
+        
+        # Mock the create_command_generation_graph function
+        with patch("wish_command_generation.generator.create_command_generation_graph") as mock_create_graph:
+            # Mock the graph
+            mock_graph = MagicMock()
+            mock_create_graph.return_value = mock_graph
+            
+            # Mock the graph.invoke method
+            mock_result = {
+                "command_inputs": [
+                    CommandInput(command="rustscan -a 10.10.10.123", timeout_sec=None)
+                ]
+            }
+            mock_graph.invoke.return_value = mock_result
+            
+            # Act
+            result = command_generator.generate_commands(wish)
+            
+            # Assert
+            mock_create_graph.assert_called_once()
+            mock_graph.invoke.assert_called_once_with({"wish": wish})
+            assert len(result) == 1
+            assert result[0].command == "rustscan -a 10.10.10.123"
+            assert result[0].timeout_sec is None
 
     @patch("wish_command_generation.nodes.rag.generate_query")
     @patch("wish_command_generation.nodes.rag.retrieve_documents")

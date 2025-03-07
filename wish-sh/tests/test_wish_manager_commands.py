@@ -5,7 +5,6 @@ from unittest.mock import mock_open, patch, MagicMock
 
 import pytest
 from wish_models import UtcDatetime, Wish, WishState
-from wish_command_generation import create_command_generation_graph
 
 from wish_sh.test_factories import WishManagerFactory
 

@@ -1,25 +1,23 @@
 """Test script for the command generation system."""
 
-from wish_command_generation import create_command_generation_graph
-from wish_command_generation.models import GraphState
+from wish_command_generation import CommandGenerator
 from wish_models.wish.wish import Wish
 
 
 def main():
     """Main function"""
-    # Create the graph
-    graph = create_command_generation_graph()
+    # Create the command generator
+    command_generator = CommandGenerator()
 
     # Prepare the input
     wish = Wish.create(wish="Conduct a full port scan on IP 10.10.10.123.")
 
-    # Execute the graph
-    initial_state = GraphState(wish=wish)
-    result = graph.invoke(initial_state)
+    # Generate commands
+    command_inputs = command_generator.generate_commands(wish)
 
     # Display the results
     print("Generated commands:")
-    for i, cmd in enumerate(result["command_inputs"], 1):
+    for i, cmd in enumerate(command_inputs, 1):
         print(f"{i}. Command: {cmd.command}")
         print(f"   Timeout: {f'{cmd.timeout_sec} seconds' if cmd.timeout_sec else 'None'}")
         print()
