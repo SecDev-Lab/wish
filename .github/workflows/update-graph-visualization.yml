@@ -36,10 +36,10 @@ jobs:
           python-version-file: "${{ matrix.project }}/.python-version"
       
       - name: Install the project
-        run: cd ${{ matrix.project }} ; uv sync --all-extras --dev
+        run: cd ${{ matrix.project }} && uv sync --all-extras --dev
       
       - name: Generate graph visualization
-        run: uv run python ${{ matrix.project }}/scripts/update_graph_visualization.py
+        run: cd ${{ matrix.project }} && uv run python scripts/update_graph_visualization.py
       
       - name: Check for changes
         id: check_changes
