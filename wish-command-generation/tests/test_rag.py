@@ -1,5 +1,6 @@
 """Test script for the RAG nodes."""
 
+import os
 from unittest.mock import MagicMock, patch
 
 from wish_command_generation.nodes.rag import generate_query, retrieve_documents
@@ -71,10 +72,13 @@ class TestRag:
         
         # Mock Path.iterdir to return empty list
         with patch("pathlib.Path.iterdir") as mock_iterdir:
-            mock_iterdir.return_value = []
-            
-            # Act
-            result = retrieve_documents(state)
+            with patch("pathlib.Path.exists") as mock_exists:
+                # Mock exists to return True so we reach the iterdir call
+                mock_exists.return_value = True
+                mock_iterdir.return_value = []
+                
+                # Act
+                result = retrieve_documents(state)
         
         # Assert
         assert result.context == []
@@ -104,26 +108,29 @@ class TestRag:
         mock_text_loader.load.return_value = [MagicMock(page_content="Full document content")]
         
         # Act
-        with patch("pathlib.Path.iterdir") as mock_iterdir:
-            with patch("pathlib.Path.exists") as mock_exists:
-                with patch("langchain_community.vectorstores.Chroma") as mock_chroma:
-                    with patch("langchain_openai.OpenAIEmbeddings") as mock_embeddings:
-                        with patch("langchain_community.document_loaders.TextLoader") as mock_loader:
-                            # Set up the mocks
-                            mock_dir = MagicMock()
-                            mock_dir.name = "test_knowledge"
-                            mock_dir.is_dir.return_value = True
-                            mock_iterdir.return_value = [mock_dir]
-                            
-                            mock_exists.return_value = True
-                            
-                            mock_vectorstore = MagicMock()
-                            mock_vectorstore.similarity_search.return_value = [mock_doc1, mock_doc2]
-                            mock_chroma.return_value = mock_vectorstore
-                            
-                            mock_loader.return_value = mock_text_loader
-                            
-                            result = retrieve_documents(state)
+        with patch("os.path.expanduser") as mock_expanduser:
+            with patch("pathlib.Path.iterdir") as mock_iterdir:
+                with patch("pathlib.Path.exists") as mock_exists:
+                    with patch("langchain_community.vectorstores.Chroma") as mock_chroma:
+                        with patch("langchain_openai.OpenAIEmbeddings") as mock_embeddings:
+                            with patch("langchain_community.document_loaders.TextLoader") as mock_loader:
+                                # Set up the mocks
+                                mock_expanduser.return_value = "/home/user/.wish"
+                                
+                                mock_dir = MagicMock()
+                                mock_dir.name = "test_knowledge"
+                                mock_dir.is_dir.return_value = True
+                                mock_iterdir.return_value = [mock_dir]
+                                
+                                mock_exists.return_value = True
+                                
+                                mock_vectorstore = MagicMock()
+                                mock_vectorstore.similarity_search.return_value = [mock_doc1, mock_doc2]
+                                mock_chroma.return_value = mock_vectorstore
+                                
+                                mock_loader.return_value = mock_text_loader
+                                
+                                result = retrieve_documents(state)
         
         # Assert
         assert len(result.context) == 1  # After removing duplicates
@@ -131,3 +138,60 @@ class TestRag:
         assert result.wish == state.wish
         assert result.query == state.query
         assert result.command_inputs == state.command_inputs
+        # Verify expanduser was called
+        mock_expanduser.assert_called_once()
+
+    def test_retrieve_documents_with_tilde_path(self):
+        """Test that retrieve_documents correctly handles paths with tilde (~)."""
+        # Arrange
+        state = GraphStateFactory.create_with_query(
+            "Conduct a full port scan on IP 10.10.10.123.",
+            "nmap port scan techniques"
+        )
+        
+        # Act
+        with patch("os.path.expanduser") as mock_expanduser:
+            with patch("pathlib.Path.exists") as mock_exists:
+                with patch("pathlib.Path.iterdir") as mock_iterdir:
+                    # Mock expanduser to return a specific path
+                    mock_expanduser.return_value = "/home/user/.wish"
+                    # Mock exists to return True
+                    mock_exists.return_value = True
+                    # Mock iterdir to return empty list
+                    mock_iterdir.return_value = []
+                    
+                    result = retrieve_documents(state)
+        
+        # Assert
+        assert result.context == []
+        assert result.wish == state.wish
+        assert result.query == state.query
+        assert result.command_inputs == state.command_inputs
+        # Verify expanduser was called with the correct path
+        mock_expanduser.assert_called_once()
+
+    def test_retrieve_documents_with_nonexistent_directory(self):
+        """Test that retrieve_documents handles nonexistent directories gracefully."""
+        # Arrange
+        state = GraphStateFactory.create_with_query(
+            "Conduct a full port scan on IP 10.10.10.123.",
+            "nmap port scan techniques"
+        )
+        
+        # Act
+        with patch("os.path.expanduser") as mock_expanduser:
+            with patch("pathlib.Path.exists") as mock_exists:
+                # Mock expanduser to return a specific path
+                mock_expanduser.return_value = "/home/user/.wish"
+                # Mock exists to return False (directory doesn't exist)
+                mock_exists.return_value = False
+                
+                result = retrieve_documents(state)
+        
+        # Assert
+        assert result.context == []
+        assert result.wish == state.wish
+        assert result.query == state.query
+        assert result.command_inputs == state.command_inputs
+        # Verify expanduser was called
+        mock_expanduser.assert_called_once()

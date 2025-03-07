@@ -76,9 +76,17 @@ def retrieve_documents(state: GraphState) -> GraphState:
         state_dict["context"] = []
         return GraphState(**state_dict)
     
-    # Get knowledge base path
-    wish_home = Path(settings.WISH_HOME)
+    # Get knowledge base path - explicitly expand tilde (~) in path
+    wish_home_str = os.path.expanduser(settings.WISH_HOME)
+    wish_home = Path(wish_home_str)
     knowledge_dir = wish_home / "knowledge" / "db"
+    
+    # Check if directory exists
+    if not knowledge_dir.exists():
+        print(f"Knowledge directory not found: {knowledge_dir}")
+        state_dict = state.model_dump()
+        state_dict["context"] = []
+        return GraphState(**state_dict)
     
     # Get available knowledge bases
     available_knowledge = [d.name for d in knowledge_dir.iterdir() if d.is_dir()]
@@ -139,13 +147,16 @@ def retrieve_documents(state: GraphState) -> GraphState:
                             if docs:
                                 all_documents.append(docs[0].page_content)
                         except Exception as e:
+                            print(f"Error loading document {full_path}: {str(e)}")
                             # Use chunk content if error occurs
                             all_documents.append(chunk.page_content)
                     else:
                         # Use chunk content if file not found
+                        print(f"Source file not found: {source}")
                         all_documents.append(chunk.page_content)
         except Exception as e:
             # Continue with other knowledge bases if error occurs
+            print(f"Error processing knowledge base {knowledge_title}: {str(e)}")
             continue
     
     # Remove duplicates
