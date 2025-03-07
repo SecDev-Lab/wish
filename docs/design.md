@@ -14,7 +14,6 @@ graph TD
     B --> |Command execution functionality| C
     D --> |Log analysis functionality| C
     E --> |Command generation functionality| C
-    F --> |Knowledge base management| E
 ```
 
 ### Package Dependencies
