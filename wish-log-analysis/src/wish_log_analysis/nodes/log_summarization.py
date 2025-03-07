@@ -60,7 +60,7 @@ def summarize_log(state: GraphState) -> GraphState:
         command_result=state.command_result,
         command_state=state.command_state,
         analyzed_command_result=state.analyzed_command_result,
-        api_error=state.api_error
+        api_error=state.api_error,
     )
 
     # Get the command and exit code from the state
@@ -82,22 +82,14 @@ def summarize_log(state: GraphState) -> GraphState:
     prompt = PromptTemplate.from_template(LOG_SUMMARIZATION_PROMPT)
 
     # Initialize the OpenAI model
-    model = ChatOpenAI(
-        model=settings.openai_model,
-        api_key=settings.openai_api_key
-    )
+    model = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY)
 
     # Create the chain
     chain = prompt | model | StrOutputParser()
 
     # Generate the summary
     try:
-        summary = chain.invoke({
-            "command": command,
-            "exit_code": exit_code,
-            "stdout": stdout,
-            "stderr": stderr
-        })
+        summary = chain.invoke({"command": command, "exit_code": exit_code, "stdout": stdout, "stderr": stderr})
 
         # Set the log summary in the new state
         new_state.log_summary = summary
@@ -108,6 +100,7 @@ def summarize_log(state: GraphState) -> GraphState:
 
         # Log the error
         import logging
+
         logging.error(error_message)
         logging.error(f"Command: {command}")
         logging.error(f"Exit code: {exit_code}")

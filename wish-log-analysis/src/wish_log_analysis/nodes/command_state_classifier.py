@@ -54,7 +54,7 @@ def classify_command_state(state: GraphState) -> GraphState:
         command_result=state.command_result,
         log_summary=state.log_summary,
         analyzed_command_result=state.analyzed_command_result,
-        api_error=state.api_error
+        api_error=state.api_error,
     )
 
     # Get the command and exit code from the state
@@ -76,22 +76,16 @@ def classify_command_state(state: GraphState) -> GraphState:
     prompt = PromptTemplate.from_template(COMMAND_STATE_CLASSIFIER_PROMPT)
 
     # Initialize the OpenAI model
-    model = ChatOpenAI(
-        model=settings.openai_model,
-        api_key=settings.openai_api_key
-    )
+    model = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY)
 
     # Create the chain
     chain = prompt | model | StrOutputParser()
 
     # Generate the classification
     try:
-        classification_str = chain.invoke({
-            "command": command,
-            "exit_code": exit_code,
-            "stdout": stdout,
-            "stderr": stderr
-        }).strip()
+        classification_str = chain.invoke(
+            {"command": command, "exit_code": exit_code, "stdout": stdout, "stderr": stderr}
+        ).strip()
 
         # Convert the classification string to CommandState
         if classification_str == "SUCCESS":
@@ -118,6 +112,7 @@ def classify_command_state(state: GraphState) -> GraphState:
 
         # Log the error
         import logging
+
         logging.error(error_message)
         logging.error(f"Command: {command}")
         logging.error(f"Exit code: {exit_code}")
