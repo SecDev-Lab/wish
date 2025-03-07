@@ -117,12 +117,17 @@ def generate_commands(state: GraphState) -> GraphState:
 
     except json.JSONDecodeError as e:
         # JSON parse error
-        error_message = f"Failed to parse OpenAI API response as JSON: {str(e)}"
+        error_message = f"Error generating commands: Failed to parse OpenAI API response as JSON: {str(e)}"
         logging.error(f"JSON parse error: {str(e)}, Response: {response if 'response' in locals() else 'No response'}")
 
-        # Set error in state
+        # Set error in state with a fallback command that includes the error message
         state_dict = state.model_dump()
-        state_dict["command_inputs"] = []
+        state_dict["command_inputs"] = [
+            CommandInput(
+                command=f"echo '{error_message}'",
+                timeout_sec=None,
+            )
+        ]
         state_dict["error"] = error_message
 
     except Exception as e:
@@ -130,9 +135,14 @@ def generate_commands(state: GraphState) -> GraphState:
         error_message = f"Error generating commands: {str(e)}"
         logging.error(f"Error generating commands: {str(e)}")
 
-        # Set error in state
+        # Set error in state with a fallback command that includes the error message
         state_dict = state.model_dump()
-        state_dict["command_inputs"] = []
+        state_dict["command_inputs"] = [
+            CommandInput(
+                command=f"echo 'Error: {error_message}'",
+                timeout_sec=None,
+            )
+        ]
         state_dict["error"] = error_message
 
     return GraphState(**state_dict)
