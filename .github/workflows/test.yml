@@ -17,6 +17,7 @@ jobs:
         project:
           - wish-sh
           - wish-command-execution
+          - wish-command-generation
           - wish-models
       fail-fast: false
     steps:
@@ -44,6 +45,7 @@ jobs:
         project:
           - wish-sh
           - wish-command-execution
+          - wish-command-generation
           - wish-models
       fail-fast: false
     steps:
@@ -59,6 +61,9 @@ jobs:
 
       - name: Install the project
         run: cd ${{ matrix.project }} ; uv sync --all-extras --dev
+
+      - name: Setup environment variables for testing
+        run: cd ${{ matrix.project }} && [ -f .env.example ] && cp .env.example .env || echo "No .env.example file found"
 
       - name: Run tests
         run: cd ${{ matrix.project }} ; uv run pytest

@@ -4,9 +4,9 @@ from typing import List, Optional
 
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
+from wish_command_generation import CommandGenerator
 from wish_models import LogFiles, Wish, WishState
 
-from wish_sh.command_generation import LlmCommandGenerator, MockCommandGenerator
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
 
@@ -20,14 +20,8 @@ class WishManager:
         self.paths.ensure_directories()
         self.current_wish: Optional[Wish] = None
 
-        # Initialize command generator based on settings
-        if (hasattr(settings, 'use_llm') and settings.use_llm and
-                hasattr(settings, 'llm_api_key') and settings.llm_api_key):
-            self.command_generator = LlmCommandGenerator(
-                settings.llm_api_key, getattr(settings, 'llm_model', 'gpt-4')
-            )
-        else:
-            self.command_generator = MockCommandGenerator()
+        # Initialize command generation component
+        self.command_generator = CommandGenerator()
 
         # Initialize command execution components
         backend = BashBackend(log_summarizer=self.summarize_log)
@@ -110,7 +104,18 @@ class WishManager:
 
     def generate_commands(self, wish_text: str) -> List[str]:
         """Generate commands based on wish text."""
-        return self.command_generator.generate_commands(wish_text)
+        # Create a Wish object
+        wish_obj = Wish.create(wish_text)
+
+        # Generate commands using CommandGenerator
+        command_inputs = self.command_generator.generate_commands(wish_obj)
+
+        # Extract commands from the result
+        commands = []
+        for cmd_input in command_inputs:
+            commands.append(cmd_input.command)
+
+        return commands
 
     # Delegation to CommandExecutor
     def execute_command(self, wish: Wish, command: str, cmd_num: int):
