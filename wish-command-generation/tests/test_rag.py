@@ -111,7 +111,7 @@ class TestRag:
             with patch("pathlib.Path.iterdir") as mock_iterdir:
                 with patch("pathlib.Path.exists") as mock_exists:
                     with patch("langchain_community.vectorstores.Chroma") as mock_chroma:
-                        with patch("langchain_openai.OpenAIEmbeddings") as mock_embeddings:
+                        with patch("langchain_openai.OpenAIEmbeddings"):
                             with patch("langchain_community.document_loaders.TextLoader") as mock_loader:
                                 # Set up the mocks
                                 mock_expanduser.return_value = "/home/user/.wish"

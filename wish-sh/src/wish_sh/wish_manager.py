@@ -98,7 +98,7 @@ class WishManager:
 
     def generate_commands(self, wish_text: str) -> tuple[List[str], Optional[str]]:
         """Generate commands based on wish text.
-        
+
         Returns:
             A tuple of (commands, error_message). If error_message is not None,
             it indicates an error occurred during command generation.

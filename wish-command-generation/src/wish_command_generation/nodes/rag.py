@@ -30,7 +30,8 @@ def generate_query(state: GraphState) -> GraphState:
 # Example1
 
 タスク
-Perform a top-1000 frequently used port scan. Conduct a scan on IP 10.10.10.123 using some option to cover the most common ports.
+Perform a top-1000 frequently used port scan. Conduct a scan on IP 10.10.10.123 using some option to cover the most
+common ports.
 
 出力
 nmap fast top ports scan

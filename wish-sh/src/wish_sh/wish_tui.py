@@ -73,7 +73,10 @@ class CommandSuggestion(Screen):
             yield Vertical(
                 Label(f"Wish: {self.wish.wish}", id="wish-text", markup=False),
                 Static("Do you want to execute these commands?", id="confirmation-text", markup=False),
-                *(Label(f"[{i + 1}] {cmd}", id=f"command-{i + 1}", markup=False) for i, cmd in enumerate(self.commands)),
+                *(
+                    Label(f"[{i + 1}] {cmd}", id=f"command-{i + 1}", markup=False)
+                    for i, cmd in enumerate(self.commands)
+                ),
                 Container(
                     Button("Yes", id="yes-button", variant="success"),
                     Button("No", id="no-button", variant="error"),
