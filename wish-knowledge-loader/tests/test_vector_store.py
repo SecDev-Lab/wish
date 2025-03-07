@@ -59,6 +59,3 @@ class TestVectorStore:
             embedding=mock_embeddings_instance,
             persist_directory=str(settings.db_dir / title)
         )
-
-        # Check if persist method was called
-        mock_vectorstore.persist.assert_called_once()

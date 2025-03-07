@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_serializer
 
 from wish_models.utc_datetime import UtcDatetime
 
@@ -37,7 +37,7 @@ class KnowledgeMetadata(BaseModel):
 
     updated_at: UtcDatetime
     """Time when the knowledge base was last updated."""
-
+    
     @classmethod
     def from_json(cls, metadata_json: str) -> "KnowledgeMetadata":
         """Parse JSON string to KnowledgeMetadata.
@@ -68,7 +68,9 @@ class KnowledgeMetadata(BaseModel):
         Returns:
             JSON string representation of KnowledgeMetadata
         """
-        return self.model_dump_json(indent=2)
+        data = self.model_dump()
+        data["repo_path"] = str(self.repo_path)
+        return json.dumps(data, indent=2)
 
     def to_dict(self) -> dict:
         """Convert to dictionary.
@@ -76,7 +78,9 @@ class KnowledgeMetadata(BaseModel):
         Returns:
             Dictionary representation of KnowledgeMetadata
         """
-        return self.model_dump()
+        data = self.model_dump()
+        data["repo_path"] = str(self.repo_path)
+        return data
 
 
 class KnowledgeMetadataContainer(BaseModel):
@@ -115,7 +119,10 @@ class KnowledgeMetadataContainer(BaseModel):
         Returns:
             JSON string representation of KnowledgeMetadataContainer
         """
-        return self.model_dump_json(indent=2)
+        data = {"m": {}}
+        for k, v in self.m.items():
+            data["m"][k] = v.to_dict()
+        return json.dumps(data, indent=2)
 
     def to_dict(self) -> dict:
         """Convert to dictionary.
@@ -123,7 +130,10 @@ class KnowledgeMetadataContainer(BaseModel):
         Returns:
             Dictionary representation of KnowledgeMetadataContainer
         """
-        return self.model_dump()
+        data = {"m": {}}
+        for k, v in self.m.items():
+            data["m"][k] = v.to_dict()
+        return data
 
     @classmethod
     def load(cls, path: Path) -> "KnowledgeMetadataContainer":
@@ -135,11 +145,15 @@ class KnowledgeMetadataContainer(BaseModel):
         Returns:
             KnowledgeMetadataContainer instance
         """
-        if not path.exists():
+        if not path.exists() or path.stat().st_size == 0:
             return cls()
-        with open(path, "r") as f:
-            data = json.load(f)
-        return cls.from_dict(data)
+        try:
+            with open(path, "r") as f:
+                data = json.load(f)
+            return cls.from_dict(data)
+        except json.JSONDecodeError:
+            # If the file is corrupted, return a new instance
+            return cls()
 
     def save(self, path: Path) -> None:
         """Save metadata to a JSON file.
@@ -149,7 +163,7 @@ class KnowledgeMetadataContainer(BaseModel):
         """
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w") as f:
-            json.dump(self.to_dict(), f, indent=2)
+            f.write(self.to_json())
 
     def add(self, metadata: KnowledgeMetadata) -> None:
         """Add metadata to the container.

@@ -34,11 +34,9 @@ class VectorStore:
         db_path = self.settings.db_dir / title
 
         # Create vector store using Chroma
-        vectorstore = Chroma.from_documents(
+        # Note: Since Chroma 0.4.x, documents are automatically persisted
+        Chroma.from_documents(
             documents=documents,
             embedding=self.embeddings,
             persist_directory=str(db_path)
         )
-
-        # Persist vector store
-        vectorstore.persist()
