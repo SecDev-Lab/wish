@@ -56,6 +56,6 @@ class TestVectorStore:
         # Check if Chroma.from_documents was called with correct arguments
         mock_chroma.from_documents.assert_called_once_with(
             documents=documents,
-            embedding=mock_embeddings_instance,
+            embedding=vector_store.embeddings,
             persist_directory=str(settings.db_dir / title)
         )
