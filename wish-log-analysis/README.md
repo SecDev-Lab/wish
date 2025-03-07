@@ -37,4 +37,3 @@ OPENAI_MODEL=gpt-4o
 
 - English Prompt
 - API client/server
-
