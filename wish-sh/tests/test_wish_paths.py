@@ -1,7 +1,6 @@
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
-from wish_sh.settings import Settings
 from wish_sh.test_factories.settings_factory import SettingsFactory
 from wish_sh.wish_paths import WishPaths
 

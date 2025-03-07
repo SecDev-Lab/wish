@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, mock_open, patch
 from wish_models import WishState
 from wish_models.test_factories import WishDoingFactory, WishDoneFactory
 
-from wish_sh.settings import Settings
 from wish_sh.test_factories.settings_factory import SettingsFactory
 from wish_sh.wish_manager import WishManager
 from wish_sh.wish_paths import WishPaths

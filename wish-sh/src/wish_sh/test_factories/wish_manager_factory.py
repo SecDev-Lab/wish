@@ -1,6 +1,5 @@
 """Factory for WishManager."""
 
-import os
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -9,7 +8,6 @@ from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
 from wish_models import CommandState, UtcDatetime
 
-from wish_sh.settings import Settings
 from wish_sh.test_factories.settings_factory import SettingsFactory
 from wish_sh.wish_manager import WishManager
 
@@ -19,7 +17,7 @@ class WishManagerFactory(factory.Factory):
 
     class Meta:
         model = WishManager
-    
+
     # SettingsFactoryを使用
     settings = factory.SubFactory(SettingsFactory)
 
@@ -31,14 +29,14 @@ class WishManagerFactory(factory.Factory):
              patch.object(Path, "exists", return_value=True), \
              patch("builtins.open", new_callable=mock_open), \
              patch("wish_sh.wish_paths.WishPaths.ensure_directories"):
-            
+
             manager = super().create(**kwargs)
 
             # Initialize backend for testing
             backend = BashBackend(log_summarizer=manager.summarize_log)
             manager.executor = CommandExecutor(backend=backend, log_dir_creator=manager.create_command_log_dirs)
             manager.tracker = CommandStatusTracker(manager.executor, wish_saver=manager.save_wish)
-            
+
             # Mock file system related methods
             manager.paths.create_command_log_dirs = MagicMock(return_value=Path("/mock/path/to/logs"))
 
