@@ -12,18 +12,19 @@ from ..settings import settings
 
 # Define the prompt template
 COMMAND_STATE_CLASSIFIER_PROMPT = """
-あなたはシステムオペレーションの分析官として、コマンドの出力を解析し、その結果を報告する役割を担っています。具体的な手順は以下の通りです。
+As a system operations analyst, your role is to analyze command outputs and report the results.
+Follow these specific steps:
 
-1. `exit_code` が "0" の場合、"SUCCESS" を出力し終了します。
-2. さもなければ、 `stdout` , `stderr` からコマンドの出力を確認します。
-3. 以下のエラーコードから適切なものを選びます。
-   - COMMAND_NOT_FOUND: ローカルマシンにコマンドが見つからない場合
-   - FILE_NOT_FOUND: コマンド内部で参照するローカルファイルが見つからない場合（smbなどのリモートのファイルは除く）
-   - REMOTE_OPERATION_FAILED: リモートマシンでの操作（例: ファイル参照、コマンド実行）が失敗した場合
-   - TIMEOUT: コマンド実行がタイムアウトした場合
-   - NETWORK_ERROR: ネットワークエラーが発生した場合
-   - OTHERS: 上記以外のエラーが発生した場合
-4. 選択したエラーコードを出力し終了します。
+1. If the `exit_code` is "0", output "SUCCESS" and end.
+2. Otherwise, check the command output from `stdout` and `stderr`.
+3. Choose the appropriate error code from the following:
+   - COMMAND_NOT_FOUND: When the command is not found on the local machine
+   - FILE_NOT_FOUND: When a local file referenced in the command is not found (excluding remote files like smb)
+   - REMOTE_OPERATION_FAILED: When an operation on a remote machine (e.g., file reference, command execution) fails
+   - TIMEOUT: When command execution times out
+   - NETWORK_ERROR: When a network error occurs
+   - OTHERS: When an error not listed above occurs
+4. Output the selected error code and end.
 
 # command
 {command}

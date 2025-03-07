@@ -11,27 +11,29 @@ from ..settings import settings
 
 # Define the prompt template
 LOG_SUMMARIZATION_PROMPT = """
-あなたは、シェルコマンドとその実行結果のexit_code、stdout、stderrを受け取り、その結果を要約する役割を担っています。
-要約結果はコンテキストウィンドウが大きくないLLMに渡されるので、可能な限り短い必要があります。
+You are tasked with receiving a shell command and its execution results (exit_code, stdout, stderr)
+and summarizing the results.
+The summary will be passed to an LLM with a limited context window, so it needs to be as concise as possible.
 
-以下の手順に従ってタスクを完了してください。
+Please follow these steps to complete the task:
 
-1. exit_codeを確認します。exit_codeが0の場合と0以外の場合で要約の方法が異なります。
+1. Check the exit_code. The summarization method differs between exit_code 0 and non-zero.
 
-2. exit_codeが0の場合、次にペネトレーションテストを進めるために何をすべきかわかるための情報をすべて残しつつ、
-   可能な限り短く要約します。特に重要で必ず残すべき情報を例に挙げます:
-  - IPアドレス
-  - ポート番号
-  - ファイルパス
-  - ユーザー名
-  - バージョン情報
-  - 脆弱性・設定ミス項目
+2. If the exit_code is 0, summarize as concisely as possible while retaining all information needed
+   to understand what to do next for penetration testing.
+   Examples of important information that must be retained include:
+   - IP addresses
+   - Port numbers
+   - File paths
+   - Usernames
+   - Version information
+   - Vulnerability/misconfiguration items
 
-3. exit_codeが0以外の場合、コマンドが失敗した理由を簡潔化して要約します。
+3. If the exit_code is non-zero, concisely summarize the reason for the command failure.
 
-4. 出力には要約だけを記述してください。
+4. Only include the summary in your output.
 
-# コマンド
+# Command
 {command}
 
 # exit_code
