@@ -54,6 +54,15 @@ def summarize_log(state: GraphState) -> GraphState:
     Returns:
         Updated graph state with log summary.
     """
+    # Create a new state object to avoid modifying the original
+    # Only set the fields this node is responsible for
+    new_state = GraphState(
+        command_result=state.command_result,
+        command_state=state.command_state,
+        analyzed_command_result=state.analyzed_command_result,
+        api_error=state.api_error
+    )
+    
     # Get the command and exit code from the state
     command = state.command_result.command
     exit_code = state.command_result.exit_code
@@ -89,12 +98,23 @@ def summarize_log(state: GraphState) -> GraphState:
             "stdout": stdout,
             "stderr": stderr
         })
+        
+        # Set the log summary in the new state
+        new_state.log_summary = summary
+        
     except Exception as e:
-        # In case of any error, provide a fallback summary
-        summary = f"Error generating summary: {str(e)}"
+        # In case of any error, provide a fallback summary and log the error
+        error_message = f"Error generating summary: {str(e)}"
+        
+        # Log the error
+        import logging
+        logging.error(error_message)
+        logging.error(f"Command: {command}")
+        logging.error(f"Exit code: {exit_code}")
+        
+        # Set error information in the new state
+        new_state.log_summary = error_message
+        new_state.api_error = True
 
-    # Update the state
-    state_dict = state.model_dump()
-    state_dict["log_summary"] = summary
-
-    return GraphState(**state_dict)
+    # Return the new state
+    return new_state

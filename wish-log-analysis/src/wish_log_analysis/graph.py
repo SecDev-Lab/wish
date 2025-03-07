@@ -23,10 +23,9 @@ def create_log_analysis_graph(compile: bool = True) -> StateGraph:
     graph.add_node("command_state_classifier", command_state_classifier.classify_command_state)
     graph.add_node("result_combiner", result_combiner.combine_results)
 
-    # Add edges (parallel graph with combiner)
+    # Add edges for serial execution
     graph.add_edge(START, "log_summarization")
-    graph.add_edge(START, "command_state_classifier")
-    graph.add_edge("log_summarization", "result_combiner")
+    graph.add_edge("log_summarization", "command_state_classifier")
     graph.add_edge("command_state_classifier", "result_combiner")
     graph.add_edge("result_combiner", END)
 

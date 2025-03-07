@@ -49,6 +49,15 @@ def classify_command_state(state: GraphState) -> GraphState:
     Returns:
         Updated graph state with command state.
     """
+    # Create a new state object to avoid modifying the original
+    # Only set the fields this node is responsible for
+    new_state = GraphState(
+        command_result=state.command_result,
+        log_summary=state.log_summary,
+        analyzed_command_result=state.analyzed_command_result,
+        api_error=state.api_error
+    )
+    
     # Get the command and exit code from the state
     command = state.command_result.command
     exit_code = state.command_result.exit_code
@@ -100,12 +109,23 @@ def classify_command_state(state: GraphState) -> GraphState:
             command_state = CommandState.NETWORK_ERROR
         else:
             command_state = CommandState.OTHERS
+            
+        # Set the command state in the new state
+        new_state.command_state = command_state
+        
     except Exception as e:
-        # In case of any error, provide a fallback classification
-        command_state = CommandState.OTHERS
+        # In case of any error, log it and set API_ERROR state
+        error_message = f"Error classifying command state: {str(e)}"
+        
+        # Log the error
+        import logging
+        logging.error(error_message)
+        logging.error(f"Command: {command}")
+        logging.error(f"Exit code: {exit_code}")
+        
+        # Set error information in the new state
+        new_state.command_state = CommandState.API_ERROR
+        new_state.api_error = True
 
-    # Update the state
-    state_dict = state.model_dump()
-    state_dict["command_state"] = command_state
-
-    return GraphState(**state_dict)
+    # Return the new state
+    return new_state

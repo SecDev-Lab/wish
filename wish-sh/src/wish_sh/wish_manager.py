@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 from typing import List, Optional
 
@@ -7,6 +8,7 @@ from wish_command_execution.backend import BashBackend
 from wish_command_generation import CommandGenerator
 from wish_log_analysis import LogAnalyzer
 from wish_models import CommandResult, LogFiles, Wish, WishState
+from wish_models.command_result.command_state import CommandState
 
 from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
@@ -52,9 +54,27 @@ class WishManager:
         Returns:
             The analyzed command result with log_summary and state set.
         """
-        # LogAnalyzerを使用して分析
-        analyzed_result = self.log_analyzer.analyze_result(command_result)
-        return analyzed_result
+        try:
+            # LogAnalyzerを使用して分析
+            analyzed_result = self.log_analyzer.analyze_result(command_result)
+            return analyzed_result
+        except Exception as e:
+            # Log the error
+            logging.error(f"Error analyzing log: {str(e)}")
+            
+            # Create a copy of the command result with error information
+            error_result = CommandResult(
+                num=command_result.num,
+                command=command_result.command,
+                exit_code=command_result.exit_code,
+                log_files=command_result.log_files,
+                log_summary=f"Error analyzing command: {str(e)}",
+                state=CommandState.API_ERROR,
+                created_at=command_result.created_at,
+                finished_at=command_result.finished_at
+            )
+            
+            return error_result
 
     # WishManager functions
     def load_wishes(self, limit: int = 10) -> List[Wish]:
