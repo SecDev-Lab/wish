@@ -207,7 +207,7 @@ class CommandExecutionScreen(Screen):
                 cmd_result.log_summary = None
 
         # Update UI to show "Retrying..." status
-        for i, cmd_result in enumerate(self.wish.command_results):
+        for _i, cmd_result in enumerate(self.wish.command_results):
             if cmd_result.state == CommandState.DOING:
                 status_widget = self.query_one(f"#command-status-{cmd_result.num}")
                 status_widget.update("Retrying analysis...")

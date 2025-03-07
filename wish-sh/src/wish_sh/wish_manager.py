@@ -47,10 +47,10 @@ class WishManager:
 
     def analyze_log(self, command_result: CommandResult) -> CommandResult:
         """Analyze command logs using LogAnalyzer.
-        
+
         Args:
             command_result: The command result to analyze.
-            
+
         Returns:
             The analyzed command result with log_summary and state set.
         """

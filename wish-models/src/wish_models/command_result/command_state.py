@@ -1,7 +1,7 @@
-import enum
+from enum import Enum
 
 
-class CommandState(str, enum.Enum):
+class CommandState(str, Enum):
     """Enumeration of ExitClass."""
 
     DOING = "DOING"

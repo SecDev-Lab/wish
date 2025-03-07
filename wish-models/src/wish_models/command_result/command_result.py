@@ -1,5 +1,4 @@
 import json
-from typing import Callable
 
 from pydantic import BaseModel
 

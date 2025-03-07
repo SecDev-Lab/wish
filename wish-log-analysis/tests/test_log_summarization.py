@@ -15,8 +15,8 @@ from wish_log_analysis.test_factories import CommandResultFactory, GraphStateFac
 def mock_chain():
     """Mock the chain used in summarize_log."""
     with patch("wish_log_analysis.nodes.log_summarization.PromptTemplate") as mock_prompt:
-        with patch("wish_log_analysis.nodes.log_summarization.ChatOpenAI") as mock_chat:
-            with patch("wish_log_analysis.nodes.log_summarization.StrOutputParser") as mock_parser:
+        with patch("wish_log_analysis.nodes.log_summarization.ChatOpenAI") as _:
+            with patch("wish_log_analysis.nodes.log_summarization.StrOutputParser") as _:
                 # Set up the mock chain
                 mock_chain = MagicMock()
                 mock_chain.invoke.return_value = "Mocked summary"

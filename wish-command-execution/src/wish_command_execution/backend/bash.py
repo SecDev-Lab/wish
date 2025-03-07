@@ -14,7 +14,7 @@ class BashBackend(Backend):
 
     def __init__(self, log_summarizer=None):
         """Initialize the bash backend.
-        
+
         Args:
             log_summarizer: Optional function to summarize logs. If provided, it will be used
                 to generate log summaries when commands finish.
@@ -73,7 +73,7 @@ class BashBackend(Backend):
         log_summary = None
         if self.log_summarizer:
             log_summary = self.log_summarizer(result.log_files)
-            
+
         result.finish(
             exit_code=exit_code,
             state=state,
@@ -94,7 +94,7 @@ class BashBackend(Backend):
                 log_summary = None
                 if self.log_summarizer:
                     log_summary = self.log_summarizer(result.log_files)
-                    
+
                 result.finish(
                     exit_code=process.returncode,
                     log_summary=log_summary
@@ -136,7 +136,7 @@ class BashBackend(Backend):
             log_summary = None
             if self.log_summarizer:
                 log_summary = self.log_summarizer(result.log_files)
-                
+
             result.finish(
                 exit_code=-1,  # Use -1 for cancelled commands
                 state=CommandState.USER_CANCELLED,

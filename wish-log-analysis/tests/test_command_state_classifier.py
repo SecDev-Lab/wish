@@ -16,8 +16,8 @@ from wish_log_analysis.test_factories import CommandResultFactory, GraphStateFac
 def mock_chain():
     """Mock the chain used in classify_command_state."""
     with patch("wish_log_analysis.nodes.command_state_classifier.PromptTemplate") as mock_prompt:
-        with patch("wish_log_analysis.nodes.command_state_classifier.ChatOpenAI") as mock_chat:
-            with patch("wish_log_analysis.nodes.command_state_classifier.StrOutputParser") as mock_parser:
+        with patch("wish_log_analysis.nodes.command_state_classifier.ChatOpenAI") as _:
+            with patch("wish_log_analysis.nodes.command_state_classifier.StrOutputParser") as _:
                 # Set up the mock chain
                 mock_chain = MagicMock()
                 mock_chain.invoke.return_value = "SUCCESS"

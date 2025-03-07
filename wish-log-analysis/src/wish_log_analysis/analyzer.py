@@ -66,7 +66,8 @@ class LogAnalyzer:
 
             # For LangGraph specific errors, provide more context
             if "Can receive only one value per step" in str(e):
-                logging.error("LangGraph parallel execution error. This may be due to concurrent updates to the same state field.")
+                logging.error("LangGraph parallel execution error. "
+                              "This may be due to concurrent updates to the same state field.")
                 logging.error("Check if Annotated types are properly configured in GraphState model.")
 
             # Create a copy of the command result with error information
