@@ -49,7 +49,8 @@ class TestVectorStore:
         # Check if OpenAIEmbeddings was created with correct arguments
         mock_embeddings.assert_called_once_with(
             api_key=settings.OPENAI_API_KEY,
-            model=settings.OPENAI_MODEL
+            model=settings.OPENAI_MODEL,
+            disallowed_special=()
         )
 
         # Check if Chroma.from_documents was called with correct arguments

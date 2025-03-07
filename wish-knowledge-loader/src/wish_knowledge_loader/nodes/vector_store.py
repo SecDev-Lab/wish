@@ -1,8 +1,8 @@
 """Vector store functionality."""
 
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.schema import Document
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 
 from wish_knowledge_loader.settings import Settings
 
@@ -19,7 +19,8 @@ class VectorStore:
         self.settings = settings
         self.embeddings = OpenAIEmbeddings(
             api_key=settings.OPENAI_API_KEY,
-            model=settings.OPENAI_MODEL
+            model=settings.OPENAI_MODEL,
+            disallowed_special=()  # Disable special token checking
         )
 
     def store(self, title: str, documents: list[Document]) -> None:
