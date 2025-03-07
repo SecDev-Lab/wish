@@ -44,6 +44,12 @@ class UIUpdater:
                 status = f"Status: {result.state.value}"
                 if result.exit_code is not None:
                     status += f" (exit code: {result.exit_code})"
+                
+                # Add execution time if command is finished
+                if result.finished_at and result.created_at:
+                    execution_time = result.finished_at - result.created_at
+                    status += f"\nExecution time: {execution_time}"
+                
                 if result.log_summary:
                     status += f"\nSummary: {result.log_summary}"
 

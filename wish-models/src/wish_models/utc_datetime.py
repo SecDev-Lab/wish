@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from pydantic import BaseModel, model_serializer, model_validator
 
@@ -59,3 +59,20 @@ class UtcDatetime(BaseModel):
         local_dt = self.v.astimezone(tz)
         # Format according to the specified format
         return local_dt.strftime(format_str)
+        
+    def __sub__(self, other: "UtcDatetime") -> timedelta:
+        """Subtract another UtcDatetime from this one.
+        
+        Args:
+            other: Another UtcDatetime object to subtract
+            
+        Returns:
+            A timedelta object representing the time difference
+            
+        Raises:
+            TypeError: If other is not a UtcDatetime object
+        """
+        if not isinstance(other, UtcDatetime):
+            raise TypeError(f"unsupported operand type(s) for -: 'UtcDatetime' and '{type(other).__name__}'")
+        
+        return self.v - other.v

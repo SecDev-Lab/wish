@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from wish_models.utc_datetime import UtcDatetime
 
 
@@ -49,3 +51,38 @@ class TestUtcDatetime:
         jst_dt = dt.astimezone(jst)
         expected_jst = jst_dt.strftime('%Y-%m-%d %H:%M:%S')
         assert utc_dt.to_local_str(tz=jst) == expected_jst
+        
+    def test_utc_datetime_subtraction(self):
+        """Test subtraction between two UtcDatetime objects."""
+        # 2つのUtcDatetimeオブジェクトを作成
+        dt1 = UtcDatetime(datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
+        dt2 = UtcDatetime(datetime(2023, 1, 1, 10, 30, 0, tzinfo=timezone.utc))
+        
+        # 減算を実行
+        diff = dt1 - dt2
+        
+        # 結果を検証
+        assert isinstance(diff, timedelta)
+        assert diff.total_seconds() == 5400  # 1時間30分 = 5400秒
+    
+    def test_utc_datetime_subtraction_edge_cases(self):
+        """Test edge cases for UtcDatetime subtraction."""
+        # 同じ時間のケース
+        dt1 = UtcDatetime(datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
+        dt2 = UtcDatetime(datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
+        assert (dt1 - dt2).total_seconds() == 0
+        
+        # 未来から過去を引くケース（負の結果）
+        dt3 = UtcDatetime(datetime(2023, 1, 1, 10, 0, 0, tzinfo=timezone.utc))
+        dt4 = UtcDatetime(datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
+        assert (dt3 - dt4).total_seconds() == -7200  # -2時間 = -7200秒
+    
+    def test_utc_datetime_subtraction_type_error(self):
+        """Test that TypeError is raised when subtracting non-UtcDatetime objects."""
+        dt = UtcDatetime(datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
+        
+        with pytest.raises(TypeError):
+            dt - "not a datetime"
+        
+        with pytest.raises(TypeError):
+            dt - datetime.now()
