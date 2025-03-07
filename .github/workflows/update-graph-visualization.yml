@@ -24,6 +24,9 @@ jobs:
         with:
           ref: ${{ github.head_ref }}  # checkout the topic branch in a PR
       
+      - name: Install Graphviz
+        run: sudo apt-get install -y graphviz
+      
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
@@ -34,9 +37,6 @@ jobs:
       
       - name: Install the project
         run: cd ${{ matrix.project }} ; uv sync --all-extras --dev
-      
-      - name: Install Graphviz
-        run: sudo apt-get install -y graphviz
       
       - name: Generate graph visualization
         run: uv run python ${{ matrix.project }}/scripts/update_graph_visualization.py
