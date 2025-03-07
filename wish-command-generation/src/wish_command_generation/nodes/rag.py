@@ -1,50 +1,158 @@
 """RAG-related node functions for the command generation graph."""
 
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+
 from ..models import GraphState
 
 
 def generate_query(state: GraphState) -> GraphState:
-    """Generate a query for RAG search from the task"""
-    # Mock implementation for testing
-    # In the actual implementation, LangChain will be used to generate queries
+    """Generate a query for RAG search from the task using LLM"""
+    # Use LLM to generate a query
+    from ..settings import settings
+    
+    model = ChatOpenAI(
+        model=settings.OPENAI_MODEL,
+        api_key=settings.OPENAI_API_KEY
+    )
+    
+    prompt = PromptTemplate.from_template(
+        """あなたは合法なペネトレーションテストに従事しているAIです。
 
-    # Generate a simple query based on the task
-    task = state.wish.wish.lower()
+ペネトレーションテストのディレクターから実行すべきタスクについての指示を受けます。あなたの仕事は、ペネトレーションテストに使うコマンドやパラメーターを検索することです。
+あなたの出力をEthical Hackingの知識ベースの検索クエリとし、具体的なコマンドを組み立てるためのドキュメントを検索します。
 
-    if "port scan" in task:
-        query = "nmap port scan techniques"
-    elif "vulnerability" in task:
-        query = "vulnerability assessment tools kali linux"
-    else:
-        query = "penetration testing commands kali linux"
+検索のためのクエリなので、キーワードを英語でスペース区切りで列挙してください。高々20 words程度になるようにしてください。
 
-    # Save the query to the state
+もし現時点でタスク実行に有効なコマンド名が思いついていたら、それを検索クエリに入れてください。
+
+# Example1
+
+タスク
+Perform a top-1000 frequently used port scan. Conduct a scan on IP 10.10.10.123 using some option to cover the most common ports.
+
+出力
+nmap fast top ports scan
+
+# Example2
+
+タスク
+Reverse Shell Construction and Upload. Create and upload a reverse shell.
+
+出力
+FTP upload reverse shell user interaction batch
+
+# タスク
+{task}
+
+# 出力
+"""
+    )
+    
+    chain = prompt | model | StrOutputParser()
+    query = chain.invoke({"task": state.wish.wish})
+    
+    # Update state
     state_dict = state.model_dump()
     state_dict["query"] = query
-
+    
     return GraphState(**state_dict)
 
 
 def retrieve_documents(state: GraphState) -> GraphState:
-    """Retrieve relevant documents using the generated query"""
-    # Here we are using a placeholder for the actual RAG implementation
-    # In the actual implementation, you need to set up a vector store or retriever
-
-    # Placeholder results
-    context = [
-        "# nmap command\nnmap is a network scanning tool.\nBasic usage: nmap [options] [target]\n\n"
-        "Main options:\n-p: Port specification\n-sV: Version detection\n"
-        "-A: OS detection, version detection, script scanning, traceroute\n"
-        "-T4: Scan speed setting (0-5, higher is faster)",
-        "# rustscan\nrustscan is a fast port scanner.\n"
-        "Basic usage: rustscan -a [target IP] -- [nmap options]\n\n"
-        "Main options:\n-r: Port range specification (e.g., -r 1-1000)\n"
-        "-b: Batch size (number of simultaneous connections)\n"
-        "--scripts: Execute nmap scripts"
-    ]
-
-    # Update the state
+    """Retrieve relevant documents using the generated query from ChromaDB"""
+    import os
+    from pathlib import Path
+    from langchain_community.vectorstores import Chroma
+    from langchain_openai import OpenAIEmbeddings
+    from langchain_community.document_loaders import TextLoader
+    
+    from ..settings import settings
+    
+    # Return empty context if no query is available
+    if not state.query:
+        state_dict = state.model_dump()
+        state_dict["context"] = []
+        return GraphState(**state_dict)
+    
+    # Get knowledge base path
+    wish_home = Path(settings.WISH_HOME)
+    knowledge_dir = wish_home / "knowledge" / "db"
+    
+    # Get available knowledge bases
+    available_knowledge = [d.name for d in knowledge_dir.iterdir() if d.is_dir()]
+    
+    if not available_knowledge:
+        # Return empty context if no knowledge bases are available
+        state_dict = state.model_dump()
+        state_dict["context"] = []
+        return GraphState(**state_dict)
+    
+    # Initialize embeddings
+    embeddings = OpenAIEmbeddings(
+        model=settings.EMBEDDING_MODEL,
+        api_key=settings.OPENAI_API_KEY,
+        disallowed_special=()
+    )
+    
+    # Collect search results from all knowledge bases
+    all_documents = []
+    
+    for knowledge_title in available_knowledge:
+        db_path = knowledge_dir / knowledge_title
+        repo_path = wish_home / "knowledge" / "repo" / knowledge_title.split('/')[-1]
+        
+        try:
+            # Load vector store
+            vectorstore = Chroma(
+                persist_directory=str(db_path),
+                embedding_function=embeddings
+            )
+            
+            # Search for similar documents
+            chunks = vectorstore.similarity_search(state.query, k=2)
+            
+            # Get source document for each chunk
+            for chunk in chunks:
+                source = chunk.metadata.get('source')
+                if source:
+                    # Resolve source file path
+                    full_path = None
+                    if source.startswith('/'):
+                        # Absolute path
+                        full_path = source
+                    else:
+                        # Relative path - try to find in repo directory
+                        full_path = repo_path / source
+                        if not full_path.exists():
+                            # Try alternative paths
+                            alt_path = Path(source)
+                            if alt_path.exists():
+                                full_path = alt_path
+                    
+                    # If file exists, load full content
+                    if full_path and Path(full_path).exists():
+                        try:
+                            loader = TextLoader(str(full_path))
+                            docs = loader.load()
+                            if docs:
+                                all_documents.append(docs[0].page_content)
+                        except Exception as e:
+                            # Use chunk content if error occurs
+                            all_documents.append(chunk.page_content)
+                    else:
+                        # Use chunk content if file not found
+                        all_documents.append(chunk.page_content)
+        except Exception as e:
+            # Continue with other knowledge bases if error occurs
+            continue
+    
+    # Remove duplicates
+    unique_documents = list(set(all_documents))
+    
+    # Update state
     state_dict = state.model_dump()
-    state_dict["context"] = context
-
+    state_dict["context"] = unique_documents
+    
     return GraphState(**state_dict)
