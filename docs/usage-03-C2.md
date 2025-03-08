@@ -37,7 +37,7 @@ If you haven't already set up Sliver C2, follow these steps:
    ```
    This will create a configuration file (e.g., `wish_127.0.0.1.cfg`) that wish-sh will use to connect to the Sliver server.
 
-5. Generate and deploy a Sliver implant to your target system.
+5. Generate, deploy, and launch a Sliver implant to your target system (eusure a session has been established).
 
 ### Using wish-sh with Sliver C2
 
