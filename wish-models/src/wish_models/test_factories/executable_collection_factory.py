@@ -30,11 +30,11 @@ class ExecutableCollectionFactory(factory.Factory):
     def create_with_directory_structure(cls, directory_structure: dict) -> ExecutableCollection:
         """
         Create an ExecutableCollection with a specified directory structure.
-        
+
         Args:
             directory_structure: A dictionary where keys are directories and values are lists of filenames
                                 Example: {"/usr/bin": ["ls", "grep"], "/usr/local/bin": ["python"]}
-        
+
         Returns:
             ExecutableCollection: A collection with the specified directory structure
         """

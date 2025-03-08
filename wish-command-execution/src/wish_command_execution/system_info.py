@@ -16,10 +16,10 @@ class SystemInfoCollector:
     async def collect_basic_info_from_session(session) -> SystemInfo:
         """
         Collect basic system information from a Sliver session.
-        
+
         Args:
             session: Sliver InteractiveSession object
-            
+
         Returns:
             SystemInfo: Collected basic system information
         """
@@ -37,14 +37,16 @@ class SystemInfoCollector:
         return info
 
     @staticmethod
-    async def collect_executables_from_session(session, collect_system_executables: bool = False) -> ExecutableCollection:
+    async def collect_executables_from_session(
+        session, collect_system_executables: bool = False
+    ) -> ExecutableCollection:
         """
         Collect executable files information from a Sliver session.
-        
+
         Args:
             session: Sliver InteractiveSession object
             collect_system_executables: Whether to collect executables from the entire system
-            
+
         Returns:
             ExecutableCollection: Collection of executables
         """
@@ -66,14 +68,16 @@ class SystemInfoCollector:
             return ExecutableCollection()
 
     @staticmethod
-    async def collect_from_session(session, collect_system_executables: bool = False) -> Tuple[SystemInfo, ExecutableCollection]:
+    async def collect_from_session(
+        session, collect_system_executables: bool = False
+    ) -> Tuple[SystemInfo, ExecutableCollection]:
         """
         Collect both system information and executables from a Sliver session.
-        
+
         Args:
             session: Sliver InteractiveSession object
             collect_system_executables: Whether to collect executables from the entire system
-            
+
         Returns:
             Tuple[SystemInfo, ExecutableCollection]: Collected system information and executables
         """
@@ -81,7 +85,9 @@ class SystemInfoCollector:
         info = await SystemInfoCollector.collect_basic_info_from_session(session)
 
         # Collect executables
-        executables = await SystemInfoCollector.collect_executables_from_session(session, collect_system_executables)
+        executables = await SystemInfoCollector.collect_executables_from_session(
+            session, collect_system_executables
+        )
 
         return info, executables
 
@@ -89,10 +95,10 @@ class SystemInfoCollector:
     async def _collect_path_executables(session) -> ExecutableCollection:
         """
         Execute commands to collect executables in PATH.
-        
+
         Args:
             session: Sliver InteractiveSession object
-            
+
         Returns:
             ExecutableCollection: Collection of executables in PATH
         """
@@ -132,14 +138,25 @@ class SystemInfoCollector:
                 return collection
 
             # 以下は元のコマンドをフォールバックとして保持
-            cmd = "echo $PATH | tr ':' '\\n' | xargs -I {} find {} -type f -executable -not -path \"*/\\.*\" 2>/dev/null"
+            cmd = (
+                "echo $PATH | tr ':' '\\n' | xargs -I {} find {} -type f -executable "
+                "-not -path \"*/\\.*\" 2>/dev/null"
+            )
             if "darwin" in os_type:
-                cmd = "echo $PATH | tr ':' '\\n' | xargs -I {} find {} -type f -perm +111 -not -path \"*/\\.*\" 2>/dev/null"
+                cmd = (
+                    "echo $PATH | tr ':' '\\n' | xargs -I {} find {} -type f -perm +111 "
+                    "-not -path \"*/\\.*\" 2>/dev/null"
+                )
 
             # Add size and permissions
             cmd += " | xargs -I {} sh -c 'ls -la \"{}\" | awk \"{ print \\$1,\\$5,\\$9 }\"'"
         elif "windows" in os_type:
-            cmd = "$env:path -split ';' | ForEach-Object { Get-ChildItem -Path $_ -Include *.exe,*.bat,*.cmd -ErrorAction SilentlyContinue | Select-Object FullName,Length | ForEach-Object { $_.FullName + \",\" + $_.Length } }"
+            cmd = (
+                "$env:path -split ';' | ForEach-Object { "
+                "Get-ChildItem -Path $_ -Include *.exe,*.bat,*.cmd -ErrorAction SilentlyContinue | "
+                "Select-Object FullName,Length | "
+                "ForEach-Object { $_.FullName + \",\" + $_.Length } }"
+            )
         else:
             return collection  # Empty collection for unknown OS
 
@@ -179,10 +196,10 @@ class SystemInfoCollector:
     async def _collect_system_executables(session) -> ExecutableCollection:
         """
         Execute commands to collect system-wide executables.
-        
+
         Args:
             session: Sliver InteractiveSession object
-            
+
         Returns:
             ExecutableCollection: Collection of system-wide executables
         """
@@ -191,11 +208,25 @@ class SystemInfoCollector:
 
         if "linux" in os_type:
             # This command can take a long time, so we limit to common executable directories
-            cmd = "find /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin -type f -executable -not -path \"*/\\.*\" 2>/dev/null | xargs -I {} sh -c 'ls -la \"{}\" | awk \"{ print \\$1,\\$5,\\$9 }\"'"
+            cmd = (
+                "find /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin "
+                "-type f -executable -not -path \"*/\\.*\" 2>/dev/null | "
+                "xargs -I {} sh -c 'ls -la \"{}\" | awk \"{ print \\$1,\\$5,\\$9 }\"'"
+            )
         elif "darwin" in os_type:
-            cmd = "find /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin -type f -perm +111 -not -path \"*/\\.*\" 2>/dev/null | xargs -I {} sh -c 'ls -la \"{}\" | awk \"{ print \\$1,\\$5,\\$9 }\"'"
+            cmd = (
+                "find /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin "
+                "-type f -perm +111 -not -path \"*/\\.*\" 2>/dev/null | "
+                "xargs -I {} sh -c 'ls -la \"{}\" | awk \"{ print \\$1,\\$5,\\$9 }\"'"
+            )
         elif "windows" in os_type:
-            cmd = "Get-ChildItem -Path C:\\Windows\\System32,C:\\Windows,C:\\Windows\\System32\\WindowsPowerShell\\v1.0 -Include *.exe,*.bat,*.cmd -Recurse -ErrorAction SilentlyContinue | Select-Object FullName,Length | ForEach-Object { $_.FullName + \",\" + $_.Length }"
+            cmd = (
+                "Get-ChildItem -Path C:\\Windows\\System32,C:\\Windows,"
+                "C:\\Windows\\System32\\WindowsPowerShell\\v1.0 "
+                "-Include *.exe,*.bat,*.cmd -Recurse -ErrorAction SilentlyContinue | "
+                "Select-Object FullName,Length | "
+                "ForEach-Object { $_.FullName + \",\" + $_.Length }"
+            )
         else:
             return collection  # Empty collection for unknown OS
 
@@ -235,10 +266,10 @@ class SystemInfoCollector:
     def collect_local_system_info(collect_system_executables: bool = False) -> SystemInfo:
         """
         Collect system information from the local system.
-        
+
         Args:
             collect_system_executables: Whether to collect executables from the entire system
-            
+
         Returns:
             SystemInfo: Collected system information
         """
@@ -258,14 +289,11 @@ class SystemInfoCollector:
             info.uid = str(os.getuid())
             info.gid = str(os.getgid())
 
-        # Collect executables in PATH
         # Note: We don't set path_executables and system_executables directly on the SystemInfo object
         # as these fields were removed when we split the models
-        path_executables = SystemInfoCollector._collect_local_path_executables()
-
-        # Optionally collect system-wide executables
+        # We still collect them for testing purposes, but they are not used
         if collect_system_executables:
-            system_executables = SystemInfoCollector._collect_local_system_executables()
+            SystemInfoCollector._collect_local_system_executables()
 
         return info
 
@@ -273,7 +301,7 @@ class SystemInfoCollector:
     def _collect_local_path_executables() -> ExecutableCollection:
         """
         Collect executables in PATH from the local system.
-        
+
         Returns:
             ExecutableCollection: Collection of executables in PATH
         """
@@ -316,7 +344,7 @@ class SystemInfoCollector:
     def _collect_local_system_executables() -> ExecutableCollection:
         """
         Collect system-wide executables from the local system.
-        
+
         Returns:
             ExecutableCollection: Collection of system-wide executables
         """

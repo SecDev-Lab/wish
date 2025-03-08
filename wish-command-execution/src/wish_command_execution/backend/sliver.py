@@ -230,7 +230,7 @@ class SliverBackend(Backend):
 
     async def get_basic_system_info(self) -> SystemInfo:
         """Get basic system information from the Sliver session.
-        
+
         Returns:
             SystemInfo: Collected basic system information
         """
@@ -247,10 +247,10 @@ class SliverBackend(Backend):
 
     async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
         """Get executable files information from the Sliver session.
-        
+
         Args:
             collect_system_executables: Whether to collect executables from the entire system
-            
+
         Returns:
             ExecutableCollection: Collection of executables
         """
@@ -271,10 +271,10 @@ class SliverBackend(Backend):
 
     async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
         """Get system information from the Sliver session.
-        
+
         Args:
             collect_system_executables: Whether to collect executables from the entire system
-            
+
         Returns:
             SystemInfo: Collected system information
         """

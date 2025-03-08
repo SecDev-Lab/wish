@@ -142,7 +142,7 @@ class BashBackend(Backend):
 
     async def get_basic_system_info(self) -> SystemInfo:
         """Get basic system information from the local system.
-        
+
         Returns:
             SystemInfo: Collected basic system information
         """
@@ -166,10 +166,10 @@ class BashBackend(Backend):
 
     async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
         """Get executable files information from the local system.
-        
+
         Args:
             collect_system_executables: Whether to collect executables from the entire system
-            
+
         Returns:
             ExecutableCollection: Collection of executables
         """
@@ -188,10 +188,10 @@ class BashBackend(Backend):
 
     async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
         """Get system information from the local system.
-        
+
         Args:
             collect_system_executables: Whether to collect executables from the entire system
-            
+
         Returns:
             SystemInfo: Collected system information
         """
