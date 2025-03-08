@@ -1,11 +1,12 @@
 import asyncio
-from typing import Optional
+from typing import List, Optional
 
 from textual import on
 from textual.app import App, ComposeResult
-from textual.containers import Container, Vertical
+from textual.containers import Container, Vertical, ScrollableContainer
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
+from wish_command_execution import SystemInfo
 from wish_models import Wish, WishState
 from wish_models.command_result.command_state import CommandState
 
@@ -35,6 +36,12 @@ class WishInput(Screen):
             # Create a new wish
             wish = Wish.create(wish_text)
             wish.state = WishState.DOING
+
+            # Check if this is a system information collection wish
+            if any(keyword in wish_text.lower() for keyword in ["system information", "os", "operating system", "executable", "system info"]):
+                # Show system information directly
+                asyncio.create_task(self.app.show_system_info(wish))
+                return
 
             # Generate commands using WishManager
             commands, error = self.app.wish_manager.generate_commands(wish_text)
@@ -102,6 +109,49 @@ class CommandSuggestion(Screen):
     def on_back_button_pressed(self) -> None:
         """Handle back button press."""
         # Go back to wish input screen
+        self.app.pop_screen()
+
+
+class SystemInfoScreen(Screen):
+    """Screen for displaying system information."""
+
+    def __init__(self, system_info: SystemInfo) -> None:
+        """Initialize the system information screen.
+
+        Args:
+            system_info: The system information to display.
+        """
+        super().__init__()
+        self.system_info = system_info
+
+    def compose(self) -> ComposeResult:
+        """Compose the system information screen."""
+        yield Header(show_clock=True)
+        yield ScrollableContainer(
+            Vertical(
+                Label("System Information", id="system-info-title"),
+                Static(f"OS: {self.system_info.os_name} {self.system_info.os_version}", id="os-info"),
+                Static(f"Architecture: {self.system_info.architecture or 'Unknown'}", id="arch-info"),
+                Static(f"Hostname: {self.system_info.hostname or 'Unknown'}", id="hostname-info"),
+                Static(f"Username: {self.system_info.username or 'Unknown'}", id="username-info"),
+                Label("Executable Files", id="executables-title"),
+                *(
+                    Static(exe, id=f"executable-{i}")
+                    for i, exe in enumerate(self.system_info.executables[:100])  # Limit display count
+                ),
+                Static(f"... {len(self.system_info.executables) - 100} more files" if len(self.system_info.executables) > 100 else "", id="more-executables"),
+                Container(
+                    Button("Back", id="back-button"),
+                    id="button-container",
+                ),
+                id="system-info-container",
+            )
+        )
+        yield Footer()
+
+    @on(Button.Pressed, "#back-button")
+    def on_back_button_pressed(self) -> None:
+        """Handle back button press."""
         self.app.pop_screen()
 
 
@@ -250,6 +300,29 @@ class WishApp(App):
     TITLE = "Wish Shell"
     SCREENS = {"wish_input": WishInput}
     BINDINGS = [("escape", "quit", "Quit")]
+    
+    async def show_system_info(self, wish: Wish) -> None:
+        """Show system information.
+        
+        Args:
+            wish: The wish to collect system information for.
+        """
+        # Create a loading screen or message
+        loading_screen = Static("Collecting system information...", id="loading-message")
+        self.mount(loading_screen)
+        
+        try:
+            # Collect system information
+            system_info = await self.wish_manager.collect_system_info(wish)
+            
+            # Remove loading screen
+            loading_screen.remove()
+            
+            # Show system information screen
+            self.push_screen(SystemInfoScreen(system_info))
+        except Exception as e:
+            # Handle errors
+            loading_screen.update(f"Error collecting system information: {str(e)}")
 
     def __init__(self, backend_config=None):
         """Initialize the Wish TUI application.

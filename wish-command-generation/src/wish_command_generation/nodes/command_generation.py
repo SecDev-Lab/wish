@@ -73,6 +73,10 @@ def generate_commands(state: GraphState) -> GraphState:
     # Get the task from the state
     task = state.wish.wish
 
+    # Check if this is a system information collection wish
+    if any(keyword in task.lower() for keyword in ["system information", "os", "operating system", "executable", "system info"]):
+        return generate_system_info_commands(state)
+
     # Get the context from the state (if available)
     context = "\n".join(state.context) if state.context else "参考ドキュメントはありません。"
 
@@ -145,4 +149,61 @@ def generate_commands(state: GraphState) -> GraphState:
         ]
         state_dict["error"] = error_message
 
+    return GraphState(**state_dict)
+
+
+def generate_system_info_commands(state: GraphState) -> GraphState:
+    """Generate system information collection commands.
+    
+    Args:
+        state: The current graph state.
+        
+    Returns:
+        Updated graph state with system information collection commands.
+    """
+    import platform
+    
+    # Determine if the system is Windows
+    is_windows = platform.system().lower() == "windows"
+    
+    # Create command inputs for system information collection
+    command_inputs = []
+    
+    # OS information command
+    if is_windows:
+        command_inputs.append(
+            CommandInput(
+                command="systeminfo | findstr /B /C:\"OS Name\" /C:\"OS Version\"",
+                timeout_sec=None,
+            )
+        )
+    else:
+        command_inputs.append(
+            CommandInput(
+                command="uname -a",
+                timeout_sec=None,
+            )
+        )
+    
+    # Executable files command
+    if is_windows:
+        command_inputs.append(
+            CommandInput(
+                command="powershell -Command \"Get-ChildItem -Path ($env:PATH.Split(';')) -Filter *.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | Sort-Object -Unique\"",
+                timeout_sec=None,
+            )
+        )
+    else:
+        command_inputs.append(
+            CommandInput(
+                command="echo $PATH | tr ':' '\\n' | xargs -I{} find {} -type f -executable 2>/dev/null | sort -u",
+                timeout_sec=None,
+            )
+        )
+    
+    # Update the state
+    state_dict = state.model_dump()
+    state_dict["command_inputs"] = command_inputs
+    state_dict["error"] = None  # No error
+    
     return GraphState(**state_dict)

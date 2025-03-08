@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
-from wish_command_execution import CommandExecutor, CommandStatusTracker
+from wish_command_execution import CommandExecutor, CommandStatusTracker, SystemInfo, create_system_info_collector
 from wish_command_execution.backend import BashConfig, create_backend
 from wish_command_generation import CommandGenerator
 from wish_log_analysis import LogAnalyzer
@@ -39,6 +39,9 @@ class WishManager:
         backend = create_backend(backend_config or BashConfig())
         self.executor = CommandExecutor(backend=backend, log_dir_creator=self.create_command_log_dirs)
         self.tracker = CommandStatusTracker(self.executor, wish_saver=self.save_wish)
+        
+        # Initialize system information collector
+        self.system_info_collector = create_system_info_collector(self.executor.backend)
 
     # Functions required for command execution
     def create_command_log_dirs(self, wish_id: str) -> Path:
@@ -140,6 +143,17 @@ class WishManager:
         """Cancel a running command."""
         return self.executor.cancel_command(wish, cmd_index)
 
+    async def collect_system_info(self, wish: Wish) -> SystemInfo:
+        """Collect system information.
+        
+        Args:
+            wish: Wish object for information collection
+            
+        Returns:
+            SystemInfo: Collected system information
+        """
+        return await self.system_info_collector.collect_system_info(wish)
+    
     def format_wish_list_item(self, wish: Wish, index: int) -> str:
         """Format a wish for display in wishlist."""
         if wish.state == WishState.DONE and wish.finished_at:
