@@ -49,6 +49,14 @@ To start the wish shell:
 wish
 ```
 
+**Note for macOS users**: macOS includes a built-in `wish` command as part of the Tcl/Tk package. To avoid conflicts, you can use the alternative command:
+
+```bash
+wish-sh
+```
+
+Both commands provide identical functionality.
+
 ### Basic Commands
 
 - Enter your wish in natural language

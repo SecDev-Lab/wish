@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added `wish-sh` command as an alternative to `wish` to avoid conflicts with macOS built-in Tcl/Tk `wish` command
+
 ### Changed
 
 ### Fixed
