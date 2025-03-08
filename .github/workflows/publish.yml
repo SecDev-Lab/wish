@@ -132,3 +132,49 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: cd wish-sh ; twine upload dist/*
+
+  # 4. Update CHANGELOG.md and create GitHub release
+  update-changelog:
+    name: Update CHANGELOG and create release
+    needs: publish-sh
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update CHANGELOG.md
+        id: update-changelog
+        run: |
+          # Get current date in YYYY-MM-DD format
+          RELEASE_DATE=$(date +%Y-%m-%d)
+          
+          # Create a new version section from Unreleased
+          sed -i "/## \[Unreleased\]/a \\\n## [${{ inputs.version }}] - ${RELEASE_DATE}" CHANGELOG.md
+          
+          # Create new empty Unreleased section
+          sed -i "/## \[Unreleased\]/a \\\n### Added\n\n### Changed\n\n### Fixed\n\n### Removed\n" CHANGELOG.md
+          
+          # Extract the content for the new release (everything between the new version header and the next version header)
+          VERSION_CONTENT=$(sed -n "/## \[${{ inputs.version }}\]/,/## \[/p" CHANGELOG.md | sed '1d;$d')
+          echo "VERSION_CONTENT<<EOF" >> $GITHUB_OUTPUT
+          echo "$VERSION_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Commit CHANGELOG.md changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md for version ${{ inputs.version }}"
+          git push
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Release v${{ inputs.version }}
+          body: |
+            ${{ steps.update-changelog.outputs.VERSION_CONTENT }}
+          draft: false
+          prerelease: false
