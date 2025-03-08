@@ -35,6 +35,7 @@ By extracting the Act component as an open-source tool, wish aims to refine and 
 ![RapidPen Architecture Overview](whitepaper/RapidPen-Architecture-Overview.svg)
 
 The primary objectives of wish are:
+
 - Reduce cognitive load by translating natural language into executable commands
 - Accelerate penetration testing workflows through parallel and asynchronous command execution
 - Provide contextually relevant command suggestions based on specialized knowledge bases
@@ -54,6 +55,7 @@ The primary objectives of wish are:
 ### 2.2 Use Cases
 
 wish is designed for:
+
 - Professional penetration testers during initial access and post-exploitation phases
 - Security students preparing for OSCP certification
 - HackTheBox, TryHackMe, or CTF (Boot2Root) players looking to enhance their efficiency
@@ -72,26 +74,58 @@ HackTheBox, TryHackMe, and CTF players operate under time constraints where effi
 
 ### 2.3 Architecture
 
+#### Control and Data Flow
+
+The control and data flow between components illustrates how wish processes user inputs and generates results:
+
+![Control and Data Flow](whitepaper/control-data-flow.png)
+
+Prior to the main workflow, **wish-knowledge-loader** imports knowledge bases from GitHub repositories and other sources, processing and storing them in vector databases. This import process is performed independently of the command generation workflow and serves as a prerequisite for effective command generation.
+
+The typical workflow follows these steps:
+
+1. User inputs a natural language "wish" in the TUI (**wish-sh**)
+2. **wish-sh** passes the wish to **wish-command-generation**
+3. **wish-command-generation** uses RAG to retrieve relevant knowledge from the pre-imported knowledge bases (managed by **wish-knowledge-loader**) and generate commands
+4. Generated command candidates are displayed to the user for confirmation
+5. **wish-command-execution** executes the confirmed commands and sets basic result information
+6. **wish-log-analysis** analyzes the command results and sets detailed information
+7. Status updates are displayed in the TUI, and results are stored in the wish history
+
+This flow enables users to seamlessly experience the entire process from natural language input to executable commands and analyzed results.
+
+#### Logical Architecture
+
 wish consists of six main packages, each with specific responsibilities:
 
 ![Logical Architecture](whitepaper/logical-arch.png)
 
-The control and data flow between components is illustrated below:
+**Core Components:**
 
-![Control and Data Flow](whitepaper/control-data-flow.png)
+- **wish-models**: Core data models used throughout the system, implemented using Pydantic for validation and serialization
+- **wish-command-execution**: Handles command execution in subprocesses, status tracking, and log file management
+- **wish-log-analysis**: Analyzes command outputs using LLM, providing log summarization and command state classification
+- **wish-command-generation**: Generates commands from natural language using RAG (Retrieval-Augmented Generation) for improved accuracy
+- **wish-knowledge-loader**: Manages knowledge bases for RAG, including cloning GitHub repositories and storing content in vector databases
+- **wish-sh**: Provides the Text-based User Interface (TUI) and coordinates between UI, command execution, log analysis, and command generation
+
+The system follows a clear separation of responsibilities, allowing each package to focus on its core functionality while working together to provide a seamless user experience.
+
+#### Relationship with RapidPen's Act Component
 
 The detailed architecture of the Act component, which forms the basis of wish:
 
 ![Act Architecture](whitepaper/Act-Architecture.svg)
 
-**Core Components:**
+wish was developed as an extraction and enhancement of the Act component from the RapidPen project. While RapidPen uses the Act component as part of its automated penetration testing system, wish makes this functionality available as a standalone tool for human-led penetration testing.
 
-- **wish-models**: Core data models used throughout the system
-- **wish-command-execution**: Handles command execution and status tracking
-- **wish-log-analysis**: Analyzes command outputs using LLM
-- **wish-command-generation**: Generates commands from natural language using RAG
-- **wish-knowledge-loader**: Manages knowledge bases for RAG
-- **wish-sh**: Provides the Text-based User Interface (TUI)
+The key differences between wish and RapidPen's Act component include:
+- wish adds a human-in-the-loop interface (TUI) for direct interaction
+- wish enhances the command generation capabilities with specialized knowledge bases
+- wish provides more detailed log analysis and summarization
+- wish includes C2 integration for operation in compromised environments
+
+By extracting and improving the Act component as an open-source tool, wish aims to refine this critical functionality through community involvement while acknowledging the continued importance of human expertise in penetration testing.
 
 ## 3. Setup
 
@@ -113,6 +147,7 @@ TODO: Add step-by-step installation instructions, initial configuration, knowled
 ### 4.1 Basic Usage
 
 The wish TUI provides an intuitive interface for:
+
 - Entering natural language "wishes"
 - Reviewing suggested commands
 - Executing commands and monitoring their status
@@ -137,6 +172,7 @@ TODO: Add details on current Sliver C2 integration, plans for supporting additio
 ### 5.1 Completed Development
 
 Current capabilities include:
+
 - Functional TUI prototype
 - Natural language to command generation
 - Multiple command suggestion and execution tracking
