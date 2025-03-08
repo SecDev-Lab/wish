@@ -5,7 +5,8 @@ from typing import Any, Dict, Tuple
 
 from sliver import SliverClient, SliverClientConfig
 from wish_models import CommandResult, CommandState, Wish
-from wish_models.system_info import SystemInfo, ExecutableCollection
+from wish_models.system_info import SystemInfo
+from wish_models.executable_collection import ExecutableCollection
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
@@ -120,29 +121,15 @@ class SliverBackend(Backend):
             # Execute the command
             cmd_result = await self.interactive_session.execute(command, [])
 
-            # Debug information
-            print(f"DEBUG - Command: {command}")
-            print(f"DEBUG - Command result type: {type(cmd_result)}")
-            print(f"DEBUG - Command result dir: {dir(cmd_result)}")
-
             # Write results to log files
             with open(stdout_path, "w") as stdout_file, open(stderr_path, "w") as stderr_file:
                 if cmd_result.Stdout:
                     stdout_content = cmd_result.Stdout.decode('utf-8', errors='replace')
                     stdout_file.write(stdout_content)
-                    print(f"DEBUG - Command stdout: {stdout_content}")
-                else:
-                    print("DEBUG - No stdout from command")
 
                 if cmd_result.Stderr:
                     stderr_content = cmd_result.Stderr.decode('utf-8', errors='replace')
                     stderr_file.write(stderr_content)
-                    print(f"DEBUG - Command stderr: {stderr_content}")
-
-            # Additional debug for specific attributes
-            for attr in ['Status', 'Response', 'Output']:
-                if hasattr(cmd_result, attr):
-                    print(f"DEBUG - cmd_result.{attr}: {getattr(cmd_result, attr)}")
 
             # Update command result
             exit_code = cmd_result.Status if cmd_result.Status is not None else 0
@@ -247,22 +234,15 @@ class SliverBackend(Backend):
         Returns:
             SystemInfo: Collected basic system information
         """
-        print("DEBUG: Starting basic system info collection from Sliver session")
         try:
             await self._connect()  # Ensure connection is established
-            print(f"DEBUG: Connected to Sliver session {self.session_id}")
             
             if not self.interactive_session:
-                print("DEBUG: No active Sliver session")
                 raise RuntimeError("No active Sliver session")
             
-            print(f"DEBUG: Session info - OS: {self.interactive_session.os}, Arch: {self.interactive_session.arch}")
-            
             info = await SystemInfoCollector.collect_basic_info_from_session(self.interactive_session)
-            print(f"DEBUG: Basic system info collection completed - OS: {info.os}, Hostname: {info.hostname}")
             return info
         except Exception as e:
-            print(f"DEBUG: Error in get_basic_system_info: {str(e)}")
             raise
     
     async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
@@ -274,23 +254,19 @@ class SliverBackend(Backend):
         Returns:
             ExecutableCollection: Collection of executables
         """
-        print("DEBUG: Starting executables collection from Sliver session")
         try:
             await self._connect()  # Ensure connection is established
             
             if not self.interactive_session:
-                print("DEBUG: No active Sliver session")
                 raise RuntimeError("No active Sliver session")
             
             executables = await SystemInfoCollector.collect_executables_from_session(
                 self.interactive_session, 
                 collect_system_executables=collect_system_executables
             )
-            print(f"DEBUG: Executables collection completed - Count: {len(executables.executables)}")
             return executables
         except Exception as e:
-            print(f"DEBUG: Error in get_executables: {str(e)}")
-            # エラー時は空のコレクションを返す
+            # Return empty collection on error
             return ExecutableCollection()
     
     async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
@@ -302,22 +278,17 @@ class SliverBackend(Backend):
         Returns:
             SystemInfo: Collected system information
         """
-        print("DEBUG: Starting system info collection from Sliver session (legacy method)")
         try:
             await self._connect()  # Ensure connection is established
-            print(f"DEBUG: Connected to Sliver session {self.session_id}")
             
             if not self.interactive_session:
-                print("DEBUG: No active Sliver session")
                 raise RuntimeError("No active Sliver session")
             
-            # 新しいcollect_from_sessionメソッドを使用
+            # Use the new collect_from_session method
             info, _ = await SystemInfoCollector.collect_from_session(
                 self.interactive_session, 
                 collect_system_executables=collect_system_executables
             )
-            print(f"DEBUG: System info collection completed - OS: {info.os}, Hostname: {info.hostname}")
             return info
         except Exception as e:
-            print(f"DEBUG: Error in get_system_info: {str(e)}")
             raise

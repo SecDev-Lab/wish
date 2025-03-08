@@ -6,7 +6,9 @@ import platform
 import subprocess
 from pathlib import Path
 
-from wish_models.system_info import SystemInfo, ExecutableCollection, ExecutableInfo
+from wish_models.system_info import SystemInfo
+from wish_models.executable_collection import ExecutableCollection
+from wish_models.executable_info import ExecutableInfo
 
 
 class SystemInfoCollector:
@@ -23,7 +25,6 @@ class SystemInfoCollector:
         Returns:
             SystemInfo: Collected basic system information
         """
-        print("DEBUG: Collecting basic system information")
         # Basic information collection
         info = SystemInfo(
             os=session.os,
@@ -35,7 +36,6 @@ class SystemInfoCollector:
             gid=session.gid,
             pid=session.pid
         )
-        print(f"DEBUG: Basic system info collected - OS: {info.os}, Hostname: {info.hostname}")
         return info
     
     @staticmethod
@@ -51,16 +51,12 @@ class SystemInfoCollector:
             ExecutableCollection: Collection of executables
         """
         try:
-            print("DEBUG: Collecting executables in PATH")
             # Collect executables in PATH
             path_executables = await SystemInfoCollector._collect_path_executables(session)
-            print(f"DEBUG: Collected {len(path_executables.executables)} executables in PATH")
             
             # Optionally collect system-wide executables
             if collect_system_executables:
-                print("DEBUG: Collecting system-wide executables")
                 system_executables = await SystemInfoCollector._collect_system_executables(session)
-                print(f"DEBUG: Collected {len(system_executables.executables)} system-wide executables")
                 
                 # Merge system executables into path executables
                 for exe in system_executables.executables:
@@ -68,8 +64,7 @@ class SystemInfoCollector:
             
             return path_executables
         except Exception as e:
-            print(f"DEBUG: Error collecting executables: {str(e)}")
-            # エラー時は空のコレクションを返す
+            # Return empty collection on error
             return ExecutableCollection()
     
     @staticmethod
@@ -266,13 +261,13 @@ class SystemInfoCollector:
             info.gid = str(os.getgid())
         
         # Collect executables in PATH
+        # Note: We don't set path_executables and system_executables directly on the SystemInfo object
+        # as these fields were removed when we split the models
         path_executables = SystemInfoCollector._collect_local_path_executables()
-        info.path_executables = path_executables
         
         # Optionally collect system-wide executables
         if collect_system_executables:
             system_executables = SystemInfoCollector._collect_local_system_executables()
-            info.system_executables = system_executables
         
         return info
     

@@ -7,7 +7,8 @@ import time
 from typing import Dict, Tuple
 
 from wish_models import CommandResult, CommandState, Wish
-from wish_models.system_info import SystemInfo, ExecutableCollection
+from wish_models.system_info import SystemInfo
+from wish_models.executable_collection import ExecutableCollection
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
