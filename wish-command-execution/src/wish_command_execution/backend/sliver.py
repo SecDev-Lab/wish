@@ -23,7 +23,7 @@ class SliverBackend(Backend):
         self.client_config_path = client_config_path
         self.client = None  # SliverClient instance
         self.interactive_session = None  # Interactive session
-        self.running_commands: Dict[int, Tuple[asyncio.Task, CommandResult, Wish]] = {}  # Track running commands
+        self.running_commands: Dict[int, Tuple[Any, CommandResult, Wish]] = {}  # Track running commands (thread, result, wish)
 
     async def _connect(self):
         """Connect to the Sliver server.
@@ -80,6 +80,9 @@ class SliverBackend(Backend):
                 thread = threading.Thread(target=run_async_command)
                 thread.daemon = True  # Make thread daemon so it doesn't block program exit
                 thread.start()
+                
+                # Track the thread for status updates
+                self.running_commands[cmd_num] = (thread, result, wish)
                 
                 # Return immediately for UI (non-blocking)
                 return
@@ -153,9 +156,28 @@ class SliverBackend(Backend):
 
     def check_running_commands(self):
         """Check status of running commands and update their status."""
-        # This is handled differently in the Sliver backend
-        # Commands are executed synchronously in _execute_command_wrapper
-        pass
+        # Check each running command thread
+        for cmd_num, (thread, result, wish) in list(self.running_commands.items()):
+            # Check if thread is still alive
+            if not thread.is_alive():
+                # Thread has completed, but the result might not be updated
+                # if there was an error in the thread
+                if result.state == CommandState.DOING:
+                    # If still in DOING state, update it to SUCCESS
+                    # (if there was an error, it would have been updated already)
+                    result.finish(
+                        exit_code=0,  # Assume success if not otherwise set
+                        state=CommandState.SUCCESS
+                    )
+                    
+                    # Update the command result in the wish object
+                    for i, cmd_result in enumerate(wish.command_results):
+                        if cmd_result.num == result.num:
+                            wish.command_results[i] = result
+                            break
+                
+                # Remove from tracking
+                del self.running_commands[cmd_num]
 
     def cancel_command(self, wish: Wish, cmd_num: int) -> str:
         """Cancel a running command.
