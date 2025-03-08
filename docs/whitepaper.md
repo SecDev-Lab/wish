@@ -46,7 +46,7 @@ The primary objectives of wish are:
 ### 2.1 Key Features
 
 - **Natural Language Command Generation**: Translate user "wishes" into executable shell commands
-- **Offensive Security-Focused RAG**: Utilize Retrieval-Augmented Generation with specialized knowledge bases
+- **Offensive Security-Focused Knowledge Base**: Utilize specialized knowledge bases tailored for offensive security operations
 - **Parallel Command Execution**: Execute and track multiple commands simultaneously
 - **Log Analysis and Summarization**: Automatically analyze and summarize command outputs
 - **C2 Integration**: Operate within compromised environments through C2 framework integration, currently supporting Sliver C2 with plans for expanded framework support
@@ -161,7 +161,7 @@ TODO: Add additional research papers, open-source projects used, and reference t
 | **Primary Purpose** | Penetration testing assistance | General shell command assistance | Penetration testing assistance |
 | **Specialization** | Offensive security | General-purpose | Offensive security |
 | **Command Generation** | Multiple parallel commands | Single command (sequential possible) | Multiple commands |
-| **Knowledge Base** | Offensive security-focused RAG | None | Internet search & local knowledge base |
+| **Knowledge Base** | Offensive security-focused specialized knowledge base | None | Internet search & local knowledge base |
 | **Model** | OpenAI API (gpt-4o) | OpenAI API | Local models only |
 | **Hardware Requirements** | No GPU required | No GPU required | GPU recommended (required) |
 | **Use in Compromised Environments** | Possible (C2 integration) | Not possible | Not possible |
@@ -170,4 +170,4 @@ TODO: Add additional research papers, open-source projects used, and reference t
 | **Offline Operation** | Partial (API connection required) | Partial (API connection required) | Fully offline |
 | **Extensibility** | High (modular structure) | Medium | Medium |
 
-This comparison highlights wish's unique advantages, particularly its offensive security-focused RAG, ability to operate in compromised environments, and no GPU requirement for operation.
+This comparison highlights wish's unique advantages, particularly its offensive security-focused knowledge base, ability to operate in compromised environments, and no GPU requirement for operation.
