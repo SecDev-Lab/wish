@@ -225,20 +225,20 @@ Current capabilities include:
 - Multiple command suggestion and execution tracking
 - Knowledge base integration from GitHub repositories
 - Sliver C2 integration for compromised shell operation
-- OpenAI gpt-4o integration
+- OpenAI integration
 
 ### 5.2 Planned Development (by August 2025)
 
 - Wish History functionality
 - Environment-aware command suggestions (OS, available executables, dictionary files)
-- Utilization of successful command examples
+- Utilization of successful command histories
 - Portal interface for C2 setup and knowledge base import
 
 ### 5.3 Future Development
 
 - Support for various LLM providers
 - Expanded C2 framework integration beyond Sliver C2, including support for custom and proprietary C2 solutions
-- Additional extension capabilities
+- Full integration with RapidPen for automated penetration testing workflows
 - Improvements based on community feedback
 
 ## 6. References
