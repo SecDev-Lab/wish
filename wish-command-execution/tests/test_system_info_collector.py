@@ -180,8 +180,16 @@ class TestSystemInfoCollector:
              patch('os.getpid', return_value=12345), \
              patch('os.getuid', return_value=1000), \
              patch('os.getgid', return_value=1000), \
-             patch.object(SystemInfoCollector, '_collect_local_path_executables', return_value=ExecutableCollection()), \
-             patch.object(SystemInfoCollector, '_collect_local_system_executables', return_value=ExecutableCollection()):
+             patch.object(
+                 SystemInfoCollector,
+                 '_collect_local_path_executables',
+                 return_value=ExecutableCollection()
+             ), \
+             patch.object(
+                 SystemInfoCollector,
+                 '_collect_local_system_executables',
+                 return_value=ExecutableCollection()
+             ):
 
             info = SystemInfoCollector.collect_local_system_info(collect_system_executables=True)
 

@@ -36,10 +36,10 @@ class Backend:
 
     async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
         """Get system information.
-        
+
         Args:
             collect_system_executables: Whether to collect executables from the entire system
-            
+
         Returns:
             SystemInfo: Collected system information
         """
