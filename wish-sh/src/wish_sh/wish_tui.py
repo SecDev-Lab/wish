@@ -251,20 +251,28 @@ class WishApp(App):
     SCREENS = {"wish_input": WishInput}
     BINDINGS = [("escape", "quit", "Quit")]
 
-    def __init__(self):
-        """Initialize the Wish TUI application."""
+    def __init__(self, backend_config=None):
+        """Initialize the Wish TUI application.
+
+        Args:
+            backend_config: Backend configuration (optional).
+        """
         super().__init__()
         self.settings = Settings()
-        self.wish_manager = WishManager(self.settings)
+        self.wish_manager = WishManager(self.settings, backend_config)
 
     def on_mount(self) -> None:
         """Handle app mount event."""
         self.push_screen("wish_input")
 
 
-def main() -> None:
-    """Run the Wish TUI application."""
-    app = WishApp()
+def main(backend_config=None) -> None:
+    """Run the Wish TUI application.
+
+    Args:
+        backend_config: Backend configuration (optional).
+    """
+    app = WishApp(backend_config)
     app.run()
 
 
