@@ -1,11 +1,12 @@
 """Entry point for the wish shell."""
 
 import argparse
-import sys
 import asyncio
-from wish_sh.wish_tui import main as tui_main
-from wish_command_execution.backend import BashConfig, SliverConfig
+
 from sliver import SliverClient, SliverClientConfig
+from wish_command_execution.backend import BashConfig, SliverConfig
+
+from wish_sh.wish_tui import main as tui_main
 
 
 async def check_sliver_sessions(config_path):
@@ -25,21 +26,21 @@ async def check_sliver_sessions(config_path):
         # Load client configuration from file
         config = SliverClientConfig.parse_config_file(config_path)
         client = SliverClient(config)
-        
+
         # Connect to server
         await client.connect()
-        
+
         # Get session list
         sessions = await client.sessions()
-        
+
         if not sessions:
             print("Error: No active Sliver sessions available.")
             return None
-        
+
         if len(sessions) == 1:
             # Automatically select if only one session exists
             return sessions[0].ID
-        
+
         # Display list if multiple sessions exist
         print("Multiple Sliver sessions found. Please specify one with --sliver-session:")
         for i, session in enumerate(sessions):
@@ -50,9 +51,9 @@ async def check_sliver_sessions(config_path):
             print(f"      OS: {session.OS} {session.Arch}")
             print(f"      Remote Address: {session.RemoteAddress}")
             print()
-        
+
         return None
-        
+
     except Exception as e:
         print(f"Error connecting to Sliver server: {str(e)}")
         return None
@@ -61,13 +62,13 @@ async def check_sliver_sessions(config_path):
 def main():
     """Entry point for the wish shell."""
     parser = argparse.ArgumentParser(description="wish - LLM-assisted shell for penetration testing")
-    
+
     # Sliver C2 related arguments
     parser.add_argument("--sliver-config", help="Path to Sliver client config file")
     parser.add_argument("--sliver-session", help="Sliver C2 session ID (optional if only one session exists)")
-    
+
     args = parser.parse_args()
-    
+
     # Create backend configuration
     if args.sliver_config:
         # Handle Sliver session
@@ -80,20 +81,20 @@ def main():
             except RuntimeError:
                 # If no event loop exists, create a new one
                 session_id = asyncio.run(check_sliver_sessions(args.sliver_config))
-                
+
             if not session_id:
                 # Exit if multiple sessions or no sessions found
                 return
         else:
             session_id = args.sliver_session
-            
+
         backend_config = SliverConfig(
             session_id=session_id,
             client_config_path=args.sliver_config
         )
     else:
         backend_config = BashConfig()
-    
+
     # Launch TUI
     tui_main(backend_config)
 

@@ -52,7 +52,7 @@ class UIUpdater:
 
                 if result.log_summary:
                     status += f"\nSummary: {result.log_summary}"
-                
+
                 # Add stdout and stderr content (max 5 lines each)
                 if result.finished_at and result.log_files:
                     # Read stdout (max 5 lines)
@@ -65,7 +65,7 @@ class UIUpdater:
                                 status += "\n\nstdout:\n" + "".join(stdout_content)
                     except Exception:
                         pass
-                    
+
                     # Read stderr (max 5 lines)
                     try:
                         with open(result.log_files.stderr, 'r') as f:
