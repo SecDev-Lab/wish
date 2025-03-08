@@ -18,7 +18,7 @@ wish was designed to shift the focus from memorizing commands to developing situ
 
 Speed is critical in penetration testing, where multiple attack vectors must often be explored to identify viable entry points. Traditional approaches using terminal multiplexers and manual command management can become cumbersome and time-consuming.
 
-wish addresses this challenge by generating multiple commands simultaneously and executing them in parallel. Commands run in the background, with the system providing interruption notifications upon completion. This parallel processing approach allows penetration testers to continue strategizing while commands execute, significantly accelerating the testing workflow.
+wish addresses this challenge by generating multiple commands simultaneously and executing them in parallel and asynchronously. Commands run in the background, with the system providing interruption notifications upon completion. This parallel and asynchronous processing approach allows penetration testers to continue strategizing while commands execute, significantly accelerating the testing workflow.
 
 #### Enhancing Post-Exploitation Experience
 
@@ -36,7 +36,7 @@ By extracting the Act component as an open-source tool, wish aims to refine and 
 
 The primary objectives of wish are:
 - Reduce cognitive load by translating natural language into executable commands
-- Accelerate penetration testing workflows through parallel command execution
+- Accelerate penetration testing workflows through parallel and asynchronous command execution
 - Provide contextually relevant command suggestions based on specialized knowledge bases
 - Enable seamless operation in both local and compromised environments
 - Support the evolution of the RapidPen ecosystem while enhancing human-led security testing
@@ -47,7 +47,7 @@ The primary objectives of wish are:
 
 - **Natural Language Command Generation**: Translate user "wishes" into executable shell commands
 - **Offensive Security-Focused Knowledge Base**: Utilize specialized knowledge bases tailored for offensive security operations
-- **Parallel Command Execution**: Execute and track multiple commands simultaneously
+- **Parallel & Asynchronous Command Execution**: Execute and track multiple commands simultaneously in the background, allowing users to continue working while waiting for results
 - **Log Analysis and Summarization**: Automatically analyze and summarize command outputs
 - **C2 Integration**: Operate within compromised environments through C2 framework integration, currently supporting Sliver C2 with plans for expanded framework support
 
@@ -160,7 +160,7 @@ TODO: Add additional research papers, open-source projects used, and reference t
 |----------|------|-----------|--------|
 | **Primary Purpose** | Penetration testing assistance | General shell command assistance | Penetration testing assistance |
 | **Specialization** | Offensive security | General-purpose | Offensive security |
-| **Command Generation** | Multiple parallel commands | Single command (sequential possible) | Multiple commands |
+| **Command Generation** | Multiple parallel & asynchronous commands | Single command (sequential possible) | Multiple commands |
 | **Knowledge Base** | Offensive security-focused specialized knowledge base | None | Internet search & local knowledge base |
 | **Model** | OpenAI API (gpt-4o) | OpenAI API | Local models only |
 | **Hardware Requirements** | No GPU required | No GPU required | GPU recommended (required) |
