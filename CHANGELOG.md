@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Factory classes for testing system information models
   - `SystemInfoCollector` for gathering OS information and executable files from remote systems
   - Integration with Sliver C2 backend to collect system information from compromised hosts
+- Added OS-aware command generation:
+  - Enhanced command generation to use system information for creating OS-specific commands
+  - Updated prompts to include examples for different operating systems (Linux, Windows, macOS)
+  - Improved user experience by generating commands that are compatible with the user's system
 
 ### Changed
 
