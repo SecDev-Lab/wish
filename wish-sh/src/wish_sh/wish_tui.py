@@ -21,7 +21,7 @@ class SystemInfoModal(ModalScreen):
 
     def __init__(self, system_info):
         """Initialize the system info modal.
-        
+
         Args:
             system_info: The system information to display
         """
@@ -72,7 +72,7 @@ class ExecutablesModal(ModalScreen):
 
     def __init__(self, executables):
         """Initialize the executables modal.
-        
+
         Args:
             executables: The executables collection to display
         """

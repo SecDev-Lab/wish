@@ -9,7 +9,7 @@ from wish_models.system_info import SystemInfo
 def display_system_info(info: SystemInfo, console: Console) -> None:
     """
     Display system information in a formatted way.
-    
+
     Args:
         info: The system information to display
         console: The console to display on
@@ -39,7 +39,7 @@ def display_system_info(info: SystemInfo, console: Console) -> None:
 def display_executables(collection, title: str, console: Console) -> None:
     """
     Display executables grouped by directory.
-    
+
     Args:
         collection: The executable collection to display
         title: The title for the display
