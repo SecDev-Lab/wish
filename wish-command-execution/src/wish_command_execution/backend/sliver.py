@@ -58,48 +58,50 @@ class SliverBackend(Backend):
         result = CommandResult.create(cmd_num, command, log_files)
         wish.command_results.append(result)
 
-        with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
-            try:
-                # Run the async command in a separate thread with its own event loop
-                import threading
-                
-                def run_async_command():
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    try:
-                        loop.run_until_complete(self._execute_command_wrapper(command, stdout_file, stderr_file, result, wish, cmd_num))
-                    except Exception as e:
-                        # Handle errors in the thread
+        try:
+            # Run the async command in a separate thread with its own event loop
+            import threading
+            
+            def run_async_command():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    # Pass file paths instead of file handles
+                    loop.run_until_complete(self._execute_command_wrapper(command, log_files.stdout, log_files.stderr, result, wish, cmd_num))
+                except Exception as e:
+                    # Handle errors in the thread
+                    with open(log_files.stderr, "w") as stderr_file:
                         error_msg = f"Sliver execution error in thread: {str(e)}"
                         stderr_file.write(error_msg)
-                        self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
-                    finally:
-                        loop.close()
-                
-                # Start the thread
-                thread = threading.Thread(target=run_async_command)
-                thread.daemon = True  # Make thread daemon so it doesn't block program exit
-                thread.start()
-                
-                # Track the thread for status updates
-                self.running_commands[cmd_num] = (thread, result, wish)
-                
-                # Return immediately for UI (non-blocking)
-                return
-                
-            except Exception as e:
-                # Handle errors in the main thread
+                    self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
+                finally:
+                    loop.close()
+            
+            # Start the thread
+            thread = threading.Thread(target=run_async_command)
+            thread.daemon = True  # Make thread daemon so it doesn't block program exit
+            thread.start()
+            
+            # Track the thread for status updates
+            self.running_commands[cmd_num] = (thread, result, wish)
+            
+            # Return immediately for UI (non-blocking)
+            return
+            
+        except Exception as e:
+            # Handle errors in the main thread
+            with open(log_files.stderr, "w") as stderr_file:
                 error_msg = f"Sliver execution error: {str(e)}"
                 stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
+            self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
-    async def _execute_command_wrapper(self, command, stdout_file, stderr_file, result, wish, cmd_num):
+    async def _execute_command_wrapper(self, command, stdout_path, stderr_path, result, wish, cmd_num):
         """Wrapper to execute a command and handle its lifecycle.
         
         Args:
             command: The command to execute.
-            stdout_file: File to write stdout to.
-            stderr_file: File to write stderr to.
+            stdout_path: Path to the file to write stdout to.
+            stderr_path: Path to the file to write stderr to.
             result: The CommandResult object.
             wish: The Wish object.
             cmd_num: The command number.
@@ -117,17 +119,18 @@ class SliverBackend(Backend):
             print(f"DEBUG - Command result dir: {dir(cmd_result)}")
             
             # Write results to log files
-            if cmd_result.Stdout:
-                stdout_content = cmd_result.Stdout.decode('utf-8', errors='replace')
-                stdout_file.write(stdout_content)
-                print(f"DEBUG - Command stdout: {stdout_content}")
-            else:
-                print("DEBUG - No stdout from command")
-                
-            if cmd_result.Stderr:
-                stderr_content = cmd_result.Stderr.decode('utf-8', errors='replace')
-                stderr_file.write(stderr_content)
-                print(f"DEBUG - Command stderr: {stderr_content}")
+            with open(stdout_path, "w") as stdout_file, open(stderr_path, "w") as stderr_file:
+                if cmd_result.Stdout:
+                    stdout_content = cmd_result.Stdout.decode('utf-8', errors='replace')
+                    stdout_file.write(stdout_content)
+                    print(f"DEBUG - Command stdout: {stdout_content}")
+                else:
+                    print("DEBUG - No stdout from command")
+                    
+                if cmd_result.Stderr:
+                    stderr_content = cmd_result.Stderr.decode('utf-8', errors='replace')
+                    stderr_file.write(stderr_content)
+                    print(f"DEBUG - Command stderr: {stderr_content}")
             
             # Additional debug for specific attributes
             for attr in ['Status', 'Response', 'Output']:
@@ -146,8 +149,9 @@ class SliverBackend(Backend):
                     
         except Exception as e:
             # Handle errors
-            error_msg = f"Sliver execution error: {str(e)}"
-            stderr_file.write(error_msg)
+            with open(stderr_path, "w") as stderr_file:
+                error_msg = f"Sliver execution error: {str(e)}"
+                stderr_file.write(error_msg)
             self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
     def _handle_command_failure(
