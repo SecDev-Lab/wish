@@ -16,17 +16,24 @@
     width: 100%;
 }
 
-#system-info-button {
-    margin-top: 1;
+#info-buttons-container {
+    layout: horizontal;
+    height: auto;
+    margin: 1 0;
+    align: center middle;
+    width: 100%;
+}
+
+#system-info-button, #executables-button {
+    margin: 0 1;
     width: 30%;
-    align: right middle;
     background: #555555;
     color: #cccccc;
     text-style: italic;
     border: solid transparent;
 }
 
-#system-info-button:hover {
+#system-info-button:hover, #executables-button:hover {
     background: #777777;
     color: white;
     border: solid #999999;

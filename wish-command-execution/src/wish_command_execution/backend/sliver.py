@@ -5,7 +5,7 @@ from typing import Any, Dict, Tuple
 
 from sliver import SliverClient, SliverClientConfig
 from wish_models import CommandResult, CommandState, Wish
-from wish_models.system_info import SystemInfo
+from wish_models.system_info import SystemInfo, ExecutableCollection
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
@@ -241,16 +241,13 @@ class SliverBackend(Backend):
         else:
             return f"Command {cmd_num} is not running."
             
-    async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
-        """Get system information from the Sliver session.
+    async def get_basic_system_info(self) -> SystemInfo:
+        """Get basic system information from the Sliver session.
         
-        Args:
-            collect_system_executables: Whether to collect executables from the entire system
-            
         Returns:
-            SystemInfo: Collected system information
+            SystemInfo: Collected basic system information
         """
-        print("DEBUG: Starting system info collection from Sliver session")
+        print("DEBUG: Starting basic system info collection from Sliver session")
         try:
             await self._connect()  # Ensure connection is established
             print(f"DEBUG: Connected to Sliver session {self.session_id}")
@@ -261,7 +258,61 @@ class SliverBackend(Backend):
             
             print(f"DEBUG: Session info - OS: {self.interactive_session.os}, Arch: {self.interactive_session.arch}")
             
-            info = await SystemInfoCollector.collect_from_session(
+            info = await SystemInfoCollector.collect_basic_info_from_session(self.interactive_session)
+            print(f"DEBUG: Basic system info collection completed - OS: {info.os}, Hostname: {info.hostname}")
+            return info
+        except Exception as e:
+            print(f"DEBUG: Error in get_basic_system_info: {str(e)}")
+            raise
+    
+    async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
+        """Get executable files information from the Sliver session.
+        
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+            
+        Returns:
+            ExecutableCollection: Collection of executables
+        """
+        print("DEBUG: Starting executables collection from Sliver session")
+        try:
+            await self._connect()  # Ensure connection is established
+            
+            if not self.interactive_session:
+                print("DEBUG: No active Sliver session")
+                raise RuntimeError("No active Sliver session")
+            
+            executables = await SystemInfoCollector.collect_executables_from_session(
+                self.interactive_session, 
+                collect_system_executables=collect_system_executables
+            )
+            print(f"DEBUG: Executables collection completed - Count: {len(executables.executables)}")
+            return executables
+        except Exception as e:
+            print(f"DEBUG: Error in get_executables: {str(e)}")
+            # エラー時は空のコレクションを返す
+            return ExecutableCollection()
+    
+    async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
+        """Get system information from the Sliver session.
+        
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+            
+        Returns:
+            SystemInfo: Collected system information
+        """
+        print("DEBUG: Starting system info collection from Sliver session (legacy method)")
+        try:
+            await self._connect()  # Ensure connection is established
+            print(f"DEBUG: Connected to Sliver session {self.session_id}")
+            
+            if not self.interactive_session:
+                print("DEBUG: No active Sliver session")
+                raise RuntimeError("No active Sliver session")
+            
+            # 新しいcollect_from_sessionメソッドを使用
+            info, _ = await SystemInfoCollector.collect_from_session(
                 self.interactive_session, 
                 collect_system_executables=collect_system_executables
             )

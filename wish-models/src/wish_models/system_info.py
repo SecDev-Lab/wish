@@ -60,7 +60,3 @@ class SystemInfo(BaseModel):
     uid: Optional[str] = None
     gid: Optional[str] = None
     pid: Optional[int] = None
-    
-    # Executable files information
-    path_executables: ExecutableCollection = ExecutableCollection()
-    system_executables: Optional[ExecutableCollection] = None

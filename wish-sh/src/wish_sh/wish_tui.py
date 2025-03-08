@@ -17,7 +17,7 @@ from wish_sh.wish_manager import WishManager
 
 
 class SystemInfoModal(ModalScreen):
-    """Modal screen for displaying system information."""
+    """Modal screen for displaying basic system information."""
 
     def __init__(self, system_info):
         """Initialize the system info modal.
@@ -34,7 +34,6 @@ class SystemInfoModal(ModalScreen):
         yield Container(
             Label("System Information", id="modal-title"),
             Static(self._format_basic_info(), id="basic-info", markup=False),
-            Static(self._format_executables(), id="executables-info", markup=False),
             Button("Close", id="close-button", variant="primary"),
             id="modal-container",
         )
@@ -62,16 +61,43 @@ class SystemInfoModal(ModalScreen):
         
         return "\n".join(lines)
     
+    @on(Button.Pressed, "#close-button")
+    def on_close_button_pressed(self) -> None:
+        """Handle close button press."""
+        self.app.pop_screen()
+
+
+class ExecutablesModal(ModalScreen):
+    """Modal screen for displaying executables information."""
+    
+    def __init__(self, executables):
+        """Initialize the executables modal.
+        
+        Args:
+            executables: The executables collection to display
+        """
+        super().__init__()
+        self.executables = executables
+        
+    def compose(self) -> ComposeResult:
+        """Compose the modal screen."""
+        # Create a container for the modal content
+        yield Container(
+            Label("Executables", id="modal-title"),
+            Static(self._format_executables(), id="executables-info", markup=False),
+            Button("Close", id="close-button", variant="primary"),
+            id="modal-container",
+        )
+    
     def _format_executables(self) -> str:
         """Format executable information for display."""
         # Format executable information without markup
-        info = self.system_info
         lines = [
-            f"\nExecutables in PATH ({len(info.path_executables.executables)} files)"
+            f"Executables ({len(self.executables.executables)} files)"
         ]
         
         # Group executables by directory
-        grouped = info.path_executables.group_by_directory()
+        grouped = self.executables.group_by_directory()
         
         # Add directories and files
         for directory in sorted(grouped.keys()):
@@ -105,7 +131,11 @@ class WishInput(Screen):
         yield Container(
             Label("wish✨️", id="wish-prompt", markup=False),
             Input(placeholder="Enter your wish here...", id="wish-input"),
-            Button("System Info", id="system-info-button", variant="default"),
+            Container(
+                Button("System Info", id="system-info-button", variant="default"),
+                Button("Executables", id="executables-button", variant="default"),
+                id="info-buttons-container",
+            ),
             id="wish-container",
         )
         yield Footer()
@@ -114,6 +144,11 @@ class WishInput(Screen):
     def on_system_info_button_pressed(self) -> None:
         """Handle system info button press."""
         self.app.action_show_system_info()
+        
+    @on(Button.Pressed, "#executables-button")
+    def on_executables_button_pressed(self) -> None:
+        """Handle executables button press."""
+        self.app.action_show_executables()
 
     @on(Input.Submitted)
     def on_input_submitted(self, event: Input.Submitted) -> None:
@@ -351,16 +386,22 @@ class WishApp(App):
         super().__init__()
         self.settings = Settings()
         self.wish_manager = WishManager(self.settings, backend_config)
+        
+        # 基本システム情報
         self.system_info = None
-        self.system_info_state = "not_started"  # 追加: システム情報収集状態
+        self.system_info_state = "not_started"  # システム情報収集状態
+        
+        # 実行可能ファイル情報
+        self.executables = None
+        self.executables_state = "not_started"  # 実行可能ファイル収集状態
     
-    def update_system_info_button(self):
-        """Update the System Info button based on collection state."""
-        # WishInput画面が表示されている場合のみ実行
+    def update_info_buttons(self):
+        """Update both info buttons based on collection state."""
         try:
             wish_input = self.query_one(WishInput)
-            system_info_button = wish_input.query_one("#system-info-button")
             
+            # System Info ボタンの更新
+            system_info_button = wish_input.query_one("#system-info-button")
             if self.system_info_state == "collecting":
                 system_info_button.label = "Collecting..."
                 system_info_button.disabled = True
@@ -377,42 +418,56 @@ class WishApp(App):
                 system_info_button.label = "System Info"
                 system_info_button.disabled = False
                 system_info_button.variant = "default"
+            
+            # Executables ボタンの更新
+            executables_button = wish_input.query_one("#executables-button")
+            if self.executables_state == "collecting":
+                executables_button.label = "Collecting..."
+                executables_button.disabled = True
+                executables_button.variant = "warning"
+            elif self.executables_state == "ready":
+                executables_button.label = "Executables"
+                executables_button.disabled = False
+                executables_button.variant = "success"
+            elif self.executables_state == "error":
+                executables_button.label = "Executables (Error)"
+                executables_button.disabled = False
+                executables_button.variant = "error"
+            else:  # not_started
+                executables_button.label = "Executables"
+                executables_button.disabled = False
+                executables_button.variant = "default"
         except Exception:
             # 画面がまだ表示されていない場合など
             pass
+    
+    def update_system_info_button(self):
+        """Update the System Info button based on collection state (legacy method)."""
+        self.update_info_buttons()
 
     async def collect_system_info(self):
         """Collect system information."""
         # 収集開始状態に設定
         self.system_info_state = "collecting"
-        self.update_system_info_button()
+        self.update_info_buttons()
         
         self.console.print("[bold green]Collecting system information...[/bold green]")
         
         try:
-            # Get system information from backend
-            self.system_info = await self.wish_manager.executor.backend.get_system_info(
-                collect_system_executables=False  # Only collect PATH executables by default
-            )
+            # Get basic system information from backend
+            self.system_info = await self.wish_manager.executor.backend.get_basic_system_info()
             
             # 収集成功状態に設定
             self.system_info_state = "ready"
-            self.update_system_info_button()
+            self.update_info_buttons()
             
             # Display basic system information
             display_system_info(self.system_info, self.console)
             
-            # Show summary of executables
-            if hasattr(self.system_info, 'path_executables') and self.system_info.path_executables:
-                count = len(self.system_info.path_executables.executables)
-                self.console.print(f"[green]Collected {count} executables from PATH.[/green]")
-            else:
-                self.console.print("[yellow]No executables found in PATH.[/yellow]")
-            
         except Exception as e:
             # エラー状態に設定
             self.system_info_state = "error"
-            self.update_system_info_button()
+            self.update_info_buttons()
             
             self.console.print(f"[bold red]Error collecting system information: {str(e)}[/bold red]")
             
@@ -438,13 +493,79 @@ class WishApp(App):
         # Show system information in a modal window
         self.push_screen(SystemInfoModal(self.system_info))
     
+    async def collect_executables(self):
+        """Collect executable files information."""
+        # 収集開始状態に設定
+        self.executables_state = "collecting"
+        self.update_info_buttons()
+        
+        self.console.print("[bold green]Collecting executables information...[/bold green]")
+        
+        try:
+            # Get executables from backend
+            self.executables = await self.wish_manager.executor.backend.get_executables(
+                collect_system_executables=False  # Only collect PATH executables by default
+            )
+            
+            # 収集成功状態に設定
+            self.executables_state = "ready"
+            self.update_info_buttons()
+            
+            # Display executables information
+            count = len(self.executables.executables)
+            self.console.print(f"[green]✓ Collected {count} executables[/green]")
+            
+            # Show summary of executables by directory
+            grouped = self.executables.group_by_directory()
+            for directory, exes in sorted(grouped.items())[:5]:  # Show top 5 directories
+                self.console.print(f"[green]{directory}: {len(exes)} files[/green]")
+            
+            if len(grouped) > 5:
+                self.console.print(f"[green]... and {len(grouped) - 5} more directories[/green]")
+            
+        except Exception as e:
+            # エラー状態に設定
+            self.executables_state = "error"
+            self.update_info_buttons()
+            
+            self.console.print(f"[bold red]Error collecting executables: {str(e)}[/bold red]")
+            
+            # エラー時でも空のコレクションを設定
+            from wish_models.system_info import ExecutableCollection
+            self.executables = ExecutableCollection()
+    
+    def action_show_executables(self) -> None:
+        """Show executables information in a modal window."""
+        if self.executables_state == "not_started":
+            # 初回実行時は収集を開始
+            self.console.print("[yellow]Starting executables collection...[/yellow]")
+            asyncio.create_task(self.collect_executables())
+            return
+            
+        if self.executables_state == "collecting":
+            self.console.print("[yellow]Executables information is being collected. Please wait...[/yellow]")
+            return
+            
+        if not self.executables or not self.executables.executables:
+            self.console.print("[yellow]No executables available.[/yellow]")
+            return
+            
+        # Show executables information in a modal window
+        self.push_screen(ExecutablesModal(self.executables))
+    
     def on_mount(self) -> None:
         """Handle app mount event."""
         # Show the wish input screen first
         self.push_screen("wish_input")
         
+        # Update button states
+        self.update_info_buttons()
+        
         # Then start collecting system information
         asyncio.create_task(self.collect_system_info())
+        
+        # Don't automatically start collecting executables
+        # Let the user click the button to start collection
 
 
 def main(backend_config=None) -> None:

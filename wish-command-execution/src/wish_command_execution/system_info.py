@@ -13,17 +13,17 @@ class SystemInfoCollector:
     """Collector for system information."""
     
     @staticmethod
-    async def collect_from_session(session, collect_system_executables: bool = False) -> SystemInfo:
+    async def collect_basic_info_from_session(session) -> SystemInfo:
         """
-        Collect system information from a Sliver session.
+        Collect basic system information from a Sliver session.
         
         Args:
             session: Sliver InteractiveSession object
-            collect_system_executables: Whether to collect executables from the entire system
             
         Returns:
-            SystemInfo: Collected system information
+            SystemInfo: Collected basic system information
         """
+        print("DEBUG: Collecting basic system information")
         # Basic information collection
         info = SystemInfo(
             os=session.os,
@@ -35,26 +35,62 @@ class SystemInfoCollector:
             gid=session.gid,
             pid=session.pid
         )
+        print(f"DEBUG: Basic system info collected - OS: {info.os}, Hostname: {info.hostname}")
+        return info
+    
+    @staticmethod
+    async def collect_executables_from_session(session, collect_system_executables: bool = False) -> ExecutableCollection:
+        """
+        Collect executable files information from a Sliver session.
         
+        Args:
+            session: Sliver InteractiveSession object
+            collect_system_executables: Whether to collect executables from the entire system
+            
+        Returns:
+            ExecutableCollection: Collection of executables
+        """
         try:
             print("DEBUG: Collecting executables in PATH")
             # Collect executables in PATH
             path_executables = await SystemInfoCollector._collect_path_executables(session)
-            info.path_executables = path_executables
             print(f"DEBUG: Collected {len(path_executables.executables)} executables in PATH")
             
             # Optionally collect system-wide executables
             if collect_system_executables:
                 print("DEBUG: Collecting system-wide executables")
                 system_executables = await SystemInfoCollector._collect_system_executables(session)
-                info.system_executables = system_executables
                 print(f"DEBUG: Collected {len(system_executables.executables)} system-wide executables")
+                
+                # Merge system executables into path executables
+                for exe in system_executables.executables:
+                    path_executables.executables.append(exe)
+            
+            return path_executables
         except Exception as e:
             print(f"DEBUG: Error collecting executables: {str(e)}")
-            # エラー時は空のコレクションを設定
-            info.path_executables = ExecutableCollection()
+            # エラー時は空のコレクションを返す
+            return ExecutableCollection()
+    
+    @staticmethod
+    async def collect_from_session(session, collect_system_executables: bool = False) -> Tuple[SystemInfo, ExecutableCollection]:
+        """
+        Collect both system information and executables from a Sliver session.
         
-        return info
+        Args:
+            session: Sliver InteractiveSession object
+            collect_system_executables: Whether to collect executables from the entire system
+            
+        Returns:
+            Tuple[SystemInfo, ExecutableCollection]: Collected system information and executables
+        """
+        # Collect basic system information
+        info = await SystemInfoCollector.collect_basic_info_from_session(session)
+        
+        # Collect executables
+        executables = await SystemInfoCollector.collect_executables_from_session(session, collect_system_executables)
+        
+        return info, executables
     
     @staticmethod
     async def _collect_path_executables(session) -> ExecutableCollection:
