@@ -3,7 +3,6 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from wish_models.system_info import SystemInfo
 from wish_command_generation.nodes.command_generation import generate_commands
 from wish_command_generation.test_factories.state_factory import GraphStateFactory
 
@@ -65,7 +64,7 @@ class TestCommandGeneration:
         assert result.wish == state.wish
         assert result.context == state.context
         assert result.query == state.query
-        
+
     def test_generate_commands_with_system_info(self):
         """Test that generate_commands correctly uses system information."""
         # Arrange
@@ -119,7 +118,7 @@ class TestCommandGeneration:
         assert len(result.command_inputs) == 1
         assert result.command_inputs[0].command == "dir /a:h"
         assert result.command_inputs[0].timeout_sec is None
-        
+
         # Verify the mock was called with the correct system info arguments
         mock_chain.invoke.assert_called_once()
         call_args = mock_chain.invoke.call_args[0][0]

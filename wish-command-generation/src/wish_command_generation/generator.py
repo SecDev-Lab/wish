@@ -29,7 +29,7 @@ class CommandGenerator:
         state_input = {"wish": wish}
         if system_info:
             state_input["system_info"] = system_info
-            
+
         result = graph.invoke(state_input)
 
         # Return the generated commands

@@ -43,7 +43,7 @@ class TestGraph:
             assert len(result) == 1
             assert result[0].command == "rustscan -a 10.10.10.123"
             assert result[0].timeout_sec is None
-            
+
     def test_command_generator_with_system_info(self):
         """Test that CommandGenerator correctly passes system information."""
         # Arrange
@@ -77,14 +77,14 @@ class TestGraph:
             # Assert
             mock_create_graph.assert_called_once()
             mock_graph.invoke.assert_called_once()
-            
+
             # Check that system_info was passed correctly
             call_args = mock_graph.invoke.call_args[0][0]
             assert "wish" in call_args
             assert call_args["wish"] == wish
             assert "system_info" in call_args
             assert call_args["system_info"] == system_info
-            
+
             assert len(result) == 1
             assert result[0].command == "ls -la | grep '^\\.'", "Should generate macOS-specific command"
             assert result[0].timeout_sec is None

@@ -119,7 +119,7 @@ class WishManager:
             except Exception as e:
                 logging.warning(f"Failed to collect system info: {str(e)}")
                 system_info = None
-            
+
             # Generate commands using CommandGenerator with system info
             command_inputs = self.command_generator.generate_commands(wish_obj, system_info)
 

@@ -79,9 +79,9 @@ class GraphStateFactory(factory.Factory):
         wish = WishFactory.create_with_specific_wish(wish_text)
         command_inputs = [CommandInputFactory.create_with_specific_command(cmd) for cmd in commands]
         return GraphState(wish=wish, command_inputs=command_inputs)
-        
+
     @classmethod
-    def create_with_system_info(cls, wish_text: str, system_os: str = "Linux", 
+    def create_with_system_info(cls, wish_text: str, system_os: str = "Linux",
                                system_arch: str = "x86_64", system_version: str = "5.15.0") -> GraphState:
         """Create a GraphState with a specific wish text and system information."""
         wish = WishFactory.create_with_specific_wish(wish_text)

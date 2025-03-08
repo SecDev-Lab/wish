@@ -29,6 +29,6 @@ class GraphState(BaseModel):
 
     error: Optional[str] = None
     """Error message if command generation fails. None if successful."""
-    
+
     system_info: SystemInfo | None = None
     """System information for command generation."""

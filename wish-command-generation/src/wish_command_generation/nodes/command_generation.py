@@ -122,12 +122,12 @@ def generate_commands(state: GraphState) -> GraphState:
 
     # Get the context from the state (if available)
     context = "\n".join(state.context) if state.context else "参考ドキュメントはありません。"
-    
+
     # Get system info (if available)
     system_os = "Unknown"  # Default value
     system_arch = "Unknown"  # Default value
     system_version = "Unknown"  # Default value
-    
+
     if hasattr(state, 'system_info') and state.system_info:
         system_os = state.system_info.os
         system_arch = state.system_info.arch
@@ -150,7 +150,7 @@ def generate_commands(state: GraphState) -> GraphState:
     # Generate the commands
     try:
         response = chain.invoke({
-            "task": task, 
+            "task": task,
             "context": context,
             "system_os": system_os,
             "system_arch": system_arch,
