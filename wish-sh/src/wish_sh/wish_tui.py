@@ -352,9 +352,41 @@ class WishApp(App):
         self.settings = Settings()
         self.wish_manager = WishManager(self.settings, backend_config)
         self.system_info = None
+        self.system_info_state = "not_started"  # 追加: システム情報収集状態
+    
+    def update_system_info_button(self):
+        """Update the System Info button based on collection state."""
+        # WishInput画面が表示されている場合のみ実行
+        try:
+            wish_input = self.query_one(WishInput)
+            system_info_button = wish_input.query_one("#system-info-button")
+            
+            if self.system_info_state == "collecting":
+                system_info_button.label = "Collecting..."
+                system_info_button.disabled = True
+                system_info_button.variant = "warning"
+            elif self.system_info_state == "ready":
+                system_info_button.label = "System Info"
+                system_info_button.disabled = False
+                system_info_button.variant = "success"
+            elif self.system_info_state == "error":
+                system_info_button.label = "System Info (Error)"
+                system_info_button.disabled = False
+                system_info_button.variant = "error"
+            else:  # not_started
+                system_info_button.label = "System Info"
+                system_info_button.disabled = False
+                system_info_button.variant = "default"
+        except Exception:
+            # 画面がまだ表示されていない場合など
+            pass
 
     async def collect_system_info(self):
         """Collect system information."""
+        # 収集開始状態に設定
+        self.system_info_state = "collecting"
+        self.update_system_info_button()
+        
         self.console.print("[bold green]Collecting system information...[/bold green]")
         
         try:
@@ -363,17 +395,42 @@ class WishApp(App):
                 collect_system_executables=False  # Only collect PATH executables by default
             )
             
+            # 収集成功状態に設定
+            self.system_info_state = "ready"
+            self.update_system_info_button()
+            
             # Display basic system information
             display_system_info(self.system_info, self.console)
             
             # Show summary of executables
-            self.console.print(f"[green]Collected {len(self.system_info.path_executables.executables)} executables from PATH.[/green]")
+            if hasattr(self.system_info, 'path_executables') and self.system_info.path_executables:
+                count = len(self.system_info.path_executables.executables)
+                self.console.print(f"[green]Collected {count} executables from PATH.[/green]")
+            else:
+                self.console.print("[yellow]No executables found in PATH.[/yellow]")
             
         except Exception as e:
+            # エラー状態に設定
+            self.system_info_state = "error"
+            self.update_system_info_button()
+            
             self.console.print(f"[bold red]Error collecting system information: {str(e)}[/bold red]")
+            
+            # エラー時でも最低限の情報を設定
+            self.system_info = SystemInfo(
+                os="Unknown (Error)",
+                arch="Unknown",
+                hostname="Unknown",
+                username="Unknown",
+                version=f"Error: {str(e)}"
+            )
 
     def action_show_system_info(self) -> None:
         """Show system information in a modal window."""
+        if self.system_info_state == "collecting":
+            self.console.print("[yellow]System information is being collected. Please wait...[/yellow]")
+            return
+            
         if not self.system_info:
             self.console.print("[yellow]System information not available yet. Please wait...[/yellow]")
             return
@@ -383,11 +440,11 @@ class WishApp(App):
     
     def on_mount(self) -> None:
         """Handle app mount event."""
-        # Start collecting system information
-        asyncio.create_task(self.collect_system_info())
-        
-        # Show the wish input screen
+        # Show the wish input screen first
         self.push_screen("wish_input")
+        
+        # Then start collecting system information
+        asyncio.create_task(self.collect_system_info())
 
 
 def main(backend_config=None) -> None:

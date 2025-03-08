@@ -36,6 +36,12 @@ class SystemInfoCollector:
             pid=session.pid
         )
         
+        # 実行可能ファイル収集を一時的に無効化
+        # 空の実行可能ファイルコレクションを設定
+        info.path_executables = ExecutableCollection()
+        
+        # 以下のコードは一時的にコメントアウト
+        """
         # Collect executables in PATH
         path_executables = await SystemInfoCollector._collect_path_executables(session)
         info.path_executables = path_executables
@@ -44,6 +50,7 @@ class SystemInfoCollector:
         if collect_system_executables:
             system_executables = await SystemInfoCollector._collect_system_executables(session)
             info.system_executables = system_executables
+        """
         
         return info
     

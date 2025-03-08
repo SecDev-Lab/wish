@@ -250,12 +250,23 @@ class SliverBackend(Backend):
         Returns:
             SystemInfo: Collected system information
         """
-        await self._connect()  # Ensure connection is established
-        
-        if not self.interactive_session:
-            raise RuntimeError("No active Sliver session")
-        
-        return await SystemInfoCollector.collect_from_session(
-            self.interactive_session, 
-            collect_system_executables=collect_system_executables
-        )
+        print("DEBUG: Starting system info collection from Sliver session")
+        try:
+            await self._connect()  # Ensure connection is established
+            print(f"DEBUG: Connected to Sliver session {self.session_id}")
+            
+            if not self.interactive_session:
+                print("DEBUG: No active Sliver session")
+                raise RuntimeError("No active Sliver session")
+            
+            print(f"DEBUG: Session info - OS: {self.interactive_session.os}, Arch: {self.interactive_session.arch}")
+            
+            info = await SystemInfoCollector.collect_from_session(
+                self.interactive_session, 
+                collect_system_executables=collect_system_executables
+            )
+            print(f"DEBUG: System info collection completed - OS: {info.os}, Hostname: {info.hostname}")
+            return info
+        except Exception as e:
+            print(f"DEBUG: Error in get_system_info: {str(e)}")
+            raise
