@@ -15,6 +15,7 @@ wish-sh is an LLM-assisted shell that helps users execute commands by translatin
 - **Real-time Status Monitoring**: Track command execution status in real-time
 - **Command History**: Access and reuse previous commands
 - **TUI Interface**: User-friendly terminal interface built with Textual
+- **Knowledge Base Management**: Load and manage knowledge bases from GitHub repositories for enhanced command suggestions
 
 ## Installation
 
@@ -64,6 +65,27 @@ Both commands provide identical functionality.
 - Confirm to execute or reject to modify
 - Monitor execution status
 - Access command history with arrow keys
+
+### Knowledge Base Management
+
+wish-sh can be enhanced with knowledge bases loaded from GitHub repositories. To use this feature:
+
+1. Install the knowledge loader:
+   ```bash
+   pip install wish-knowledge-loader
+   ```
+
+2. Load a knowledge base:
+   ```bash
+   wish-knowledge-loader --repo-url https://github.com/username/repo --glob "**/*.md" --title "Knowledge Base Title"
+   ```
+
+   Options:
+   - `--repo-url`: GitHub repository URL to clone
+   - `--glob`: Glob pattern for files to include (e.g., "**/*.md" for all Markdown files)
+   - `--title`: Title for the knowledge base
+
+This will enhance wish's command suggestions with knowledge from the specified repository.
 
 ## Architecture
 
