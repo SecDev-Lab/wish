@@ -111,11 +111,28 @@ class SliverBackend(Backend):
             # Execute the command
             cmd_result = await self.interactive_session.execute(command, [])
             
+            # Debug information
+            print(f"DEBUG - Command: {command}")
+            print(f"DEBUG - Command result type: {type(cmd_result)}")
+            print(f"DEBUG - Command result dir: {dir(cmd_result)}")
+            
             # Write results to log files
             if cmd_result.Stdout:
-                stdout_file.write(cmd_result.Stdout.decode('utf-8', errors='replace'))
+                stdout_content = cmd_result.Stdout.decode('utf-8', errors='replace')
+                stdout_file.write(stdout_content)
+                print(f"DEBUG - Command stdout: {stdout_content}")
+            else:
+                print("DEBUG - No stdout from command")
+                
             if cmd_result.Stderr:
-                stderr_file.write(cmd_result.Stderr.decode('utf-8', errors='replace'))
+                stderr_content = cmd_result.Stderr.decode('utf-8', errors='replace')
+                stderr_file.write(stderr_content)
+                print(f"DEBUG - Command stderr: {stderr_content}")
+            
+            # Additional debug for specific attributes
+            for attr in ['Status', 'Response', 'Output']:
+                if hasattr(cmd_result, attr):
+                    print(f"DEBUG - cmd_result.{attr}: {getattr(cmd_result, attr)}")
             
             # Update command result
             exit_code = cmd_result.Status if cmd_result.Status is not None else 0
