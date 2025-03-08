@@ -373,8 +373,7 @@ class WishApp(App):
     TITLE = "Wish Shell"
     SCREENS = {"wish_input": WishInput}
     BINDINGS = [
-        ("escape", "quit", "Quit"),
-        ("f1", "show_system_info", "System Info")
+        ("escape", "quit", "Quit")
     ]
 
     def __init__(self, backend_config=None):
@@ -387,20 +386,20 @@ class WishApp(App):
         self.settings = Settings()
         self.wish_manager = WishManager(self.settings, backend_config)
         
-        # 基本システム情報
+        # Basic system information
         self.system_info = None
-        self.system_info_state = "not_started"  # システム情報収集状態
+        self.system_info_state = "not_started"  # System information collection state
         
-        # 実行可能ファイル情報
+        # Executable files information
         self.executables = None
-        self.executables_state = "not_started"  # 実行可能ファイル収集状態
+        self.executables_state = "not_started"  # Executable files collection state
     
     def update_info_buttons(self):
         """Update both info buttons based on collection state."""
         try:
             wish_input = self.query_one(WishInput)
             
-            # System Info ボタンの更新
+            # Update System Info button
             system_info_button = wish_input.query_one("#system-info-button")
             if self.system_info_state == "collecting":
                 system_info_button.label = "Collecting..."
@@ -419,7 +418,7 @@ class WishApp(App):
                 system_info_button.disabled = False
                 system_info_button.variant = "default"
             
-            # Executables ボタンの更新
+            # Update Executables button
             executables_button = wish_input.query_one("#executables-button")
             if self.executables_state == "collecting":
                 executables_button.label = "Collecting..."
@@ -438,7 +437,7 @@ class WishApp(App):
                 executables_button.disabled = False
                 executables_button.variant = "default"
         except Exception:
-            # 画面がまだ表示されていない場合など
+            # Screen may not be displayed yet
             pass
     
     def update_system_info_button(self):
@@ -447,7 +446,7 @@ class WishApp(App):
 
     async def collect_system_info(self):
         """Collect system information."""
-        # 収集開始状態に設定
+        # Set collection state to collecting
         self.system_info_state = "collecting"
         self.update_info_buttons()
         
@@ -457,7 +456,7 @@ class WishApp(App):
             # Get basic system information from backend
             self.system_info = await self.wish_manager.executor.backend.get_basic_system_info()
             
-            # 収集成功状態に設定
+            # Set collection state to ready
             self.system_info_state = "ready"
             self.update_info_buttons()
             
@@ -465,13 +464,13 @@ class WishApp(App):
             display_system_info(self.system_info, self.console)
             
         except Exception as e:
-            # エラー状態に設定
+            # Set collection state to error
             self.system_info_state = "error"
             self.update_info_buttons()
             
             self.console.print(f"[bold red]Error collecting system information: {str(e)}[/bold red]")
             
-            # エラー時でも最低限の情報を設定
+            # Set minimal information even in case of error
             self.system_info = SystemInfo(
                 os="Unknown (Error)",
                 arch="Unknown",
@@ -495,7 +494,7 @@ class WishApp(App):
     
     async def collect_executables(self):
         """Collect executable files information."""
-        # 収集開始状態に設定
+        # Set collection state to collecting
         self.executables_state = "collecting"
         self.update_info_buttons()
         
@@ -507,7 +506,7 @@ class WishApp(App):
                 collect_system_executables=False  # Only collect PATH executables by default
             )
             
-            # 収集成功状態に設定
+            # Set collection state to ready
             self.executables_state = "ready"
             self.update_info_buttons()
             
@@ -524,20 +523,20 @@ class WishApp(App):
                 self.console.print(f"[green]... and {len(grouped) - 5} more directories[/green]")
             
         except Exception as e:
-            # エラー状態に設定
+            # Set collection state to error
             self.executables_state = "error"
             self.update_info_buttons()
             
             self.console.print(f"[bold red]Error collecting executables: {str(e)}[/bold red]")
             
-            # エラー時でも空のコレクションを設定
+            # Set empty collection even in case of error
             from wish_models.system_info import ExecutableCollection
             self.executables = ExecutableCollection()
     
     def action_show_executables(self) -> None:
         """Show executables information in a modal window."""
         if self.executables_state == "not_started":
-            # 初回実行時は収集を開始
+            # Start collection on first execution
             self.console.print("[yellow]Starting executables collection...[/yellow]")
             asyncio.create_task(self.collect_executables())
             return
