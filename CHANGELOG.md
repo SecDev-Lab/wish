@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added system information collection capabilities for Sliver C2:
+  - New model classes for system information (`SystemInfo`, `ExecutableInfo`, `ExecutableCollection`)
+  - Factory classes for testing system information models
+  - `SystemInfoCollector` for gathering OS information and executable files from remote systems
+  - Integration with Sliver C2 backend to collect system information from compromised hosts
+
 ### Changed
 
 ### Fixed
