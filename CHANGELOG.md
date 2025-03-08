@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.3.0] - 2025-03-08
+
+### Added
+
 - Added system information collection capabilities for Sliver C2:
   - New model classes for system information (`SystemInfo`, `ExecutableInfo`, `ExecutableCollection`)
   - Factory classes for testing system information models
