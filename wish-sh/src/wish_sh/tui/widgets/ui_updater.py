@@ -52,6 +52,30 @@ class UIUpdater:
 
                 if result.log_summary:
                     status += f"\nSummary: {result.log_summary}"
+                
+                # Add stdout and stderr content (max 5 lines each)
+                if result.finished_at and result.log_files:
+                    # Read stdout (max 5 lines)
+                    try:
+                        with open(result.log_files.stdout, 'r') as f:
+                            stdout_lines = f.readlines()
+                            if stdout_lines:
+                                # Get last 5 lines or all if less than 5
+                                stdout_content = stdout_lines[-5:] if len(stdout_lines) > 5 else stdout_lines
+                                status += "\n\nstdout:\n" + "".join(stdout_content)
+                    except Exception:
+                        pass
+                    
+                    # Read stderr (max 5 lines)
+                    try:
+                        with open(result.log_files.stderr, 'r') as f:
+                            stderr_lines = f.readlines()
+                            if stderr_lines:
+                                # Get last 5 lines or all if less than 5
+                                stderr_content = stderr_lines[-5:] if len(stderr_lines) > 5 else stderr_lines
+                                status += "\n\nstderr:\n" + "".join(stderr_content)
+                    except Exception:
+                        pass
 
                 # Update the status widget
                 status_widget = self.screen.query_one(f"#command-status-{result.num}")
