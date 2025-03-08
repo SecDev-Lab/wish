@@ -2,28 +2,33 @@ name: Update Changelog
 
 on:
   pull_request:
-    types: [closed]
+    types: [opened, synchronize]
     branches:
       - main
 
 jobs:
   update-changelog:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      pull-requests: write
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: main
+          fetch-depth: 0
       
       - name: Check if CHANGELOG.md was modified
         id: check-changelog
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}
-          CHANGELOG_MODIFIED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} HEAD | grep -c "CHANGELOG.md" || true)
+          if [ "${{ github.event.action }}" == "opened" ]; then
+            # For newly created PRs, check diff against the base branch
+            git fetch origin ${{ github.event.pull_request.base.ref }}
+            CHANGELOG_MODIFIED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} HEAD | grep -c "CHANGELOG.md" || true)
+          else
+            # For updated PRs, check diff against the previous commit
+            CHANGELOG_MODIFIED=$(git diff --name-only HEAD^ HEAD | grep -c "CHANGELOG.md" || true)
+          fi
           echo "modified=$CHANGELOG_MODIFIED" >> $GITHUB_OUTPUT
       
       - name: Commit reminder if CHANGELOG.md was not updated
