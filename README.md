@@ -17,86 +17,25 @@ wish-sh is an LLM-assisted shell that helps users execute commands by translatin
 - **TUI Interface**: User-friendly terminal interface built with Textual
 - **Knowledge Base Management**: Load and manage knowledge bases from GitHub repositories for enhanced command suggestions
 
-## Installation
+## Installation & Configuration
+
+For detailed installation and configuration instructions, see the [Setup Guide](docs/setup.md).
+
+Quick start:
 
 ```bash
 pip install wish-sh
+export OPENAI_API_KEY=your-api-key-here
+wish  # or wish-sh on macOS
 ```
 
-## Configuration
+## Documentation
 
-To use wish, you need to set up the following environment variables:
-
-1. Create a `.env` file in your project directory (you can copy `.env.example` as a starting point)
-2. Configure the required environment variables:
-   - `OPENAI_API_KEY`: Your OpenAI API key
-   - `OPENAI_MODEL`: The OpenAI model to use (default: gpt-4o)
-   - `WISH_HOME`: The directory where wish will store its data (default: ~/.wish)
-
-Example:
-
-```bash
-# .env file
-OPENAI_API_KEY=your-api-key-here
-OPENAI_MODEL=gpt-4o
-WISH_HOME=~/.wish
-```
-
-## Usage
-
-To start the wish shell:
-
-```bash
-wish
-```
-
-**Note for macOS users**: macOS includes a built-in `wish` command as part of the Tcl/Tk package. To avoid conflicts, you can use the alternative command:
-
-```bash
-wish-sh
-```
-
-Both commands provide identical functionality.
-
-### Basic Commands
-
-- Enter your wish in natural language
-- Review the suggested commands
-- Confirm to execute or reject to modify
-- Monitor execution status
-- Access command history with arrow keys
-
-### Knowledge Base Management
-
-wish-sh can be enhanced with knowledge bases loaded from GitHub repositories. To use this feature:
-
-1. Install the knowledge loader:
-   ```bash
-   pip install wish-knowledge-loader
-   ```
-
-2. Load a knowledge base:
-   ```bash
-   wish-knowledge-loader --repo-url https://github.com/username/repo --glob "**/*.md" --title "Knowledge Base Title"
-   ```
-
-   Options:
-   - `--repo-url`: GitHub repository URL to clone
-   - `--glob`: Glob pattern for files to include (e.g., "**/*.md" for all Markdown files)
-   - `--title`: Title for the knowledge base
-
-This will enhance wish's command suggestions with knowledge from the specified repository.
-
-## Architecture
-
-wish-sh is composed of four main packages:
-
-1. **wish-models**: Core data models and structures
-2. **wish-command-generation**: Command generation using LLM and RAG
-3. **wish-command-execution**: Command execution and status tracking
-4. **wish-sh**: TUI interface and user interaction
-
-For detailed design documentation, see [Design Documentation](docs/design.md).
+- [Setup Guide](docs/setup.md) - Installation and configuration
+- [Basic Usage Guide](docs/usage-01-basic.md) - Getting started with wish-sh
+- [Knowledge Loader Guide](docs/usage-02-knowledge-loader.md) - Enhancing wish-sh with domain knowledge
+- [Command and Control (C2) Guide](docs/usage-03-C2.md) - Advanced operations for target systems
+- [Design Documentation](docs/design.md) - Technical architecture and design
 
 ## Development
 

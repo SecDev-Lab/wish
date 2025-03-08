@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added comprehensive documentation:
+  - `docs/setup.md`: Installation and setup guide
+  - `docs/usage-01-basic.md`: Basic usage guide
+  - `docs/usage-02-knowledge-loader.md`: Knowledge loader usage guide
+  - `docs/usage-03-C2.md`: Command and Control (C2) usage guide
+
 ### Changed
 
 ### Fixed
