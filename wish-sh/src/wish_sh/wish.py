@@ -32,9 +32,6 @@ async def check_sliver_sessions(config_path):
         # Get session list
         sessions = await client.sessions()
         
-        # Close connection
-        await client.close()
-        
         if not sessions:
             print("Error: No active Sliver sessions available.")
             return None
