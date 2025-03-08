@@ -8,8 +8,10 @@ from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
 from wish_models import Wish, WishState
 from wish_models.command_result.command_state import CommandState
+from wish_models.system_info import SystemInfo
 
 from wish_sh.settings import Settings
+from wish_sh.system_info_display import display_system_info
 from wish_sh.tui.widgets import UIUpdater
 from wish_sh.wish_manager import WishManager
 
@@ -249,7 +251,10 @@ class WishApp(App):
 
     TITLE = "Wish Shell"
     SCREENS = {"wish_input": WishInput}
-    BINDINGS = [("escape", "quit", "Quit")]
+    BINDINGS = [
+        ("escape", "quit", "Quit"),
+        ("f1", "show_system_info", "System Info")
+    ]
 
     def __init__(self, backend_config=None):
         """Initialize the Wish TUI application.
@@ -260,9 +265,52 @@ class WishApp(App):
         super().__init__()
         self.settings = Settings()
         self.wish_manager = WishManager(self.settings, backend_config)
+        self.system_info = None
 
+    async def collect_system_info(self):
+        """Collect system information."""
+        self.console.print("[bold green]Collecting system information...[/bold green]")
+        
+        try:
+            # Get system information from backend
+            self.system_info = await self.wish_manager.executor.backend.get_system_info(
+                collect_system_executables=False  # Only collect PATH executables by default
+            )
+            
+            # Display basic system information
+            display_system_info(self.system_info, self.console)
+            
+            # Show summary of executables
+            self.console.print(f"[green]Collected {len(self.system_info.path_executables.executables)} executables from PATH.[/green]")
+            
+        except Exception as e:
+            self.console.print(f"[bold red]Error collecting system information: {str(e)}[/bold red]")
+
+    def action_show_system_info(self) -> None:
+        """Show system information."""
+        if not self.system_info:
+            self.console.print("[yellow]System information not available yet. Please wait...[/yellow]")
+            return
+            
+        # Display basic system information
+        display_system_info(self.system_info, self.console)
+        
+        # Display executables in PATH
+        from wish_sh.system_info_display import display_executables
+        self.console.print("\n")
+        display_executables(self.system_info.path_executables, "Executables in PATH", self.console)
+        
+        # Display system-wide executables if available
+        if self.system_info.system_executables:
+            self.console.print("\n")
+            display_executables(self.system_info.system_executables, "System-wide Executables", self.console)
+    
     def on_mount(self) -> None:
         """Handle app mount event."""
+        # Start collecting system information
+        asyncio.create_task(self.collect_system_info())
+        
+        # Show the wish input screen
         self.push_screen("wish_input")
 
 

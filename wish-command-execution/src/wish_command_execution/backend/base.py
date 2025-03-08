@@ -1,6 +1,7 @@
 """Base backend interface for command execution."""
 
 from wish_models import Wish
+from wish_models.system_info import SystemInfo
 
 
 class Backend:
@@ -30,5 +31,16 @@ class Backend:
 
         Returns:
             A message indicating the result of the cancellation.
+        """
+        raise NotImplementedError
+        
+    async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
+        """Get system information.
+        
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+            
+        Returns:
+            SystemInfo: Collected system information
         """
         raise NotImplementedError

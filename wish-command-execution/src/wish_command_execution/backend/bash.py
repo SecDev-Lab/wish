@@ -5,8 +5,10 @@ import time
 from typing import Dict, Tuple
 
 from wish_models import CommandResult, CommandState, Wish
+from wish_models.system_info import SystemInfo
 
 from wish_command_execution.backend.base import Backend
+from wish_command_execution.system_info import SystemInfoCollector
 
 
 class BashBackend(Backend):
@@ -134,3 +136,16 @@ class BashBackend(Backend):
             return f"Command {cmd_num} cancelled."
         else:
             return f"Command {cmd_num} is not running."
+            
+    async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
+        """Get system information from the local system.
+        
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+            
+        Returns:
+            SystemInfo: Collected system information
+        """
+        return SystemInfoCollector.collect_local_system_info(
+            collect_system_executables=collect_system_executables
+        )

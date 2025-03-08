@@ -5,8 +5,10 @@ from typing import Any, Dict, Tuple
 
 from sliver import SliverClient, SliverClientConfig
 from wish_models import CommandResult, CommandState, Wish
+from wish_models.system_info import SystemInfo
 
 from wish_command_execution.backend.base import Backend
+from wish_command_execution.system_info import SystemInfoCollector
 
 
 class SliverBackend(Backend):
@@ -238,3 +240,22 @@ class SliverBackend(Backend):
             return f"Command {cmd_num} cancelled."
         else:
             return f"Command {cmd_num} is not running."
+            
+    async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
+        """Get system information from the Sliver session.
+        
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+            
+        Returns:
+            SystemInfo: Collected system information
+        """
+        await self._connect()  # Ensure connection is established
+        
+        if not self.interactive_session:
+            raise RuntimeError("No active Sliver session")
+        
+        return await SystemInfoCollector.collect_from_session(
+            self.interactive_session, 
+            collect_system_executables=collect_system_executables
+        )
