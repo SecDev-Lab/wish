@@ -60,15 +60,32 @@ class SliverBackend(Backend):
 
         with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
             try:
-                # Start an asyncio task to execute the command
-                # We need to use asyncio.run in a separate thread since the Backend interface is synchronous
-                asyncio.run(self._execute_command_wrapper(command, stdout_file, stderr_file, result, wish, cmd_num))
+                # Run the async command in a separate thread with its own event loop
+                import threading
+                
+                def run_async_command():
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        loop.run_until_complete(self._execute_command_wrapper(command, stdout_file, stderr_file, result, wish, cmd_num))
+                    except Exception as e:
+                        # Handle errors in the thread
+                        error_msg = f"Sliver execution error in thread: {str(e)}"
+                        stderr_file.write(error_msg)
+                        self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
+                    finally:
+                        loop.close()
+                
+                # Start the thread
+                thread = threading.Thread(target=run_async_command)
+                thread.daemon = True  # Make thread daemon so it doesn't block program exit
+                thread.start()
                 
                 # Return immediately for UI (non-blocking)
                 return
                 
             except Exception as e:
-                # Handle errors
+                # Handle errors in the main thread
                 error_msg = f"Sliver execution error: {str(e)}"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 1, CommandState.OTHERS)

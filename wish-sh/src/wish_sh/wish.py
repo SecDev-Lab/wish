@@ -73,7 +73,14 @@ def main():
         # Handle Sliver session
         if not args.sliver_session:
             # If session ID is not specified, check available sessions
-            session_id = asyncio.run(check_sliver_sessions(args.sliver_config))
+            try:
+                # Get existing event loop or create a new one
+                loop = asyncio.get_event_loop()
+                session_id = loop.run_until_complete(check_sliver_sessions(args.sliver_config))
+            except RuntimeError:
+                # If no event loop exists, create a new one
+                session_id = asyncio.run(check_sliver_sessions(args.sliver_config))
+                
             if not session_id:
                 # Exit if multiple sessions or no sessions found
                 return
