@@ -4,13 +4,33 @@
 
 ### 1.1 Purpose of this Document
 
-This whitepaper presents "wish," an AI-powered penetration testing assistant tool, as a submission for the Black Hat Arsenal. The document outlines the tool's capabilities, architecture, and potential applications in offensive security operations.
+This whitepaper presents "wish," an AI-powered shell environment specifically designed for penetration testing. Operating as an intelligent command-line interface, wish translates natural language inputs into executable shell commands, providing penetration testers with an intuitive and efficient workflow. The document outlines the tool's capabilities, architecture, and potential applications in offensive security operations.
 
 ### 1.2 Background and Objectives
 
-Penetration testing requires extensive knowledge of various tools, commands, and techniques. Even experienced professionals face challenges in remembering specific command syntax or identifying the most efficient approach for a given scenario. 
+#### Beyond Cheatsheets and Copy-Paste
 
-wish was developed as a component of the RapidPen project, specifically focusing on the "Act" portion of the RapidPen architecture. The tool leverages AI to bridge the gap between natural language instructions and executable commands, enabling both novice and experienced penetration testers to work more efficiently.
+Penetration testing education and practice, whether for OSCP certification, HackTheBox, TryHackMe, or CTF competitions, has traditionally relied heavily on copying and pasting commands from web pages and cheatsheets. While this approach serves an educational purpose, the emergence of Large Language Models (LLMs) presents an opportunity to make this process significantly more intelligent and efficient.
+
+wish was designed to shift the focus from memorizing commands to developing situational awareness and strategic thinking. By simply expressing what needs to be accomplished as a natural language "wish," penetration testers receive contextually appropriate command suggestions, allowing them to concentrate on the higher-level aspects of security assessment rather than syntax details.
+
+#### Accelerating Attack Vector Exploration
+
+Speed is critical in penetration testing, where multiple attack vectors must often be explored to identify viable entry points. Traditional approaches using terminal multiplexers and manual command management can become cumbersome and time-consuming.
+
+wish addresses this challenge by generating multiple commands simultaneously and executing them in parallel. Commands run in the background, with the system providing interruption notifications upon completion. This parallel processing approach allows penetration testers to continue strategizing while commands execute, significantly accelerating the testing workflow.
+
+#### Enhancing Post-Exploitation Experience
+
+Penetration testing extends beyond initial access to include post-exploitation activities. However, shells obtained during this phase are typically limited in functionality, degrading the tester's experience and efficiency. Traditional post-exploitation workflows often force penetration testers to abandon their preferred tools and adapt to restrictive command-line environments.
+
+wish transforms this experience by bringing its AI-powered shell capabilities directly into compromised environments. By integrating with Command and Control (C2) frameworks, wish enables penetration testers to continue using natural language commands even after successful exploitation. This means the same intuitive interface that translates "wishes" into executable commands on your local machine can now operate within the compromised target system. While the current implementation focuses on Sliver C2 integration, the architecture is designed to support various C2 frameworks, including custom solutions, in the future. This flexible integration approach ensures that penetration testers can maintain their efficient, AI-assisted workflow throughout the entire testing process, from initial reconnaissance to post-exploitation.
+
+#### Part of the RapidPen Ecosystem
+
+wish was developed as a component of the RapidPen project [1], an AI-driven system for automated penetration testing. RapidPen's architecture is divided into two main components: "Re" for task planning and "Act" for command execution. The effectiveness of the Act component significantly influences the success of initial access in the RapidPen system.
+
+By extracting the Act component as an open-source tool, wish aims to refine and improve this critical functionality through community involvement. While RapidPen focuses on automation, wish acknowledges the continued importance of human-led penetration testing and serves as an assistant that enhances human capabilities rather than replacing them.
 
 ![RapidPen Architecture Overview](whitepaper/RapidPen-Architecture-Overview.svg)
 
@@ -19,6 +39,7 @@ The primary objectives of wish are:
 - Accelerate penetration testing workflows through parallel command execution
 - Provide contextually relevant command suggestions based on specialized knowledge bases
 - Enable seamless operation in both local and compromised environments
+- Support the evolution of the RapidPen ecosystem while enhancing human-led security testing
 
 ## 2. Tool Overview
 
@@ -28,7 +49,7 @@ The primary objectives of wish are:
 - **Offensive Security-Focused RAG**: Utilize Retrieval-Augmented Generation with specialized knowledge bases
 - **Parallel Command Execution**: Execute and track multiple commands simultaneously
 - **Log Analysis and Summarization**: Automatically analyze and summarize command outputs
-- **C2 Integration**: Operate within compromised environments through Sliver C2 integration
+- **C2 Integration**: Operate within compromised environments through C2 framework integration, currently supporting Sliver C2 with plans for expanded framework support
 
 ### 2.2 Use Cases
 
@@ -97,9 +118,9 @@ TODO: Add information about available knowledge bases, how to add custom knowled
 
 ### 4.3 Operating in Compromised Shells
 
-wish can be integrated with Sliver C2 to operate within compromised environments:
+wish can be integrated with Command and Control (C2) frameworks to operate within compromised environments:
 
-TODO: Add details on Sliver C2 integration, command execution in compromised environments, and practical usage scenarios
+TODO: Add details on current Sliver C2 integration, plans for supporting additional C2 frameworks, command execution in compromised environments, and practical usage scenarios
 
 ## 5. Development Status
 
@@ -123,12 +144,15 @@ Current capabilities include:
 ### 5.3 Future Development
 
 - Support for various LLM providers
+- Expanded C2 framework integration beyond Sliver C2, including support for custom and proprietary C2 solutions
 - Additional extension capabilities
 - Improvements based on community feedback
 
 ## 6. References
 
-TODO: Add relevant research papers, open-source projects used, and reference tools
+[1] NAKATANI, Sho. RapidPen: Fully Automated IP-to-Shell Penetration Testing with LLM-based Agents. arXiv preprint arXiv:2502.16730, 2025.
+
+TODO: Add additional research papers, open-source projects used, and reference tools
 
 ## Comparison with Similar Tools
 
