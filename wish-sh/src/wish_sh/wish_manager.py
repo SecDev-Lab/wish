@@ -19,7 +19,7 @@ class WishManager:
 
     def __init__(self, settings: Settings, backend_config=None):
         """Initialize the wish manager.
-        
+
         Args:
             settings: Application settings.
             backend_config: Backend configuration (optional).

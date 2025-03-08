@@ -14,7 +14,7 @@ class SliverBackend(Backend):
 
     def __init__(self, session_id: str, client_config_path: str):
         """Initialize the Sliver backend.
-        
+
         Args:
             session_id: The ID of the Sliver session to interact with.
             client_config_path: Path to the Sliver client configuration file.
@@ -23,11 +23,12 @@ class SliverBackend(Backend):
         self.client_config_path = client_config_path
         self.client = None  # SliverClient instance
         self.interactive_session = None  # Interactive session
-        self.running_commands: Dict[int, Tuple[Any, CommandResult, Wish]] = {}  # Track running commands (thread, result, wish)
+        # Track running commands (thread, result, wish)
+        self.running_commands: Dict[int, Tuple[Any, CommandResult, Wish]] = {}
 
     async def _connect(self):
         """Connect to the Sliver server.
-        
+
         Establishes a connection to the Sliver server and opens an interactive session
         with the specified session ID.
         """
@@ -47,7 +48,7 @@ class SliverBackend(Backend):
 
     def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
         """Execute a command through Sliver C2.
-        
+
         Args:
             wish: The wish to execute the command for.
             command: The command to execute.
@@ -67,7 +68,11 @@ class SliverBackend(Backend):
                 asyncio.set_event_loop(loop)
                 try:
                     # Pass file paths instead of file handles
-                    loop.run_until_complete(self._execute_command_wrapper(command, log_files.stdout, log_files.stderr, result, wish, cmd_num))
+                    loop.run_until_complete(
+                        self._execute_command_wrapper(
+                            command, log_files.stdout, log_files.stderr, result, wish, cmd_num
+                        )
+                    )
                 except Exception as e:
                     # Handle errors in the thread
                     with open(log_files.stderr, "w") as stderr_file:
@@ -97,7 +102,7 @@ class SliverBackend(Backend):
 
     async def _execute_command_wrapper(self, command, stdout_path, stderr_path, result, wish, cmd_num):
         """Wrapper to execute a command and handle its lifecycle.
-        
+
         Args:
             command: The command to execute.
             stdout_path: Path to the file to write stdout to.
@@ -158,7 +163,7 @@ class SliverBackend(Backend):
         self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState
     ):
         """Handle command failure.
-        
+
         Args:
             result: The command result to update.
             wish: The wish associated with the command.

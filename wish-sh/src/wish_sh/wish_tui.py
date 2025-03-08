@@ -253,7 +253,7 @@ class WishApp(App):
 
     def __init__(self, backend_config=None):
         """Initialize the Wish TUI application.
-        
+
         Args:
             backend_config: Backend configuration (optional).
         """
@@ -268,7 +268,7 @@ class WishApp(App):
 
 def main(backend_config=None) -> None:
     """Run the Wish TUI application.
-    
+
     Args:
         backend_config: Backend configuration (optional).
     """

@@ -11,14 +11,14 @@ from wish_sh.wish_tui import main as tui_main
 
 async def check_sliver_sessions(config_path):
     """Check Sliver sessions and return appropriate session ID.
-    
+
     Returns the session ID if only one session exists.
     Displays a list of sessions and returns None if multiple sessions exist.
     Displays an error message and returns None if no sessions exist.
-    
+
     Args:
         config_path: Path to the Sliver client configuration file.
-        
+
     Returns:
         The session ID if only one session exists, None otherwise.
     """
