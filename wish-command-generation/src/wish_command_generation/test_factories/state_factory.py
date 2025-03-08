@@ -3,6 +3,7 @@
 import factory
 from factory.faker import Faker
 from wish_models.command_result import CommandInput
+from wish_models.system_info import SystemInfo
 from wish_models.wish.wish import Wish
 from wish_models.wish.wish_state import WishState
 
@@ -78,3 +79,17 @@ class GraphStateFactory(factory.Factory):
         wish = WishFactory.create_with_specific_wish(wish_text)
         command_inputs = [CommandInputFactory.create_with_specific_command(cmd) for cmd in commands]
         return GraphState(wish=wish, command_inputs=command_inputs)
+        
+    @classmethod
+    def create_with_system_info(cls, wish_text: str, system_os: str = "Linux", 
+                               system_arch: str = "x86_64", system_version: str = "5.15.0") -> GraphState:
+        """Create a GraphState with a specific wish text and system information."""
+        wish = WishFactory.create_with_specific_wish(wish_text)
+        system_info = SystemInfo(
+            os=system_os,
+            arch=system_arch,
+            version=system_version,
+            hostname="test-host",
+            username="test-user",
+        )
+        return GraphState(wish=wish, system_info=system_info)
