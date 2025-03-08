@@ -72,7 +72,51 @@ OSCP certification candidates often struggle with the transition from guided lea
 
 HackTheBox, TryHackMe, and CTF players operate under time constraints where efficiency is crucial. wish accelerates the reconnaissance and enumeration phases by generating and executing multiple commands in parallel. For instance, when approaching a new Boot2Root challenge, players can initiate comprehensive enumeration by expressing "perform initial enumeration on this target" and receive a set of parallel commands covering port scanning, service identification, and common vulnerability checks.
 
-### 2.3 Architecture
+### 2.3 Comparison with Similar Tools
+
+#### shell_gpt [2]
+
+shell_gpt is a command-line productivity tool that brings the power of large language models to the terminal. It allows users to generate shell commands from natural language descriptions, helping to reduce the cognitive load of remembering complex syntax and options.
+
+Key features of shell_gpt include:
+- Natural language to command translation
+- Integration with various shells (bash, zsh, fish)
+
+While shell_gpt excels at general-purpose command assistance, it is not specifically designed for offensive security operations. It typically generates one command at a time, which, while suitable for daily work, can be limiting for the rapid, multi-faceted exploration required in penetration testing scenarios.
+
+wish builds upon this foundation by adding specialized offensive security knowledge bases and parallel command execution capabilities, significantly accelerating the penetration testing workflow.
+
+#### Nebula [3]
+
+Nebula is an AI-powered penetration testing assistant designed specifically for security professionals. Unlike wish which focuses on being a shell environment, Nebula has a broader scope beyond shell operations, covering various aspects of penetration testing. It represents an evolution in offensive security tooling by combining AI capabilities with penetration testing expertise.
+
+Key features of Nebula include:
+
+- Specialized for penetration testing workflows
+- Suggestion of next actions based on command results
+- Multiple command recommendations
+- Offline operation using local models
+
+While it can suggest multiple commands, the execution management of these commands is left to the user. Additionally, Nebula emphasizes offline operation, running models locally on the user's machine without sending data to external APIs.
+
+This design choice enhances security and privacy but comes with limitations:
+- Requires significant hardware resources (GPU recommended)
+- Limited to local model capabilities (speed and accuracy)
+
+wish addresses these limitations by providing a more focused shell experience with parallel and asynchronous command execution management, C2 integration for operation in compromised environments, and leveraging powerful cloud-based models while maintaining operational security.
+
+#### Comparison Summary
+
+| Feature | wish | shell_gpt | Nebula |
+|---------|------|-----------|--------|
+| **Primary Purpose** | AI-powered shell for penetration testing | AI-powered shell for general purpose | Penetration testing assistance |
+| **Command Generation & Execution** | Multiple commands, parallel & asynchronous execution | Single command, sequential execution | Multiple commands (suggestion only) |
+| **Knowledge Base** | GitHub documents (e.g. HackTricks) | None | Internet search & local knowledge base |
+| **LLM Model** | OpenAI API | OpenAI API + Local models | Local models |
+| **Use in Compromised Environments** | Possible (C2 integration) | Not possible | Not possible |
+| **UI** | TUI | CLI | GUI |
+
+### 2.4 Architecture
 
 #### Control and Data Flow
 
@@ -217,23 +261,7 @@ Current capabilities include:
 ## 6. References
 
 [1] NAKATANI, Sho. RapidPen: Fully Automated IP-to-Shell Penetration Testing with LLM-based Agents. arXiv preprint arXiv:2502.16730, 2025.
+[2] shell_gpt: https://github.com/TheR1D/shell_gpt
+[3] Nebula: https://github.com/berylliumsec/nebula
 
 TODO: Add additional research papers, open-source projects used, and reference tools
-
-## Comparison with Similar Tools
-
-| Feature/Characteristic | wish | shell_gpt | nebula |
-|----------|------|-----------|--------|
-| **Primary Purpose** | Penetration testing assistance | General shell command assistance | Penetration testing assistance |
-| **Specialization** | Offensive security | General-purpose | Offensive security |
-| **Command Generation** | Multiple parallel & asynchronous commands | Single command (sequential possible) | Multiple commands |
-| **Knowledge Base** | Offensive security-focused specialized knowledge base | None | Internet search & local knowledge base |
-| **Model** | OpenAI API (gpt-4o) | OpenAI API | Local models only |
-| **Hardware Requirements** | No GPU required | No GPU required | GPU recommended (required) |
-| **Use in Compromised Environments** | Possible (C2 integration) | Not possible | Not possible |
-| **Log Analysis** | Yes (LLM-based summary & classification) | No | Yes |
-| **UI** | TUI | CLI | CLI |
-| **Offline Operation** | Partial (API connection required) | Partial (API connection required) | Fully offline |
-| **Extensibility** | High (modular structure) | Medium | Medium |
-
-This comparison highlights wish's unique advantages, particularly its offensive security-focused knowledge base, ability to operate in compromised environments, and no GPU requirement for operation.
