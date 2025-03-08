@@ -4,16 +4,96 @@ from typing import Optional
 from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
-from textual.screen import Screen
+from textual.screen import Screen, ModalScreen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
 from wish_models import Wish, WishState
 from wish_models.command_result.command_state import CommandState
 from wish_models.system_info import SystemInfo
 
 from wish_sh.settings import Settings
-from wish_sh.system_info_display import display_system_info
+from wish_sh.system_info_display import display_system_info, display_executables
 from wish_sh.tui.widgets import UIUpdater
 from wish_sh.wish_manager import WishManager
+
+
+class SystemInfoModal(ModalScreen):
+    """Modal screen for displaying system information."""
+
+    def __init__(self, system_info):
+        """Initialize the system info modal.
+        
+        Args:
+            system_info: The system information to display
+        """
+        super().__init__()
+        self.system_info = system_info
+
+    def compose(self) -> ComposeResult:
+        """Compose the modal screen."""
+        # Create a container for the modal content
+        yield Container(
+            Label("System Information", id="modal-title"),
+            Static(self._format_basic_info(), id="basic-info", markup=False),
+            Static(self._format_executables(), id="executables-info", markup=False),
+            Button("Close", id="close-button", variant="primary"),
+            id="modal-container",
+        )
+    
+    def _format_basic_info(self) -> str:
+        """Format basic system information for display."""
+        # Format basic information without markup
+        info = self.system_info
+        lines = [
+            f"OS: {info.os}",
+            f"Architecture: {info.arch}",
+        ]
+        if info.version:
+            lines.append(f"Version: {info.version}")
+        lines.extend([
+            f"Hostname: {info.hostname}",
+            f"Username: {info.username}",
+        ])
+        if info.uid:
+            lines.append(f"UID: {info.uid}")
+        if info.gid:
+            lines.append(f"GID: {info.gid}")
+        if info.pid:
+            lines.append(f"PID: {info.pid}")
+        
+        return "\n".join(lines)
+    
+    def _format_executables(self) -> str:
+        """Format executable information for display."""
+        # Format executable information without markup
+        info = self.system_info
+        lines = [
+            f"\nExecutables in PATH ({len(info.path_executables.executables)} files)"
+        ]
+        
+        # Group executables by directory
+        grouped = info.path_executables.group_by_directory()
+        
+        # Add directories and files
+        for directory in sorted(grouped.keys()):
+            lines.append(f"\n{directory} ({len(grouped[directory])} files)")
+            
+            # Add files in this directory
+            for exe in sorted(grouped[directory], key=lambda x: x.filename)[:10]:  # Limit to 10 files per directory
+                if exe.permissions:
+                    lines.append(f"  {exe.filename} ({exe.permissions}, {exe.size} bytes)")
+                else:
+                    lines.append(f"  {exe.filename} ({exe.size} bytes)")
+            
+            # If there are more files, show a message
+            if len(grouped[directory]) > 10:
+                lines.append(f"  ... and {len(grouped[directory]) - 10} more files")
+        
+        return "\n".join(lines)
+    
+    @on(Button.Pressed, "#close-button")
+    def on_close_button_pressed(self) -> None:
+        """Handle close button press."""
+        self.app.pop_screen()
 
 
 class WishInput(Screen):
@@ -25,7 +105,7 @@ class WishInput(Screen):
         yield Container(
             Label("wish✨️", id="wish-prompt", markup=False),
             Input(placeholder="Enter your wish here...", id="wish-input"),
-            Button("System Info", id="system-info-button", variant="primary"),
+            Button("System Info", id="system-info-button", variant="default"),
             id="wish-container",
         )
         yield Footer()
@@ -293,23 +373,13 @@ class WishApp(App):
             self.console.print(f"[bold red]Error collecting system information: {str(e)}[/bold red]")
 
     def action_show_system_info(self) -> None:
-        """Show system information."""
+        """Show system information in a modal window."""
         if not self.system_info:
             self.console.print("[yellow]System information not available yet. Please wait...[/yellow]")
             return
             
-        # Display basic system information
-        display_system_info(self.system_info, self.console)
-        
-        # Display executables in PATH
-        from wish_sh.system_info_display import display_executables
-        self.console.print("\n")
-        display_executables(self.system_info.path_executables, "Executables in PATH", self.console)
-        
-        # Display system-wide executables if available
-        if self.system_info.system_executables:
-            self.console.print("\n")
-            display_executables(self.system_info.system_executables, "System-wide Executables", self.console)
+        # Show system information in a modal window
+        self.push_screen(SystemInfoModal(self.system_info))
     
     def on_mount(self) -> None:
         """Handle app mount event."""
