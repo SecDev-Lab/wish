@@ -36,21 +36,23 @@ class SystemInfoCollector:
             pid=session.pid
         )
         
-        # 実行可能ファイル収集を一時的に無効化
-        # 空の実行可能ファイルコレクションを設定
-        info.path_executables = ExecutableCollection()
-        
-        # 以下のコードは一時的にコメントアウト
-        """
-        # Collect executables in PATH
-        path_executables = await SystemInfoCollector._collect_path_executables(session)
-        info.path_executables = path_executables
-        
-        # Optionally collect system-wide executables
-        if collect_system_executables:
-            system_executables = await SystemInfoCollector._collect_system_executables(session)
-            info.system_executables = system_executables
-        """
+        try:
+            print("DEBUG: Collecting executables in PATH")
+            # Collect executables in PATH
+            path_executables = await SystemInfoCollector._collect_path_executables(session)
+            info.path_executables = path_executables
+            print(f"DEBUG: Collected {len(path_executables.executables)} executables in PATH")
+            
+            # Optionally collect system-wide executables
+            if collect_system_executables:
+                print("DEBUG: Collecting system-wide executables")
+                system_executables = await SystemInfoCollector._collect_system_executables(session)
+                info.system_executables = system_executables
+                print(f"DEBUG: Collected {len(system_executables.executables)} system-wide executables")
+        except Exception as e:
+            print(f"DEBUG: Error collecting executables: {str(e)}")
+            # エラー時は空のコレクションを設定
+            info.path_executables = ExecutableCollection()
         
         return info
     
@@ -69,6 +71,38 @@ class SystemInfoCollector:
         collection = ExecutableCollection()
         
         if "linux" in os_type or "darwin" in os_type:
+            # より単純なコマンドを使用
+            cmd = "which ls cat grep find 2>/dev/null"
+            
+            # 結果を取得後、各ファイルの詳細情報を取得
+            result = await session.execute(cmd, [])
+            
+            if result.Stdout:
+                files = result.Stdout.decode('utf-8', errors='replace').splitlines()
+                
+                # 各ファイルの詳細情報を取得
+                for file_path in files:
+                    if not file_path.strip():
+                        continue
+                        
+                    # ファイルの詳細情報を取得
+                    ls_cmd = f"ls -la \"{file_path}\" 2>/dev/null | awk '{{print $1,$5,$9}}'"
+                    ls_result = await session.execute(ls_cmd, [])
+                    
+                    if ls_result.Stdout:
+                        ls_output = ls_result.Stdout.decode('utf-8', errors='replace').strip()
+                        parts = ls_output.split(None, 2)
+                        if len(parts) >= 3:
+                            permissions, size_str, path = parts
+                            try:
+                                size = int(size_str)
+                            except ValueError:
+                                size = None
+                            collection.add_executable(path, size, permissions)
+                
+                return collection
+                
+            # 以下は元のコマンドをフォールバックとして保持
             cmd = "echo $PATH | tr ':' '\\n' | xargs -I {} find {} -type f -executable -not -path \"*/\\.*\" 2>/dev/null"
             if "darwin" in os_type:
                 cmd = "echo $PATH | tr ':' '\\n' | xargs -I {} find {} -type f -perm +111 -not -path \"*/\\.*\" 2>/dev/null"
