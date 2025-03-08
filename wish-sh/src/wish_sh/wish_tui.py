@@ -25,9 +25,15 @@ class WishInput(Screen):
         yield Container(
             Label("wish✨️", id="wish-prompt", markup=False),
             Input(placeholder="Enter your wish here...", id="wish-input"),
+            Button("System Info", id="system-info-button", variant="primary"),
             id="wish-container",
         )
         yield Footer()
+        
+    @on(Button.Pressed, "#system-info-button")
+    def on_system_info_button_pressed(self) -> None:
+        """Handle system info button press."""
+        self.app.action_show_system_info()
 
     @on(Input.Submitted)
     def on_input_submitted(self, event: Input.Submitted) -> None:

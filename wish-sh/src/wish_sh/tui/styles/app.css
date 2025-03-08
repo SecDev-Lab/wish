@@ -16,6 +16,11 @@
     width: 100%;
 }
 
+#system-info-button {
+    margin-top: 1;
+    width: 100%;
+}
+
 #command-container {
     align: center middle;
     width: 80%;
