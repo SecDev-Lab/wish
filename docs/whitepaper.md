@@ -175,22 +175,6 @@ graph TD
 
 This architecture enables wish to operate seamlessly across different environments (local and remote) while leveraging both local resources and external services.
 
-#### Relationship with RapidPen's Act Component
-
-The detailed architecture of the Act component, which forms the basis of wish:
-
-![Act Architecture](whitepaper/Act-Architecture.svg)
-
-wish was developed as an extraction and enhancement of the Act component from the RapidPen project. While RapidPen uses the Act component as part of its automated penetration testing system, wish makes this functionality available as a standalone tool for human-led penetration testing.
-
-The key differences between wish and RapidPen's Act component include:
-- wish adds a human-in-the-loop interface (TUI) for direct interaction
-- wish enhances the command generation capabilities with specialized knowledge bases
-- wish provides more detailed log analysis and summarization
-- wish includes C2 integration for operation in compromised environments
-
-By extracting and improving the Act component as an open-source tool, wish aims to refine this critical functionality through community involvement while acknowledging the continued importance of human expertise in penetration testing.
-
 ## 3. Setup
 
 ### 3.1 Requirements
