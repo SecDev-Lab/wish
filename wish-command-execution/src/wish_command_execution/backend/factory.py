@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.backend.bash import BashBackend
+from wish_command_execution.backend.sliver import SliverBackend
 
 
 class BashConfig(BaseModel):
@@ -31,7 +32,6 @@ def create_backend(config: Union[BashConfig, SliverConfig]) -> Backend:
     if isinstance(config, BashConfig):
         return BashBackend()
     elif isinstance(config, SliverConfig):
-        # Future implementation
-        raise NotImplementedError("Sliver backend not implemented yet")
+        return SliverBackend(config.session_id, config.client_config_path)
     else:
         raise ValueError(f"Unsupported backend configuration: {type(config)}")

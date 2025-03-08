@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from wish_command_execution import CommandExecutor, CommandStatusTracker
-from wish_command_execution.backend import BashBackend
+from wish_command_execution.backend import BashBackend, BashConfig, create_backend
 from wish_command_generation import CommandGenerator
 from wish_log_analysis import LogAnalyzer
 from wish_models import CommandResult, Wish, WishState
@@ -17,7 +17,13 @@ from wish_sh.wish_paths import WishPaths
 class WishManager:
     """Core functionality for wish."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, backend_config=None):
+        """Initialize the wish manager.
+        
+        Args:
+            settings: Application settings.
+            backend_config: Backend configuration (optional).
+        """
         self.settings = settings
         self.paths = WishPaths(settings)
         self.paths.ensure_directories()
@@ -30,8 +36,7 @@ class WishManager:
         self.log_analyzer = LogAnalyzer()
 
         # Initialize command execution components
-        # log_summarizerを渡さない
-        backend = BashBackend()
+        backend = create_backend(backend_config or BashConfig())
         self.executor = CommandExecutor(backend=backend, log_dir_creator=self.create_command_log_dirs)
         self.tracker = CommandStatusTracker(self.executor, wish_saver=self.save_wish)
 

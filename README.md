@@ -16,6 +16,7 @@ wish-sh is an LLM-assisted shell that helps users execute commands by translatin
 - **Command History**: Access and reuse previous commands
 - **TUI Interface**: User-friendly terminal interface built with Textual
 - **Knowledge Base Management**: Load and manage knowledge bases from GitHub repositories for enhanced command suggestions
+- **Sliver C2 Integration**: Execute commands on remote systems through Sliver C2 framework
 
 ## Installation & Configuration
 

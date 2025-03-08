@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/usage-01-basic.md`: Basic usage guide
   - `docs/usage-02-knowledge-loader.md`: Knowledge loader usage guide
   - `docs/usage-03-C2.md`: Command and Control (C2) usage guide
+- Added Sliver C2 integration:
+  - New `SliverBackend` for executing commands on remote systems through Sliver C2
+  - Command-line arguments `--sliver-config` and `--sliver-session` for connecting to Sliver C2
+  - Automatic session detection when only one Sliver session is active
 
 ### Changed
 
