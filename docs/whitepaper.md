@@ -55,10 +55,20 @@ The primary objectives of wish are:
 
 wish is designed for:
 - Professional penetration testers during initial access and post-exploitation phases
-- Security students preparing for OSCP, HTB, THM, or CTF (Boot2Root) challenges
-- Security researchers exploring new attack vectors
+- Security students preparing for OSCP certification
+- HackTheBox, TryHackMe, or CTF (Boot2Root) players looking to enhance their efficiency
 
-TODO: Add specific use case examples for beginners, intermediate, and advanced users
+#### For Penetration Testing Professionals
+
+Professional penetration testers can leverage wish to streamline their workflow in time-sensitive engagements. By translating complex requirements into executable commands, wish reduces the cognitive load of recalling specific syntax and options. For example, during an external network assessment, a tester might simply express "scan the target network for web servers with potential vulnerabilities" and receive optimized nmap and vulnerability scanning commands tailored to the specific context.
+
+#### For OSCP Students
+
+OSCP certification candidates often struggle with the transition from guided learning to practical application. wish serves as a bridge by helping students convert their conceptual understanding into practical commands. When faced with a challenge like privilege escalation, students can describe their objective in natural language and receive suggested commands that not only solve the immediate problem but also reinforce learning through exposure to proper command syntax and methodology. It is important to note that while wish is an excellent learning tool during OSCP preparation, AI-assisted tools are not permitted during the actual OSCP examination. Using wish during practice labs helps students build the knowledge and skills they will need to perform independently during the certification exam.
+
+#### For CTF and Challenge Platform Players
+
+HackTheBox, TryHackMe, and CTF players operate under time constraints where efficiency is crucial. wish accelerates the reconnaissance and enumeration phases by generating and executing multiple commands in parallel. For instance, when approaching a new Boot2Root challenge, players can initiate comprehensive enumeration by expressing "perform initial enumeration on this target" and receive a set of parallel commands covering port scanning, service identification, and common vulnerability checks.
 
 ### 2.3 Architecture
 
