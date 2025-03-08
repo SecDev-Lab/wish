@@ -111,3 +111,11 @@ Options:
    ```
    
    Solution: Ensure that Python 3.13 or higher is installed.
+
+## Next Steps
+
+Now that you have installed and set up wish-sh and wish-knowledge-loader, you can:
+
+- Learn how to use wish-sh with the [Basic Usage Guide](usage-01-basic.md)
+- Explore how to enhance wish-sh with [Knowledge Bases](usage-02-knowledge-loader.md)
+- Learn about [Command and Control (C2) for Target System Operations](usage-03-C2.md)
