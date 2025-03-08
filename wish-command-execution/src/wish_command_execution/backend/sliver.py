@@ -5,8 +5,8 @@ from typing import Any, Dict, Tuple
 
 from sliver import SliverClient, SliverClientConfig
 from wish_models import CommandResult, CommandState, Wish
-from wish_models.system_info import SystemInfo
 from wish_models.executable_collection import ExecutableCollection
+from wish_models.system_info import SystemInfo
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
@@ -227,7 +227,7 @@ class SliverBackend(Backend):
             return f"Command {cmd_num} cancelled."
         else:
             return f"Command {cmd_num} is not running."
-            
+
     async def get_basic_system_info(self) -> SystemInfo:
         """Get basic system information from the Sliver session.
         
@@ -236,15 +236,15 @@ class SliverBackend(Backend):
         """
         try:
             await self._connect()  # Ensure connection is established
-            
+
             if not self.interactive_session:
                 raise RuntimeError("No active Sliver session")
-            
+
             info = await SystemInfoCollector.collect_basic_info_from_session(self.interactive_session)
             return info
-        except Exception as e:
+        except Exception:
             raise
-    
+
     async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
         """Get executable files information from the Sliver session.
         
@@ -256,19 +256,19 @@ class SliverBackend(Backend):
         """
         try:
             await self._connect()  # Ensure connection is established
-            
+
             if not self.interactive_session:
                 raise RuntimeError("No active Sliver session")
-            
+
             executables = await SystemInfoCollector.collect_executables_from_session(
-                self.interactive_session, 
+                self.interactive_session,
                 collect_system_executables=collect_system_executables
             )
             return executables
-        except Exception as e:
+        except Exception:
             # Return empty collection on error
             return ExecutableCollection()
-    
+
     async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
         """Get system information from the Sliver session.
         
@@ -280,15 +280,15 @@ class SliverBackend(Backend):
         """
         try:
             await self._connect()  # Ensure connection is established
-            
+
             if not self.interactive_session:
                 raise RuntimeError("No active Sliver session")
-            
+
             # Use the new collect_from_session method
             info, _ = await SystemInfoCollector.collect_from_session(
-                self.interactive_session, 
+                self.interactive_session,
                 collect_system_executables=collect_system_executables
             )
             return info
-        except Exception as e:
+        except Exception:
             raise

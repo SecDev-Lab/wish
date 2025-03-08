@@ -33,7 +33,7 @@ class Backend:
             A message indicating the result of the cancellation.
         """
         raise NotImplementedError
-        
+
     async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
         """Get system information.
         

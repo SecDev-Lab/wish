@@ -1,6 +1,5 @@
 """Tests for the SystemInfo model."""
 
-import pytest
 from wish_models.system_info import SystemInfo
 from wish_models.test_factories.system_info_factory import SystemInfoFactory
 
@@ -17,7 +16,7 @@ class TestSystemInfo:
             hostname="test-host",
             username="test-user"
         )
-        
+
         assert info.os == "Linux"
         assert info.arch == "x86_64"
         assert info.hostname == "test-host"
@@ -26,7 +25,7 @@ class TestSystemInfo:
         assert info.uid is None
         assert info.gid is None
         assert info.pid is None
-        
+
     def test_system_info_with_all_fields(self):
         """Test that a SystemInfo instance can be created with all fields."""
         info = SystemInfo(
@@ -39,7 +38,7 @@ class TestSystemInfo:
             gid="1000",
             pid=12345
         )
-        
+
         assert info.os == "Linux"
         assert info.arch == "x86_64"
         assert info.version == "5.10.0"
@@ -48,12 +47,12 @@ class TestSystemInfo:
         assert info.uid == "1000"
         assert info.gid == "1000"
         assert info.pid == 12345
-        
+
     def test_system_info_factory(self):
         """Test that SystemInfoFactory creates valid instances."""
         # Test default factory
         info = SystemInfoFactory()
-        
+
         assert info.os == "TestOS"
         assert info.arch == "x86_64"
         assert info.version == "1.0"
@@ -62,7 +61,7 @@ class TestSystemInfo:
         assert info.uid == "1000"
         assert info.gid == "1000"
         assert info.pid == 12345
-        
+
     def test_system_info_factory_with_custom_values(self):
         """Test that SystemInfoFactory can create instances with custom values."""
         info = SystemInfoFactory(
@@ -72,7 +71,7 @@ class TestSystemInfo:
             hostname="custom-host",
             username="custom-user"
         )
-        
+
         assert info.os == "CustomOS"
         assert info.arch == "arm64"
         assert info.version == "2.0"

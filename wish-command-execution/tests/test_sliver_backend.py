@@ -1,11 +1,11 @@
 """Tests for the SliverBackend class."""
 
-import pytest
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from wish_models.system_info import SystemInfo
+import pytest
 from wish_models.executable_collection import ExecutableCollection
+from wish_models.system_info import SystemInfo
+
 from wish_command_execution.backend.sliver import SliverBackend
 from wish_command_execution.system_info import SystemInfoCollector
 
@@ -49,7 +49,7 @@ class TestSliverBackend:
     def sliver_backend(self, mock_sliver_client, mock_sliver_config, mock_interactive_session):
         """Create a SliverBackend instance with mocked dependencies."""
         mock_sliver_client.interact_session = AsyncMock(return_value=mock_interactive_session)
-        
+
         backend = SliverBackend(
             session_id="test-session-id",
             client_config_path="/path/to/config.json"
@@ -72,17 +72,17 @@ class TestSliverBackend:
             gid="1000",
             pid=12345
         )
-        
+
         with patch.object(
             SystemInfoCollector, 'collect_basic_info_from_session',
             AsyncMock(return_value=expected_info)
         ):
             # Call the method
             info = await sliver_backend.get_basic_system_info()
-            
+
             # Verify the result
             assert info is expected_info
-            
+
             # Verify that the collector was called with the correct session
             SystemInfoCollector.collect_basic_info_from_session.assert_called_once_with(
                 mock_interactive_session
@@ -98,7 +98,7 @@ class TestSliverBackend:
             size=12345,
             permissions="rwxr-xr-x"
         )
-        
+
         # Mock the SystemInfoCollector.collect_executables_from_session method
         with patch.object(
             SystemInfoCollector, 'collect_executables_from_session',
@@ -106,10 +106,10 @@ class TestSliverBackend:
         ):
             # Call the method
             collection = await sliver_backend.get_executables(collect_system_executables=True)
-            
+
             # Verify the result
             assert collection is expected_collection
-            
+
             # Verify that the collector was called with the correct parameters
             SystemInfoCollector.collect_executables_from_session.assert_called_once_with(
                 mock_interactive_session,
@@ -131,7 +131,7 @@ class TestSliverBackend:
             pid=12345
         )
         expected_collection = ExecutableCollection()
-        
+
         # Mock the SystemInfoCollector.collect_from_session method
         with patch.object(
             SystemInfoCollector, 'collect_from_session',
@@ -139,10 +139,10 @@ class TestSliverBackend:
         ):
             # Call the method
             info = await sliver_backend.get_system_info(collect_system_executables=True)
-            
+
             # Verify the result
             assert info is expected_info
-            
+
             # Verify that the collector was called with the correct parameters
             SystemInfoCollector.collect_from_session.assert_called_once_with(
                 mock_interactive_session,
@@ -153,10 +153,10 @@ class TestSliverBackend:
     async def test_connect_already_connected(self, sliver_backend):
         """Test that _connect does nothing if already connected."""
         # The backend is already connected in the fixture
-        
+
         # Call the method
         await sliver_backend._connect()
-        
+
         # Verify that no methods were called on the client
         sliver_backend.client.connect.assert_not_called()
         sliver_backend.client.interact_session.assert_not_called()
@@ -169,12 +169,12 @@ class TestSliverBackend:
             session_id="test-session-id",
             client_config_path="/path/to/config.json"
         )
-        
+
         # Skip the actual _connect method and just set the client and session directly
         # This is a more focused test that doesn't rely on the internal implementation
         mock_interactive_session = MagicMock()
         mock_sliver_client.interact_session = AsyncMock(return_value=mock_interactive_session)
-        
+
         # Patch the _connect method to avoid the actual connection logic
         with patch.object(SliverBackend, '_connect', AsyncMock()) as mock_connect:
             # Call get_basic_system_info which should call _connect
@@ -194,9 +194,9 @@ class TestSliverBackend:
                 # Set the client and session manually
                 backend.client = mock_sliver_client
                 backend.interactive_session = mock_interactive_session
-                
+
                 # Call a method that uses _connect
                 await backend.get_basic_system_info()
-                
+
                 # Verify that _connect was called
                 mock_connect.assert_called_once()

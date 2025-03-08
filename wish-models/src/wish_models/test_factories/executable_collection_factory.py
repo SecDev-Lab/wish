@@ -1,23 +1,23 @@
+from typing import List
+
 import factory
-from typing import List, Optional
 
 from wish_models.executable_collection import ExecutableCollection
-from wish_models.executable_info import ExecutableInfo
 from wish_models.test_factories.executable_info_factory import ExecutableInfoFactory
 
 
 class ExecutableCollectionFactory(factory.Factory):
     """Factory for creating ExecutableCollection instances for testing."""
-    
+
     class Meta:
         model = ExecutableCollection
-    
+
     executables = factory.List([
         factory.SubFactory(ExecutableInfoFactory, path="/usr/bin/test1"),
         factory.SubFactory(ExecutableInfoFactory, path="/usr/bin/test2"),
         factory.SubFactory(ExecutableInfoFactory, path="/usr/local/bin/test3")
     ])
-    
+
     @classmethod
     def create_with_executables(cls, executable_paths: List[str]) -> ExecutableCollection:
         """Create an ExecutableCollection with the specified executable paths."""
@@ -25,7 +25,7 @@ class ExecutableCollectionFactory(factory.Factory):
         for path in executable_paths:
             collection.add_executable(path)
         return collection
-    
+
     @classmethod
     def create_with_directory_structure(cls, directory_structure: dict) -> ExecutableCollection:
         """

@@ -7,8 +7,8 @@ import time
 from typing import Dict, Tuple
 
 from wish_models import CommandResult, CommandState, Wish
-from wish_models.system_info import SystemInfo
 from wish_models.executable_collection import ExecutableCollection
+from wish_models.system_info import SystemInfo
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
@@ -139,7 +139,7 @@ class BashBackend(Backend):
             return f"Command {cmd_num} cancelled."
         else:
             return f"Command {cmd_num} is not running."
-            
+
     async def get_basic_system_info(self) -> SystemInfo:
         """Get basic system information from the local system.
         
@@ -156,14 +156,14 @@ class BashBackend(Backend):
             username=os.getlogin(),
             pid=os.getpid()
         )
-        
+
         # Add UID and GID for Unix-like systems
         if system != "Windows":
             info.uid = str(os.getuid())
             info.gid = str(os.getgid())
-            
+
         return info
-    
+
     async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
         """Get executable files information from the local system.
         
@@ -175,17 +175,17 @@ class BashBackend(Backend):
         """
         # Collect executables in PATH
         path_executables = SystemInfoCollector._collect_local_path_executables()
-        
+
         # Optionally collect system-wide executables
         if collect_system_executables:
             system_executables = SystemInfoCollector._collect_local_system_executables()
-            
+
             # Merge system executables into path executables
             for exe in system_executables.executables:
                 path_executables.executables.append(exe)
-        
+
         return path_executables
-    
+
     async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
         """Get system information from the local system.
         
