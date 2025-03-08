@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashConfig, create_backend
+from wish_command_execution.system_info import SystemInfoCollector
 from wish_command_generation import CommandGenerator
 from wish_log_analysis import LogAnalyzer
 from wish_models import CommandResult, Wish, WishState
@@ -60,7 +61,7 @@ class WishManager:
             The analyzed command result with log_summary and state set.
         """
         try:
-            # LogAnalyzerを使用して分析
+            # Analyze using LogAnalyzer
             analyzed_result = self.log_analyzer.analyze_result(command_result)
             return analyzed_result
         except Exception as e:
@@ -112,8 +113,15 @@ class WishManager:
         wish_obj = Wish.create(wish_text)
 
         try:
-            # Generate commands using CommandGenerator
-            command_inputs = self.command_generator.generate_commands(wish_obj)
+            # Get system info
+            try:
+                system_info = SystemInfoCollector.collect_local_system_info()
+            except Exception as e:
+                logging.warning(f"Failed to collect system info: {str(e)}")
+                system_info = None
+
+            # Generate commands using CommandGenerator with system info
+            command_inputs = self.command_generator.generate_commands(wish_obj, system_info)
 
             # Extract commands from the result
             commands = []
