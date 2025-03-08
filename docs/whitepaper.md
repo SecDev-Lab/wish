@@ -179,12 +179,11 @@ This architecture enables wish to operate seamlessly across different environmen
 
 ### 3.1 Requirements
 
-- **Operating System**: Linux (primary), macOS (supported)
+- **Operating System**: Linux, macOS, Windows (experimental)
 - **Python**: Version 3.13+
-- **Dependencies**: OpenAI API access, various Python packages
-- **API Keys**: OpenAI API key required
-
-TODO: Add detailed hardware requirements and optional dependencies
+- **LLM Models**: OpenAI API key required
+- **RAM**: Minimum 8GB recommended (not tested on lower configurations)
+- **C2 Integration**: Sliver C2 setup for compromised shell operation
 
 ### 3.2 Installation
 
