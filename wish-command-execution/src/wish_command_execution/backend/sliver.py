@@ -1,10 +1,10 @@
 """Sliver C2 backend for command execution."""
 
 import asyncio
-from typing import Dict, Tuple, Any, Optional
+from typing import Any, Dict, Tuple
 
-from wish_models import CommandResult, CommandState, Wish
 from sliver import SliverClient, SliverClientConfig
+from wish_models import CommandResult, CommandState, Wish
 
 from wish_command_execution.backend.base import Backend
 
@@ -34,14 +34,14 @@ class SliverBackend(Backend):
         # Do nothing if already connected
         if self.client and self.interactive_session:
             return
-            
+
         # Load client configuration from file
         config = SliverClientConfig.parse_config_file(self.client_config_path)
         self.client = SliverClient(config)
-        
+
         # Connect to server
         await self.client.connect()
-        
+
         # Connect to the specified session
         self.interactive_session = await self.client.interact_session(self.session_id)
 
@@ -61,7 +61,7 @@ class SliverBackend(Backend):
         try:
             # Run the async command in a separate thread with its own event loop
             import threading
-            
+
             def run_async_command():
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
@@ -76,18 +76,18 @@ class SliverBackend(Backend):
                     self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
                 finally:
                     loop.close()
-            
+
             # Start the thread
             thread = threading.Thread(target=run_async_command)
             thread.daemon = True  # Make thread daemon so it doesn't block program exit
             thread.start()
-            
+
             # Track the thread for status updates
             self.running_commands[cmd_num] = (thread, result, wish)
-            
+
             # Return immediately for UI (non-blocking)
             return
-            
+
         except Exception as e:
             # Handle errors in the main thread
             with open(log_files.stderr, "w") as stderr_file:
@@ -109,15 +109,15 @@ class SliverBackend(Backend):
         try:
             # Connect to Sliver server
             await self._connect()
-            
+
             # Execute the command
             cmd_result = await self.interactive_session.execute(command, [])
-            
+
             # Debug information
             print(f"DEBUG - Command: {command}")
             print(f"DEBUG - Command result type: {type(cmd_result)}")
             print(f"DEBUG - Command result dir: {dir(cmd_result)}")
-            
+
             # Write results to log files
             with open(stdout_path, "w") as stdout_file, open(stderr_path, "w") as stderr_file:
                 if cmd_result.Stdout:
@@ -126,27 +126,27 @@ class SliverBackend(Backend):
                     print(f"DEBUG - Command stdout: {stdout_content}")
                 else:
                     print("DEBUG - No stdout from command")
-                    
+
                 if cmd_result.Stderr:
                     stderr_content = cmd_result.Stderr.decode('utf-8', errors='replace')
                     stderr_file.write(stderr_content)
                     print(f"DEBUG - Command stderr: {stderr_content}")
-            
+
             # Additional debug for specific attributes
             for attr in ['Status', 'Response', 'Output']:
                 if hasattr(cmd_result, attr):
                     print(f"DEBUG - cmd_result.{attr}: {getattr(cmd_result, attr)}")
-            
+
             # Update command result
             exit_code = cmd_result.Status if cmd_result.Status is not None else 0
             result.finish(exit_code=exit_code)
-            
+
             # Update the command result in the wish object
             for i, cmd_result in enumerate(wish.command_results):
                 if cmd_result.num == result.num:
                     wish.command_results[i] = result
                     break
-                    
+
         except Exception as e:
             # Handle errors
             with open(stderr_path, "w") as stderr_file:
@@ -190,13 +190,13 @@ class SliverBackend(Backend):
                         exit_code=0,  # Assume success if not otherwise set
                         state=CommandState.SUCCESS
                     )
-                    
+
                     # Update the command result in the wish object
                     for i, cmd_result in enumerate(wish.command_results):
                         if cmd_result.num == result.num:
                             wish.command_results[i] = result
                             break
-                
+
                 # Remove from tracking
                 del self.running_commands[cmd_num]
 
@@ -216,7 +216,7 @@ class SliverBackend(Backend):
             if cmd_result.num == cmd_num:
                 result = cmd_result
                 break
-                
+
         if result and result.state == CommandState.DOING:
             # Mark the command as cancelled
             result.finish(
