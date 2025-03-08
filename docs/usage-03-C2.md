@@ -44,13 +44,13 @@ If you haven't already set up Sliver C2, follow these steps:
 To use wish-sh with Sliver C2, you need to specify the Sliver configuration file:
 
 ```bash
-wish --sliver-config /path/to/operator_config.cfg
+wish --sliver-config /path/to/wish_127.0.0.1.cfg
 ```
 
 If you have only one active Sliver session, wish-sh will automatically connect to it. If you have multiple sessions, wish-sh will display a list of available sessions and you'll need to specify which one to use:
 
 ```bash
-wish --sliver-config /path/to/operator_config.cfg --sliver-session SESSION_ID
+wish --sliver-config /path/to/wish_127.0.0.1.cfg --sliver-session SESSION_ID
 ```
 
 Replace `SESSION_ID` with the ID of the session you want to connect to.
