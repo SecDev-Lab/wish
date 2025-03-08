@@ -46,6 +46,7 @@ wish-log-analysis = { path = "../wish-log-analysis", editable = true }
 
 [project.scripts]
 wish = "wish_sh.wish:main"
+wish-sh = "wish_sh.wish:main"
 
 [tool.uv]
 dev-dependencies = [
