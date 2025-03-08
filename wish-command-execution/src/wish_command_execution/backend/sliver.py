@@ -5,8 +5,11 @@ from typing import Any, Dict, Tuple
 
 from sliver import SliverClient, SliverClientConfig
 from wish_models import CommandResult, CommandState, Wish
+from wish_models.executable_collection import ExecutableCollection
+from wish_models.system_info import SystemInfo
 
 from wish_command_execution.backend.base import Backend
+from wish_command_execution.system_info import SystemInfoCollector
 
 
 class SliverBackend(Backend):
@@ -118,29 +121,15 @@ class SliverBackend(Backend):
             # Execute the command
             cmd_result = await self.interactive_session.execute(command, [])
 
-            # Debug information
-            print(f"DEBUG - Command: {command}")
-            print(f"DEBUG - Command result type: {type(cmd_result)}")
-            print(f"DEBUG - Command result dir: {dir(cmd_result)}")
-
             # Write results to log files
             with open(stdout_path, "w") as stdout_file, open(stderr_path, "w") as stderr_file:
                 if cmd_result.Stdout:
                     stdout_content = cmd_result.Stdout.decode('utf-8', errors='replace')
                     stdout_file.write(stdout_content)
-                    print(f"DEBUG - Command stdout: {stdout_content}")
-                else:
-                    print("DEBUG - No stdout from command")
 
                 if cmd_result.Stderr:
                     stderr_content = cmd_result.Stderr.decode('utf-8', errors='replace')
                     stderr_file.write(stderr_content)
-                    print(f"DEBUG - Command stderr: {stderr_content}")
-
-            # Additional debug for specific attributes
-            for attr in ['Status', 'Response', 'Output']:
-                if hasattr(cmd_result, attr):
-                    print(f"DEBUG - cmd_result.{attr}: {getattr(cmd_result, attr)}")
 
             # Update command result
             exit_code = cmd_result.Status if cmd_result.Status is not None else 0
@@ -238,3 +227,68 @@ class SliverBackend(Backend):
             return f"Command {cmd_num} cancelled."
         else:
             return f"Command {cmd_num} is not running."
+
+    async def get_basic_system_info(self) -> SystemInfo:
+        """Get basic system information from the Sliver session.
+
+        Returns:
+            SystemInfo: Collected basic system information
+        """
+        try:
+            await self._connect()  # Ensure connection is established
+
+            if not self.interactive_session:
+                raise RuntimeError("No active Sliver session")
+
+            info = await SystemInfoCollector.collect_basic_info_from_session(self.interactive_session)
+            return info
+        except Exception:
+            raise
+
+    async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
+        """Get executable files information from the Sliver session.
+
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+
+        Returns:
+            ExecutableCollection: Collection of executables
+        """
+        try:
+            await self._connect()  # Ensure connection is established
+
+            if not self.interactive_session:
+                raise RuntimeError("No active Sliver session")
+
+            executables = await SystemInfoCollector.collect_executables_from_session(
+                self.interactive_session,
+                collect_system_executables=collect_system_executables
+            )
+            return executables
+        except Exception:
+            # Return empty collection on error
+            return ExecutableCollection()
+
+    async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
+        """Get system information from the Sliver session.
+
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+
+        Returns:
+            SystemInfo: Collected system information
+        """
+        try:
+            await self._connect()  # Ensure connection is established
+
+            if not self.interactive_session:
+                raise RuntimeError("No active Sliver session")
+
+            # Use the new collect_from_session method
+            info, _ = await SystemInfoCollector.collect_from_session(
+                self.interactive_session,
+                collect_system_executables=collect_system_executables
+            )
+            return info
+        except Exception:
+            raise
