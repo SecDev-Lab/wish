@@ -96,20 +96,40 @@ This flow enables users to seamlessly experience the entire process from natural
 
 #### Logical Architecture
 
-wish consists of six main packages, each with specific responsibilities:
+The logical architecture illustrates not just the components of wish, but where they operate and what they interact with:
 
 ![Logical Architecture](whitepaper/logical-arch.png)
 
-**Core Components:**
+This architecture highlights several key aspects of the system's deployment and operation:
+
+- Knowledge bases are imported and stored on the attack machine, where they are accessed by the command generation process
+- Command execution interfaces with both local shells (bash, zsh, etc.) and remote C2 servers for compromised environments
+- LLM operations rely on external services, currently using OpenAI's API
+
+**Core Components and Their Operational Context:**
+
+The package dependencies illustrate how components interact with each other:
+
+```mermaid
+graph TD
+    A[wish-models] --> |Basic data models| B[wish-command-execution]
+    A --> |Basic data models| C[wish-sh]
+    A --> |Basic data models| D[wish-log-analysis]
+    A --> |Basic data models| E[wish-command-generation]
+    A --> |Basic data models| F[wish-knowledge-loader]
+    B --> |Command execution functionality| C
+    D --> |Log analysis functionality| C
+    E --> |Command generation functionality| C
+```
 
 - **wish-models**: Core data models used throughout the system, implemented using Pydantic for validation and serialization
-- **wish-command-execution**: Handles command execution in subprocesses, status tracking, and log file management
-- **wish-log-analysis**: Analyzes command outputs using LLM, providing log summarization and command state classification
-- **wish-command-generation**: Generates commands from natural language using RAG (Retrieval-Augmented Generation) for improved accuracy
-- **wish-knowledge-loader**: Manages knowledge bases for RAG, including cloning GitHub repositories and storing content in vector databases
-- **wish-sh**: Provides the Text-based User Interface (TUI) and coordinates between UI, command execution, log analysis, and command generation
+- **wish-command-execution**: Executes commands through local shells or C2 frameworks, enabling operation in both attack machines and compromised targets
+- **wish-log-analysis**: Analyzes command outputs using external LLM services (OpenAI), transforming raw outputs into actionable insights
+- **wish-command-generation**: Generates commands by querying external LLM services (OpenAI) with context from locally stored knowledge bases
+- **wish-knowledge-loader**: Imports and processes knowledge bases from external sources (GitHub repositories), storing them locally on the attack machine
+- **wish-sh**: Provides the Text-based User Interface (TUI) that runs on the attack machine, coordinating all other components
 
-The system follows a clear separation of responsibilities, allowing each package to focus on its core functionality while working together to provide a seamless user experience.
+This architecture enables wish to operate seamlessly across different environments (local and remote) while leveraging both local resources and external services.
 
 #### Relationship with RapidPen's Act Component
 
