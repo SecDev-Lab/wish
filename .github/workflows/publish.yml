@@ -9,18 +9,51 @@ on:
         type: string
 
 jobs:
-  publish:
-    name: Publish wish packages
+  # 1. Publish the foundation package (wish-models) first
+  publish-models:
+    name: Publish wish-models
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "wish-models/.python-version"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      # Update version in pyproject.toml
+      - name: Update version in pyproject.toml
+        run: |
+          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" wish-models/pyproject.toml
+          echo "Updated version in wish-models/pyproject.toml to ${{ inputs.version }}"
+          grep -m 1 'version = ' wish-models/pyproject.toml
+
+      - name: Build package
+        run: cd wish-models ; python -m build
+
+      - name: Publish package to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: cd wish-models ; twine upload dist/*
+
+  # 2. Publish intermediate packages (packages that depend on wish-models)
+  publish-dependencies:
+    name: Publish wish dependencies
+    needs: publish-models
     runs-on: ubuntu-latest
     strategy:
       matrix:
         package:
-          - wish-sh
-          - wish-knowledge-loader
           - wish-command-execution
           - wish-command-generation
           - wish-log-analysis
-          - wish-models
+          - wish-knowledge-loader
 
     steps:
       - uses: actions/checkout@v4
@@ -42,6 +75,12 @@ jobs:
           echo "Updated version in ${{ matrix.package }}/pyproject.toml to ${{ inputs.version }}"
           grep -m 1 'version = ' ${{ matrix.package }}/pyproject.toml
 
+      # Update dependency versions
+      - name: Update dependency versions
+        run: |
+          sed -i "s/wish-models>=0.0.1/wish-models==${{ inputs.version }}/g" ${{ matrix.package }}/pyproject.toml
+          echo "Updated dependency versions in ${{ matrix.package }}/pyproject.toml"
+
       - name: Build package
         run: cd ${{ matrix.package }} ; python -m build
 
@@ -50,3 +89,92 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: cd ${{ matrix.package }} ; twine upload dist/*
+
+  # 3. Publish the final package (wish-sh)
+  publish-sh:
+    name: Publish wish-sh
+    needs: publish-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "wish-sh/.python-version"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      # Update version in pyproject.toml
+      - name: Update version in pyproject.toml
+        run: |
+          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" wish-sh/pyproject.toml
+          echo "Updated version in wish-sh/pyproject.toml to ${{ inputs.version }}"
+          grep -m 1 'version = ' wish-sh/pyproject.toml
+
+      # Update dependency versions
+      - name: Update dependency versions
+        run: |
+          sed -i "s/wish-models>=0.0.1/wish-models==${{ inputs.version }}/g" wish-sh/pyproject.toml
+          sed -i "s/wish-command-execution>=0.0.1/wish-command-execution==${{ inputs.version }}/g" wish-sh/pyproject.toml
+          sed -i "s/wish-command-generation>=0.0.1/wish-command-generation==${{ inputs.version }}/g" wish-sh/pyproject.toml
+          sed -i "s/wish-log-analysis>=0.0.1/wish-log-analysis==${{ inputs.version }}/g" wish-sh/pyproject.toml
+          echo "Updated dependency versions in wish-sh/pyproject.toml"
+
+      - name: Build package
+        run: cd wish-sh ; python -m build
+
+      - name: Publish package to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: cd wish-sh ; twine upload dist/*
+
+  # 4. Update CHANGELOG.md and create GitHub release
+  update-changelog:
+    name: Update CHANGELOG and create release
+    needs: publish-sh
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update CHANGELOG.md
+        id: update-changelog
+        run: |
+          # Get current date in YYYY-MM-DD format
+          RELEASE_DATE=$(date +%Y-%m-%d)
+          
+          # Create a new version section from Unreleased
+          sed -i "/## \[Unreleased\]/a \\\n## [${{ inputs.version }}] - ${RELEASE_DATE}" CHANGELOG.md
+          
+          # Create new empty Unreleased section
+          sed -i "/## \[Unreleased\]/a \\\n### Added\n\n### Changed\n\n### Fixed\n\n### Removed\n" CHANGELOG.md
+          
+          # Extract the content for the new release (everything between the new version header and the next version header)
+          VERSION_CONTENT=$(sed -n "/## \[${{ inputs.version }}\]/,/## \[/p" CHANGELOG.md | sed '1d;$d')
+          echo "VERSION_CONTENT<<EOF" >> $GITHUB_OUTPUT
+          echo "$VERSION_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Commit CHANGELOG.md changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md for version ${{ inputs.version }}"
+          git push
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Release v${{ inputs.version }}
+          body: |
+            ${{ steps.update-changelog.outputs.VERSION_CONTENT }}
+          draft: false
+          prerelease: false

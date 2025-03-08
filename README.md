@@ -72,9 +72,7 @@ For detailed design documentation, see [Design Documentation](docs/design.md).
 
 Refer to the README.md in each package `wish-*/`.
 
-### Release
-
-Use GitHub Actions UI: <https://github.com/SecDev-Lab/wish/actions/workflows/publish.yml>.
+For contribution guidelines, including how to update the CHANGELOG and release process, see [Contributing Guidelines](CONTRIBUTING.md).
 
 ## License
 
