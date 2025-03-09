@@ -4,7 +4,7 @@ import asyncio
 import os
 import platform
 import subprocess
-from typing import Any, Dict, List, Optional, Tuple, TypeVar
+from typing import Any, Optional, Tuple, TypeVar
 
 from wish_models.executable_collection import ExecutableCollection
 from wish_models.system_info import SystemInfo

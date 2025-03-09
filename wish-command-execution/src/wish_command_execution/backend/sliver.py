@@ -2,7 +2,7 @@
 
 import asyncio
 import concurrent.futures
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Tuple
 
 from sliver import SliverClient, SliverClientConfig
 from wish_models import CommandResult, CommandState, Wish
@@ -71,7 +71,7 @@ class SliverBackend(Backend):
                 # If no event loop exists in this thread, create a new one
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-            
+
             # Run the async command in the main event loop
             future = asyncio.run_coroutine_threadsafe(
                 self._execute_command_wrapper(
@@ -79,15 +79,15 @@ class SliverBackend(Backend):
                 ),
                 loop
             )
-            
+
             # Add a callback to handle completion
             future.add_done_callback(
                 lambda f: self._handle_command_completion(f, result, wish)
             )
-            
+
             # Track the future for status updates
             self.running_commands[cmd_num] = (future, result, wish)
-            
+
             # Return immediately for UI (non-blocking)
             return
 
@@ -175,7 +175,7 @@ class SliverBackend(Backend):
         try:
             # Get the result (will raise exception if the coroutine raised an exception)
             future.result()
-            
+
             # If we get here, the future completed successfully
             # The result should already be updated by _execute_command_wrapper
             # But check if it's still in DOING state (which would be unexpected)
@@ -184,13 +184,13 @@ class SliverBackend(Backend):
                     exit_code=0,  # Assume success if not otherwise set
                     state=CommandState.SUCCESS
                 )
-                
+
                 # Update the command result in the wish object
                 for i, cmd_result in enumerate(wish.command_results):
                     if cmd_result.num == result.num:
                         wish.command_results[i] = result
                         break
-        except Exception as e:
+        except Exception:
             # Handle any exceptions that occurred in the coroutine
             # This should be rare since _execute_command_wrapper should catch most exceptions
             if result.state == CommandState.DOING:
@@ -199,7 +199,7 @@ class SliverBackend(Backend):
                     exit_code=1,
                     state=CommandState.OTHERS
                 )
-                
+
                 # Update the command result in the wish object
                 for i, cmd_result in enumerate(wish.command_results):
                     if cmd_result.num == result.num:
@@ -214,7 +214,7 @@ class SliverBackend(Backend):
             if future.done():
                 # Future has completed, but the callback might not have run yet
                 # The callback should handle updating the result
-                
+
                 # Remove from tracking
                 del self.running_commands[cmd_num]
 
@@ -243,7 +243,7 @@ class SliverBackend(Backend):
                 future.cancel()
                 # Remove from tracking
                 del self.running_commands[cmd_num]
-            
+
             # Mark the command as cancelled
             result.finish(
                 exit_code=-1,  # Use -1 for cancelled commands

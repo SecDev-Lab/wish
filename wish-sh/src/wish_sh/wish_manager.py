@@ -5,7 +5,6 @@ from typing import List, Optional
 
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashConfig, create_backend
-from wish_command_execution.system_info import SystemInfoCollector
 from wish_command_generation import CommandGenerator
 from wish_log_analysis import LogAnalyzer
 from wish_models import CommandResult, Settings, Wish, WishState

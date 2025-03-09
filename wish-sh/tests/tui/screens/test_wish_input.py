@@ -1,6 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from wish_models import WishState
 
 from wish_sh.test_factories import WishInputFactory
@@ -27,7 +27,7 @@ class TestWishInput:
 
         # Set up the mock commands
         mock_commands = ["echo 'Test command 1'", "echo 'Test command 2'"]
-        
+
         # Create an AsyncMock for generate_commands
         async_mock = AsyncMock()
         async_mock.return_value = (mock_commands, None)
