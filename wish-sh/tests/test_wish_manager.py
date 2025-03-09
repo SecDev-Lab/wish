@@ -1,7 +1,7 @@
 import json
-import pytest
-from unittest.mock import AsyncMock, MagicMock, mock_open, patch
+from unittest.mock import AsyncMock, mock_open, patch
 
+import pytest
 from wish_models import WishState
 from wish_models.test_factories import WishDoingFactory, WishDoneFactory
 
