@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added comprehensive whitepaper:
+  - `docs/whitepaper.md`: Technical whitepaper describing wish architecture, features, and development roadmap
+  - Detailed comparison with similar tools in the penetration testing space
+  - Explanation of wish's role in the RapidPen ecosystem
+
 ### Changed
 
 ### Fixed
