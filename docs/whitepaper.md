@@ -183,11 +183,68 @@ This architecture enables wish to operate seamlessly across different environmen
 - **Python**: Version 3.13+
 - **LLM Models**: OpenAI API key required
 - **RAM**: Minimum 8GB recommended (not tested on lower configurations)
-- **C2 Integration**: Sliver C2 setup for compromised shell operation
+- **C2 Integration**: Sliver C2 setup for compromised shell operation (optional)
 
 ### 3.2 Installation
 
-TODO: Add step-by-step installation instructions, initial configuration, knowledge base setup, and C2 integration setup
+wish-sh can be installed using pip:
+
+```bash
+pip install wish-sh
+```
+
+For detailed installation instructions, including environment variable configuration and .env file setup, refer to the [Setup Guide](setup.md).
+
+#### Environment Configuration
+
+wish-sh requires an OpenAI API key, which can be set through environment variables:
+
+```bash
+export OPENAI_API_KEY=your-api-key-here
+```
+
+The following environment variables are available for configuration:
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `OPENAI_API_KEY` | OpenAI API key for LLM operations | - | Yes |
+| `OPENAI_MODEL` | OpenAI model for command generation | gpt-4o | No |
+| `WISH_HOME` | Directory for wish data storage | ~/.wish | No |
+| `WISH_ENV_FILE` | Custom .env file path | $WISH_HOME/env | No |
+| `LANGCHAIN_TRACING_V2` | Enable LangSmith tracing | false | No |
+| `LANGCHAIN_ENDPOINT` | LangSmith API endpoint | https://api.smith.langchain.com | No |
+| `LANGCHAIN_API_KEY` | LangSmith API key | - | No* |
+| `LANGCHAIN_PROJECT` | LangSmith project name | wish | No |
+
+\* Required only if `LANGCHAIN_TRACING_V2` is set to true
+
+For wish-knowledge-loader, the following additional environment variable is used:
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `OPENAI_MODEL` | OpenAI model for embeddings | text-embedding-3-small | No |
+
+These variables can be set directly in your shell or through a .env file. For detailed configuration instructions, refer to the [Setup Guide](setup.md).
+
+#### Knowledge Base Setup
+
+To enhance wish-sh with domain-specific knowledge, you can use wish-knowledge-loader:
+
+```bash
+pip install wish-knowledge-loader
+```
+
+For detailed knowledge base setup instructions, refer to the [Knowledge Loader Guide](usage-02-knowledge-loader.md).
+
+#### C2 Integration Setup
+
+For operation in compromised environments, wish-sh can be integrated with Sliver C2:
+
+```bash
+wish --sliver-config /path/to/config.cfg
+```
+
+For detailed C2 integration instructions, refer to the [Command and Control Guide](usage-03-C2.md).
 
 ## 4. Usage
 
@@ -200,19 +257,75 @@ The wish TUI provides an intuitive interface for:
 - Executing commands and monitoring their status
 - Analyzing command outputs
 
-TODO: Add detailed usage instructions with screenshots
+To start wish-sh, simply run:
+
+```bash
+wish  # or wish-sh on macOS
+```
+
+The basic workflow involves:
+
+1. Type your wish in natural language (e.g., "Find all PDF files in the current directory")
+2. Review the suggested commands
+3. Execute or reject the commands
+4. Monitor execution and view results
+
+For detailed usage instructions with examples, refer to the [Basic Usage Guide](usage-01-basic.md).
 
 ### 4.2 Leveraging Knowledge Bases
 
-wish utilizes specialized knowledge bases to improve command generation:
+wish utilizes specialized knowledge bases to improve command generation. These knowledge bases contain domain-specific information that helps wish-sh generate more accurate and relevant commands.
 
-TODO: Add information about available knowledge bases, how to add custom knowledge bases, and examples of effective queries
+Key features include:
+
+- Loading knowledge from GitHub repositories
+- Using Retrieval-Augmented Generation (RAG) to incorporate knowledge into command generation
+- Supporting multiple knowledge bases for different domains
+
+Example knowledge base loading:
+
+```bash
+wish-knowledge-loader --repo-url https://github.com/HackTricks-wiki/hacktricks --glob "**/*.md" --title "HackTricks Wiki"
+```
+
+For detailed information on available knowledge bases, adding custom knowledge bases, and examples of effective queries, refer to the [Knowledge Loader Guide](usage-02-knowledge-loader.md).
 
 ### 4.3 Operating in Compromised Shells
 
-wish can be integrated with Command and Control (C2) frameworks to operate within compromised environments:
+wish can be integrated with Command and Control (C2) frameworks to operate within compromised environments. This allows penetration testers to use natural language commands on remote systems.
 
-TODO: Add details on current Sliver C2 integration, plans for supporting additional C2 frameworks, command execution in compromised environments, and practical usage scenarios
+Current capabilities include:
+
+- Sliver C2 integration for remote command execution
+- Session selection for multiple compromised systems
+- Natural language command generation in compromised environments
+
+Example usage with Sliver C2:
+
+```bash
+wish --sliver-config ~/wish_127.0.0.1.cfg --sliver-session SESSION_ID
+```
+
+For detailed information on Sliver C2 integration, plans for supporting additional C2 frameworks, and practical usage scenarios, refer to the [Command and Control Guide](usage-03-C2.md).
+
+### 4.4 Monitoring and Debugging with LangSmith
+
+wish supports integration with LangSmith for monitoring, debugging, and optimizing LLM operations. This integration provides:
+
+- Tracing of LLM interactions
+- Performance analysis (latency, token usage, cost)
+- Debugging tools for LLM-based workflows
+
+To enable LangSmith integration, configure the following environment variables:
+
+```bash
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+LANGCHAIN_API_KEY=your-langsmith-api-key-here
+LANGCHAIN_PROJECT=wish
+```
+
+For detailed information on setting up and using LangSmith with wish-sh, refer to the [LangSmith Integration Guide](usage-04-langsmith.md).
 
 ## 5. Development Status
 
@@ -226,11 +339,12 @@ Current capabilities include:
 - Knowledge base integration from GitHub repositories
 - Sliver C2 integration for compromised shell operation
 - OpenAI integration
+- Environment-aware command suggestions (OS)
 
 ### 5.2 Planned Development (by August 2025)
 
 - Wish History functionality
-- Environment-aware command suggestions (OS, available executables, dictionary files)
+- More Environment-aware command suggestions (available executables, dictionary files)
 - Utilization of successful command histories
 - Portal interface for C2 setup and knowledge base import
 
@@ -246,5 +360,3 @@ Current capabilities include:
 [1] NAKATANI, Sho. RapidPen: Fully Automated IP-to-Shell Penetration Testing with LLM-based Agents. arXiv preprint arXiv:2502.16730, 2025.
 [2] shell_gpt: https://github.com/TheR1D/shell_gpt
 [3] Nebula: https://github.com/berylliumsec/nebula
-
-TODO: Add additional research papers, open-source projects used, and reference tools
