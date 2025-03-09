@@ -12,7 +12,7 @@ from wish_models.system_info import SystemInfo
 
 from wish_sh.system_info_display import display_system_info
 from wish_sh.tui.widgets import UIUpdater
-from wish_sh.wish_manager import OpenAIAPIError, WishManager
+from wish_sh.wish_manager import CommandGenerationError, WishManager
 
 
 class ErrorModal(ModalScreen):
@@ -36,14 +36,14 @@ class ErrorModal(ModalScreen):
             Label("Error", id="modal-title"),
             Static(self.error_message, id="error-info", markup=False),
         ]
-        
-        # Add API response if available
+
+        # Add command-generation response if available
         if self.api_response:
-            content.append(Label("API Response:", id="api-response-label"))
-            content.append(Static(self.api_response, id="api-response", markup=False))
-            
+            content.append(Label("command-generation response:", id="command-generation-response-label"))
+            content.append(Static(self.api_response, id="command-generation-response", markup=False))
+
         content.append(Button("Close", id="close-button", variant="primary"))
-        
+
         yield Container(*content, id="modal-container")
 
     @on(Button.Pressed, "#close-button")
@@ -84,10 +84,12 @@ class SystemInfoModal(ModalScreen):
         ]
         if info.version:
             lines.append(f"Version: {info.version}")
-        lines.extend([
-            f"Hostname: {info.hostname}",
-            f"Username: {info.username}",
-        ])
+        lines.extend(
+            [
+                f"Hostname: {info.hostname}",
+                f"Username: {info.username}",
+            ]
+        )
         if info.uid:
             lines.append(f"UID: {info.uid}")
         if info.gid:
@@ -128,9 +130,7 @@ class ExecutablesModal(ModalScreen):
     def _format_executables(self) -> str:
         """Format executable information for display."""
         # Format executable information without markup
-        lines = [
-            f"Executables ({len(self.executables.executables)} files)"
-        ]
+        lines = [f"Executables ({len(self.executables.executables)} files)"]
 
         # Group executables by directory
         grouped = self.executables.group_by_directory()
@@ -198,13 +198,13 @@ class WishInput(Screen):
             try:
                 # Generate commands using WishManager (now async)
                 commands, error = await self.app.wish_manager.generate_commands(wish_text)
-                
+
                 # Switch to command suggestion screen
                 self.app.push_screen(CommandSuggestion(wish, commands, error))
-                
-            except OpenAIAPIError as e:
+
+            except CommandGenerationError as e:
                 # Show error modal for OpenAI API errors
-                self.app.push_screen(ErrorModal(str(e), e.api_response))
+                self.app.push_screen(ErrorModal(str(e), e.command_generation_response))
 
 
 class CommandSuggestion(Screen):
@@ -418,9 +418,7 @@ class WishApp(App):
 
     TITLE = "Wish Shell"
     SCREENS = {"wish_input": WishInput}
-    BINDINGS = [
-        ("escape", "quit", "Quit")
-    ]
+    BINDINGS = [("escape", "quit", "Quit")]
 
     def __init__(self, backend_config=None, settings=None):
         """Initialize the Wish TUI application.
@@ -519,11 +517,7 @@ class WishApp(App):
 
             # Set minimal information even in case of error
             self.system_info = SystemInfo(
-                os="Unknown (Error)",
-                arch="Unknown",
-                hostname="Unknown",
-                username="Unknown",
-                version=f"Error: {str(e)}"
+                os="Unknown (Error)", arch="Unknown", hostname="Unknown", username="Unknown", version=f"Error: {str(e)}"
             )
 
     def action_show_system_info(self) -> None:
@@ -578,6 +572,7 @@ class WishApp(App):
 
             # Set empty collection even in case of error
             from wish_models.system_info import ExecutableCollection
+
             self.executables = ExecutableCollection()
 
     def action_show_executables(self) -> None:

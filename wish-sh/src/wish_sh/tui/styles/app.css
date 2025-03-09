@@ -24,7 +24,8 @@
     width: 100%;
 }
 
-#system-info-button, #executables-button {
+#system-info-button,
+#executables-button {
     margin: 0 1;
     width: 30%;
     background: #555555;
@@ -33,7 +34,8 @@
     border: solid transparent;
 }
 
-#system-info-button:hover, #executables-button:hover {
+#system-info-button:hover,
+#executables-button:hover {
     background: #777777;
     color: white;
     border: solid #999999;
@@ -64,7 +66,7 @@
     height: auto;
 }
 
-#api-response {
+#command-generation-response {
     background: #1e1e1e;
     color: #d4d4d4;
     padding: 1;
@@ -74,7 +76,7 @@
     overflow: auto;
 }
 
-#api-response-label {
+#command-generation-response-label {
     margin-top: 1;
     text-style: bold;
     color: yellow;

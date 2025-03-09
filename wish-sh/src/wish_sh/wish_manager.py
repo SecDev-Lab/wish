@@ -13,19 +13,19 @@ from wish_models.command_result.command_state import CommandState
 from wish_sh.wish_paths import WishPaths
 
 
-class OpenAIAPIError(Exception):
-    """Exception raised for OpenAI API related errors."""
-    
-    def __init__(self, message, api_response=None):
+class CommandGenerationError(Exception):
+    """Exception raised for wish-command-generation related errors."""
+
+    def __init__(self, message, command_generation_response=None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
-            api_response: The raw API response that caused the error
+            command_generation_response: The raw response that caused the error
         """
         super().__init__(message)
         self.message = message
-        self.api_response = api_response
+        self.command_generation_response = command_generation_response
 
 
 class WishManager:
@@ -90,7 +90,7 @@ class WishManager:
                 log_summary=f"Error analyzing command: {str(e)}",
                 state=CommandState.API_ERROR,
                 created_at=command_result.created_at,
-                finished_at=command_result.finished_at
+                finished_at=command_result.finished_at,
             )
 
             return error_result
@@ -147,7 +147,7 @@ class WishManager:
             # Handle any errors during command generation
             error_message = f"Error generating commands: {str(e)}"
             logging.error(error_message)
-            
+
             # Check if this is an OpenAI API related error
             error_str = str(e).lower()
             if "openai api" in error_str or "failed to parse openai api" in error_str:
@@ -159,9 +159,9 @@ class WishManager:
                     api_response = parts[1]
                 else:
                     error_message = str(e)
-                    
-                raise OpenAIAPIError(error_message, api_response) from e
-                
+
+                raise CommandGenerationError(error_message, api_response) from e
+
             return [], error_message
 
     # Delegation to CommandExecutor
