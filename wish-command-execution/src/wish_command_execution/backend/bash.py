@@ -21,7 +21,7 @@ class BashBackend(Backend):
         """Initialize the bash backend."""
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
 
-    def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
         """Execute a command using bash.
 
         Args:
@@ -36,7 +36,7 @@ class BashBackend(Backend):
 
         with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
             try:
-                # Start the process
+                # Start the process (this is still synchronous, but the interface is async)
                 process = subprocess.Popen(command, stdout=stdout_file, stderr=stderr_file, shell=True, text=True)
 
                 # Store in running commands dict
@@ -80,7 +80,7 @@ class BashBackend(Backend):
                 wish.command_results[i] = result
                 break
 
-    def check_running_commands(self):
+    async def check_running_commands(self):
         """Check status of running commands and update their status."""
         for idx, (process, result, wish) in list(self.running_commands.items()):
             if process.poll() is not None:  # Process has finished
@@ -99,7 +99,7 @@ class BashBackend(Backend):
                 # Remove from running commands
                 del self.running_commands[idx]
 
-    def cancel_command(self, wish: Wish, cmd_num: int) -> str:
+    async def cancel_command(self, wish: Wish, cmd_num: int) -> str:
         """Cancel a running command.
 
         Args:

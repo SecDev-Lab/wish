@@ -50,7 +50,7 @@ class SliverBackend(Backend):
         # Connect to the specified session
         self.interactive_session = await self.client.interact_session(self.session_id)
 
-    def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
         """Execute a command through Sliver C2.
 
         Args:
@@ -64,32 +64,40 @@ class SliverBackend(Backend):
         wish.command_results.append(result)
 
         try:
-            # Get the main event loop
+            # Connect to Sliver server first
+            await self._connect()
+
+            # Execute the command directly
             try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                # If no event loop exists in this thread, create a new one
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
+                # Execute the command
+                cmd_result = await self.interactive_session.execute(command, [])
 
-            # Run the async command in the main event loop
-            future = asyncio.run_coroutine_threadsafe(
-                self._execute_command_wrapper(
-                    command, log_files.stdout, log_files.stderr, result, wish, cmd_num
-                ),
-                loop
-            )
+                # Write results to log files
+                with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
+                    if cmd_result.Stdout:
+                        stdout_content = cmd_result.Stdout.decode('utf-8', errors='replace')
+                        stdout_file.write(stdout_content)
 
-            # Add a callback to handle completion
-            future.add_done_callback(
-                lambda f: self._handle_command_completion(f, result, wish)
-            )
+                    if cmd_result.Stderr:
+                        stderr_content = cmd_result.Stderr.decode('utf-8', errors='replace')
+                        stderr_file.write(stderr_content)
 
-            # Track the future for status updates
-            self.running_commands[cmd_num] = (future, result, wish)
+                # Update command result
+                exit_code = cmd_result.Status if cmd_result.Status is not None else 0
+                result.finish(exit_code=exit_code)
 
-            # Return immediately for UI (non-blocking)
-            return
+                # Update the command result in the wish object
+                for i, cmd_result in enumerate(wish.command_results):
+                    if cmd_result.num == result.num:
+                        wish.command_results[i] = result
+                        break
+
+            except Exception as e:
+                # Handle errors
+                with open(log_files.stderr, "w") as stderr_file:
+                    error_msg = f"Sliver execution error: {str(e)}"
+                    stderr_file.write(error_msg)
+                self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
         except Exception as e:
             # Handle errors in the main thread
@@ -98,8 +106,12 @@ class SliverBackend(Backend):
                 stderr_file.write(error_msg)
             self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
+    # Keep the old method for backward compatibility, but mark it as deprecated
     async def _execute_command_wrapper(self, command, stdout_path, stderr_path, result, wish, cmd_num):
         """Wrapper to execute a command and handle its lifecycle.
+        
+        This method is deprecated and will be removed in a future version.
+        Use execute_command instead.
 
         Args:
             command: The command to execute.
@@ -164,8 +176,12 @@ class SliverBackend(Backend):
                 wish.command_results[i] = result
                 break
 
+    # This method is no longer needed with the new async design
+    # but kept for backward compatibility with existing code
     def _handle_command_completion(self, future: concurrent.futures.Future, result: CommandResult, wish: Wish) -> None:
         """Handle command completion from a Future.
+        
+        This method is deprecated and will be removed in a future version.
 
         Args:
             future: The completed Future object.
@@ -206,19 +222,13 @@ class SliverBackend(Backend):
                         wish.command_results[i] = result
                         break
 
-    def check_running_commands(self):
+    async def check_running_commands(self):
         """Check status of running commands and update their status."""
-        # Check each running command future
-        for cmd_num, (future, _result, _wish) in list(self.running_commands.items()):
-            # Check if future is done
-            if future.done():
-                # Future has completed, but the callback might not have run yet
-                # The callback should handle updating the result
+        # In the new async design, there are no futures to track
+        # This method is kept for compatibility with the Backend interface
+        pass
 
-                # Remove from tracking
-                del self.running_commands[cmd_num]
-
-    def cancel_command(self, wish: Wish, cmd_num: int) -> str:
+    async def cancel_command(self, wish: Wish, cmd_num: int) -> str:
         """Cancel a running command.
 
         Args:
@@ -236,13 +246,8 @@ class SliverBackend(Backend):
                 break
 
         if result and result.state == CommandState.DOING:
-            # If the command is in the running_commands dict, cancel the future
-            if cmd_num in self.running_commands:
-                future, _, _ = self.running_commands[cmd_num]
-                # Cancel the future if possible
-                future.cancel()
-                # Remove from tracking
-                del self.running_commands[cmd_num]
+            # In the new async design, we don't have futures to cancel
+            # We can only mark the command as cancelled in the result
 
             # Mark the command as cancelled
             result.finish(
