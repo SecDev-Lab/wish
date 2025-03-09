@@ -195,7 +195,7 @@ class TestSliverBackend:
         assert len(mock_wish.command_results) == 1
         assert mock_wish.command_results[0].num == 1
         assert mock_wish.command_results[0].command == "ls -la"
-        
+
         # Verify that the command result was updated with the correct exit code
         # Note: We can't check if finish was called directly since it's not a mock
         # Instead, we check that the mock_wish.command_results was updated
