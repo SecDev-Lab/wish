@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Removed
+
+
+## [0.4.1] - 2025-03-09
+
+### Added
+
+### Changed
+
+### Fixed
+
 - Fixed embedding model configuration in wish-knowledge-loader:
   - Updated vector_store.py to use OPENAI_EMBEDDING_MODEL instead of OPENAI_MODEL for embeddings
   - Added OPENAI_EMBEDDING_MODEL configuration to .env.example
