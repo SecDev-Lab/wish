@@ -7,6 +7,7 @@ from wish_models import Wish
 from wish_models.command_result import CommandInput
 from wish_models.system_info import SystemInfo
 
+from .exceptions import CommandGenerationError
 from .graph import create_command_generation_graph
 
 
@@ -43,5 +44,7 @@ class CommandGenerator:
             # Log the error
             logging.error(f"Error in command generation graph: {str(e)}")
             
-            # Re-raise the exception to be handled by WishManager
+            # Re-raise as CommandGenerationError if it's not already
+            if not isinstance(e, CommandGenerationError):
+                raise CommandGenerationError(f"Command generation failed: {str(e)}")
             raise

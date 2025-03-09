@@ -10,9 +10,10 @@ from wish_models import Settings, Wish, WishState
 from wish_models.command_result.command_state import CommandState
 from wish_models.system_info import SystemInfo
 
+from wish_command_generation.exceptions import CommandGenerationError
 from wish_sh.system_info_display import display_system_info
 from wish_sh.tui.widgets import UIUpdater
-from wish_sh.wish_manager import CommandGenerationError, WishManager
+from wish_sh.wish_manager import WishManager
 
 
 class ErrorModal(ModalScreen):
@@ -39,7 +40,7 @@ class ErrorModal(ModalScreen):
 
         # Add command-generation response if available
         if self.api_response:
-            content.append(Label("command-generation response:", id="command-generation-response-label"))
+            content.append(Label("Command Generation Response:", id="command-generation-response-label"))
             content.append(Static(self.api_response, id="command-generation-response", markup=False))
 
         content.append(Button("Close", id="close-button", variant="primary"))
@@ -203,8 +204,8 @@ class WishInput(Screen):
                 self.app.push_screen(CommandSuggestion(wish, commands, error))
 
             except CommandGenerationError as e:
-                # Show error modal for OpenAI API errors
-                self.app.push_screen(ErrorModal(str(e), e.command_generation_response))
+                # Show error modal for command-generation errors
+                self.app.push_screen(ErrorModal(str(e), e.api_response))
 
 
 class CommandSuggestion(Screen):

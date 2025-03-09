@@ -6,26 +6,12 @@ from typing import List, Optional
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashConfig, create_backend
 from wish_command_generation import CommandGenerator
+from wish_command_generation.exceptions import CommandGenerationError
 from wish_log_analysis import LogAnalyzer
 from wish_models import CommandResult, Settings, Wish, WishState
 from wish_models.command_result.command_state import CommandState
 
 from wish_sh.wish_paths import WishPaths
-
-
-class CommandGenerationError(Exception):
-    """Exception raised for wish-command-generation related errors."""
-
-    def __init__(self, message, command_generation_response=None):
-        """Initialize the exception.
-
-        Args:
-            message: Error message
-            command_generation_response: The raw response that caused the error
-        """
-        super().__init__(message)
-        self.message = message
-        self.command_generation_response = command_generation_response
 
 
 class WishManager:
@@ -148,21 +134,12 @@ class WishManager:
             error_message = f"Error generating commands: {str(e)}"
             logging.error(error_message)
 
-            # Check if this is an OpenAI API related error
-            error_str = str(e).lower()
-            if "openai api" in error_str or "failed to parse openai api" in error_str:
-                # Extract API response if available
-                api_response = None
-                parts = str(e).split("|API_RESPONSE:", 1)
-                if len(parts) > 1:
-                    error_message = parts[0]
-                    api_response = parts[1]
-                else:
-                    error_message = str(e)
-
-                raise CommandGenerationError(error_message, api_response) from e
-
-            return [], error_message
+            # Just re-raise CommandGenerationError as is
+            if isinstance(e, CommandGenerationError):
+                raise
+            
+            # Wrap other exceptions in CommandGenerationError
+            raise CommandGenerationError(error_message)
 
     # Delegation to CommandExecutor
     async def execute_command(self, wish: Wish, command: str, cmd_num: int):

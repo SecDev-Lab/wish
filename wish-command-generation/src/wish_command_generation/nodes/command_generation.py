@@ -8,6 +8,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from wish_models.command_result import CommandInput
 
+from ..exceptions import CommandGenerationError
 from ..models import GraphState
 
 # Define the prompt template
@@ -180,7 +181,7 @@ def generate_commands(state: GraphState) -> GraphState:
 
     except json.JSONDecodeError as e:
         # JSON parse error
-        error_message = f"Error generating commands: Failed to parse OpenAI API response as JSON: {str(e)}"
+        error_message = f"Command generation failed: Invalid JSON format: {str(e)}"
         api_response = response if 'response' in locals() else 'No response'
         logging.error(f"JSON parse error: {str(e)}, Response: {api_response}")
 
@@ -189,13 +190,12 @@ def generate_commands(state: GraphState) -> GraphState:
         state_dict["command_inputs"] = []
         state_dict["error"] = error_message
         
-        # This will be caught by WishManager and converted to OpenAIAPIError
-        # Include the API response in the exception
-        raise Exception(f"{error_message}|API_RESPONSE:{api_response}")
+        # Raise custom exception with structured data
+        raise CommandGenerationError(error_message, api_response)
 
     except Exception as e:
         # Other errors
-        error_message = f"Error generating commands: {str(e)}"
+        error_message = f"Command generation failed: {str(e)}"
         api_response = response if 'response' in locals() else None
         logging.error(f"Error generating commands: {str(e)}")
 
@@ -204,10 +204,10 @@ def generate_commands(state: GraphState) -> GraphState:
         state_dict["command_inputs"] = []
         state_dict["error"] = error_message
         
-        # Include API response if available
+        # Raise custom exception with structured data if API response is available
         if api_response:
-            raise Exception(f"{error_message}|API_RESPONSE:{api_response}")
+            raise CommandGenerationError(error_message, api_response)
         else:
-            raise Exception(error_message)
+            raise CommandGenerationError(error_message)
 
     return GraphState(**state_dict)
