@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed LangSmith integration:
+  - Added automatic environment variable setup for LangChain/LangGraph tracing
+  - Settings values are now properly passed to LangSmith via environment variables
+
 ### Removed
 
 

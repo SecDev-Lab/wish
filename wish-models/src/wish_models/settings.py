@@ -58,6 +58,16 @@ class Settings(BaseSettings):
         # Override project if specified
         if project:
             self.LANGCHAIN_PROJECT = project
+            
+        # Set environment variables for LangChain/LangGraph
+        # NOTE: This modifies process-wide environment variables, which may have side effects:
+        # - It affects other code running in the same process
+        # - Environment variable changes are inherited by child processes
+        # - Be cautious when switching between multiple projects or tracing configurations
+        os.environ["LANGCHAIN_TRACING_V2"] = "true" if self.LANGCHAIN_TRACING_V2 else "false"
+        os.environ["LANGCHAIN_ENDPOINT"] = self.LANGCHAIN_ENDPOINT
+        os.environ["LANGCHAIN_API_KEY"] = self.LANGCHAIN_API_KEY
+        os.environ["LANGCHAIN_PROJECT"] = self.LANGCHAIN_PROJECT
     
     def _get_env_files(self, env_file: str | None = None) -> list[str]:
         """Get list of env files to load."""
