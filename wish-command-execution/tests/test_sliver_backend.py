@@ -1,8 +1,11 @@
 """Tests for the SliverBackend class."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+import asyncio
+import concurrent.futures
+from unittest.mock import AsyncMock, MagicMock, patch, call
 
 import pytest
+from wish_models import CommandResult, CommandState, Wish
 from wish_models.executable_collection import ExecutableCollection
 from wish_models.system_info import SystemInfo
 
@@ -12,6 +15,20 @@ from wish_command_execution.system_info import SystemInfoCollector
 
 class TestSliverBackend:
     """Test cases for the SliverBackend class."""
+    
+    @pytest.fixture
+    def mock_wish(self):
+        """Create a mock Wish."""
+        wish = MagicMock(spec=Wish)
+        wish.command_results = []
+        return wish
+    
+    @pytest.fixture
+    def mock_log_files(self):
+        """Create mock log files."""
+        from wish_models.command_result.log_files import LogFiles
+        from pathlib import Path
+        return LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
 
     @pytest.fixture
     def mock_sliver_client(self):
@@ -171,3 +188,163 @@ class TestSliverBackend:
 
             # Verify that _connect was called
             mock_connect.assert_called_once()
+            
+    def test_execute_command(self, sliver_backend, mock_wish, mock_log_files):
+        """Test executing a command."""
+        # Mock asyncio.get_event_loop and run_coroutine_threadsafe
+        with patch('asyncio.get_event_loop') as mock_get_loop, \
+             patch('asyncio.run_coroutine_threadsafe') as mock_run_threadsafe:
+            
+            # Setup mocks
+            mock_loop = MagicMock()
+            mock_get_loop.return_value = mock_loop
+            
+            mock_future = MagicMock(spec=concurrent.futures.Future)
+            mock_run_threadsafe.return_value = mock_future
+            
+            # Call the method
+            sliver_backend.execute_command(mock_wish, "ls -la", 1, mock_log_files)
+            
+            # Verify that run_coroutine_threadsafe was called with the correct arguments
+            mock_run_threadsafe.assert_called_once()
+            # First arg should be a coroutine (result of _execute_command_wrapper)
+            assert mock_run_threadsafe.call_args[0][1] == mock_loop
+            
+            # Verify that a callback was added to the future
+            mock_future.add_done_callback.assert_called_once()
+            
+            # Verify that the command result was added to the wish
+            assert len(mock_wish.command_results) == 1
+            assert mock_wish.command_results[0].num == 1
+            assert mock_wish.command_results[0].command == "ls -la"
+            
+            # Verify that the running command was tracked
+            assert len(sliver_backend.running_commands) == 1
+            assert 1 in sliver_backend.running_commands
+            assert sliver_backend.running_commands[1][0] == mock_future
+    
+    def test_handle_command_completion_success(self, sliver_backend):
+        """Test handling command completion when successful."""
+        # Create a mock future, result, and wish
+        mock_future = MagicMock(spec=concurrent.futures.Future)
+        mock_future.result.return_value = None  # No exception
+        
+        mock_result = MagicMock(spec=CommandResult)
+        mock_result.state = CommandState.DOING
+        mock_result.num = 1
+        
+        mock_wish = MagicMock(spec=Wish)
+        mock_wish.command_results = [mock_result]
+        
+        # Call the method
+        sliver_backend._handle_command_completion(mock_future, mock_result, mock_wish)
+        
+        # Verify that the result was updated
+        mock_result.finish.assert_called_once_with(
+            exit_code=0,
+            state=CommandState.SUCCESS
+        )
+    
+    def test_handle_command_completion_exception(self, sliver_backend):
+        """Test handling command completion when an exception occurred."""
+        # Create a mock future, result, and wish
+        mock_future = MagicMock(spec=concurrent.futures.Future)
+        mock_future.result.side_effect = Exception("Test exception")
+        
+        mock_result = MagicMock(spec=CommandResult)
+        mock_result.state = CommandState.DOING
+        mock_result.num = 1
+        
+        mock_wish = MagicMock(spec=Wish)
+        mock_wish.command_results = [mock_result]
+        
+        # Call the method
+        sliver_backend._handle_command_completion(mock_future, mock_result, mock_wish)
+        
+        # Verify that the result was updated
+        mock_result.finish.assert_called_once_with(
+            exit_code=1,
+            state=CommandState.OTHERS
+        )
+    
+    def test_check_running_commands(self, sliver_backend):
+        """Test checking running commands."""
+        # Create mock futures, results, and wishes
+        mock_future1 = MagicMock(spec=concurrent.futures.Future)
+        mock_future1.done.return_value = True
+        
+        mock_future2 = MagicMock(spec=concurrent.futures.Future)
+        mock_future2.done.return_value = False
+        
+        mock_result1 = MagicMock(spec=CommandResult)
+        mock_result2 = MagicMock(spec=CommandResult)
+        
+        mock_wish1 = MagicMock(spec=Wish)
+        mock_wish2 = MagicMock(spec=Wish)
+        
+        # Setup running commands
+        sliver_backend.running_commands = {
+            1: (mock_future1, mock_result1, mock_wish1),
+            2: (mock_future2, mock_result2, mock_wish2)
+        }
+        
+        # Call the method
+        sliver_backend.check_running_commands()
+        
+        # Verify that the completed command was removed
+        assert 1 not in sliver_backend.running_commands
+        assert 2 in sliver_backend.running_commands
+    
+    def test_cancel_command(self, sliver_backend):
+        """Test cancelling a command."""
+        # Create mock future, result, and wish
+        mock_future = MagicMock(spec=concurrent.futures.Future)
+        
+        mock_result = MagicMock(spec=CommandResult)
+        mock_result.state = CommandState.DOING
+        mock_result.num = 1
+        
+        mock_wish = MagicMock(spec=Wish)
+        mock_wish.command_results = [mock_result]
+        
+        # Setup running commands
+        sliver_backend.running_commands = {
+            1: (mock_future, mock_result, mock_wish)
+        }
+        
+        # Call the method
+        result = sliver_backend.cancel_command(mock_wish, 1)
+        
+        # Verify that the future was cancelled
+        mock_future.cancel.assert_called_once()
+        
+        # Verify that the result was updated
+        mock_result.finish.assert_called_once_with(
+            exit_code=-1,
+            state=CommandState.USER_CANCELLED
+        )
+        
+        # Verify that the command was removed from running commands
+        assert 1 not in sliver_backend.running_commands
+        
+        # Verify the return message
+        assert result == "Command 1 cancelled."
+    
+    def test_cancel_command_not_running(self, sliver_backend):
+        """Test cancelling a command that is not running."""
+        # Create mock result and wish
+        mock_result = MagicMock(spec=CommandResult)
+        mock_result.state = CommandState.SUCCESS  # Not DOING
+        mock_result.num = 1
+        
+        mock_wish = MagicMock(spec=Wish)
+        mock_wish.command_results = [mock_result]
+        
+        # Call the method
+        result = sliver_backend.cancel_command(mock_wish, 1)
+        
+        # Verify that the result was not updated
+        mock_result.finish.assert_not_called()
+        
+        # Verify the return message
+        assert result == "Command 1 is not running."
