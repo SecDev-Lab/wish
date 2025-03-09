@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from wish_models.test_factories import WishDoingFactory
@@ -29,7 +29,7 @@ class TestWishManagerWithSleepCommand:
         wish_manager = WishManagerFactory.create()
 
         # Mock the executor
-        wish_manager.executor = MagicMock()
+        wish_manager.executor = AsyncMock()
 
         # Mock the create_command_log_dirs method to avoid file system operations
         with patch.object(wish_manager.paths, "create_command_log_dirs") as mock_create_dirs:
@@ -39,7 +39,7 @@ class TestWishManagerWithSleepCommand:
             with patch("builtins.open", MagicMock()):
                 # Execute a sleep command
                 cmd = "sleep 1"
-                wish_manager.execute_command(wish, cmd, 1)
+                await wish_manager.execute_command(wish, cmd, 1)
 
                 # Verify that the executor.execute_command was called
                 wish_manager.executor.execute_command.assert_called_once_with(wish, cmd, 1)
@@ -59,7 +59,7 @@ class TestWishManagerWithSleepCommand:
         wish_manager = WishManagerFactory.create()
 
         # Mock the executor
-        wish_manager.executor = MagicMock()
+        wish_manager.executor = AsyncMock()
 
         # Mock the create_command_log_dirs method to avoid file system operations
         with patch.object(wish_manager.paths, "create_command_log_dirs") as mock_create_dirs:
@@ -75,7 +75,7 @@ class TestWishManagerWithSleepCommand:
                 ]
 
                 for i, cmd in enumerate(cmds, 1):
-                    wish_manager.execute_command(wish, cmd, i)
+                    await wish_manager.execute_command(wish, cmd, i)
 
                 # Verify that the executor.execute_command was called for each command
                 assert wish_manager.executor.execute_command.call_count == 3
@@ -89,10 +89,10 @@ class TestWishManagerWithSleepCommand:
         wish_manager = WishManagerFactory.create()
 
         # Mock the executor
-        wish_manager.executor = MagicMock()
+        wish_manager.executor = AsyncMock()
 
         # Check running commands
-        wish_manager.check_running_commands()
+        await wish_manager.check_running_commands()
 
         # Verify that executor.check_running_commands was called
         wish_manager.executor.check_running_commands.assert_called_once()

@@ -4,20 +4,25 @@ from pathlib import Path
 from typing import List, Optional
 
 from wish_command_execution import CommandExecutor, CommandStatusTracker
-from wish_command_execution.backend import BashBackend
+from wish_command_execution.backend import BashConfig, create_backend
 from wish_command_generation import CommandGenerator
 from wish_log_analysis import LogAnalyzer
-from wish_models import CommandResult, Wish, WishState
+from wish_models import CommandResult, Settings, Wish, WishState
 from wish_models.command_result.command_state import CommandState
 
-from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
 
 
 class WishManager:
     """Core functionality for wish."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, backend_config=None):
+        """Initialize the wish manager.
+
+        Args:
+            settings: Application settings.
+            backend_config: Backend configuration (optional).
+        """
         self.settings = settings
         self.paths = WishPaths(settings)
         self.paths.ensure_directories()
@@ -30,8 +35,7 @@ class WishManager:
         self.log_analyzer = LogAnalyzer()
 
         # Initialize command execution components
-        # log_summarizerを渡さない
-        backend = BashBackend()
+        backend = create_backend(backend_config or BashConfig())
         self.executor = CommandExecutor(backend=backend, log_dir_creator=self.create_command_log_dirs)
         self.tracker = CommandStatusTracker(self.executor, wish_saver=self.save_wish)
 
@@ -55,7 +59,7 @@ class WishManager:
             The analyzed command result with log_summary and state set.
         """
         try:
-            # LogAnalyzerを使用して分析
+            # Analyze using LogAnalyzer
             analyzed_result = self.log_analyzer.analyze_result(command_result)
             return analyzed_result
         except Exception as e:
@@ -96,7 +100,7 @@ class WishManager:
             pass
         return wishes
 
-    def generate_commands(self, wish_text: str) -> tuple[List[str], Optional[str]]:
+    async def generate_commands(self, wish_text: str) -> tuple[List[str], Optional[str]]:
         """Generate commands based on wish text.
 
         Returns:
@@ -107,8 +111,16 @@ class WishManager:
         wish_obj = Wish.create(wish_text)
 
         try:
-            # Generate commands using CommandGenerator
-            command_inputs = self.command_generator.generate_commands(wish_obj)
+            # Get system info directly from the backend
+            try:
+                # Get system info from the backend
+                system_info = await self.executor.backend.get_system_info()
+            except Exception as e:
+                logging.warning(f"Failed to collect system info: {str(e)}")
+                system_info = None
+
+            # Generate commands using CommandGenerator with system info
+            command_inputs = self.command_generator.generate_commands(wish_obj, system_info)
 
             # Extract commands from the result
             commands = []
@@ -123,17 +135,17 @@ class WishManager:
             return [], error_message
 
     # Delegation to CommandExecutor
-    def execute_command(self, wish: Wish, command: str, cmd_num: int):
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int):
         """Execute a command and capture its output."""
-        self.executor.execute_command(wish, command, cmd_num)
+        await self.executor.execute_command(wish, command, cmd_num)
 
-    def check_running_commands(self):
+    async def check_running_commands(self):
         """Check status of running commands and update their status."""
-        self.executor.check_running_commands()
+        await self.executor.check_running_commands()
 
-    def cancel_command(self, wish: Wish, cmd_index: int):
+    async def cancel_command(self, wish: Wish, cmd_index: int):
         """Cancel a running command."""
-        return self.executor.cancel_command(wish, cmd_index)
+        return await self.executor.cancel_command(wish, cmd_index)
 
     def format_wish_list_item(self, wish: Wish, index: int) -> str:
         """Format a wish for display in wishlist."""

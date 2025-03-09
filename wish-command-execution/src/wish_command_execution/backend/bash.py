@@ -1,12 +1,17 @@
 """Bash backend for command execution."""
 
+import os
+import platform
 import subprocess
 import time
 from typing import Dict, Tuple
 
 from wish_models import CommandResult, CommandState, Wish
+from wish_models.executable_collection import ExecutableCollection
+from wish_models.system_info import SystemInfo
 
 from wish_command_execution.backend.base import Backend
+from wish_command_execution.system_info import SystemInfoCollector
 
 
 class BashBackend(Backend):
@@ -16,7 +21,7 @@ class BashBackend(Backend):
         """Initialize the bash backend."""
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
 
-    def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
         """Execute a command using bash.
 
         Args:
@@ -31,7 +36,7 @@ class BashBackend(Backend):
 
         with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
             try:
-                # Start the process
+                # Start the process (this is still synchronous, but the interface is async)
                 process = subprocess.Popen(command, stdout=stdout_file, stderr=stderr_file, shell=True, text=True)
 
                 # Store in running commands dict
@@ -75,7 +80,7 @@ class BashBackend(Backend):
                 wish.command_results[i] = result
                 break
 
-    def check_running_commands(self):
+    async def check_running_commands(self):
         """Check status of running commands and update their status."""
         for idx, (process, result, wish) in list(self.running_commands.items()):
             if process.poll() is not None:  # Process has finished
@@ -94,7 +99,7 @@ class BashBackend(Backend):
                 # Remove from running commands
                 del self.running_commands[idx]
 
-    def cancel_command(self, wish: Wish, cmd_num: int) -> str:
+    async def cancel_command(self, wish: Wish, cmd_num: int) -> str:
         """Cancel a running command.
 
         Args:
@@ -134,3 +139,52 @@ class BashBackend(Backend):
             return f"Command {cmd_num} cancelled."
         else:
             return f"Command {cmd_num} is not running."
+
+    async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
+        """Get executable files information from the local system.
+
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+
+        Returns:
+            ExecutableCollection: Collection of executables
+        """
+        # Collect executables in PATH
+        path_executables = SystemInfoCollector._collect_local_path_executables()
+
+        # Optionally collect system-wide executables
+        if collect_system_executables:
+            system_executables = SystemInfoCollector._collect_local_system_executables()
+
+            # Merge system executables into path executables
+            for exe in system_executables.executables:
+                path_executables.executables.append(exe)
+
+        return path_executables
+
+    async def get_system_info(self) -> SystemInfo:
+        """Get system information from the local system.
+
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+
+        Returns:
+            SystemInfo: Collected system information
+        """
+        # Basic information
+        system = platform.system()
+        info = SystemInfo(
+            os=system,
+            arch=platform.machine(),
+            version=platform.version(),
+            hostname=platform.node(),
+            username=os.getlogin(),
+            pid=os.getpid()
+        )
+
+        # Add UID and GID for Unix-like systems
+        if system != "Windows":
+            info.uid = str(os.getuid())
+            info.gid = str(os.getgid())
+
+        return info

@@ -5,10 +5,10 @@ import os
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
+from wish_models import settings
 from wish_models.command_result.command_state import CommandState
 
 from ..models import GraphState
-from ..settings import settings
 
 # Define the prompt template
 COMMAND_STATE_CLASSIFIER_PROMPT = """

@@ -19,13 +19,13 @@ class CommandStatusTracker:
         self.wish_saver = wish_saver or (lambda _: None)
         self.all_completed = False
 
-    def check_status(self, wish: Wish) -> None:
+    async def check_status(self, wish: Wish) -> None:
         """Check the status of running commands.
 
         Args:
             wish: The wish to check the status for.
         """
-        self.executor.check_running_commands()
+        await self.executor.check_running_commands()
 
     def is_all_completed(self, wish: Wish) -> tuple[bool, bool]:
         """Check if all commands have completed.

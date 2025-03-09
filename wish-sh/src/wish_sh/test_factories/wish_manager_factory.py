@@ -137,7 +137,16 @@ class WishManagerFactory(factory.Factory):
         manager.execute_command = MagicMock()
         manager.check_running_commands = MagicMock()
         manager.save_wish = MagicMock()
-        manager.generate_commands = MagicMock(return_value=["echo 'Test command 1'", "echo 'Test command 2'"])
+
+        # Mock generate_commands as an async method
+        mock_commands = ["echo 'Test command 1'", "echo 'Test command 2'"]
+        mock_result = (mock_commands, None)
+
+        async def mock_generate_commands(wish_text):
+            return mock_result
+
+        manager.generate_commands = mock_generate_commands
+
         manager.cancel_command = MagicMock(return_value="Command 1 cancelled.")
 
         # Mock command execution components

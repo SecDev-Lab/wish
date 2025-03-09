@@ -1,6 +1,6 @@
 """Tests for CommandStatusTracker."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from wish_models import CommandState, UtcDatetime, WishState
@@ -16,7 +16,7 @@ class TestCommandStatusTracker:
     def executor(self):
         """Create a mock CommandExecutor."""
         executor = MagicMock(spec=CommandExecutor)
-        executor.check_running_commands = MagicMock()
+        executor.check_running_commands = AsyncMock()
         return executor
 
     @pytest.fixture
@@ -36,14 +36,15 @@ class TestCommandStatusTracker:
         """Create a CommandStatusTracker instance."""
         return CommandStatusTracker(executor, wish_saver)
 
-    def test_check_status(self, tracker, executor, wish):
+    @pytest.mark.asyncio
+    async def test_check_status(self, tracker, executor, wish):
         """Test check_status method.
 
         This test verifies that the check_status method correctly delegates
         to the CommandExecutor's check_running_commands method.
         """
         # Check status
-        tracker.check_status(wish)
+        await tracker.check_status(wish)
 
         # Verify that CommandExecutor.check_running_commands was called
         executor.check_running_commands.assert_called_once()

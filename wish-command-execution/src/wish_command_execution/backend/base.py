@@ -1,12 +1,13 @@
 """Base backend interface for command execution."""
 
 from wish_models import Wish
+from wish_models.system_info import SystemInfo
 
 
 class Backend:
     """Base class for command execution backends."""
 
-    def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
         """Execute a command for a wish.
 
         Args:
@@ -17,11 +18,11 @@ class Backend:
         """
         raise NotImplementedError
 
-    def check_running_commands(self):
+    async def check_running_commands(self):
         """Check status of running commands and update their status."""
         raise NotImplementedError
 
-    def cancel_command(self, wish: Wish, cmd_num: int) -> str:
+    async def cancel_command(self, wish: Wish, cmd_num: int) -> str:
         """Cancel a running command.
 
         Args:
@@ -30,5 +31,13 @@ class Backend:
 
         Returns:
             A message indicating the result of the cancellation.
+        """
+        raise NotImplementedError
+
+    async def get_system_info(self) -> SystemInfo:
+        """Get system information.
+
+        Returns:
+            SystemInfo: Collected system information
         """
         raise NotImplementedError

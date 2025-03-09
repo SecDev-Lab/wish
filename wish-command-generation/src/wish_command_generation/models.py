@@ -4,6 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 from wish_models.command_result import CommandInput
+from wish_models.system_info import SystemInfo
 from wish_models.wish.wish import Wish
 
 
@@ -28,3 +29,6 @@ class GraphState(BaseModel):
 
     error: Optional[str] = None
     """Error message if command generation fails. None if successful."""
+
+    system_info: SystemInfo | None = None
+    """System information for command generation."""

@@ -33,6 +33,7 @@ license = {file = "../LICENSE"}
 dependencies = [
     "wish-models>=0.0.1",
     "pydantic>=2.10.6",
+    "sliver-py>=0.0.19",
 ]
 
 [tool.uv.sources]

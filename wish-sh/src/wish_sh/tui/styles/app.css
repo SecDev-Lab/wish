@@ -16,6 +16,60 @@
     width: 100%;
 }
 
+#info-buttons-container {
+    layout: horizontal;
+    height: auto;
+    margin: 1 0;
+    align: center middle;
+    width: 100%;
+}
+
+#system-info-button, #executables-button {
+    margin: 0 1;
+    width: 30%;
+    background: #555555;
+    color: #cccccc;
+    text-style: italic;
+    border: solid transparent;
+}
+
+#system-info-button:hover, #executables-button:hover {
+    background: #777777;
+    color: white;
+    border: solid #999999;
+}
+
+#modal-container {
+    width: 80%;
+    height: 80%;
+    border: solid green;
+    background: #333333;
+    padding: 1;
+}
+
+#modal-title {
+    text-align: center;
+    width: 100%;
+    color: yellow;
+    text-style: bold;
+}
+
+#basic-info {
+    margin: 1 0;
+    height: auto;
+}
+
+#executables-info {
+    margin: 1 0;
+    height: 1fr;
+    overflow: auto;
+}
+
+#close-button {
+    margin-top: 1;
+    align: center middle;
+}
+
 #command-container {
     align: center middle;
     width: 80%;

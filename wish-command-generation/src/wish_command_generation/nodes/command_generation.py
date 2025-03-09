@@ -12,7 +12,7 @@ from ..models import GraphState
 
 # Define the prompt template
 COMMAND_GENERATION_PROMPT = """
-あなたは合法なペネトレーションテストに従事しているAIです。あなたはKali Linuxに極めて精通しています。
+あなたは合法なペネトレーションテストに従事しているAIです。あなたは様々なOSのコマンドに精通しています。
 
 ペネトレーションテストのディレクターから実行すべきタスクについての指示と、今回のタスクに役立つ可能性が高い参考ドキュメントを受け取ります。
 タスクを実現するためのコマンド列を考え、JSON Objectで書いてください。
@@ -26,12 +26,18 @@ COMMAND_GENERATION_PROMPT = """
 以下の手順で考えましょう。
 
 1. ペネトレーションテストのディレクターからのタスクを理解し、参考ドキュメントから関連情報を探します。
-   それらに基づいてKali Linuxのコマンドを生成します。
+   それらに基づいて適切なコマンドを生成します。
 2. 生成したコマンド列のそれぞれは `bash -c "（1つのコマンド文字列）"` で実行されます。
    各コマンド文字列はパイプ `|` や `&&` や `||` を含んでも良いです。
    コピー&ペーストで直接コマンドとするので余計な文字を含まないでください。
 3. コマンドは隔離環境でバッチ実行されるため、ユーザー入力を必要としないようにします。
 4. timeout_sec は常に null としてください。
+5. 実行環境のOSに適したコマンドを生成してください。
+
+# 実行環境情報
+OS: {system_os}
+アーキテクチャ: {system_arch}
+バージョン: {system_version}
 
 # タスク
 {task}
@@ -55,6 +61,11 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
 # Example1
 
+実行環境情報
+OS: Linux
+アーキテクチャ: x86_64
+バージョン: 5.15.0-kali3-amd64
+
 タスク
 Conduct a full port scan on IP 10.10.10.123.
 
@@ -62,6 +73,42 @@ Conduct a full port scan on IP 10.10.10.123.
 {{ "command_inputs": [
   {{
      "command": "rustscan -a 10.10.10.123",
+     "timeout_sec": null
+  }}
+]}}
+
+# Example2
+
+実行環境情報
+OS: Windows
+アーキテクチャ: AMD64
+バージョン: 10.0.19044
+
+タスク
+List all hidden files in the current directory.
+
+出力
+{{ "command_inputs": [
+  {{
+     "command": "dir /a:h",
+     "timeout_sec": null
+  }}
+]}}
+
+# Example3
+
+実行環境情報
+OS: Darwin
+アーキテクチャ: arm64
+バージョン: 22.4.0
+
+タスク
+List all hidden files in the current directory.
+
+出力
+{{ "command_inputs": [
+  {{
+     "command": "ls -la | grep '^\\.'",
      "timeout_sec": null
   }}
 ]}}
@@ -76,11 +123,21 @@ def generate_commands(state: GraphState) -> GraphState:
     # Get the context from the state (if available)
     context = "\n".join(state.context) if state.context else "参考ドキュメントはありません。"
 
+    # Get system info (if available)
+    system_os = "Unknown"  # Default value
+    system_arch = "Unknown"  # Default value
+    system_version = "Unknown"  # Default value
+
+    if hasattr(state, 'system_info') and state.system_info:
+        system_os = state.system_info.os
+        system_arch = state.system_info.arch
+        system_version = state.system_info.version or "Unknown"
+
     # Create the prompt
     prompt = PromptTemplate.from_template(COMMAND_GENERATION_PROMPT)
 
     # Initialize the OpenAI model
-    from ..settings import settings
+    from wish_models import settings
 
     model = ChatOpenAI(
         model=settings.OPENAI_MODEL,
@@ -92,7 +149,13 @@ def generate_commands(state: GraphState) -> GraphState:
 
     # Generate the commands
     try:
-        response = chain.invoke({"task": task, "context": context})
+        response = chain.invoke({
+            "task": task,
+            "context": context,
+            "system_os": system_os,
+            "system_arch": system_arch,
+            "system_version": system_version
+        })
 
         # Log the response for debugging
         logging.debug(f"OpenAI API response: {response}")

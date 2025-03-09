@@ -36,6 +36,8 @@ dependencies = [
     "wish-command-execution>=0.0.1",
     "wish-command-generation>=0.0.1",
     "wish-log-analysis>=0.0.1",
+    "pydantic>=2.10.6",
+    "pydantic-settings>=2.0.0",
 ]
 
 [tool.uv.sources]
@@ -46,6 +48,7 @@ wish-log-analysis = { path = "../wish-log-analysis", editable = true }
 
 [project.scripts]
 wish = "wish_sh.wish:main"
+wish-sh = "wish_sh.wish:main"
 
 [tool.uv]
 dev-dependencies = [

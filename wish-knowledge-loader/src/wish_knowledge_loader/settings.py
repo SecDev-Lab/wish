@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     WISH_HOME: str = Field(os.path.join(os.path.expanduser("~"), ".wish"))
 
     # OpenAI API settings
-    OPENAI_API_KEY: str = Field(...)
+    OPENAI_API_KEY: str = Field(default="sk-test-key" if "PYTEST_CURRENT_TEST" in os.environ else ...)
     OPENAI_MODEL: str = Field("text-embedding-3-small")
 
     model_config = ConfigDict(
