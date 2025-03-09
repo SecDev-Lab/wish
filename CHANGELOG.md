@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed LangSmith integration:
   - Added automatic environment variable setup for LangChain/LangGraph tracing
   - Settings values are now properly passed to LangSmith via environment variables
+- [wish-command-generation] Fixed a bug where the target machine environment from Sliver was not properly reflected in command generation
 
 ### Removed
 
