@@ -58,35 +58,6 @@ class TestSliverBackend:
         backend.interactive_session = mock_interactive_session
         return backend
 
-    @pytest.mark.asyncio
-    async def test_get_basic_system_info(self, sliver_backend, mock_interactive_session):
-        """Test getting basic system information."""
-        # Mock the SystemInfoCollector.collect_basic_info_from_session method
-        expected_info = SystemInfo(
-            os="Linux",
-            arch="x86_64",
-            version="5.10.0",
-            hostname="test-host",
-            username="test-user",
-            uid="1000",
-            gid="1000",
-            pid=12345
-        )
-
-        with patch.object(
-            SystemInfoCollector, 'collect_basic_info_from_session',
-            AsyncMock(return_value=expected_info)
-        ):
-            # Call the method
-            info = await sliver_backend.get_basic_system_info()
-
-            # Verify the result
-            assert info is expected_info
-
-            # Verify that the collector was called with the correct session
-            SystemInfoCollector.collect_basic_info_from_session.assert_called_once_with(
-                mock_interactive_session
-            )
 
     @pytest.mark.asyncio
     async def test_get_executables(self, sliver_backend, mock_interactive_session):
@@ -130,24 +101,29 @@ class TestSliverBackend:
             gid="1000",
             pid=12345
         )
-        expected_collection = ExecutableCollection()
 
-        # Mock the SystemInfoCollector.collect_from_session method
-        with patch.object(
-            SystemInfoCollector, 'collect_from_session',
-            AsyncMock(return_value=(expected_info, expected_collection))
-        ):
-            # Call the method
-            info = await sliver_backend.get_system_info(collect_system_executables=True)
+        # Mock the interactive_session attributes
+        mock_interactive_session.os = "Linux"
+        mock_interactive_session.arch = "x86_64"
+        mock_interactive_session.version = "5.10.0"
+        mock_interactive_session.hostname = "test-host"
+        mock_interactive_session.username = "test-user"
+        mock_interactive_session.uid = "1000"
+        mock_interactive_session.gid = "1000"
+        mock_interactive_session.pid = 12345
 
-            # Verify the result
-            assert info is expected_info
+        # Call the method
+        info = await sliver_backend.get_system_info()
 
-            # Verify that the collector was called with the correct parameters
-            SystemInfoCollector.collect_from_session.assert_called_once_with(
-                mock_interactive_session,
-                collect_system_executables=True
-            )
+        # Verify the result
+        assert info.os == "Linux"
+        assert info.arch == "x86_64"
+        assert info.version == "5.10.0"
+        assert info.hostname == "test-host"
+        assert info.username == "test-user"
+        assert info.uid == "1000"
+        assert info.gid == "1000"
+        assert info.pid == 12345
 
     @pytest.mark.asyncio
     async def test_connect_already_connected(self, sliver_backend):
@@ -173,30 +149,25 @@ class TestSliverBackend:
         # Skip the actual _connect method and just set the client and session directly
         # This is a more focused test that doesn't rely on the internal implementation
         mock_interactive_session = MagicMock()
+        mock_interactive_session.os = "Linux"
+        mock_interactive_session.arch = "x86_64"
+        mock_interactive_session.version = "5.10.0"
+        mock_interactive_session.hostname = "test-host"
+        mock_interactive_session.username = "test-user"
+        mock_interactive_session.uid = "1000"
+        mock_interactive_session.gid = "1000"
+        mock_interactive_session.pid = 12345
+        
         mock_sliver_client.interact_session = AsyncMock(return_value=mock_interactive_session)
 
         # Patch the _connect method to avoid the actual connection logic
         with patch.object(SliverBackend, '_connect', AsyncMock()) as mock_connect:
-            # Call get_basic_system_info which should call _connect
-            with patch.object(
-                SystemInfoCollector, 'collect_basic_info_from_session',
-                AsyncMock(return_value=SystemInfo(
-                    os="Linux",
-                    arch="x86_64",
-                    version="5.10.0",
-                    hostname="test-host",
-                    username="test-user",
-                    uid="1000",
-                    gid="1000",
-                    pid=12345
-                ))
-            ):
-                # Set the client and session manually
-                backend.client = mock_sliver_client
-                backend.interactive_session = mock_interactive_session
+            # Set the client and session manually
+            backend.client = mock_sliver_client
+            backend.interactive_session = mock_interactive_session
 
-                # Call a method that uses _connect
-                await backend.get_basic_system_info()
+            # Call a method that uses _connect
+            await backend.get_system_info()
 
-                # Verify that _connect was called
-                mock_connect.assert_called_once()
+            # Verify that _connect was called
+            mock_connect.assert_called_once()

@@ -103,6 +103,44 @@ class TestSystemInfoCollectorAsync(unittest.IsolatedAsyncioTestCase):
         # Verify that get_system_info was called
         mock_backend.get_system_info.assert_called_once()
 
+    async def test_create_minimal_system_info(self):
+        """Test the _create_minimal_system_info method."""
+        # Call the method under test
+        result = SystemInfoCollector._create_minimal_system_info("Test error")
+        
+        # Verify the result
+        self.assertEqual(result.os, "Unknown (Error)")
+        self.assertEqual(result.arch, "Unknown")
+        self.assertEqual(result.hostname, "Unknown")
+        self.assertEqual(result.username, "Unknown")
+        self.assertEqual(result.version, "Error: Test error")
+
+    async def test_collect_basic_info_from_session(self):
+        """Test the collect_basic_info_from_session method."""
+        # Create a mock session
+        mock_session = MagicMock()
+        mock_session.os = "TestOS"
+        mock_session.arch = "TestArch"
+        mock_session.version = "1.0"
+        mock_session.hostname = "TestHost"
+        mock_session.username = "TestUser"
+        mock_session.uid = "1000"
+        mock_session.gid = "1000"
+        mock_session.pid = 12345
+        
+        # Call the method under test
+        result = await SystemInfoCollector.collect_basic_info_from_session(mock_session)
+        
+        # Verify the result
+        self.assertEqual(result.os, "TestOS")
+        self.assertEqual(result.arch, "TestArch")
+        self.assertEqual(result.version, "1.0")
+        self.assertEqual(result.hostname, "TestHost")
+        self.assertEqual(result.username, "TestUser")
+        self.assertEqual(result.uid, "1000")
+        self.assertEqual(result.gid, "1000")
+        self.assertEqual(result.pid, 12345)
+
 
 if __name__ == '__main__':
     unittest.main()
