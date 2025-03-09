@@ -140,30 +140,6 @@ class BashBackend(Backend):
         else:
             return f"Command {cmd_num} is not running."
 
-    async def get_basic_system_info(self) -> SystemInfo:
-        """Get basic system information from the local system.
-
-        Returns:
-            SystemInfo: Collected basic system information
-        """
-        # Basic information
-        system = platform.system()
-        info = SystemInfo(
-            os=system,
-            arch=platform.machine(),
-            version=platform.version(),
-            hostname=platform.node(),
-            username=os.getlogin(),
-            pid=os.getpid()
-        )
-
-        # Add UID and GID for Unix-like systems
-        if system != "Windows":
-            info.uid = str(os.getuid())
-            info.gid = str(os.getgid())
-
-        return info
-
     async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
         """Get executable files information from the local system.
 
@@ -186,7 +162,7 @@ class BashBackend(Backend):
 
         return path_executables
 
-    async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
+    async def get_system_info(self) -> SystemInfo:
         """Get system information from the local system.
 
         Args:

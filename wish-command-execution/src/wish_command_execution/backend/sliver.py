@@ -228,23 +228,6 @@ class SliverBackend(Backend):
         else:
             return f"Command {cmd_num} is not running."
 
-    async def get_basic_system_info(self) -> SystemInfo:
-        """Get basic system information from the Sliver session.
-
-        Returns:
-            SystemInfo: Collected basic system information
-        """
-        try:
-            await self._connect()  # Ensure connection is established
-
-            if not self.interactive_session:
-                raise RuntimeError("No active Sliver session")
-
-            info = await SystemInfoCollector.collect_basic_info_from_session(self.interactive_session)
-            return info
-        except Exception:
-            raise
-
     async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
         """Get executable files information from the Sliver session.
 
@@ -269,7 +252,7 @@ class SliverBackend(Backend):
             # Return empty collection on error
             return ExecutableCollection()
 
-    async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
+    async def get_system_info(self) -> SystemInfo:
         """Get system information from the Sliver session.
 
         Args:
