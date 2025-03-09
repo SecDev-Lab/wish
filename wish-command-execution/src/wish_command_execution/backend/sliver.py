@@ -284,10 +284,16 @@ class SliverBackend(Backend):
             if not self.interactive_session:
                 raise RuntimeError("No active Sliver session")
 
-            # Use the new collect_from_session method
-            info, _ = await SystemInfoCollector.collect_from_session(
-                self.interactive_session,
-                collect_system_executables=collect_system_executables
+            # Basic information collection
+            info = SystemInfo(
+                os=self.interactive_session.os,
+                arch=self.interactive_session.arch,
+                version=self.interactive_session.version,
+                hostname=self.interactive_session.hostname,
+                username=self.interactive_session.username,
+                uid=self.interactive_session.uid,
+                gid=self.interactive_session.gid,
+                pid=self.interactive_session.pid
             )
             return info
         except Exception:

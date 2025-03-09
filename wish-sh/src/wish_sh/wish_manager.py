@@ -112,9 +112,12 @@ class WishManager:
         wish_obj = Wish.create(wish_text)
 
         try:
-            # Get system info
+            # Get system info from the backend using SystemInfoCollector
             try:
-                system_info = SystemInfoCollector.collect_local_system_info()
+                from wish_command_execution.system_info import SystemInfoCollector
+                
+                # Get system info from the backend
+                system_info = SystemInfoCollector.collect_system_info_sync(self.executor.backend)
             except Exception as e:
                 logging.warning(f"Failed to collect system info: {str(e)}")
                 system_info = None

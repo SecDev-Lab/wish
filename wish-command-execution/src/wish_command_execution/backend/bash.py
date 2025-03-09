@@ -195,8 +195,20 @@ class BashBackend(Backend):
         Returns:
             SystemInfo: Collected system information
         """
-        # この関数は後方互換性のために残しておく
-        # For backwards compatibility
-        return SystemInfoCollector.collect_local_system_info(
-            collect_system_executables=collect_system_executables
+        # Basic information
+        system = platform.system()
+        info = SystemInfo(
+            os=system,
+            arch=platform.machine(),
+            version=platform.version(),
+            hostname=platform.node(),
+            username=os.getlogin(),
+            pid=os.getpid()
         )
+
+        # Add UID and GID for Unix-like systems
+        if system != "Windows":
+            info.uid = str(os.getuid())
+            info.gid = str(os.getgid())
+
+        return info
