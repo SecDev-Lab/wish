@@ -23,10 +23,10 @@ class VectorStore:
         self.settings = settings_obj
         self.logger = logger or setup_logger("wish-knowledge-loader.vector_store")
 
-        self.logger.debug(f"Initializing OpenAI embeddings with model: {settings_obj.OPENAI_MODEL}")
+        self.logger.debug(f"Initializing OpenAI embeddings with model: {settings_obj.OPENAI_EMBEDDING_MODEL}")
         self.embeddings = OpenAIEmbeddings(
             api_key=settings_obj.OPENAI_API_KEY,
-            model=settings_obj.OPENAI_MODEL,
+            model=settings_obj.OPENAI_EMBEDDING_MODEL,
             disallowed_special=()  # Disable special token checking
         )
         self.logger.debug("OpenAI embeddings initialized")
@@ -47,7 +47,7 @@ class VectorStore:
         # Create vector store using Chroma
         self.logger.info("Creating Chroma vector store...")
         # Note: Since Chroma 0.4.x, documents are automatically persisted
-        self.logger.debug(f"Using embedding model: {self.settings.OPENAI_MODEL}")
+        self.logger.debug(f"Using embedding model: {self.settings.OPENAI_EMBEDDING_MODEL}")
 
         # This operation can take a long time for large document collections
         self.logger.info("Starting vector embedding process (this may take a while)...")

@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed embedding model configuration in wish-knowledge-loader:
+  - Updated vector_store.py to use OPENAI_EMBEDDING_MODEL instead of OPENAI_MODEL for embeddings
+  - Added OPENAI_EMBEDDING_MODEL configuration to .env.example
+  - Updated docs/setup.md with instructions for setting up OPENAI_EMBEDDING_MODEL
+  - Fixed "You are not allowed to generate embeddings from this model" error
+
 ### Removed
 
 
