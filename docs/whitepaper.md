@@ -4,7 +4,7 @@
 
 ### 1.1 Purpose of this Document
 
-This whitepaper presents "wish," an AI-powered shell environment specifically designed for penetration testing. Operating as an intelligent command-line interface, wish translates natural language inputs into executable shell commands, providing penetration testers with an intuitive and efficient workflow. The document outlines the tool's capabilities, architecture, and potential applications in offensive security operations.
+This whitepaper presents "wish," an AI-powered shell environment specifically designed for penetration testing. Operating as an intelligent command-line interface, wish translates natural language inputs into executable shell commands, providing penetration testers with an intuitive and efficient workflow. The document outlines the tool's capabilities, architecture, and potential applications in offensive security operations. True to its name and motto "Your Wish, Our Command," wish empowers users by turning their natural language requests into precise technical actions.
 
 ### 1.2 Background and Objectives
 
@@ -60,17 +60,19 @@ wish is designed for:
 - Security students preparing for OSCP certification
 - HackTheBox, TryHackMe, or CTF (Boot2Root) players looking to enhance their efficiency
 
+wish positions itself as **"Your (OSCP / HTB / THM / CTF) partner"**, adapting to the specific needs of different security learning and testing environments.
+
 #### For Penetration Testing Professionals
 
 Professional penetration testers can leverage wish to streamline their workflow in time-sensitive engagements. By translating complex requirements into executable commands, wish reduces the cognitive load of recalling specific syntax and options. For example, during an external network assessment, a tester might simply express "scan the target network for web servers with potential vulnerabilities" and receive optimized nmap and vulnerability scanning commands tailored to the specific context.
 
 #### For OSCP Students
 
-OSCP certification candidates often struggle with the transition from guided learning to practical application. wish serves as a bridge by helping students convert their conceptual understanding into practical commands. When faced with a challenge like privilege escalation, students can describe their objective in natural language and receive suggested commands that not only solve the immediate problem but also reinforce learning through exposure to proper command syntax and methodology. It is important to note that while wish is an excellent learning tool during OSCP preparation, AI-assisted tools are not permitted during the actual OSCP examination. Using wish during practice labs helps students build the knowledge and skills they will need to perform independently during the certification exam.
+OSCP certification candidates often struggle with the transition from guided learning to practical application. wish serves as a bridge by helping students convert their conceptual understanding into practical commands. When faced with a challenge like privilege escalation, students can describe their objective in natural language and receive suggested commands that not only solve the immediate problem but also reinforce learning through exposure to proper command syntax and methodology. As your trusted OSCP study partner, wish helps build the knowledge and skills needed to perform independently during the certification exam, while understanding that AI-assisted tools are not permitted during the actual examination.
 
 #### For CTF and Challenge Platform Players
 
-HackTheBox, TryHackMe, and CTF players operate under time constraints where efficiency is crucial. wish accelerates the reconnaissance and enumeration phases by generating and executing multiple commands in parallel. For instance, when approaching a new Boot2Root challenge, players can initiate comprehensive enumeration by expressing "perform initial enumeration on this target" and receive a set of parallel commands covering port scanning, service identification, and common vulnerability checks.
+HackTheBox, TryHackMe, and CTF players operate under time constraints where efficiency is crucial. wish accelerates the reconnaissance and enumeration phases by generating and executing multiple commands in parallel. For instance, when approaching a new Boot2Root challenge, players can initiate comprehensive enumeration by expressing "perform initial enumeration on this target" and receive a set of parallel commands covering port scanning, service identification, and common vulnerability checks. As your reliable HTB, THM, and CTF partner, wish helps you focus on strategy and problem-solving rather than command syntax, giving you a competitive edge in time-sensitive challenges.
 
 ### 2.3 Comparison with Similar Tools
 
