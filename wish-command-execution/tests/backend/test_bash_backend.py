@@ -2,7 +2,7 @@
 
 import subprocess
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from wish_models import CommandState, LogFiles
@@ -34,9 +34,10 @@ class TestBashBackend:
             stderr=Path("/mock/log/dir/1.stderr")
         )
 
+    @pytest.mark.asyncio
     @patch("subprocess.Popen")
     @patch("builtins.open")
-    def test_execute_command(self, mock_open, mock_popen, backend, wish, log_files):
+    async def test_execute_command(self, mock_open, mock_popen, backend, wish, log_files):
         """Test execute_command method.
 
         This test verifies that the execute_command method correctly executes
@@ -54,7 +55,7 @@ class TestBashBackend:
         # Execute a command
         cmd = "echo 'Test command'"
         cmd_num = 1
-        backend.execute_command(wish, cmd, cmd_num, log_files)
+        await backend.execute_command(wish, cmd, cmd_num, log_files)
 
         # Verify that Popen was called
         mock_popen.assert_called_once()
@@ -68,9 +69,10 @@ class TestBashBackend:
         assert cmd_num in backend.running_commands
         assert backend.running_commands[cmd_num][0] == mock_process
 
+    @pytest.mark.asyncio
     @patch("subprocess.Popen")
     @patch("builtins.open")
-    def test_execute_command_subprocess_error(self, mock_open, mock_popen, backend, wish, log_files):
+    async def test_execute_command_subprocess_error(self, mock_open, mock_popen, backend, wish, log_files):
         """Test execute_command method with subprocess error.
 
         This test verifies that the execute_command method correctly handles
@@ -87,7 +89,7 @@ class TestBashBackend:
         # Execute a command
         cmd = "echo 'Test command'"
         cmd_num = 1
-        backend.execute_command(wish, cmd, cmd_num, log_files)
+        await backend.execute_command(wish, cmd, cmd_num, log_files)
 
         # Verify that the command result was updated with the error state
         assert wish.command_results[0].state == CommandState.OTHERS
@@ -101,7 +103,8 @@ class TestBashBackend:
         assert wish.command_results[0].state == CommandState.OTHERS
         assert wish.command_results[0].exit_code == 1
 
-    def test_check_running_commands(self, backend, wish):
+    @pytest.mark.asyncio
+    async def test_check_running_commands(self, backend, wish):
         """Test check_running_commands method.
 
         This test verifies that the check_running_commands method correctly
@@ -119,7 +122,7 @@ class TestBashBackend:
         backend.running_commands[cmd_num] = (mock_process, mock_result, wish)
 
         # Check running commands
-        backend.check_running_commands()
+        await backend.check_running_commands()
 
         # Verify that poll was called
         mock_process.poll.assert_called_once()
@@ -133,7 +136,8 @@ class TestBashBackend:
         # Verify that the command was removed from running_commands
         assert cmd_num not in backend.running_commands
 
-    def test_cancel_command(self, backend, wish):
+    @pytest.mark.asyncio
+    async def test_cancel_command(self, backend, wish):
         """Test cancel_command method.
 
         This test verifies that the cancel_command method correctly cancels
@@ -153,7 +157,7 @@ class TestBashBackend:
         backend.running_commands[cmd_num] = (mock_process, mock_result, wish)
 
         # Cancel the command
-        result = backend.cancel_command(wish, cmd_num)
+        result = await backend.cancel_command(wish, cmd_num)
 
         # Verify that terminate was called
         mock_process.terminate.assert_called_once()
@@ -170,7 +174,8 @@ class TestBashBackend:
         # Verify that the correct message was returned
         assert result == f"Command {cmd_num} cancelled."
 
-    def test_cancel_command_not_running(self, backend, wish):
+    @pytest.mark.asyncio
+    async def test_cancel_command_not_running(self, backend, wish):
         """Test cancel_command method when command is not running.
 
         This test verifies that the cancel_command method correctly handles
@@ -178,7 +183,7 @@ class TestBashBackend:
         """
         # Cancel a command that is not running
         cmd_num = 1
-        result = backend.cancel_command(wish, cmd_num)
+        result = await backend.cancel_command(wish, cmd_num)
 
         # Verify that the correct message was returned
         assert result == f"Command {cmd_num} is not running."

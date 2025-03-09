@@ -1,7 +1,7 @@
 """Tests for CommandExecutor."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from wish_models.test_factories import WishDoingFactory
@@ -14,9 +14,9 @@ class MockBackend(Backend):
     """Mock implementation of Backend for testing."""
 
     def __init__(self):
-        self.execute_command = MagicMock()
-        self.check_running_commands = MagicMock()
-        self.cancel_command = MagicMock(return_value="Command cancelled")
+        self.execute_command = AsyncMock()
+        self.check_running_commands = AsyncMock()
+        self.cancel_command = AsyncMock(return_value="Command cancelled")
 
 
 class TestCommandExecutor:
@@ -44,7 +44,8 @@ class TestCommandExecutor:
         """Create a CommandExecutor instance."""
         return CommandExecutor(backend=backend, log_dir_creator=log_dir_creator)
 
-    def test_execute_command(self, executor, backend, log_dir_creator, wish):
+    @pytest.mark.asyncio
+    async def test_execute_command(self, executor, backend, log_dir_creator, wish):
         """Test execute_command method.
 
         This test verifies that the execute_command method correctly delegates
@@ -53,7 +54,7 @@ class TestCommandExecutor:
         # Execute a command
         cmd = "echo 'Test command'"
         cmd_num = 1
-        executor.execute_command(wish, cmd, cmd_num)
+        await executor.execute_command(wish, cmd, cmd_num)
 
         # Verify that log_dir_creator was called
         log_dir_creator.assert_called_once_with(wish.id)
@@ -67,18 +68,19 @@ class TestCommandExecutor:
         assert str(args[3].stdout) == "/mock/log/dir/1.stdout"
         assert str(args[3].stderr) == "/mock/log/dir/1.stderr"
 
-    def test_execute_commands(self, executor, wish):
+    @pytest.mark.asyncio
+    async def test_execute_commands(self, executor, wish):
         """Test execute_commands method.
 
         This test verifies that the execute_commands method correctly executes
         multiple commands.
         """
         # Mock the execute_command method
-        executor.execute_command = MagicMock()
+        executor.execute_command = AsyncMock()
 
         # Execute multiple commands
         commands = ["echo 'Command 1'", "echo 'Command 2'", "echo 'Command 3'"]
-        executor.execute_commands(wish, commands)
+        await executor.execute_commands(wish, commands)
 
         # Verify that execute_command was called for each command
         assert executor.execute_command.call_count == len(commands)
@@ -87,19 +89,21 @@ class TestCommandExecutor:
         for i, cmd in enumerate(commands, 1):
             executor.execute_command.assert_any_call(wish, cmd, i)
 
-    def test_check_running_commands(self, executor, backend):
+    @pytest.mark.asyncio
+    async def test_check_running_commands(self, executor, backend):
         """Test check_running_commands method.
 
         This test verifies that the check_running_commands method correctly delegates
         to the backend's check_running_commands method.
         """
         # Check running commands
-        executor.check_running_commands()
+        await executor.check_running_commands()
 
         # Verify that backend.check_running_commands was called
         backend.check_running_commands.assert_called_once()
 
-    def test_cancel_command(self, executor, backend, wish):
+    @pytest.mark.asyncio
+    async def test_cancel_command(self, executor, backend, wish):
         """Test cancel_command method.
 
         This test verifies that the cancel_command method correctly delegates
@@ -107,7 +111,7 @@ class TestCommandExecutor:
         """
         # Cancel a command
         cmd_num = 1
-        result = executor.cancel_command(wish, cmd_num)
+        result = await executor.cancel_command(wish, cmd_num)
 
         # Verify that backend.cancel_command was called with the correct arguments
         backend.cancel_command.assert_called_once_with(wish, cmd_num)

@@ -83,7 +83,8 @@ def log_files():
     os.unlink(stderr_path)
 
 
-def test_execute_command(sliver_backend, wish, log_files, mock_sliver_client):
+@pytest.mark.asyncio
+async def test_execute_command(sliver_backend, wish, log_files, mock_sliver_client):
     """Test executing a command through the Sliver backend."""
     # Since we're mocking the Sliver client and the asynchronous execution,
     # we need to manually write to the log files to simulate the command execution
@@ -91,26 +92,12 @@ def test_execute_command(sliver_backend, wish, log_files, mock_sliver_client):
         f.write("Test output")
 
     # Execute a command
-    sliver_backend.execute_command(wish, "whoami", 1, log_files)
+    await sliver_backend.execute_command(wish, "whoami", 1, log_files)
 
     # Check that the command result was added to the wish
     assert len(wish.command_results) == 1
     assert wish.command_results[0].command == "whoami"
     assert wish.command_results[0].num == 1
-
-    # Wait for the command to complete (since it's running in a separate thread)
-    import time
-    max_wait = 5  # Maximum wait time in seconds
-    start_time = time.time()
-
-    while time.time() - start_time < max_wait:
-        # Check if the command is no longer in running_commands
-        if 1 not in sliver_backend.running_commands:
-            break
-        # Or check if the command has finished
-        if wish.command_results[0].finished_at is not None:
-            break
-        time.sleep(0.1)
 
     # Check that the log files were written to
     with open(log_files.stdout, "r") as f:
@@ -119,14 +106,15 @@ def test_execute_command(sliver_backend, wish, log_files, mock_sliver_client):
     assert "Test output" in stdout_content
 
 
-def test_cancel_command(sliver_backend, wish, log_files):
+@pytest.mark.asyncio
+async def test_cancel_command(sliver_backend, wish, log_files):
     """Test cancelling a command."""
     # Add a command result to the wish
     result = CommandResult.create(1, "whoami", log_files)
     wish.command_results.append(result)
 
     # Cancel the command
-    message = sliver_backend.cancel_command(wish, 1)
+    message = await sliver_backend.cancel_command(wish, 1)
 
     # Check the message
     assert "Command 1 cancelled" in message
@@ -135,9 +123,10 @@ def test_cancel_command(sliver_backend, wish, log_files):
     assert wish.command_results[0].state == CommandState.USER_CANCELLED
 
 
-def test_check_running_commands(sliver_backend):
+@pytest.mark.asyncio
+async def test_check_running_commands(sliver_backend):
     """Test checking running commands."""
     # This is a no-op in the Sliver backend
-    sliver_backend.check_running_commands()
+    await sliver_backend.check_running_commands()
     # Just verify it doesn't raise an exception
     assert True
