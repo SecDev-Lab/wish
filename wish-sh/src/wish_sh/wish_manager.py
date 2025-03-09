@@ -13,6 +13,11 @@ from wish_models.command_result.command_state import CommandState
 from wish_sh.wish_paths import WishPaths
 
 
+class OpenAIAPIError(Exception):
+    """Exception raised for OpenAI API related errors."""
+    pass
+
+
 class WishManager:
     """Core functionality for wish."""
 
@@ -132,6 +137,12 @@ class WishManager:
             # Handle any errors during command generation
             error_message = f"Error generating commands: {str(e)}"
             logging.error(error_message)
+            
+            # Check if this is an OpenAI API related error
+            error_str = str(e).lower()
+            if "openai api" in error_str or "failed to parse openai api" in error_str:
+                raise OpenAIAPIError(error_message) from e
+                
             return [], error_message
 
     # Delegation to CommandExecutor

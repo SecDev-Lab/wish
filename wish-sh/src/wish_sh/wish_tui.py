@@ -12,7 +12,35 @@ from wish_models.system_info import SystemInfo
 
 from wish_sh.system_info_display import display_system_info
 from wish_sh.tui.widgets import UIUpdater
-from wish_sh.wish_manager import WishManager
+from wish_sh.wish_manager import OpenAIAPIError, WishManager
+
+
+class ErrorModal(ModalScreen):
+    """Modal screen for displaying error messages."""
+
+    def __init__(self, error_message: str):
+        """Initialize the error modal.
+
+        Args:
+            error_message: The error message to display
+        """
+        super().__init__()
+        self.error_message = error_message
+
+    def compose(self) -> ComposeResult:
+        """Compose the modal screen."""
+        # Create a container for the modal content
+        yield Container(
+            Label("Error", id="modal-title"),
+            Static(self.error_message, id="error-info", markup=False),
+            Button("Close", id="close-button", variant="primary"),
+            id="modal-container",
+        )
+
+    @on(Button.Pressed, "#close-button")
+    def on_close_button_pressed(self) -> None:
+        """Handle close button press."""
+        self.app.pop_screen()
 
 
 class SystemInfoModal(ModalScreen):
@@ -158,11 +186,16 @@ class WishInput(Screen):
             wish = Wish.create(wish_text)
             wish.state = WishState.DOING
 
-            # Generate commands using WishManager (now async)
-            commands, error = await self.app.wish_manager.generate_commands(wish_text)
-
-            # Switch to command suggestion screen
-            self.app.push_screen(CommandSuggestion(wish, commands, error))
+            try:
+                # Generate commands using WishManager (now async)
+                commands, error = await self.app.wish_manager.generate_commands(wish_text)
+                
+                # Switch to command suggestion screen
+                self.app.push_screen(CommandSuggestion(wish, commands, error))
+                
+            except OpenAIAPIError as e:
+                # Show error modal for OpenAI API errors
+                self.app.push_screen(ErrorModal(str(e)))
 
 
 class CommandSuggestion(Screen):
