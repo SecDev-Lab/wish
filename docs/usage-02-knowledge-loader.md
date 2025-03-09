@@ -4,7 +4,7 @@ This guide explains how to use `wish-knowledge-loader` to enhance wish-sh with d
 
 ## Overview
 
-The wish-knowledge-loader is a tool that allows you to load knowledge bases from GitHub repositories into wish-sh. This knowledge is then used to improve command suggestions through Retrieval-Augmented Generation (RAG).
+The wish-knowledge-loader is a tool that allows you to load, list, and manage knowledge bases from GitHub repositories for use with wish-sh. This knowledge is then used to improve command suggestions through Retrieval-Augmented Generation (RAG).
 
 By loading relevant knowledge bases, you can make wish-sh more effective for specific domains or tasks, such as:
 
@@ -18,14 +18,14 @@ By loading relevant knowledge bases, you can make wish-sh more effective for spe
 Before using wish-knowledge-loader, ensure you have:
 
 1. [Installed wish-sh and wish-knowledge-loader](setup.md)
-2. Set up the required environment variables (`OPENAI_API_KEY`, `OPENAI_MODEL`, `WISH_HOME`)
+2. Set up the required environment variables (`OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL`, `WISH_HOME`)
 
 ## Loading a Knowledge Base
 
 To load a knowledge base from a GitHub repository, use the following command:
 
 ```bash
-wish-knowledge-loader --repo-url https://github.com/username/repo --glob "**/*.md" --title "Knowledge Base Title"
+wish-knowledge-loader load --repo-url https://github.com/username/repo --glob "**/*.md" --title "Knowledge Base Title"
 ```
 
 ### Parameters
@@ -39,8 +39,44 @@ wish-knowledge-loader --repo-url https://github.com/username/repo --glob "**/*.m
 To load a comprehensive penetration testing knowledge base:
 
 ```bash
-wish-knowledge-loader --repo-url https://github.com/HackTricks-wiki/hacktricks --glob "**/*.md" --title "HackTricks Wiki"
+wish-knowledge-loader load --repo-url https://github.com/HackTricks-wiki/hacktricks --glob "**/*.md" --title "HackTricks Wiki"
 ```
+
+## Listing Knowledge Bases
+
+To view all loaded knowledge bases:
+
+```bash
+wish-knowledge-loader list
+```
+
+This command displays:
+- The title of each knowledge base
+- The repository URL
+- The glob pattern used
+- Creation and update timestamps
+
+## Deleting Knowledge Bases
+
+To delete a knowledge base when you no longer need it:
+
+```bash
+wish-knowledge-loader delete --title "Knowledge Base Title"
+```
+
+### Parameters
+
+- `--title`: The title of the knowledge base to delete
+- `--force` or `-f`: Skip the confirmation prompt
+- `--verbose` or `-v`: Enable verbose logging
+- `--debug` or `-d`: Enable debug logging (even more verbose)
+
+### Repository Management
+
+When deleting a knowledge base:
+- If multiple knowledge bases use the same repository, the repository files are preserved
+- The repository is only deleted when removing the last knowledge base that references it
+- The vector database for the knowledge base is always deleted
 
 ## How It Works
 
@@ -54,16 +90,19 @@ When you run wish-knowledge-loader:
 
 ## Using Multiple Knowledge Bases
 
-You can load multiple knowledge bases by running wish-knowledge-loader multiple times with different repositories. Each knowledge base will be stored separately and used by wish-sh when generating commands.
+You can load multiple knowledge bases by running wish-knowledge-loader multiple times with different repositories or glob patterns. Each knowledge base will be stored separately and used by wish-sh when generating commands.
 
 For example:
 
 ```bash
 # Load HackTricks Wiki knowledge base
-wish-knowledge-loader --repo-url https://github.com/HackTricks-wiki/hacktricks --glob "**/*.md" --title "HackTricks Wiki"
+wish-knowledge-loader load --repo-url https://github.com/HackTricks-wiki/hacktricks --glob "**/*.md" --title "HackTricks Wiki"
 
 # Load OSCP Guide knowledge base
-wish-knowledge-loader --repo-url https://github.com/0xsyr0/OSCP --glob "README.md" --title "OSCP Guide"
+wish-knowledge-loader load --repo-url https://github.com/0xsyr0/OSCP --glob "README.md" --title "OSCP Guide"
+
+# Load Python files from the same repository as a separate knowledge base
+wish-knowledge-loader load --repo-url https://github.com/HackTricks-wiki/hacktricks --glob "**/*.py" --title "HackTricks Python Code"
 ```
 
 ## Verifying Loaded Knowledge Bases

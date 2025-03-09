@@ -1,19 +1,20 @@
 """Vector store functionality."""
 
 import logging
+from typing import Any
 
 from langchain.schema import Document
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
 
-from wish_knowledge_loader.settings import Settings
+from wish_models.settings import settings
 from wish_knowledge_loader.utils.logging_utils import setup_logger
 
 
 class VectorStore:
     """Class for managing vector stores."""
 
-    def __init__(self, settings: Settings, logger: logging.Logger = None):
+    def __init__(self, settings_obj: Any, logger: logging.Logger = None):
         """Initialize the VectorStore.
 
         Args:

@@ -2,19 +2,20 @@
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 
-from wish_knowledge_loader.settings import Settings
+from wish_models.settings import settings
 from wish_knowledge_loader.utils.logging_utils import setup_logger
 
 
 class DocumentLoader:
     """Class for loading documents."""
 
-    def __init__(self, settings: Settings, logger: logging.Logger = None):
+    def __init__(self, settings_obj: Any, logger: logging.Logger = None):
         """Initialize the DocumentLoader.
 
         Args:

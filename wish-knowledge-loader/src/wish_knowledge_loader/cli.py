@@ -1,35 +1,44 @@
 """Command-line interface for wish-knowledge-loader."""
 
 import logging
+import shutil
+from pathlib import Path
 
 import click
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
 from wish_models.knowledge.knowledge_metadata import KnowledgeMetadata, KnowledgeMetadataContainer
+from wish_models.settings import settings
 from wish_models.utc_datetime import UtcDatetime
 
 from wish_knowledge_loader.nodes.document_loader import DocumentLoader
 from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
 from wish_knowledge_loader.nodes.vector_store import VectorStore
-from wish_knowledge_loader.settings import Settings
 from wish_knowledge_loader.utils.logging_utils import setup_logger
 
 
-@click.command()
+@click.group()
+def main():
+    """CLI tool for managing knowledge bases."""
+    pass
+
+
+@main.command("load")
 @click.option("--repo-url", required=True, help="GitHub repository URL")
 @click.option("--glob", required=True, help="Glob pattern for files to include")
 @click.option("--title", required=True, help="Knowledge base title")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
 @click.option("--debug", "-d", is_flag=True, help="Enable debug logging (even more verbose)")
-def main(repo_url: str, glob: str, title: str, verbose: bool = False, debug: bool = False) -> int:
-    """CLI tool for cloning GitHub repositories and storing them in a vector database."""
+def load_knowledge(repo_url: str, glob: str, title: str, verbose: bool = False, debug: bool = False) -> int:
+    """Load a knowledge base from a GitHub repository."""
     try:
         # Set up logging
         log_level = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
         logger = setup_logger("wish-knowledge-loader", level=log_level)
         logger.info(f"Starting knowledge loader with log level: {logging.getLevelName(log_level)}")
 
-        # Load settings
+        # Log settings
         logger.info("Loading settings")
-        settings = Settings()
         logger.debug(f"WISH_HOME: {settings.WISH_HOME}")
         logger.debug(f"Knowledge directory: {settings.knowledge_dir}")
         logger.debug(f"Repository directory: {settings.repo_dir}")
@@ -92,6 +101,128 @@ def main(repo_url: str, glob: str, title: str, verbose: bool = False, debug: boo
 
         logger.info(f"Knowledge base loaded successfully: {title}")
         click.echo(f"Successfully loaded knowledge base: {title}")
+        return 0
+    except Exception as e:
+        logger.error(f"Error: {str(e)}", exc_info=True)
+        click.echo(f"Error: {str(e)}", err=True)
+        return 1
+
+
+@main.command("list")
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
+@click.option("--debug", "-d", is_flag=True, help="Enable debug logging")
+def list_knowledge(verbose: bool = False, debug: bool = False) -> int:
+    """List all loaded knowledge bases."""
+    try:
+        # Set up logging
+        log_level = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
+        logger = setup_logger("wish-knowledge-loader", level=log_level)
+        
+        # Load metadata container
+        container = KnowledgeMetadataContainer.load(settings.meta_path)
+        
+        if not container.m:
+            click.echo("No knowledge bases found.")
+            return 0
+            
+        # Display information for each knowledge base
+        click.echo(f"Found {len(container.m)} knowledge bases:")
+        for title, metadata in container.m.items():
+            click.echo(f"\n- Title: {title}")
+            click.echo(f"  Repository: {metadata.repo_url}")
+            click.echo(f"  Pattern: {metadata.glob_pattern}")
+            click.echo(f"  Created: {metadata.created_at}")
+            click.echo(f"  Updated: {metadata.updated_at}")
+            
+        return 0
+    except Exception as e:
+        logger = logging.getLogger("wish-knowledge-loader")
+        logger.error(f"Error: {str(e)}", exc_info=True)
+        click.echo(f"Error: {str(e)}", err=True)
+        return 1
+
+
+@main.command("delete")
+@click.option("--title", required=True, help="Knowledge base title to delete")
+@click.option("--force", "-f", is_flag=True, help="Skip confirmation prompt")
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
+@click.option("--debug", "-d", is_flag=True, help="Enable debug logging")
+def delete_knowledge(title: str, force: bool = False, verbose: bool = False, debug: bool = False) -> int:
+    """Delete a knowledge base."""
+    try:
+        # Set up logging
+        log_level = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
+        logger = setup_logger("wish-knowledge-loader", level=log_level)
+        
+        # Load metadata container
+        container = KnowledgeMetadataContainer.load(settings.meta_path)
+        
+        # Check if the specified knowledge base exists
+        metadata = container.get(title)
+        if not metadata:
+            click.echo(f"Knowledge base '{title}' not found.", err=True)
+            return 1
+            
+        # Check for dependencies - find other knowledge bases using the same repository
+        dependent_knowledge = []
+        for other_title, other_metadata in container.m.items():
+            if other_title != title and other_metadata.repo_url == metadata.repo_url:
+                dependent_knowledge.append(other_title)
+                
+        # Confirmation prompt
+        if not force:
+            message = f"Are you sure you want to delete knowledge base '{title}'?"
+            
+            if not click.confirm(message):
+                click.echo("Operation cancelled.")
+                return 0
+        
+        # Delete vector database directory
+        db_path = settings.db_dir / title
+        if db_path.exists():
+            # Use Chroma API for proper deletion
+            logger.info(f"Deleting vector database at {db_path}")
+            
+            embeddings = OpenAIEmbeddings(
+                api_key=settings.OPENAI_API_KEY,
+                model=settings.OPENAI_EMBEDDING_MODEL,
+                disallowed_special=()
+            )
+            
+            # Delete using Chroma API
+            try:
+                vectorstore = Chroma(
+                    persist_directory=str(db_path),
+                    embedding_function=embeddings
+                )
+                vectorstore.delete_collection()
+                logger.info("Vector database deleted via Chroma API")
+            except Exception as e:
+                logger.warning(f"Failed to delete via Chroma API: {e}")
+                
+            # Remove directory
+            shutil.rmtree(db_path, ignore_errors=True)
+            logger.info("Vector database directory removed")
+        
+        # Delete repository directory only if this is the last knowledge base using it
+        if not dependent_knowledge:
+            repo_path = metadata.repo_path
+            if repo_path.exists():
+                logger.info(f"Deleting repository at {repo_path} (last knowledge base using this repository)")
+                shutil.rmtree(repo_path, ignore_errors=True)
+                logger.info("Repository directory removed")
+        else:
+            logger.info(f"Keeping repository as it's used by {len(dependent_knowledge)} other knowledge base(s)")
+        
+        # Remove from metadata
+        logger.info(f"Removing metadata for '{title}'")
+        del container.m[title]
+        
+        # Save metadata
+        logger.info(f"Saving updated metadata to {settings.meta_path}")
+        container.save(settings.meta_path)
+        
+        click.echo(f"Successfully deleted knowledge base: {title}")
         return 0
     except Exception as e:
         logger.error(f"Error: {str(e)}", exc_info=True)

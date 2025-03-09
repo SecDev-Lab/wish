@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/whitepaper.md`: Technical whitepaper describing wish architecture, features, and development roadmap
   - Detailed comparison with similar tools in the penetration testing space
   - Explanation of wish's role in the RapidPen ecosystem
+- Added knowledge management features to wish-knowledge-loader:
+  - New `list` command to display all loaded knowledge bases
+  - New `delete` command to remove knowledge bases when no longer needed
+  - Smart repository management that preserves shared repositories
+  - Improved CLI with subcommands for better organization
 
 ### Changed
 
