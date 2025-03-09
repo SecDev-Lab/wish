@@ -59,6 +59,27 @@
     height: auto;
 }
 
+#error-info {
+    margin: 1 0;
+    height: auto;
+}
+
+#api-response {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1;
+    margin-top: 1;
+    margin-bottom: 1;
+    max-height: 20;
+    overflow: auto;
+}
+
+#api-response-label {
+    margin-top: 1;
+    text-style: bold;
+    color: yellow;
+}
+
 #executables-info {
     margin: 1 0;
     height: 1fr;

@@ -18,24 +18,33 @@ from wish_sh.wish_manager import OpenAIAPIError, WishManager
 class ErrorModal(ModalScreen):
     """Modal screen for displaying error messages."""
 
-    def __init__(self, error_message: str):
+    def __init__(self, error_message: str, api_response: str = None):
         """Initialize the error modal.
 
         Args:
             error_message: The error message to display
+            api_response: The API response that caused the error (if available)
         """
         super().__init__()
         self.error_message = error_message
+        self.api_response = api_response
 
     def compose(self) -> ComposeResult:
         """Compose the modal screen."""
         # Create a container for the modal content
-        yield Container(
+        content = [
             Label("Error", id="modal-title"),
             Static(self.error_message, id="error-info", markup=False),
-            Button("Close", id="close-button", variant="primary"),
-            id="modal-container",
-        )
+        ]
+        
+        # Add API response if available
+        if self.api_response:
+            content.append(Label("API Response:", id="api-response-label"))
+            content.append(Static(self.api_response, id="api-response", markup=False))
+            
+        content.append(Button("Close", id="close-button", variant="primary"))
+        
+        yield Container(*content, id="modal-container")
 
     @on(Button.Pressed, "#close-button")
     def on_close_button_pressed(self) -> None:
@@ -195,7 +204,7 @@ class WishInput(Screen):
                 
             except OpenAIAPIError as e:
                 # Show error modal for OpenAI API errors
-                self.app.push_screen(ErrorModal(str(e)))
+                self.app.push_screen(ErrorModal(str(e), e.api_response))
 
 
 class CommandSuggestion(Screen):

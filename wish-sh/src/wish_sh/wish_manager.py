@@ -15,7 +15,17 @@ from wish_sh.wish_paths import WishPaths
 
 class OpenAIAPIError(Exception):
     """Exception raised for OpenAI API related errors."""
-    pass
+    
+    def __init__(self, message, api_response=None):
+        """Initialize the exception.
+        
+        Args:
+            message: Error message
+            api_response: The raw API response that caused the error
+        """
+        super().__init__(message)
+        self.message = message
+        self.api_response = api_response
 
 
 class WishManager:
@@ -141,7 +151,16 @@ class WishManager:
             # Check if this is an OpenAI API related error
             error_str = str(e).lower()
             if "openai api" in error_str or "failed to parse openai api" in error_str:
-                raise OpenAIAPIError(error_message) from e
+                # Extract API response if available
+                api_response = None
+                parts = str(e).split("|API_RESPONSE:", 1)
+                if len(parts) > 1:
+                    error_message = parts[0]
+                    api_response = parts[1]
+                else:
+                    error_message = str(e)
+                    
+                raise OpenAIAPIError(error_message, api_response) from e
                 
             return [], error_message
 

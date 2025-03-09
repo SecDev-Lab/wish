@@ -181,7 +181,8 @@ def generate_commands(state: GraphState) -> GraphState:
     except json.JSONDecodeError as e:
         # JSON parse error
         error_message = f"Error generating commands: Failed to parse OpenAI API response as JSON: {str(e)}"
-        logging.error(f"JSON parse error: {str(e)}, Response: {response if 'response' in locals() else 'No response'}")
+        api_response = response if 'response' in locals() else 'No response'
+        logging.error(f"JSON parse error: {str(e)}, Response: {api_response}")
 
         # Set error in state
         state_dict = state.model_dump()
@@ -189,16 +190,24 @@ def generate_commands(state: GraphState) -> GraphState:
         state_dict["error"] = error_message
         
         # This will be caught by WishManager and converted to OpenAIAPIError
-        raise Exception(error_message)
+        # Include the API response in the exception
+        raise Exception(f"{error_message}|API_RESPONSE:{api_response}")
 
     except Exception as e:
         # Other errors
         error_message = f"Error generating commands: {str(e)}"
+        api_response = response if 'response' in locals() else None
         logging.error(f"Error generating commands: {str(e)}")
 
         # Set error in state
         state_dict = state.model_dump()
         state_dict["command_inputs"] = []
         state_dict["error"] = error_message
+        
+        # Include API response if available
+        if api_response:
+            raise Exception(f"{error_message}|API_RESPONSE:{api_response}")
+        else:
+            raise Exception(error_message)
 
     return GraphState(**state_dict)
