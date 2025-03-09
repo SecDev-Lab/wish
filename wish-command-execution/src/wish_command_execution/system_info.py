@@ -1,21 +1,87 @@
 """System information collector."""
 
+import asyncio
 import os
 import platform
 import subprocess
-from typing import Tuple
+from typing import Any, Optional, Tuple, TypeVar
 
 from wish_models.executable_collection import ExecutableCollection
 from wish_models.system_info import SystemInfo
+
+# Type variable for backend
+B = TypeVar('B')
 
 
 class SystemInfoCollector:
     """Collector for system information."""
 
-    @staticmethod
-    async def collect_basic_info_from_session(session) -> SystemInfo:
+    def __init__(self, backend: Optional[Any] = None):
+        """Initialize the system information collector.
+
+        Args:
+            backend: Backend to use for collecting system information
         """
-        Collect basic system information from a Sliver session.
+        self.backend = backend
+
+    async def collect_system_info(self) -> SystemInfo:
+        """Collect system information using the backend.
+
+        Returns:
+            SystemInfo: Collected system information
+        """
+        if not self.backend:
+            return self._create_minimal_system_info("No backend provided")
+
+        try:
+            # Call the backend's get_system_info method
+            return await self.backend.get_system_info()
+        except Exception as e:
+            return self._create_minimal_system_info(str(e))
+
+    @staticmethod
+    def _create_minimal_system_info(error_message: str) -> SystemInfo:
+        """Create minimal system info with error message.
+
+        Args:
+            error_message: Error message to include in the system info
+
+        Returns:
+            SystemInfo: Minimal system information with error message
+        """
+        return SystemInfo(
+            os="Unknown (Error)",
+            arch="Unknown",
+            hostname="Unknown",
+            username="Unknown",
+            version=f"Error: {error_message}"
+        )
+
+    @staticmethod
+    def collect_system_info_sync(backend: Any) -> SystemInfo:
+        """Synchronously collect system information using the backend.
+
+        This is a convenience method that wraps the async collect_system_info method.
+
+        Args:
+            backend: Backend to use for collecting system information
+
+        Returns:
+            SystemInfo: Collected system information
+        """
+        collector = SystemInfoCollector(backend)
+        try:
+            # Get existing event loop or create a new one
+            loop = asyncio.get_event_loop()
+            return loop.run_until_complete(collector.collect_system_info())
+        except RuntimeError:
+            # If no event loop exists, create a new one
+            return asyncio.run(collector.collect_system_info())
+
+    # Session-related methods (for Sliver backend)
+    @staticmethod
+    async def collect_basic_info_from_session(session: Any) -> SystemInfo:
+        """Collect basic system information from a Sliver session.
 
         Args:
             session: Sliver InteractiveSession object
@@ -38,10 +104,9 @@ class SystemInfoCollector:
 
     @staticmethod
     async def collect_executables_from_session(
-        session, collect_system_executables: bool = False
+        session: Any, collect_system_executables: bool = False
     ) -> ExecutableCollection:
-        """
-        Collect executable files information from a Sliver session.
+        """Collect executable files information from a Sliver session.
 
         Args:
             session: Sliver InteractiveSession object
@@ -52,11 +117,11 @@ class SystemInfoCollector:
         """
         try:
             # Collect executables in PATH
-            path_executables = await SystemInfoCollector._collect_path_executables(session)
+            path_executables = await SystemInfoCollector._collect_path_executables_from_session(session)
 
             # Optionally collect system-wide executables
             if collect_system_executables:
-                system_executables = await SystemInfoCollector._collect_system_executables(session)
+                system_executables = await SystemInfoCollector._collect_system_executables_from_session(session)
 
                 # Merge system executables into path executables
                 for exe in system_executables.executables:
@@ -69,10 +134,9 @@ class SystemInfoCollector:
 
     @staticmethod
     async def collect_from_session(
-        session, collect_system_executables: bool = False
+        session: Any, collect_system_executables: bool = False
     ) -> Tuple[SystemInfo, ExecutableCollection]:
-        """
-        Collect both system information and executables from a Sliver session.
+        """Collect both system information and executables from a Sliver session.
 
         Args:
             session: Sliver InteractiveSession object
@@ -92,9 +156,8 @@ class SystemInfoCollector:
         return info, executables
 
     @staticmethod
-    async def _collect_path_executables(session) -> ExecutableCollection:
-        """
-        Execute commands to collect executables in PATH.
+    async def _collect_path_executables_from_session(session: Any) -> ExecutableCollection:
+        """Execute commands to collect executables in PATH from a Sliver session.
 
         Args:
             session: Sliver InteractiveSession object
@@ -106,21 +169,21 @@ class SystemInfoCollector:
         collection = ExecutableCollection()
 
         if "linux" in os_type or "darwin" in os_type:
-            # より単純なコマンドを使用
+            # Simple command to get common executables
             cmd = "which ls cat grep find 2>/dev/null"
 
-            # 結果を取得後、各ファイルの詳細情報を取得
+            # Get results and then get details for each file
             result = await session.execute(cmd, [])
 
             if result.Stdout:
                 files = result.Stdout.decode('utf-8', errors='replace').splitlines()
 
-                # 各ファイルの詳細情報を取得
+                # Get details for each file
                 for file_path in files:
                     if not file_path.strip():
                         continue
 
-                    # ファイルの詳細情報を取得
+                    # Get file details
                     ls_cmd = f"ls -la \"{file_path}\" 2>/dev/null | awk '{{print $1,$5,$9}}'"
                     ls_result = await session.execute(ls_cmd, [])
 
@@ -137,7 +200,7 @@ class SystemInfoCollector:
 
                 return collection
 
-            # 以下は元のコマンドをフォールバックとして保持
+            # Fallback to original command
             cmd = (
                 "echo $PATH | tr ':' '\\n' | xargs -I {} find {} -type f -executable "
                 "-not -path \"*/\\.*\" 2>/dev/null"
@@ -166,36 +229,13 @@ class SystemInfoCollector:
         # Parse results
         if result.Stdout:
             stdout = result.Stdout.decode('utf-8', errors='replace')
-
-            for line in stdout.splitlines():
-                if not line.strip():
-                    continue
-
-                if "linux" in os_type or "darwin" in os_type:
-                    parts = line.strip().split(None, 2)
-                    if len(parts) >= 3:
-                        permissions, size_str, path = parts
-                        try:
-                            size = int(size_str)
-                        except ValueError:
-                            size = None
-                        collection.add_executable(path, size, permissions)
-                elif "windows" in os_type:
-                    parts = line.strip().split(',', 1)
-                    if len(parts) >= 2:
-                        path, size_str = parts
-                        try:
-                            size = int(size_str)
-                        except ValueError:
-                            size = None
-                        collection.add_executable(path, size)
+            await SystemInfoCollector._parse_executable_output(stdout, os_type, collection)
 
         return collection
 
     @staticmethod
-    async def _collect_system_executables(session) -> ExecutableCollection:
-        """
-        Execute commands to collect system-wide executables.
+    async def _collect_system_executables_from_session(session: Any) -> ExecutableCollection:
+        """Execute commands to collect system-wide executables from a Sliver session.
 
         Args:
             session: Sliver InteractiveSession object
@@ -233,39 +273,51 @@ class SystemInfoCollector:
         # Execute command
         result = await session.execute(cmd, [])
 
-        # Parse results (same parsing logic as _collect_path_executables)
+        # Parse results
         if result.Stdout:
             stdout = result.Stdout.decode('utf-8', errors='replace')
-
-            for line in stdout.splitlines():
-                if not line.strip():
-                    continue
-
-                if "linux" in os_type or "darwin" in os_type:
-                    parts = line.strip().split(None, 2)
-                    if len(parts) >= 3:
-                        permissions, size_str, path = parts
-                        try:
-                            size = int(size_str)
-                        except ValueError:
-                            size = None
-                        collection.add_executable(path, size, permissions)
-                elif "windows" in os_type:
-                    parts = line.strip().split(',', 1)
-                    if len(parts) >= 2:
-                        path, size_str = parts
-                        try:
-                            size = int(size_str)
-                        except ValueError:
-                            size = None
-                        collection.add_executable(path, size)
+            await SystemInfoCollector._parse_executable_output(stdout, os_type, collection)
 
         return collection
 
     @staticmethod
-    def collect_local_system_info(collect_system_executables: bool = False) -> SystemInfo:
+    async def _parse_executable_output(
+        stdout: str, os_type: str, collection: ExecutableCollection
+    ) -> None:
+        """Parse command output to extract executable information.
+
+        Args:
+            stdout: Command output to parse
+            os_type: Operating system type (linux, darwin, windows)
+            collection: ExecutableCollection to add executables to
         """
-        Collect system information from the local system.
+        for line in stdout.splitlines():
+            if not line.strip():
+                continue
+
+            if "linux" in os_type or "darwin" in os_type:
+                parts = line.strip().split(None, 2)
+                if len(parts) >= 3:
+                    permissions, size_str, path = parts
+                    try:
+                        size = int(size_str)
+                    except ValueError:
+                        size = None
+                    collection.add_executable(path, size, permissions)
+            elif "windows" in os_type:
+                parts = line.strip().split(',', 1)
+                if len(parts) >= 2:
+                    path, size_str = parts
+                    try:
+                        size = int(size_str)
+                    except ValueError:
+                        size = None
+                    collection.add_executable(path, size)
+
+    # Local system methods
+    @staticmethod
+    async def collect_local_system_info(collect_system_executables: bool = False) -> SystemInfo:
+        """Collect system information from the local system.
 
         Args:
             collect_system_executables: Whether to collect executables from the entire system
@@ -293,14 +345,38 @@ class SystemInfoCollector:
         # as these fields were removed when we split the models
         # We still collect them for testing purposes, but they are not used
         if collect_system_executables:
-            SystemInfoCollector._collect_local_system_executables()
+            await SystemInfoCollector._collect_local_system_executables()
 
         return info
 
     @staticmethod
-    def _collect_local_path_executables() -> ExecutableCollection:
+    async def collect_local_executables(
+        collect_system_executables: bool = False
+    ) -> ExecutableCollection:
+        """Collect executables from the local system.
+
+        Args:
+            collect_system_executables: Whether to collect executables from the entire system
+
+        Returns:
+            ExecutableCollection: Collection of executables
         """
-        Collect executables in PATH from the local system.
+        # Collect executables in PATH
+        path_executables = await SystemInfoCollector._collect_local_path_executables()
+
+        # Optionally collect system-wide executables
+        if collect_system_executables:
+            system_executables = await SystemInfoCollector._collect_local_system_executables()
+
+            # Merge system executables into path executables
+            for exe in system_executables.executables:
+                path_executables.executables.append(exe)
+
+        return path_executables
+
+    @staticmethod
+    async def _collect_local_path_executables() -> ExecutableCollection:
+        """Collect executables in PATH from the local system.
 
         Returns:
             ExecutableCollection: Collection of executables in PATH
@@ -341,9 +417,8 @@ class SystemInfoCollector:
         return collection
 
     @staticmethod
-    def _collect_local_system_executables() -> ExecutableCollection:
-        """
-        Collect system-wide executables from the local system.
+    async def _collect_local_system_executables() -> ExecutableCollection:
+        """Collect system-wide executables from the local system.
 
         Returns:
             ExecutableCollection: Collection of system-wide executables

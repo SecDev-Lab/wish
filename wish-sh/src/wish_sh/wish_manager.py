@@ -5,7 +5,6 @@ from typing import List, Optional
 
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashConfig, create_backend
-from wish_command_execution.system_info import SystemInfoCollector
 from wish_command_generation import CommandGenerator
 from wish_log_analysis import LogAnalyzer
 from wish_models import CommandResult, Settings, Wish, WishState
@@ -101,7 +100,7 @@ class WishManager:
             pass
         return wishes
 
-    def generate_commands(self, wish_text: str) -> tuple[List[str], Optional[str]]:
+    async def generate_commands(self, wish_text: str) -> tuple[List[str], Optional[str]]:
         """Generate commands based on wish text.
 
         Returns:
@@ -112,9 +111,10 @@ class WishManager:
         wish_obj = Wish.create(wish_text)
 
         try:
-            # Get system info
+            # Get system info directly from the backend
             try:
-                system_info = SystemInfoCollector.collect_local_system_info()
+                # Get system info from the backend
+                system_info = await self.executor.backend.get_system_info()
             except Exception as e:
                 logging.warning(f"Failed to collect system info: {str(e)}")
                 system_info = None

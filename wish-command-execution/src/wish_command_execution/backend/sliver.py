@@ -1,6 +1,7 @@
 """Sliver C2 backend for command execution."""
 
 import asyncio
+import concurrent.futures
 from typing import Any, Dict, Tuple
 
 from sliver import SliverClient, SliverClientConfig
@@ -63,35 +64,29 @@ class SliverBackend(Backend):
         wish.command_results.append(result)
 
         try:
-            # Run the async command in a separate thread with its own event loop
-            import threading
-
-            def run_async_command():
+            # Get the main event loop
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                # If no event loop exists in this thread, create a new one
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                try:
-                    # Pass file paths instead of file handles
-                    loop.run_until_complete(
-                        self._execute_command_wrapper(
-                            command, log_files.stdout, log_files.stderr, result, wish, cmd_num
-                        )
-                    )
-                except Exception as e:
-                    # Handle errors in the thread
-                    with open(log_files.stderr, "w") as stderr_file:
-                        error_msg = f"Sliver execution error in thread: {str(e)}"
-                        stderr_file.write(error_msg)
-                    self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
-                finally:
-                    loop.close()
 
-            # Start the thread
-            thread = threading.Thread(target=run_async_command)
-            thread.daemon = True  # Make thread daemon so it doesn't block program exit
-            thread.start()
+            # Run the async command in the main event loop
+            future = asyncio.run_coroutine_threadsafe(
+                self._execute_command_wrapper(
+                    command, log_files.stdout, log_files.stderr, result, wish, cmd_num
+                ),
+                loop
+            )
 
-            # Track the thread for status updates
-            self.running_commands[cmd_num] = (thread, result, wish)
+            # Add a callback to handle completion
+            future.add_done_callback(
+                lambda f: self._handle_command_completion(f, result, wish)
+            )
+
+            # Track the future for status updates
+            self.running_commands[cmd_num] = (future, result, wish)
 
             # Return immediately for UI (non-blocking)
             return
@@ -169,27 +164,56 @@ class SliverBackend(Backend):
                 wish.command_results[i] = result
                 break
 
+    def _handle_command_completion(self, future: concurrent.futures.Future, result: CommandResult, wish: Wish) -> None:
+        """Handle command completion from a Future.
+
+        Args:
+            future: The completed Future object.
+            result: The CommandResult object.
+            wish: The Wish object.
+        """
+        try:
+            # Get the result (will raise exception if the coroutine raised an exception)
+            future.result()
+
+            # If we get here, the future completed successfully
+            # The result should already be updated by _execute_command_wrapper
+            # But check if it's still in DOING state (which would be unexpected)
+            if result.state == CommandState.DOING:
+                result.finish(
+                    exit_code=0,  # Assume success if not otherwise set
+                    state=CommandState.SUCCESS
+                )
+
+                # Update the command result in the wish object
+                for i, cmd_result in enumerate(wish.command_results):
+                    if cmd_result.num == result.num:
+                        wish.command_results[i] = result
+                        break
+        except Exception:
+            # Handle any exceptions that occurred in the coroutine
+            # This should be rare since _execute_command_wrapper should catch most exceptions
+            if result.state == CommandState.DOING:
+                # Only update if still in DOING state
+                result.finish(
+                    exit_code=1,
+                    state=CommandState.OTHERS
+                )
+
+                # Update the command result in the wish object
+                for i, cmd_result in enumerate(wish.command_results):
+                    if cmd_result.num == result.num:
+                        wish.command_results[i] = result
+                        break
+
     def check_running_commands(self):
         """Check status of running commands and update their status."""
-        # Check each running command thread
-        for cmd_num, (thread, result, wish) in list(self.running_commands.items()):
-            # Check if thread is still alive
-            if not thread.is_alive():
-                # Thread has completed, but the result might not be updated
-                # if there was an error in the thread
-                if result.state == CommandState.DOING:
-                    # If still in DOING state, update it to SUCCESS
-                    # (if there was an error, it would have been updated already)
-                    result.finish(
-                        exit_code=0,  # Assume success if not otherwise set
-                        state=CommandState.SUCCESS
-                    )
-
-                    # Update the command result in the wish object
-                    for i, cmd_result in enumerate(wish.command_results):
-                        if cmd_result.num == result.num:
-                            wish.command_results[i] = result
-                            break
+        # Check each running command future
+        for cmd_num, (future, _result, _wish) in list(self.running_commands.items()):
+            # Check if future is done
+            if future.done():
+                # Future has completed, but the callback might not have run yet
+                # The callback should handle updating the result
 
                 # Remove from tracking
                 del self.running_commands[cmd_num]
@@ -212,6 +236,14 @@ class SliverBackend(Backend):
                 break
 
         if result and result.state == CommandState.DOING:
+            # If the command is in the running_commands dict, cancel the future
+            if cmd_num in self.running_commands:
+                future, _, _ = self.running_commands[cmd_num]
+                # Cancel the future if possible
+                future.cancel()
+                # Remove from tracking
+                del self.running_commands[cmd_num]
+
             # Mark the command as cancelled
             result.finish(
                 exit_code=-1,  # Use -1 for cancelled commands
@@ -227,23 +259,6 @@ class SliverBackend(Backend):
             return f"Command {cmd_num} cancelled."
         else:
             return f"Command {cmd_num} is not running."
-
-    async def get_basic_system_info(self) -> SystemInfo:
-        """Get basic system information from the Sliver session.
-
-        Returns:
-            SystemInfo: Collected basic system information
-        """
-        try:
-            await self._connect()  # Ensure connection is established
-
-            if not self.interactive_session:
-                raise RuntimeError("No active Sliver session")
-
-            info = await SystemInfoCollector.collect_basic_info_from_session(self.interactive_session)
-            return info
-        except Exception:
-            raise
 
     async def get_executables(self, collect_system_executables: bool = False) -> ExecutableCollection:
         """Get executable files information from the Sliver session.
@@ -269,7 +284,7 @@ class SliverBackend(Backend):
             # Return empty collection on error
             return ExecutableCollection()
 
-    async def get_system_info(self, collect_system_executables: bool = False) -> SystemInfo:
+    async def get_system_info(self) -> SystemInfo:
         """Get system information from the Sliver session.
 
         Args:
@@ -284,10 +299,16 @@ class SliverBackend(Backend):
             if not self.interactive_session:
                 raise RuntimeError("No active Sliver session")
 
-            # Use the new collect_from_session method
-            info, _ = await SystemInfoCollector.collect_from_session(
-                self.interactive_session,
-                collect_system_executables=collect_system_executables
+            # Basic information collection
+            info = SystemInfo(
+                os=self.interactive_session.os,
+                arch=self.interactive_session.arch,
+                version=self.interactive_session.version,
+                hostname=self.interactive_session.hostname,
+                username=self.interactive_session.username,
+                uid=self.interactive_session.uid,
+                gid=self.interactive_session.gid,
+                pid=self.interactive_session.pid
             )
             return info
         except Exception:
