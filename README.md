@@ -1,5 +1,9 @@
 # wish - LLM-assisted shell for penetration testing
 
+<p align="center">
+  <img src="docs/logo.png" alt="wish logo" width="200"/>
+</p>
+
 [![PyPI version](https://img.shields.io/pypi/v/wish-sh.svg)](https://pypi.org/project/wish-sh)
 
 ## Overview
