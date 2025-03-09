@@ -1,4 +1,5 @@
-from unittest.mock import MagicMock, patch
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from wish_models import WishState
 
@@ -9,7 +10,8 @@ from wish_sh.wish_tui import CommandSuggestion
 class TestWishInput:
     """Test for WishInput."""
 
-    def test_on_input_submitted_uses_wish_manager(self):
+    @pytest.mark.asyncio
+    async def test_on_input_submitted_uses_wish_manager(self):
         """Test that on_input_submitted uses WishManager.generate_commands.
 
         This test verifies:
@@ -25,7 +27,11 @@ class TestWishInput:
 
         # Set up the mock commands
         mock_commands = ["echo 'Test command 1'", "echo 'Test command 2'"]
-        wish_manager.generate_commands.return_value = (mock_commands, None)
+        
+        # Create an AsyncMock for generate_commands
+        async_mock = AsyncMock()
+        async_mock.return_value = (mock_commands, None)
+        wish_manager.generate_commands = async_mock
 
         # Create a property mock
         app_property_mock = MagicMock()
@@ -34,7 +40,7 @@ class TestWishInput:
         # Patch the WishInput.app property
         with patch('wish_sh.wish_tui.WishInput.app', app_property_mock):
             # Call on_input_submitted
-            screen.on_input_submitted(mock_event)
+            await screen.on_input_submitted(mock_event)
 
             # Check that generate_commands was called with the correct wish text
             wish_manager.generate_commands.assert_called_once_with(wish_text)

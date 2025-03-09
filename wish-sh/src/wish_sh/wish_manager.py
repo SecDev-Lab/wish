@@ -101,7 +101,7 @@ class WishManager:
             pass
         return wishes
 
-    def generate_commands(self, wish_text: str) -> tuple[List[str], Optional[str]]:
+    async def generate_commands(self, wish_text: str) -> tuple[List[str], Optional[str]]:
         """Generate commands based on wish text.
 
         Returns:
@@ -112,12 +112,10 @@ class WishManager:
         wish_obj = Wish.create(wish_text)
 
         try:
-            # Get system info from the backend using SystemInfoCollector
+            # Get system info directly from the backend
             try:
-                from wish_command_execution.system_info import SystemInfoCollector
-                
                 # Get system info from the backend
-                system_info = SystemInfoCollector.collect_system_info_sync(self.executor.backend)
+                system_info = await self.executor.backend.get_system_info()
             except Exception as e:
                 logging.warning(f"Failed to collect system info: {str(e)}")
                 system_info = None

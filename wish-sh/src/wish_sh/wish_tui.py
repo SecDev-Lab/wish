@@ -150,7 +150,7 @@ class WishInput(Screen):
         self.app.action_show_executables()
 
     @on(Input.Submitted)
-    def on_input_submitted(self, event: Input.Submitted) -> None:
+    async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
         wish_text = event.value.strip()
         if wish_text:
@@ -158,8 +158,8 @@ class WishInput(Screen):
             wish = Wish.create(wish_text)
             wish.state = WishState.DOING
 
-            # Generate commands using WishManager
-            commands, error = self.app.wish_manager.generate_commands(wish_text)
+            # Generate commands using WishManager (now async)
+            commands, error = await self.app.wish_manager.generate_commands(wish_text)
 
             # Switch to command suggestion screen
             self.app.push_screen(CommandSuggestion(wish, commands, error))
@@ -454,7 +454,7 @@ class WishApp(App):
 
         try:
             # Get basic system information from backend
-            self.system_info = await self.wish_manager.executor.backend.get_basic_system_info()
+            self.system_info = await self.wish_manager.executor.backend.get_system_info()
 
             # Set collection state to ready
             self.system_info_state = "ready"
