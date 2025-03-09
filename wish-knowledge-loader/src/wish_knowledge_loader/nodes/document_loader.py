@@ -22,7 +22,7 @@ class DocumentLoader:
             settings: Application settings
             logger: Logger instance
         """
-        self.settings = settings
+        self.settings = settings_obj
         self.TextLoader = TextLoader  # For easier mocking in tests
         self.logger = logger or setup_logger("wish-knowledge-loader.document_loader")
 

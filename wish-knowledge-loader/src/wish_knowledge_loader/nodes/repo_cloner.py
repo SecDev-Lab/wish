@@ -20,7 +20,7 @@ class RepoCloner:
             settings: Application settings
             logger: Logger instance
         """
-        self.settings = settings
+        self.settings = settings_obj
         self.logger = logger or setup_logger("wish-knowledge-loader.repo_cloner")
 
     def clone(self, repo_url: str) -> Path:

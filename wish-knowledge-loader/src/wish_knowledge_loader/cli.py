@@ -52,13 +52,13 @@ def load_knowledge(repo_url: str, glob: str, title: str, verbose: bool = False, 
 
         # Clone repository
         logger.info(f"Cloning repository: {repo_url}")
-        repo_cloner = RepoCloner(settings, logger=logger)
+        repo_cloner = RepoCloner(settings_obj=settings, logger=logger)
         repo_path = repo_cloner.clone(repo_url)
         logger.info(f"Repository cloned to: {repo_path}")
 
         # Load documents
         logger.info(f"Loading documents with pattern: {glob}")
-        document_loader = DocumentLoader(settings, logger=logger)
+        document_loader = DocumentLoader(settings_obj=settings, logger=logger)
         documents = document_loader.load(repo_path, glob)
         logger.info(f"Loaded {len(documents)} documents")
 
@@ -71,7 +71,7 @@ def load_knowledge(repo_url: str, glob: str, title: str, verbose: bool = False, 
 
         # Store in vector store
         logger.info(f"Storing documents in vector store: {title}")
-        vector_store = VectorStore(settings, logger=logger)
+        vector_store = VectorStore(settings_obj=settings, logger=logger)
         vector_store.store(title, split_docs)
         logger.info("Documents stored in vector store")
 
