@@ -159,7 +159,9 @@ class TestCliCommands:
         mock_setup_logger.return_value = mock_logger
 
         # Set up mock to return None for non-existent knowledge
-        mock_container.get.side_effect = lambda title: None if title == "Non-existent Knowledge" else mock_container.m.get(title)
+        mock_container.get.side_effect = lambda title: (
+            None if title == "Non-existent Knowledge" else mock_container.m.get(title)
+        )
 
         # Run CLI with force flag to skip confirmation
         result = runner.invoke(main, ["delete", "--title", "Non-existent Knowledge", "--force"])
