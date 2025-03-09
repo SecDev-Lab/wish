@@ -135,17 +135,17 @@ class WishManager:
             return [], error_message
 
     # Delegation to CommandExecutor
-    def execute_command(self, wish: Wish, command: str, cmd_num: int):
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int):
         """Execute a command and capture its output."""
-        self.executor.execute_command(wish, command, cmd_num)
+        await self.executor.execute_command(wish, command, cmd_num)
 
-    def check_running_commands(self):
+    async def check_running_commands(self):
         """Check status of running commands and update their status."""
-        self.executor.check_running_commands()
+        await self.executor.check_running_commands()
 
-    def cancel_command(self, wish: Wish, cmd_index: int):
+    async def cancel_command(self, wish: Wish, cmd_index: int):
         """Cancel a running command."""
-        return self.executor.cancel_command(wish, cmd_index)
+        return await self.executor.cancel_command(wish, cmd_index)
 
     def format_wish_list_item(self, wish: Wish, index: int) -> str:
         """Format a wish for display in wishlist."""

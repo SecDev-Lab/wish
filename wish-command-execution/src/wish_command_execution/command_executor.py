@@ -28,7 +28,7 @@ class CommandExecutor:
         log_dir.mkdir(parents=True, exist_ok=True)
         return log_dir
 
-    def execute_commands(self, wish: Wish, commands: list[str]) -> None:
+    async def execute_commands(self, wish: Wish, commands: list[str]) -> None:
         """Execute a list of commands for a wish.
 
         Args:
@@ -36,9 +36,9 @@ class CommandExecutor:
             commands: The list of commands to execute.
         """
         for i, cmd in enumerate(commands, 1):
-            self.execute_command(wish, cmd, i)
+            await self.execute_command(wish, cmd, i)
 
-    def execute_command(self, wish: Wish, command: str, cmd_num: int) -> None:
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int) -> None:
         """Execute a single command for a wish.
 
         Args:
@@ -53,13 +53,13 @@ class CommandExecutor:
         log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
 
         # Execute the command using the backend
-        self.backend.execute_command(wish, command, cmd_num, log_files)
+        await self.backend.execute_command(wish, command, cmd_num, log_files)
 
-    def check_running_commands(self):
+    async def check_running_commands(self):
         """Check status of running commands and update their status."""
-        self.backend.check_running_commands()
+        await self.backend.check_running_commands()
 
-    def cancel_command(self, wish: Wish, cmd_num: int) -> str:
+    async def cancel_command(self, wish: Wish, cmd_num: int) -> str:
         """Cancel a running command.
 
         Args:
@@ -69,4 +69,4 @@ class CommandExecutor:
         Returns:
             A message indicating the result of the cancellation.
         """
-        return self.backend.cancel_command(wish, cmd_num)
+        return await self.backend.cancel_command(wish, cmd_num)

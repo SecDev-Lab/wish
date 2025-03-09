@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed handling of dead Sliver sessions:
+  - Added validation to check if a Sliver session is in an invalid state
+  - Improved error reporting for dead sessions with clear error messages
+  - Prevented command execution on invalid sessions to avoid unexpected behavior
+
 ### Removed
 
 

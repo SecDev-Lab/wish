@@ -270,17 +270,22 @@ class CommandExecutionScreen(Screen):
 
     def on_mount(self) -> None:
         """Handle screen mount event."""
-        # Start command execution
-        self.executor.execute_commands(self.wish, self.commands)
+        # Start command execution and monitoring asynchronously
+        asyncio.create_task(self.start_execution())
 
-        # Asynchronously monitor command status
-        asyncio.create_task(self.monitor_commands())
+    async def start_execution(self) -> None:
+        """Start command execution and monitoring."""
+        # Execute commands
+        await self.executor.execute_commands(self.wish, self.commands)
+
+        # Monitor command status
+        await self.monitor_commands()
 
     async def monitor_commands(self) -> None:
         """Asynchronously monitor command execution status."""
         while not self.all_completed:
             # Check status of running commands
-            self.tracker.check_status(self.wish)
+            await self.tracker.check_status(self.wish)
 
             # Analyze logs for completed commands that don't have log_summary yet
             for cmd_result in self.wish.command_results:
