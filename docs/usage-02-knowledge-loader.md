@@ -56,6 +56,37 @@ This command displays:
 - The glob pattern used
 - Creation and update timestamps
 
+### Parameters
+
+- `--verbose` or `-v`: Enable verbose logging
+- `--debug` or `-d`: Enable debug logging (even more verbose)
+
+### Example Output
+
+When knowledge bases exist:
+
+```
+Found 2 knowledge bases:
+
+- Title: HackTricks Wiki
+  Repository: https://github.com/HackTricks-wiki/hacktricks
+  Pattern: **/*.md
+  Created: 2025-03-01T12:34:56Z
+  Updated: 2025-03-01T12:34:56Z
+
+- Title: OSCP Guide
+  Repository: https://github.com/0xsyr0/OSCP
+  Pattern: README.md
+  Created: 2025-03-02T10:11:12Z
+  Updated: 2025-03-02T10:11:12Z
+```
+
+When no knowledge bases exist:
+
+```
+No knowledge bases found.
+```
+
 ## Deleting Knowledge Bases
 
 To delete a knowledge base when you no longer need it:
@@ -71,12 +102,34 @@ wish-knowledge-loader delete --title "Knowledge Base Title"
 - `--verbose` or `-v`: Enable verbose logging
 - `--debug` or `-d`: Enable debug logging (even more verbose)
 
+### Confirmation and Output
+
+By default, the delete command will prompt for confirmation:
+
+```
+Are you sure you want to delete knowledge base 'HackTricks Wiki'? [y/N]:
+```
+
+After successful deletion, you'll see:
+
+```
+Successfully deleted knowledge base: HackTricks Wiki
+```
+
+If you try to delete a non-existent knowledge base:
+
+```
+Knowledge base 'Non-existent Knowledge' not found.
+```
+
 ### Repository Management
 
 When deleting a knowledge base:
 - If multiple knowledge bases use the same repository, the repository files are preserved
 - The repository is only deleted when removing the last knowledge base that references it
 - The vector database for the knowledge base is always deleted
+
+For example, if both "HackTricks Wiki" and "HackTricks Python Code" use the same repository, deleting one will keep the repository intact. The repository is only deleted when the last knowledge base referencing it is removed.
 
 ## How It Works
 
