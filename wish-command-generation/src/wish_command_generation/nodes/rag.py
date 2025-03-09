@@ -10,7 +10,7 @@ from ..models import GraphState
 def generate_query(state: GraphState) -> GraphState:
     """Generate a query for RAG search from the task using LLM"""
     # Use LLM to generate a query
-    from ..settings import settings
+    from wish_models import settings
 
     model = ChatOpenAI(
         model=settings.OPENAI_MODEL,
@@ -70,7 +70,7 @@ def retrieve_documents(state: GraphState) -> GraphState:
     from langchain_community.vectorstores import Chroma
     from langchain_openai import OpenAIEmbeddings
 
-    from ..settings import settings
+    from wish_models import settings
 
     # Return empty context if no query is available
     if not state.query:

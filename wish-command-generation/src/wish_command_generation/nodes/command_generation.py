@@ -137,7 +137,7 @@ def generate_commands(state: GraphState) -> GraphState:
     prompt = PromptTemplate.from_template(COMMAND_GENERATION_PROMPT)
 
     # Initialize the OpenAI model
-    from ..settings import settings
+    from wish_models import settings
 
     model = ChatOpenAI(
         model=settings.OPENAI_MODEL,

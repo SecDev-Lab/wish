@@ -9,7 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added support for custom .env file path:
+  - Added `--env-file` command-line option to specify a custom .env file path
+  - Default path is `$WISH_HOME/env`
+  - Centralized settings management in `wish-models` package
+
 ### Changed
+
+- Refactored settings management:
+  - Moved settings from individual packages to `wish-models` package
+  - All packages now use the same settings instance
 
 ### Fixed
 

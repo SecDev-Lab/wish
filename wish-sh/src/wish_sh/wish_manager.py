@@ -8,10 +8,9 @@ from wish_command_execution.backend import BashConfig, create_backend
 from wish_command_execution.system_info import SystemInfoCollector
 from wish_command_generation import CommandGenerator
 from wish_log_analysis import LogAnalyzer
-from wish_models import CommandResult, Wish, WishState
+from wish_models import CommandResult, Settings, Wish, WishState
 from wish_models.command_result.command_state import CommandState
 
-from wish_sh.settings import Settings
 from wish_sh.wish_paths import WishPaths
 
 

@@ -5,6 +5,7 @@ import asyncio
 
 from sliver import SliverClient, SliverClientConfig
 from wish_command_execution.backend import BashConfig, SliverConfig
+from wish_models import Settings
 
 from wish_sh.wish_tui import main as tui_main
 
@@ -66,6 +67,9 @@ def main():
     # Sliver C2 related arguments
     parser.add_argument("--sliver-config", help="Path to Sliver client config file")
     parser.add_argument("--sliver-session", help="Sliver C2 session ID (optional if only one session exists)")
+    
+    # Environment configuration
+    parser.add_argument("--env-file", help="Path to .env file (default: $WISH_HOME/env)")
 
     args = parser.parse_args()
 
@@ -95,8 +99,11 @@ def main():
     else:
         backend_config = BashConfig()
 
-    # Launch TUI
-    tui_main(backend_config)
+    # Create settings with custom env file if specified
+    settings = Settings(env_file=args.env_file) if args.env_file else Settings()
+    
+    # Launch TUI with settings
+    tui_main(backend_config, settings=settings)
 
 
 if __name__ == "__main__":

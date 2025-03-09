@@ -30,6 +30,10 @@ export OPENAI_MODEL=gpt-4o
 
 # Optional: Set the wish home directory (default: ~/.wish)
 export WISH_HOME=~/.wish
+
+# Optional: Set a custom .env file path (default: $WISH_HOME/env)
+# This is used by all wish packages
+export WISH_ENV_FILE=/path/to/your/custom/.env
 ```
 
 You can add these environment variables to your shell configuration file (like `.bashrc` or `.zshrc`) to have them automatically set when you open a terminal.
@@ -49,6 +53,14 @@ wish-sh
 ```
 
 Both commands provide identical functionality.
+
+You can also specify a custom .env file path using the `--env-file` option:
+
+```bash
+wish --env-file /path/to/your/custom/.env
+# or on macOS
+wish-sh --env-file /path/to/your/custom/.env
+```
 
 ## wish-knowledge-loader
 
