@@ -31,11 +31,9 @@ class TestCommandExecutionScreenWithSleepCommand:
         4. The completion message is displayed when all commands finish
         """
         screen, status_widget, execution_text = screen_setup
-        wish_manager = screen.wish_manager
-        executor = wish_manager.executor
 
         # Mock the start_execution method to avoid async issues
-        with patch.object(screen, 'start_execution') as mock_start_execution:
+        with patch.object(screen, 'start_execution'):
             # Call on_mount to start command execution
             screen.on_mount()
 
@@ -63,10 +61,8 @@ class TestCommandExecutionScreenWithSleepCommand:
             wish_manager=wish_manager
         )
 
-        executor = wish_manager.executor
-
         # Mock the start_execution method to avoid async issues
-        with patch.object(screen, 'start_execution') as mock_start_execution:
+        with patch.object(screen, 'start_execution'):
             # Call on_mount to start command execution
             screen.on_mount()
 

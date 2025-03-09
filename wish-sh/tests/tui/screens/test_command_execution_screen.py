@@ -33,11 +33,9 @@ class TestCommandExecutionScreen:
         3. asyncio.create_task is called to monitor commands
         """
         screen, status_widget, execution_text = screen_setup
-        wish_manager = screen.wish_manager
-        executor = wish_manager.executor
 
         # Mock the start_execution method to avoid async issues
-        with patch.object(screen, 'start_execution') as mock_start_execution:
+        with patch.object(screen, 'start_execution'):
             # Call on_mount directly (not as async)
             screen.on_mount()
 
