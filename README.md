@@ -4,7 +4,7 @@
 
 ## Overview
 
-wish-sh is an LLM-assisted shell that helps users execute commands by translating natural language "wishes" into executable shell commands. It provides a user-friendly TUI (Text-based User Interface) for reviewing suggested commands, executing them, and monitoring their execution status.
+wish-sh is an LLM-assisted shell that helps users execute commands by translating natural language "wishes" into executable shell commands. It provides a user-friendly TUI (Text-based User Interface) for reviewing suggested commands, executing them, and monitoring their execution status. For a comprehensive technical overview, see our [whitepaper](docs/whitepaper.md).
 
 ![Screenshot of wish-sh](docs/images/screenshot.png)
 
@@ -38,6 +38,7 @@ wish  # or wish-sh on macOS
 - [Command and Control (C2) Guide](docs/usage-03-C2.md) - Advanced operations for target systems
 - [LangSmith Integration Guide](docs/usage-04-langsmith.md) - Monitoring, debugging, and optimizing with LangSmith
 - [Design Documentation](docs/design.md) - Technical architecture and design
+- [Whitepaper](docs/whitepaper.md) - Technical whitepaper on wish architecture and capabilities
 
 ## Development
 
