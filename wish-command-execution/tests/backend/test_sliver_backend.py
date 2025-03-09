@@ -151,9 +151,13 @@ async def test_connect_with_dead_session(mock_config_file):
     mock_client.interact_session = AsyncMock(return_value=mock_session)
 
     # Apply all the mocks
-    with patch("wish_command_execution.backend.sliver.SliverClientConfig.parse_config_file", return_value=mock_config), \
-         patch("wish_command_execution.backend.sliver.SliverClient", return_value=mock_client), \
-         patch("wish_command_execution.backend.sliver.sys.exit") as mock_exit:
+    with patch(
+        "wish_command_execution.backend.sliver.SliverClientConfig.parse_config_file",
+        return_value=mock_config
+    ), patch(
+        "wish_command_execution.backend.sliver.SliverClient",
+        return_value=mock_client
+    ), patch("wish_command_execution.backend.sliver.sys.exit") as mock_exit:
 
         # Call _connect, which should detect the dead session and call sys.exit
         await backend._connect()
