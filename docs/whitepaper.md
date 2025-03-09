@@ -333,27 +333,68 @@ For detailed information on setting up and using LangSmith with wish-sh, refer t
 
 Current capabilities include:
 
-- Functional TUI prototype
-- Natural language to command generation
-- Multiple command suggestion and execution tracking
-- Knowledge base integration from GitHub repositories
-- Sliver C2 integration for compromised shell operation
-- OpenAI integration
-- Environment-aware command suggestions (OS)
+#### Core Functionality
+- Functional TUI prototype with intuitive command interface
+- Natural language to command generation using LLMs
+- Multiple command suggestion and parallel execution tracking
+- Automatic log analysis and summarization
+
+#### Enhanced Features
+- Knowledge base integration from GitHub repositories (e.g., HackTricks)
+- OS-aware command generation (Linux, Windows, macOS) with system information collection
+- Centralized settings management with support for custom .env file paths
+- Comprehensive documentation and usage guides
+
+#### Integration Capabilities
+- Sliver C2 integration for compromised shell operation, including:
+  - Remote system information collection
+  - Session management with validation and error handling
+  - Command execution on compromised hosts
+- OpenAI API integration for command generation and log analysis
+- LangSmith integration for monitoring and debugging LLM operations
 
 ### 5.2 Planned Development (by August 2025)
 
-- Wish History functionality
-- More Environment-aware command suggestions (available executables, dictionary files)
-- Utilization of successful command histories
-- Portal interface for C2 setup and knowledge base import
+#### User Experience Improvements
+- Wish History functionality:
+  - Persistent storage of command history
+  - Search and filtering capabilities
+  - Command reuse and modification
+- More intuitive TUI with enhanced visual feedback
+
+#### Command Generation Enhancements
+- Expanded environment-aware command suggestions:
+  - Available executables detection and utilization
+  - Dictionary files and wordlists awareness
+  - Target-specific configuration options
+- Learning from successful command executions:
+  - Feedback loop for command effectiveness
+  - Adaptation to user preferences and patterns
+
+#### Management Features
+- Portal interface for:
+  - C2 framework setup and management
+  - Knowledge base import and organization
+  - System configuration and monitoring
 
 ### 5.3 Future Development
 
-- Support for various LLM providers
-- Expanded C2 framework integration beyond Sliver C2, including support for custom and proprietary C2 solutions
+#### Platform Expansion
+- Support for various LLM providers (local models, alternative APIs)
+- Expanded C2 framework integration beyond Sliver C2:
+  - Support for Metasploit, Covenant, and other C2 frameworks
+  - Custom and proprietary C2 solution integration
+  - Unified C2 management interface
+
+#### Advanced Integration
 - Full integration with RapidPen for automated penetration testing workflows
-- Improvements based on community feedback
+- API for integration with other security tools and platforms
+- Plugin system for community-developed extensions
+
+#### Community-Driven Improvements
+- Open-source contribution framework
+- User feedback incorporation mechanism
+- Regular feature updates based on penetration testing trends
 
 ## 6. References
 
