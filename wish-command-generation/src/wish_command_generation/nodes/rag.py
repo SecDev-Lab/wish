@@ -69,7 +69,6 @@ def retrieve_documents(state: GraphState) -> GraphState:
     from langchain_community.document_loaders import TextLoader
     from langchain_community.vectorstores import Chroma
     from langchain_openai import OpenAIEmbeddings
-
     from wish_models import settings
 
     # Return empty context if no query is available

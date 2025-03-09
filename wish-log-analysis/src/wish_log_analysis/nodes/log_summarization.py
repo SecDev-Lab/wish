@@ -5,7 +5,6 @@ import os
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-
 from wish_models import settings
 
 from ..models import GraphState

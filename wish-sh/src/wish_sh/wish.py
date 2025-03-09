@@ -67,7 +67,7 @@ def main():
     # Sliver C2 related arguments
     parser.add_argument("--sliver-config", help="Path to Sliver client config file")
     parser.add_argument("--sliver-session", help="Sliver C2 session ID (optional if only one session exists)")
-    
+
     # Environment configuration
     parser.add_argument("--env-file", help="Path to .env file (default: $WISH_HOME/env)")
 
@@ -101,7 +101,7 @@ def main():
 
     # Create settings with custom env file if specified
     settings = Settings(env_file=args.env_file) if args.env_file else Settings()
-    
+
     # Launch TUI with settings
     tui_main(backend_config, settings=settings)
 

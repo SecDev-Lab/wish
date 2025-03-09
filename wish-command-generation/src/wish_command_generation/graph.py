@@ -1,8 +1,6 @@
 """Main graph definition for the command generation system."""
 
-import os
 from langgraph.graph import END, START, StateGraph
-
 from wish_models import settings
 
 from .models import GraphState
@@ -20,7 +18,7 @@ def create_command_generation_graph(compile: bool = True) -> StateGraph:
     """
     # Set project name
     settings.LANGCHAIN_PROJECT = "wish-command-generation"
-    
+
     # Log LangSmith configuration if tracing is enabled
     if settings.LANGCHAIN_TRACING_V2:
         import logging
