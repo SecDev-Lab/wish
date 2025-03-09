@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from wish_models import CommandResult, CommandState, Wish
 from wish_models.executable_collection import ExecutableCollection
-from wish_models.system_info import SystemInfo
 
 from wish_command_execution.backend.sliver import SliverBackend
 from wish_command_execution.system_info import SystemInfoCollector
@@ -107,18 +106,6 @@ class TestSliverBackend:
     @pytest.mark.asyncio
     async def test_get_system_info(self, sliver_backend, mock_interactive_session):
         """Test getting system information."""
-        # Create mock return values
-        expected_info = SystemInfo(
-            os="Linux",
-            arch="x86_64",
-            version="5.10.0",
-            hostname="test-host",
-            username="test-user",
-            uid="1000",
-            gid="1000",
-            pid=12345
-        )
-
         # Mock the interactive_session attributes
         mock_interactive_session.os = "Linux"
         mock_interactive_session.arch = "x86_64"

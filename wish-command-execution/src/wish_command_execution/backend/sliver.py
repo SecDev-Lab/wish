@@ -209,7 +209,7 @@ class SliverBackend(Backend):
     def check_running_commands(self):
         """Check status of running commands and update their status."""
         # Check each running command future
-        for cmd_num, (future, result, wish) in list(self.running_commands.items()):
+        for cmd_num, (future, _result, _wish) in list(self.running_commands.items()):
             # Check if future is done
             if future.done():
                 # Future has completed, but the callback might not have run yet
