@@ -19,6 +19,7 @@ class TestVectorStore:
         settings = MagicMock(spec=Settings)
         settings.OPENAI_API_KEY = "test-api-key"
         settings.OPENAI_MODEL = "text-embedding-3-small"
+        settings.OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
         settings.db_dir = Path("/tmp/db")
         return settings
 
@@ -55,7 +56,7 @@ class TestVectorStore:
         # Check if OpenAIEmbeddings was created with correct arguments
         mock_embeddings.assert_called_once_with(
             api_key=settings.OPENAI_API_KEY,
-            model=settings.OPENAI_MODEL,
+            model=settings.OPENAI_EMBEDDING_MODEL,
             disallowed_special=()
         )
 
