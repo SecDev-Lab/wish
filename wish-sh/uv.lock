@@ -2138,10 +2138,14 @@ version = "0.0.0"
 source = { editable = "../wish-models" }
 dependencies = [
     { name = "pydantic" },
+    { name = "pydantic-settings" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pydantic", specifier = ">=2.10.6" }]
+requires-dist = [
+    { name = "pydantic", specifier = ">=2.10.6" },
+    { name = "pydantic-settings", specifier = ">=2.0.0" },
+]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2156,6 +2160,8 @@ name = "wish-sh"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
     { name = "textual" },
     { name = "wish-command-execution" },
     { name = "wish-command-generation" },
@@ -2173,6 +2179,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "pydantic", specifier = ">=2.10.6" },
+    { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "textual", specifier = ">=2.1.2" },
     { name = "wish-command-execution", editable = "../wish-command-execution" },
     { name = "wish-command-generation", editable = "../wish-command-generation" },

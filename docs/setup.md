@@ -30,9 +30,54 @@ export OPENAI_MODEL=gpt-4o
 
 # Optional: Set the wish home directory (default: ~/.wish)
 export WISH_HOME=~/.wish
+
+# Optional: Set a custom .env file path (default: $WISH_HOME/env)
+# This is used by all wish packages
+export WISH_ENV_FILE=/path/to/your/custom/.env
 ```
 
 You can add these environment variables to your shell configuration file (like `.bashrc` or `.zshrc`) to have them automatically set when you open a terminal.
+
+### Using .env File
+
+Instead of setting environment variables directly, you can use a `.env` file. The default location for this file is `$WISH_HOME/env`. Here's how to set it up:
+
+1. Make sure the `$WISH_HOME` directory exists:
+
+```bash
+mkdir -p ~/.wish
+```
+
+2. Copy the example `.env` file to `$WISH_HOME/env`:
+
+```bash
+cp .env.example ~/.wish/env
+```
+
+3. Edit the `$WISH_HOME/env` file to set your actual API keys and other settings:
+
+```bash
+nano ~/.wish/env
+```
+
+The `.env` file should contain settings like:
+
+```
+# Wish home directory
+WISH_HOME=~/.wish
+
+# OpenAI API settings
+OPENAI_API_KEY=your-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# LangSmith settings (optional)
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+LANGCHAIN_API_KEY=your-langsmith-api-key-here
+LANGCHAIN_PROJECT=wish
+```
+
+Make sure to replace `your-api-key-here` with your actual OpenAI API key, and if you're using LangSmith, replace `your-langsmith-api-key-here` with your actual LangSmith API key.
 
 ### Verifying Installation
 
@@ -49,6 +94,14 @@ wish-sh
 ```
 
 Both commands provide identical functionality.
+
+You can also specify a custom .env file path using the `--env-file` option:
+
+```bash
+wish --env-file /path/to/your/custom/.env
+# or on macOS
+wish-sh --env-file /path/to/your/custom/.env
+```
 
 ## wish-knowledge-loader
 

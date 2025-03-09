@@ -41,10 +41,12 @@ jobs:
       - name: Install the project
         run: cd ${{ matrix.project }} && uv sync --all-extras --dev
       
+      - name: Setup environment variables for testing
+        run: mkdir -p ~/.wish/ && [ -f .env.example ] && cp .env.example ~/.wish/env || echo "No .env.example file found"
+
       - name: Generate graph visualization
         run: |
           cd ${{ matrix.project }}
-          cp .env.example .env
           uv run python scripts/update_graph_visualization.py
       
       - name: Check for changes

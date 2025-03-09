@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from wish_sh.settings import Settings
+from wish_models import Settings
 
 
 class WishPaths:

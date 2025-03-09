@@ -6,11 +6,10 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
 from textual.screen import ModalScreen, Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
-from wish_models import Wish, WishState
+from wish_models import Settings, Wish, WishState
 from wish_models.command_result.command_state import CommandState
 from wish_models.system_info import SystemInfo
 
-from wish_sh.settings import Settings
 from wish_sh.system_info_display import display_system_info
 from wish_sh.tui.widgets import UIUpdater
 from wish_sh.wish_manager import WishManager
@@ -376,14 +375,15 @@ class WishApp(App):
         ("escape", "quit", "Quit")
     ]
 
-    def __init__(self, backend_config=None):
+    def __init__(self, backend_config=None, settings=None):
         """Initialize the Wish TUI application.
 
         Args:
             backend_config: Backend configuration (optional).
+            settings: Application settings (optional).
         """
         super().__init__()
-        self.settings = Settings()
+        self.settings = settings or Settings()
         self.wish_manager = WishManager(self.settings, backend_config)
 
         # Basic system information
@@ -567,13 +567,14 @@ class WishApp(App):
         # Let the user click the button to start collection
 
 
-def main(backend_config=None) -> None:
+def main(backend_config=None, settings=None) -> None:
     """Run the Wish TUI application.
 
     Args:
         backend_config: Backend configuration (optional).
+        settings: Application settings (optional).
     """
-    app = WishApp(backend_config)
+    app = WishApp(backend_config, settings)
     app.run()
 
 

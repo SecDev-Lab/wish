@@ -36,6 +36,7 @@ wish  # or wish-sh on macOS
 - [Basic Usage Guide](docs/usage-01-basic.md) - Getting started with wish-sh
 - [Knowledge Loader Guide](docs/usage-02-knowledge-loader.md) - Enhancing wish-sh with domain knowledge
 - [Command and Control (C2) Guide](docs/usage-03-C2.md) - Advanced operations for target systems
+- [LangSmith Integration Guide](docs/usage-04-langsmith.md) - Monitoring, debugging, and optimizing with LangSmith
 - [Design Documentation](docs/design.md) - Technical architecture and design
 
 ## Development

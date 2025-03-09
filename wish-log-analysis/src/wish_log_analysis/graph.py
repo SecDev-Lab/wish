@@ -1,6 +1,7 @@
 """Main graph definition for the log analysis system."""
 
 from langgraph.graph import END, START, StateGraph
+from wish_models import settings
 
 from .models import GraphState
 from .nodes import command_state_classifier, log_summarization, result_combiner
@@ -15,6 +16,14 @@ def create_log_analysis_graph(compile: bool = True) -> StateGraph:
     Returns:
         Compiled or pre-compiled graph object
     """
+    # Set project name
+    settings.LANGCHAIN_PROJECT = "wish-log-analysis"
+
+    # Log LangSmith configuration if tracing is enabled
+    if settings.LANGCHAIN_TRACING_V2:
+        import logging
+        logging.info(f"LangSmith tracing enabled for project: {settings.LANGCHAIN_PROJECT}")
+
     # Create the graph
     graph = StateGraph(GraphState)
 

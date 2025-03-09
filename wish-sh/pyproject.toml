@@ -36,6 +36,8 @@ dependencies = [
     "wish-command-execution>=0.0.1",
     "wish-command-generation>=0.0.1",
     "wish-log-analysis>=0.0.1",
+    "pydantic>=2.10.6",
+    "pydantic-settings>=2.0.0",
 ]
 
 [tool.uv.sources]
