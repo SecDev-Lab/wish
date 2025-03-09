@@ -8,7 +8,6 @@ from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 
-from wish_models.settings import settings
 from wish_knowledge_loader.utils.logging_utils import setup_logger
 
 

@@ -7,7 +7,6 @@ from langchain.schema import Document
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
 
-from wish_models.settings import settings
 from wish_knowledge_loader.utils.logging_utils import setup_logger
 
 

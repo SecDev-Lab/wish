@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from langchain.schema import Document
+from wish_models.settings import Settings
 
 from wish_knowledge_loader.nodes.vector_store import VectorStore
-from wish_models.settings import Settings
 
 
 class TestVectorStore:
@@ -31,7 +31,7 @@ class TestVectorStore:
         mock_settings.OPENAI_API_KEY = settings.OPENAI_API_KEY
         mock_settings.OPENAI_MODEL = settings.OPENAI_MODEL
         mock_settings.db_dir = settings.db_dir
-        
+
         # Create VectorStore instance
         vector_store = VectorStore(settings)
 

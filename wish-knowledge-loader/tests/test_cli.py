@@ -12,7 +12,6 @@ from wish_knowledge_loader.cli import main
 from wish_knowledge_loader.nodes.document_loader import DocumentLoader
 from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
 from wish_knowledge_loader.nodes.vector_store import VectorStore
-from wish_models.settings import Settings
 
 
 class TestCli:
@@ -100,11 +99,11 @@ class TestCli:
         mock_settings.knowledge_dir = Path("/tmp/.wish/knowledge")
         mock_settings.repo_dir = Path("/tmp/.wish/knowledge/repo")
         mock_settings.db_dir = Path("/tmp/.wish/knowledge/db")
-        
+
         # Create a mock that raises an exception when accessed
         def raise_exception(*args, **kwargs):
             raise Exception("Test error")
-            
+
         # Make the logger raise an exception
         mock_setup_logger.side_effect = raise_exception
 

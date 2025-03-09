@@ -4,11 +4,11 @@ import os
 from pathlib import Path
 
 import pytest
+from wish_models.settings import Settings
 
 from wish_knowledge_loader.nodes.document_loader import DocumentLoader
 from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
 from wish_knowledge_loader.nodes.vector_store import VectorStore
-from wish_models.settings import Settings
 
 
 class TestDebug:

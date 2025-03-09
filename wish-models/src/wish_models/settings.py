@@ -21,10 +21,10 @@ class Settings(BaseSettings):
     # OpenAI API settings
     OPENAI_API_KEY: str = Field(...)
     OPENAI_MODEL: str = Field("gpt-4o")
-    
+
     # Embedding model settings
     OPENAI_EMBEDDING_MODEL: str = Field("text-embedding-3-small")
-    
+
     # RAG settings (for wish-command-generation)
     EMBEDDING_MODEL: str = Field("text-embedding-3-small")
 

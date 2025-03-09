@@ -3,9 +3,9 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from wish_models.settings import Settings
 
 from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
-from wish_models.settings import Settings
 
 
 class TestRepoCloner:
@@ -24,7 +24,7 @@ class TestRepoCloner:
         """Test cloning a new repository."""
         # Set up mock settings
         mock_settings.repo_dir = settings.repo_dir
-        
+
         # Create RepoCloner instance
         repo_cloner = RepoCloner(settings)
 
@@ -51,7 +51,7 @@ class TestRepoCloner:
         """Test cloning an existing repository."""
         # Set up mock settings
         mock_settings.repo_dir = settings.repo_dir
-        
+
         # Create RepoCloner instance
         repo_cloner = RepoCloner(settings)
 
@@ -81,7 +81,7 @@ class TestRepoCloner:
         """Test cloning with an invalid URL."""
         # Set up mock settings
         mock_settings.repo_dir = settings.repo_dir
-        
+
         # Create RepoCloner instance
         repo_cloner = RepoCloner(settings)
 

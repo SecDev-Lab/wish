@@ -2,7 +2,6 @@
 
 import logging
 import shutil
-from pathlib import Path
 
 import click
 from langchain_community.vectorstores import Chroma
@@ -117,14 +116,14 @@ def list_knowledge(verbose: bool = False, debug: bool = False) -> int:
         # Set up logging
         log_level = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
         logger = setup_logger("wish-knowledge-loader", level=log_level)
-        
+
         # Load metadata container
         container = KnowledgeMetadataContainer.load(settings.meta_path)
-        
+
         if not container.m:
             click.echo("No knowledge bases found.")
             return 0
-            
+
         # Display information for each knowledge base
         click.echo(f"Found {len(container.m)} knowledge bases:")
         for title, metadata in container.m.items():
@@ -133,7 +132,7 @@ def list_knowledge(verbose: bool = False, debug: bool = False) -> int:
             click.echo(f"  Pattern: {metadata.glob_pattern}")
             click.echo(f"  Created: {metadata.created_at}")
             click.echo(f"  Updated: {metadata.updated_at}")
-            
+
         return 0
     except Exception as e:
         logger = logging.getLogger("wish-knowledge-loader")
@@ -153,42 +152,42 @@ def delete_knowledge(title: str, force: bool = False, verbose: bool = False, deb
         # Set up logging
         log_level = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
         logger = setup_logger("wish-knowledge-loader", level=log_level)
-        
+
         # Load metadata container
         container = KnowledgeMetadataContainer.load(settings.meta_path)
-        
+
         # Check if the specified knowledge base exists
         metadata = container.get(title)
         if not metadata:
             click.echo(f"Knowledge base '{title}' not found.", err=True)
             return 1
-            
+
         # Check for dependencies - find other knowledge bases using the same repository
         dependent_knowledge = []
         for other_title, other_metadata in container.m.items():
             if other_title != title and other_metadata.repo_url == metadata.repo_url:
                 dependent_knowledge.append(other_title)
-                
+
         # Confirmation prompt
         if not force:
             message = f"Are you sure you want to delete knowledge base '{title}'?"
-            
+
             if not click.confirm(message):
                 click.echo("Operation cancelled.")
                 return 0
-        
+
         # Delete vector database directory
         db_path = settings.db_dir / title
         if db_path.exists():
             # Use Chroma API for proper deletion
             logger.info(f"Deleting vector database at {db_path}")
-            
+
             embeddings = OpenAIEmbeddings(
                 api_key=settings.OPENAI_API_KEY,
                 model=settings.OPENAI_EMBEDDING_MODEL,
                 disallowed_special=()
             )
-            
+
             # Delete using Chroma API
             try:
                 vectorstore = Chroma(
@@ -199,11 +198,11 @@ def delete_knowledge(title: str, force: bool = False, verbose: bool = False, deb
                 logger.info("Vector database deleted via Chroma API")
             except Exception as e:
                 logger.warning(f"Failed to delete via Chroma API: {e}")
-                
+
             # Remove directory
             shutil.rmtree(db_path, ignore_errors=True)
             logger.info("Vector database directory removed")
-        
+
         # Delete repository directory only if this is the last knowledge base using it
         if not dependent_knowledge:
             repo_path = metadata.repo_path
@@ -213,15 +212,15 @@ def delete_knowledge(title: str, force: bool = False, verbose: bool = False, deb
                 logger.info("Repository directory removed")
         else:
             logger.info(f"Keeping repository as it's used by {len(dependent_knowledge)} other knowledge base(s)")
-        
+
         # Remove from metadata
         logger.info(f"Removing metadata for '{title}'")
         del container.m[title]
-        
+
         # Save metadata
         logger.info(f"Saving updated metadata to {settings.meta_path}")
         container.save(settings.meta_path)
-        
+
         click.echo(f"Successfully deleted knowledge base: {title}")
         return 0
     except Exception as e:
