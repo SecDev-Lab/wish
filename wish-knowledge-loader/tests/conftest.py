@@ -1,8 +1,8 @@
 """Test configuration for wish-knowledge-loader."""
 
 import os
+
 import pytest
-from pathlib import Path
 
 # Set environment variables for testing
 os.environ["OPENAI_API_KEY"] = "sk-test-key"
@@ -23,8 +23,8 @@ def setup_test_env(monkeypatch, tmp_path):
     repo_dir.mkdir(exist_ok=True)
     db_dir = knowledge_dir / "db"
     db_dir.mkdir(exist_ok=True)
-    
+
     # Set WISH_HOME to point to the temporary directory
     monkeypatch.setenv("WISH_HOME", str(tmp_path))
-    
+
     yield
