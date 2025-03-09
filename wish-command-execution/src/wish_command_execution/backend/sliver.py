@@ -1,8 +1,7 @@
 """Sliver C2 backend for command execution."""
 
 import asyncio
-import concurrent.futures
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from sliver import SliverClient, SliverClientConfig
 from wish_models import CommandResult, CommandState, Wish
@@ -27,8 +26,6 @@ class SliverBackend(Backend):
         self.client_config_path = client_config_path
         self.client = None  # SliverClient instance
         self.interactive_session = None  # Interactive session
-        # Track running commands (thread, result, wish)
-        self.running_commands: Dict[int, Tuple[Any, CommandResult, Wish]] = {}
 
     async def _connect(self):
         """Connect to the Sliver server.
@@ -106,55 +103,6 @@ class SliverBackend(Backend):
                 stderr_file.write(error_msg)
             self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
-    # Keep the old method for backward compatibility, but mark it as deprecated
-    async def _execute_command_wrapper(self, command, stdout_path, stderr_path, result, wish, cmd_num):
-        """Wrapper to execute a command and handle its lifecycle.
-        
-        This method is deprecated and will be removed in a future version.
-        Use execute_command instead.
-
-        Args:
-            command: The command to execute.
-            stdout_path: Path to the file to write stdout to.
-            stderr_path: Path to the file to write stderr to.
-            result: The CommandResult object.
-            wish: The Wish object.
-            cmd_num: The command number.
-        """
-        try:
-            # Connect to Sliver server
-            await self._connect()
-
-            # Execute the command
-            cmd_result = await self.interactive_session.execute(command, [])
-
-            # Write results to log files
-            with open(stdout_path, "w") as stdout_file, open(stderr_path, "w") as stderr_file:
-                if cmd_result.Stdout:
-                    stdout_content = cmd_result.Stdout.decode('utf-8', errors='replace')
-                    stdout_file.write(stdout_content)
-
-                if cmd_result.Stderr:
-                    stderr_content = cmd_result.Stderr.decode('utf-8', errors='replace')
-                    stderr_file.write(stderr_content)
-
-            # Update command result
-            exit_code = cmd_result.Status if cmd_result.Status is not None else 0
-            result.finish(exit_code=exit_code)
-
-            # Update the command result in the wish object
-            for i, cmd_result in enumerate(wish.command_results):
-                if cmd_result.num == result.num:
-                    wish.command_results[i] = result
-                    break
-
-        except Exception as e:
-            # Handle errors
-            with open(stderr_path, "w") as stderr_file:
-                error_msg = f"Sliver execution error: {str(e)}"
-                stderr_file.write(error_msg)
-            self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
-
     def _handle_command_failure(
         self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState
     ):
@@ -175,52 +123,6 @@ class SliverBackend(Backend):
             if cmd_result.num == result.num:
                 wish.command_results[i] = result
                 break
-
-    # This method is no longer needed with the new async design
-    # but kept for backward compatibility with existing code
-    def _handle_command_completion(self, future: concurrent.futures.Future, result: CommandResult, wish: Wish) -> None:
-        """Handle command completion from a Future.
-        
-        This method is deprecated and will be removed in a future version.
-
-        Args:
-            future: The completed Future object.
-            result: The CommandResult object.
-            wish: The Wish object.
-        """
-        try:
-            # Get the result (will raise exception if the coroutine raised an exception)
-            future.result()
-
-            # If we get here, the future completed successfully
-            # The result should already be updated by _execute_command_wrapper
-            # But check if it's still in DOING state (which would be unexpected)
-            if result.state == CommandState.DOING:
-                result.finish(
-                    exit_code=0,  # Assume success if not otherwise set
-                    state=CommandState.SUCCESS
-                )
-
-                # Update the command result in the wish object
-                for i, cmd_result in enumerate(wish.command_results):
-                    if cmd_result.num == result.num:
-                        wish.command_results[i] = result
-                        break
-        except Exception:
-            # Handle any exceptions that occurred in the coroutine
-            # This should be rare since _execute_command_wrapper should catch most exceptions
-            if result.state == CommandState.DOING:
-                # Only update if still in DOING state
-                result.finish(
-                    exit_code=1,
-                    state=CommandState.OTHERS
-                )
-
-                # Update the command result in the wish object
-                for i, cmd_result in enumerate(wish.command_results):
-                    if cmd_result.num == result.num:
-                        wish.command_results[i] = result
-                        break
 
     async def check_running_commands(self):
         """Check status of running commands and update their status."""
