@@ -69,6 +69,8 @@ WISH_HOME=~/.wish
 # OpenAI API settings
 OPENAI_API_KEY=your-api-key-here
 OPENAI_MODEL=gpt-4o
+# Required for wish-knowledge-loader
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 
 # LangSmith settings (optional)
 LANGCHAIN_TRACING_V2=true
@@ -117,6 +119,15 @@ pip install wish-knowledge-loader
 
 wish-knowledge-loader uses the same environment variables as wish-sh (`OPENAI_API_KEY` is required, while `OPENAI_MODEL` and `WISH_HOME` are optional).
 
+Additionally, when using wish-knowledge-loader, you need to set the following environment variable:
+
+```bash
+# Required for wish-knowledge-loader: Set the OpenAI embedding model
+export OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+```
+
+This variable is specifically required for the knowledge loader functionality, as it needs to generate embeddings for the documents.
+
 ### Verifying Installation
 
 After installation, you can verify that wish-knowledge-loader is working correctly by running:
@@ -164,6 +175,14 @@ Options:
    ```
    
    Solution: Ensure that Python 3.13 or higher is installed.
+
+4. **Embedding Model Error**
+   
+   ```
+   Error: You are not allowed to generate embeddings from this model
+   ```
+   
+   Solution: Ensure that the `OPENAI_EMBEDDING_MODEL` environment variable is set to a valid OpenAI embedding model (e.g., text-embedding-3-small) when using wish-knowledge-loader.
 
 ## Next Steps
 
