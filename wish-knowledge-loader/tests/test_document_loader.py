@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from langchain.schema import Document
+from wish_models.settings import Settings
 
 from wish_knowledge_loader.nodes.document_loader import DocumentLoader
-from wish_knowledge_loader.settings import Settings
 
 
 class TestDocumentLoader:

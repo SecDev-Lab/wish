@@ -1,32 +1,32 @@
 """Vector store functionality."""
 
 import logging
+from typing import Any
 
 from langchain.schema import Document
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
 
-from wish_knowledge_loader.settings import Settings
 from wish_knowledge_loader.utils.logging_utils import setup_logger
 
 
 class VectorStore:
     """Class for managing vector stores."""
 
-    def __init__(self, settings: Settings, logger: logging.Logger = None):
+    def __init__(self, settings_obj: Any, logger: logging.Logger = None):
         """Initialize the VectorStore.
 
         Args:
             settings: Application settings
             logger: Logger instance
         """
-        self.settings = settings
+        self.settings = settings_obj
         self.logger = logger or setup_logger("wish-knowledge-loader.vector_store")
 
-        self.logger.debug(f"Initializing OpenAI embeddings with model: {settings.OPENAI_MODEL}")
+        self.logger.debug(f"Initializing OpenAI embeddings with model: {settings_obj.OPENAI_MODEL}")
         self.embeddings = OpenAIEmbeddings(
-            api_key=settings.OPENAI_API_KEY,
-            model=settings.OPENAI_MODEL,
+            api_key=settings_obj.OPENAI_API_KEY,
+            model=settings_obj.OPENAI_MODEL,
             disallowed_special=()  # Disable special token checking
         )
         self.logger.debug("OpenAI embeddings initialized")

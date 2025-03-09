@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from langchain.schema import Document
+from wish_models.settings import Settings
 
 from wish_knowledge_loader.nodes.vector_store import VectorStore
-from wish_knowledge_loader.settings import Settings
 
 
 class TestVectorStore:
@@ -24,8 +24,14 @@ class TestVectorStore:
 
     @patch("wish_knowledge_loader.nodes.vector_store.OpenAIEmbeddings")
     @patch("wish_knowledge_loader.nodes.vector_store.Chroma")
-    def test_store(self, mock_chroma, mock_embeddings, settings):
+    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    def test_store(self, mock_settings, mock_chroma, mock_embeddings, settings):
         """Test storing documents in a vector store."""
+        # Set up mock settings
+        mock_settings.OPENAI_API_KEY = settings.OPENAI_API_KEY
+        mock_settings.OPENAI_MODEL = settings.OPENAI_MODEL
+        mock_settings.db_dir = settings.db_dir
+
         # Create VectorStore instance
         vector_store = VectorStore(settings)
 

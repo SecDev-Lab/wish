@@ -3,9 +3,9 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from wish_models.settings import Settings
 
 from wish_knowledge_loader.nodes.repo_cloner import RepoCloner
-from wish_knowledge_loader.settings import Settings
 
 
 class TestRepoCloner:
@@ -19,8 +19,12 @@ class TestRepoCloner:
         return settings
 
     @patch("subprocess.run")
-    def test_clone_new_repo(self, mock_run, settings):
+    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    def test_clone_new_repo(self, mock_settings, mock_run, settings):
         """Test cloning a new repository."""
+        # Set up mock settings
+        mock_settings.repo_dir = settings.repo_dir
+
         # Create RepoCloner instance
         repo_cloner = RepoCloner(settings)
 
@@ -42,8 +46,12 @@ class TestRepoCloner:
         )
 
     @patch("subprocess.run")
-    def test_clone_existing_repo(self, mock_run, settings):
+    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    def test_clone_existing_repo(self, mock_settings, mock_run, settings):
         """Test cloning an existing repository."""
+        # Set up mock settings
+        mock_settings.repo_dir = settings.repo_dir
+
         # Create RepoCloner instance
         repo_cloner = RepoCloner(settings)
 
@@ -68,8 +76,12 @@ class TestRepoCloner:
             check=True
         )
 
-    def test_clone_invalid_url(self, settings):
+    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    def test_clone_invalid_url(self, mock_settings, settings):
         """Test cloning with an invalid URL."""
+        # Set up mock settings
+        mock_settings.repo_dir = settings.repo_dir
+
         # Create RepoCloner instance
         repo_cloner = RepoCloner(settings)
 

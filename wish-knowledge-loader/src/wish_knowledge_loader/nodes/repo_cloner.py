@@ -3,23 +3,23 @@
 import logging
 import subprocess
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
-from wish_knowledge_loader.settings import Settings
 from wish_knowledge_loader.utils.logging_utils import setup_logger
 
 
 class RepoCloner:
     """Class for cloning GitHub repositories."""
 
-    def __init__(self, settings: Settings, logger: logging.Logger = None):
+    def __init__(self, settings_obj: Any, logger: logging.Logger = None):
         """Initialize the RepoCloner.
 
         Args:
             settings: Application settings
             logger: Logger instance
         """
-        self.settings = settings
+        self.settings = settings_obj
         self.logger = logger or setup_logger("wish-knowledge-loader.repo_cloner")
 
     def clone(self, repo_url: str) -> Path:

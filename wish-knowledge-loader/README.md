@@ -1,10 +1,16 @@
 # wish-knowledge-loader
 
-A CLI tool for loading knowledge bases into wish.
+A CLI tool for managing knowledge bases in wish.
 
 ## Overview
 
-`wish-knowledge-loader` is a command-line tool that clones GitHub repositories, extracts content from specified files, and stores them in a vector database for use with wish.
+`wish-knowledge-loader` is a command-line tool that allows you to:
+
+- Load knowledge from GitHub repositories into wish
+- List existing knowledge bases
+- Delete knowledge bases when no longer needed
+
+For detailed usage instructions, see the [Knowledge Loader Usage Guide](../docs/usage-02-knowledge-loader.md).
 
 ## Installation
 
@@ -17,25 +23,25 @@ cp .env.example .env
 vim .env  # Set the OpenAI API key
 ```
 
-## Usage
+## Quick Reference
 
 ```bash
-# Basic usage
-wish-knowledge-loader --repo-url https://github.com/username/repo --glob "**/*.md" --title "Knowledge Base Title"
+# Load a knowledge base
+wish-knowledge-loader load --repo-url https://github.com/username/repo --glob "**/*.md" --title "Knowledge Base Title"
+
+# List all knowledge bases
+wish-knowledge-loader list
+
+# Delete a knowledge base
+wish-knowledge-loader delete --title "Knowledge Base Title"
 ```
-
-### Options
-
-- `--repo-url`: GitHub repository URL to clone
-- `--glob`: Glob pattern for files to include (e.g., "**/*.md" for all Markdown files)
-- `--title`: Title for the knowledge base
 
 ## Environment Variables
 
 The following environment variables can be set in a `.env` file:
 
 - `OPENAI_API_KEY`: Your OpenAI API key (required)
-- `OPENAI_MODEL`: OpenAI embedding model to use (default: "text-embedding-3-small")
+- `OPENAI_EMBEDDING_MODEL`: OpenAI embedding model to use (default: "text-embedding-3-small")
 - `WISH_HOME`: Path to the wish home directory (default: "~/.wish")
 
 ## Development
