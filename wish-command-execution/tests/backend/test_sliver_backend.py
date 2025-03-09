@@ -1,6 +1,7 @@
 """Tests for the Sliver backend."""
 
 import os
+import sys
 import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -130,3 +131,33 @@ async def test_check_running_commands(sliver_backend):
     await sliver_backend.check_running_commands()
     # Just verify it doesn't raise an exception
     assert True
+
+
+@pytest.mark.asyncio
+async def test_connect_with_dead_session(mock_config_file):
+    """Test _connect when the session is dead."""
+    # Create a SliverBackend instance
+    backend = SliverBackend("test-session-id", mock_config_file)
+    
+    # Mock SliverClientConfig.parse_config_file to return a mock config
+    mock_config = MagicMock()
+    
+    # Mock SliverClient to return a mock client
+    mock_client = MagicMock()
+    mock_client.connect = AsyncMock()
+    
+    # Mock interactive_session with is_dead=True
+    mock_session = MagicMock()
+    mock_session.is_dead = True
+    mock_client.interact_session = AsyncMock(return_value=mock_session)
+    
+    # Apply all the mocks
+    with patch("wish_command_execution.backend.sliver.SliverClientConfig.parse_config_file", return_value=mock_config), \
+         patch("wish_command_execution.backend.sliver.SliverClient", return_value=mock_client), \
+         patch("wish_command_execution.backend.sliver.sys.exit") as mock_exit:
+        
+        # Call _connect, which should detect the dead session and call sys.exit
+        await backend._connect()
+        
+        # Verify that sys.exit was called with exit code 1
+        mock_exit.assert_called_once_with(1)

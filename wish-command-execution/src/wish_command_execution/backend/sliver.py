@@ -1,6 +1,7 @@
 """Sliver C2 backend for command execution."""
 
 import asyncio
+import sys
 from typing import Any
 
 from sliver import SliverClient, SliverClientConfig
@@ -46,6 +47,12 @@ class SliverBackend(Backend):
 
         # Connect to the specified session
         self.interactive_session = await self.client.interact_session(self.session_id)
+        
+        # Check if the session is dead
+        if self.interactive_session.is_dead:
+            error_msg = "Error: Sliver session is in an invalid state. Cannot connect."
+            print(error_msg, file=sys.stderr)
+            sys.exit(1)
 
     async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
         """Execute a command through Sliver C2.
