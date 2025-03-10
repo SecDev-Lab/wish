@@ -46,5 +46,5 @@ class CommandGenerator:
 
             # Re-raise as CommandGenerationError if it's not already
             if not isinstance(e, CommandGenerationError):
-                raise CommandGenerationError(f"Command generation failed: {str(e)}")
+                raise CommandGenerationError(f"Command generation failed: {str(e)}") from e
             raise

@@ -6,7 +6,6 @@ class CommandGenerationError(Exception):
 
     def __init__(self, message: str, api_response: str = None):
         """Initialize the exception.
-        
         Args:
             message: Error message
             api_response: The raw API response that caused the error (if available)

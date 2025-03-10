@@ -139,7 +139,7 @@ class WishManager:
                 raise
 
             # Wrap other exceptions in CommandGenerationError
-            raise CommandGenerationError(error_message)
+            raise CommandGenerationError(error_message) from e
 
     # Delegation to CommandExecutor
     async def execute_command(self, wish: Wish, command: str, cmd_num: int):
