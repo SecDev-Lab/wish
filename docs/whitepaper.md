@@ -400,6 +400,6 @@ Current capabilities include:
 
 ## 6. References
 
-[1] NAKATANI, Sho. RapidPen: Fully Automated IP-to-Shell Penetration Testing with LLM-based Agents. arXiv preprint arXiv:2502.16730, 2025.
-[2] shell_gpt: https://github.com/TheR1D/shell_gpt
-[3] Nebula: https://github.com/berylliumsec/nebula
+- [1] NAKATANI, Sho. RapidPen: Fully Automated IP-to-Shell Penetration Testing with LLM-based Agents. arXiv preprint arXiv:2502.16730, 2025.
+- [2] shell_gpt: https://github.com/TheR1D/shell_gpt
+- [3] Nebula: https://github.com/berylliumsec/nebula
