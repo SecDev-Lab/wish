@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.4.2] - 2025-03-10
+
+### Added
+
 - Added error modal for command generation failures:
   - Improved error handling to display errors in a modal dialog instead of command suggestion screen
   - Enhanced user experience by keeping users in the wish input screen when errors occur
