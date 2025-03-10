@@ -10,7 +10,7 @@
 
 wish-sh is an LLM-assisted shell that helps users execute commands by translating natural language "wishes" into executable shell commands. It provides a user-friendly TUI (Text-based User Interface) for reviewing suggested commands, executing them, and monitoring their execution status. For a comprehensive technical overview, see our [whitepaper](docs/whitepaper.md).
 
-![Screenshot of wish-sh](docs/images/screenshot.png)
+[![Getting Started with WISH: Basic Usage Guide](docs/img/MvThumb-basic-usage.png)](https://youtube.com/watch?v=gasylKGeT2E)
 
 ## Features
 
