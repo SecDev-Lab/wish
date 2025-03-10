@@ -72,7 +72,20 @@ class SliverBackend(Backend):
             # Execute the command directly
             try:
                 # Execute the command
-                cmd_result = await self.interactive_session.execute(command, [])
+                # Windowsシステムの場合、コマンドをcmd.exe経由で実行する
+                os_type = self.interactive_session.os.lower()
+                if "windows" in os_type:
+                    # Windowsの場合、cmd.exeを使用して引数を正しく分割
+                    # コマンドを分割
+                    cmd_args = ["/C"] + command.split()
+                    cmd_result = await self.interactive_session.execute("cmd.exe", cmd_args)
+                else:
+                    # Linux/macOSの場合は分割して実行
+                    # 単純な分割（より複雑なケースでは改善が必要かもしれません）
+                    cmd_parts = command.split()
+                    cmd_name = cmd_parts[0]
+                    cmd_args = cmd_parts[1:] if len(cmd_parts) > 1 else []
+                    cmd_result = await self.interactive_session.execute(cmd_name, cmd_args)
 
                 # Write results to log files
                 with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
