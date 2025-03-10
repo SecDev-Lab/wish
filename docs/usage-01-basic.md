@@ -2,6 +2,8 @@
 
 This guide covers the basic usage of `wish-sh`, an LLM-assisted shell that helps users execute commands by translating natural language "wishes" into executable shell commands.
 
+[![Getting Started with WISH: Basic Usage Guide](img/MvThumb-basic-usage.png)](https://youtube.com/watch?v=gasylKGeT2E)
+
 ## Starting wish-sh
 
 After [setting up wish-sh](setup.md), you can start it by running:
