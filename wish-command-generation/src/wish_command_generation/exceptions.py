@@ -14,7 +14,7 @@ class CommandGenerationError(Exception):
         super().__init__(message)
         self.message = message
         self.api_response = api_response
-        
+
     def __str__(self) -> str:
         """Return string representation of the error."""
         return self.message

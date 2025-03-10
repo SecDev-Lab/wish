@@ -137,7 +137,7 @@ class WishManager:
             # Just re-raise CommandGenerationError as is
             if isinstance(e, CommandGenerationError):
                 raise
-            
+
             # Wrap other exceptions in CommandGenerationError
             raise CommandGenerationError(error_message)
 

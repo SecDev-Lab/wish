@@ -37,13 +37,13 @@ class CommandGenerator:
 
         try:
             result = graph.invoke(state_input)
-            
+
             # Return the generated commands
             return result["command_inputs"]
         except Exception as e:
             # Log the error
             logging.error(f"Error in command generation graph: {str(e)}")
-            
+
             # Re-raise as CommandGenerationError if it's not already
             if not isinstance(e, CommandGenerationError):
                 raise CommandGenerationError(f"Command generation failed: {str(e)}")

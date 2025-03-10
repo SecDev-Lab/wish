@@ -6,11 +6,11 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
 from textual.screen import ModalScreen, Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
+from wish_command_generation.exceptions import CommandGenerationError
 from wish_models import Settings, Wish, WishState
 from wish_models.command_result.command_state import CommandState
 from wish_models.system_info import SystemInfo
 
-from wish_command_generation.exceptions import CommandGenerationError
 from wish_sh.system_info_display import display_system_info
 from wish_sh.tui.widgets import UIUpdater
 from wish_sh.wish_manager import WishManager
