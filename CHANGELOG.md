@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added error modal for command generation failures:
+  - Improved error handling to display errors in a modal dialog instead of command suggestion screen
+  - Enhanced user experience by keeping users in the wish input screen when errors occur
+  - Added detailed error information display including the command generation response
+
 ### Changed
 
 ### Fixed
@@ -29,6 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added OPENAI_EMBEDDING_MODEL configuration to .env.example
   - Updated docs/setup.md with instructions for setting up OPENAI_EMBEDDING_MODEL
   - Fixed "You are not allowed to generate embeddings from this model" error
+- Fixed JSON parsing in command generation:
+  - Added explicit instruction to avoid code block markers like ```json in the prompt
+  - Improved prompt to clarify that output is parsed directly as JSON
+  - Enhanced error handling for invalid JSON responses
 
 ### Removed
 

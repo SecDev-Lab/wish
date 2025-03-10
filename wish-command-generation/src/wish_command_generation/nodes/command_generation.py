@@ -8,6 +8,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from wish_models.command_result import CommandInput
 
+from ..exceptions import CommandGenerationError
 from ..models import GraphState
 
 # Define the prompt template
@@ -16,6 +17,7 @@ COMMAND_GENERATION_PROMPT = """
 
 ペネトレーションテストのディレクターから実行すべきタスクについての指示と、今回のタスクに役立つ可能性が高い参考ドキュメントを受け取ります。
 タスクを実現するためのコマンド列を考え、JSON Objectで書いてください。
+あなたの出力はそのままパースされるので、 "```json" など余計な文字列は出力しないでください。
 
 各コマンドは `bash -c "（あなたの出力）"` として実行されるため、複数のコマンドをパイプなどでつなげることもできます。
 各コマンドは並列実行されます。「`./a` の後に `./b` を実行する必要がある」ようなデータ依存がある場合は、
@@ -148,6 +150,8 @@ def generate_commands(state: GraphState) -> GraphState:
     chain = prompt | model | StrOutputParser()
 
     # Generate the commands
+    state_dict = state.model_dump()
+
     try:
         response = chain.invoke({
             "task": task,
@@ -174,38 +178,46 @@ def generate_commands(state: GraphState) -> GraphState:
             )
 
         # Update the state
-        state_dict = state.model_dump()
         state_dict["command_inputs"] = command_inputs
         state_dict["error"] = None  # No error
 
     except json.JSONDecodeError as e:
         # JSON parse error
-        error_message = f"Error generating commands: Failed to parse OpenAI API response as JSON: {str(e)}"
-        logging.error(f"JSON parse error: {str(e)}, Response: {response if 'response' in locals() else 'No response'}")
+        error_message = f"Command generation failed: Invalid JSON format: {str(e)}"
+        api_response = response if 'response' in locals() else 'No response'
+        logging.error(f"JSON parse error: {str(e)}, Response: {api_response}")
 
-        # Set error in state with a fallback command that includes the error message
-        state_dict = state.model_dump()
+        # Set error in state
         state_dict["command_inputs"] = [
             CommandInput(
-                command=f"echo '{error_message}'",
+                command=f"Error generating commands: Failed to parse JSON: {str(e)}",
                 timeout_sec=None,
             )
         ]
         state_dict["error"] = error_message
+
+        # Raise custom exception with structured data
+        raise CommandGenerationError(f"{error_message}. Response: {api_response}", api_response) from e
 
     except Exception as e:
         # Other errors
-        error_message = f"Error generating commands: {str(e)}"
+        error_message = f"Command generation failed: {str(e)}"
+        api_response = response if 'response' in locals() else None
         logging.error(f"Error generating commands: {str(e)}")
 
-        # Set error in state with a fallback command that includes the error message
-        state_dict = state.model_dump()
+        # Set error in state
         state_dict["command_inputs"] = [
             CommandInput(
-                command=f"echo 'Error: {error_message}'",
+                command=f"Error generating commands: {str(e)}",
                 timeout_sec=None,
             )
         ]
         state_dict["error"] = error_message
+
+        # Raise custom exception with structured data
+        if api_response:
+            raise CommandGenerationError(error_message, api_response) from e
+        else:
+            raise CommandGenerationError(error_message) from e
 
     return GraphState(**state_dict)

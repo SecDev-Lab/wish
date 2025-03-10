@@ -1,11 +1,13 @@
 """Command generator for wish-command-generation."""
 
+import logging
 from typing import List
 
 from wish_models import Wish
 from wish_models.command_result import CommandInput
 from wish_models.system_info import SystemInfo
 
+from .exceptions import CommandGenerationError
 from .graph import create_command_generation_graph
 
 
@@ -21,6 +23,9 @@ class CommandGenerator:
 
         Returns:
             A list of CommandInput objects.
+
+        Raises:
+            Exception: If there is an error generating commands.
         """
         # Create the command generation graph
         graph = create_command_generation_graph()
@@ -30,7 +35,16 @@ class CommandGenerator:
         if system_info:
             state_input["system_info"] = system_info
 
-        result = graph.invoke(state_input)
+        try:
+            result = graph.invoke(state_input)
 
-        # Return the generated commands
-        return result["command_inputs"]
+            # Return the generated commands
+            return result["command_inputs"]
+        except Exception as e:
+            # Log the error
+            logging.error(f"Error in command generation graph: {str(e)}")
+
+            # Re-raise as CommandGenerationError if it's not already
+            if not isinstance(e, CommandGenerationError):
+                raise CommandGenerationError(f"Command generation failed: {str(e)}") from e
+            raise

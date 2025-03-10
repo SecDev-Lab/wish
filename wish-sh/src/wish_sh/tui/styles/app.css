@@ -24,7 +24,8 @@
     width: 100%;
 }
 
-#system-info-button, #executables-button {
+#system-info-button,
+#executables-button {
     margin: 0 1;
     width: 30%;
     background: #555555;
@@ -33,7 +34,8 @@
     border: solid transparent;
 }
 
-#system-info-button:hover, #executables-button:hover {
+#system-info-button:hover,
+#executables-button:hover {
     background: #777777;
     color: white;
     border: solid #999999;
@@ -57,6 +59,27 @@
 #basic-info {
     margin: 1 0;
     height: auto;
+}
+
+#error-info {
+    margin: 1 0;
+    height: auto;
+}
+
+#command-generation-response {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1;
+    margin-top: 1;
+    margin-bottom: 1;
+    max-height: 20;
+    overflow: auto;
+}
+
+#command-generation-response-label {
+    margin-top: 1;
+    text-style: bold;
+    color: yellow;
 }
 
 #executables-info {

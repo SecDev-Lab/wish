@@ -6,6 +6,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
 from textual.screen import ModalScreen, Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static
+from wish_command_generation.exceptions import CommandGenerationError
 from wish_models import Settings, Wish, WishState
 from wish_models.command_result.command_state import CommandState
 from wish_models.system_info import SystemInfo
@@ -13,6 +14,43 @@ from wish_models.system_info import SystemInfo
 from wish_sh.system_info_display import display_system_info
 from wish_sh.tui.widgets import UIUpdater
 from wish_sh.wish_manager import WishManager
+
+
+class ErrorModal(ModalScreen):
+    """Modal screen for displaying error messages."""
+
+    def __init__(self, error_message: str, api_response: str = None):
+        """Initialize the error modal.
+
+        Args:
+            error_message: The error message to display
+            api_response: The API response that caused the error (if available)
+        """
+        super().__init__()
+        self.error_message = error_message
+        self.api_response = api_response
+
+    def compose(self) -> ComposeResult:
+        """Compose the modal screen."""
+        # Create a container for the modal content
+        content = [
+            Label("Error", id="modal-title"),
+            Static(self.error_message, id="error-info", markup=False),
+        ]
+
+        # Add command-generation response if available
+        if self.api_response:
+            content.append(Label("Command Generation Response:", id="command-generation-response-label"))
+            content.append(Static(self.api_response, id="command-generation-response", markup=False))
+
+        content.append(Button("Close", id="close-button", variant="primary"))
+
+        yield Container(*content, id="modal-container")
+
+    @on(Button.Pressed, "#close-button")
+    def on_close_button_pressed(self) -> None:
+        """Handle close button press."""
+        self.app.pop_screen()
 
 
 class SystemInfoModal(ModalScreen):
@@ -47,10 +85,12 @@ class SystemInfoModal(ModalScreen):
         ]
         if info.version:
             lines.append(f"Version: {info.version}")
-        lines.extend([
-            f"Hostname: {info.hostname}",
-            f"Username: {info.username}",
-        ])
+        lines.extend(
+            [
+                f"Hostname: {info.hostname}",
+                f"Username: {info.username}",
+            ]
+        )
         if info.uid:
             lines.append(f"UID: {info.uid}")
         if info.gid:
@@ -91,9 +131,7 @@ class ExecutablesModal(ModalScreen):
     def _format_executables(self) -> str:
         """Format executable information for display."""
         # Format executable information without markup
-        lines = [
-            f"Executables ({len(self.executables.executables)} files)"
-        ]
+        lines = [f"Executables ({len(self.executables.executables)} files)"]
 
         # Group executables by directory
         grouped = self.executables.group_by_directory()
@@ -158,11 +196,16 @@ class WishInput(Screen):
             wish = Wish.create(wish_text)
             wish.state = WishState.DOING
 
-            # Generate commands using WishManager (now async)
-            commands, error = await self.app.wish_manager.generate_commands(wish_text)
+            try:
+                # Generate commands using WishManager (now async)
+                commands, error = await self.app.wish_manager.generate_commands(wish_text)
 
-            # Switch to command suggestion screen
-            self.app.push_screen(CommandSuggestion(wish, commands, error))
+                # Switch to command suggestion screen
+                self.app.push_screen(CommandSuggestion(wish, commands, error))
+
+            except CommandGenerationError as e:
+                # Show error modal for command-generation errors
+                self.app.push_screen(ErrorModal(str(e), e.api_response))
 
 
 class CommandSuggestion(Screen):
@@ -376,9 +419,7 @@ class WishApp(App):
 
     TITLE = "Wish Shell"
     SCREENS = {"wish_input": WishInput}
-    BINDINGS = [
-        ("escape", "quit", "Quit")
-    ]
+    BINDINGS = [("escape", "quit", "Quit")]
 
     def __init__(self, backend_config=None, settings=None):
         """Initialize the Wish TUI application.
@@ -477,11 +518,7 @@ class WishApp(App):
 
             # Set minimal information even in case of error
             self.system_info = SystemInfo(
-                os="Unknown (Error)",
-                arch="Unknown",
-                hostname="Unknown",
-                username="Unknown",
-                version=f"Error: {str(e)}"
+                os="Unknown (Error)", arch="Unknown", hostname="Unknown", username="Unknown", version=f"Error: {str(e)}"
             )
 
     def action_show_system_info(self) -> None:
@@ -536,6 +573,7 @@ class WishApp(App):
 
             # Set empty collection even in case of error
             from wish_models.system_info import ExecutableCollection
+
             self.executables = ExecutableCollection()
 
     def action_show_executables(self) -> None:

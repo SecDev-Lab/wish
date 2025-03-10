@@ -6,6 +6,7 @@ from typing import List, Optional
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashConfig, create_backend
 from wish_command_generation import CommandGenerator
+from wish_command_generation.exceptions import CommandGenerationError
 from wish_log_analysis import LogAnalyzer
 from wish_models import CommandResult, Settings, Wish, WishState
 from wish_models.command_result.command_state import CommandState
@@ -75,7 +76,7 @@ class WishManager:
                 log_summary=f"Error analyzing command: {str(e)}",
                 state=CommandState.API_ERROR,
                 created_at=command_result.created_at,
-                finished_at=command_result.finished_at
+                finished_at=command_result.finished_at,
             )
 
             return error_result
@@ -132,7 +133,13 @@ class WishManager:
             # Handle any errors during command generation
             error_message = f"Error generating commands: {str(e)}"
             logging.error(error_message)
-            return [], error_message
+
+            # Just re-raise CommandGenerationError as is
+            if isinstance(e, CommandGenerationError):
+                raise
+
+            # Wrap other exceptions in CommandGenerationError
+            raise CommandGenerationError(error_message) from e
 
     # Delegation to CommandExecutor
     async def execute_command(self, wish: Wish, command: str, cmd_num: int):
