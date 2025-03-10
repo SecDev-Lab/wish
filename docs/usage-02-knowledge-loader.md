@@ -2,6 +2,8 @@
 
 This guide explains how to use `wish-knowledge-loader` to enhance wish-sh with domain-specific knowledge from GitHub repositories.
 
+[![WISH Walkthrough: Using the Knowledge Loader](img/MvThumb-wish-knowledge-loader.png)](https://youtube.com/watch?v=euB21uE1naI)
+
 ## Overview
 
 The wish-knowledge-loader is a tool that allows you to load, list, and manage knowledge bases from GitHub repositories for use with wish-sh. This knowledge is then used to improve command suggestions through Retrieval-Augmented Generation (RAG).

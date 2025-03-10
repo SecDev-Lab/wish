@@ -2,6 +2,8 @@
 
 This guide explains how to use wish-sh with Command and Control (C2) frameworks, specifically Sliver C2.
 
+[![WISH Walkthrough: Remote Control with C2 Integration](img/MvThumv-Sliver-C2.png)](https://youtube.com/watch?v=rFtaUYvvN80)
+
 ## Sliver C2 Integration
 
 wish-sh can connect to a Sliver C2 server to execute commands on compromised systems. This allows you to use the natural language capabilities of wish-sh to control remote systems through Sliver C2.
