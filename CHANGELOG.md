@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Fixed
+
+### Removed
+
+
+## [0.4.4] - 2025-03-10
+
+### Added
+
+### Changed
+
 - Prefer parallel commands
 
 ### Fixed
