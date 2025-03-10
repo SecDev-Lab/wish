@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Optional
 
 from textual import on
@@ -318,64 +319,90 @@ class CommandExecutionScreen(Screen):
 
     async def start_execution(self) -> None:
         """Start command execution and monitoring."""
+        logger = logging.getLogger(__name__)
+        logger.debug(f"CommandExecutionScreen.start_execution: Starting execution of commands: {self.commands}")
+        
         # Execute commands
         await self.executor.execute_commands(self.wish, self.commands)
+        logger.debug("Commands execution initiated")
 
         # Monitor command status
+        logger.debug("Starting command monitoring")
         await self.monitor_commands()
 
     async def monitor_commands(self) -> None:
         """Asynchronously monitor command execution status."""
+        logger = logging.getLogger(__name__)
+        
         while not self.all_completed:
             # Check status of running commands
+            logger.debug("Checking status of running commands")
             await self.tracker.check_status(self.wish)
+            logger.debug(f"Command status checked, wish state: {self.wish.state}")
 
             # Analyze logs for completed commands that don't have log_summary yet
             for cmd_result in self.wish.command_results:
                 if cmd_result.finished_at and not cmd_result.log_summary:
+                    logger.debug(f"Analyzing log for command {cmd_result.num}")
                     # Analyze the command result
                     analyzed_result = self.wish_manager.analyze_log(cmd_result)
+                    logger.debug(f"Log analysis complete: state={analyzed_result.state}")
 
                     # Check if API error occurred
                     if analyzed_result.state and analyzed_result.state == CommandState.API_ERROR:
                         self.api_error_detected = True
+                        logger.debug("API error detected")
                         # Enable retry button
                         retry_button = self.query_one("#retry-button")
                         retry_button.disabled = False
+                        logger.debug("Retry button enabled")
 
                     # Update the command result in the wish object
                     for i, result in enumerate(self.wish.command_results):
                         if result.num == cmd_result.num:
                             self.wish.command_results[i] = analyzed_result
+                            logger.debug(f"Updated command result in wish object at index {i}")
                             break
 
             # Update UI
+            logger.debug("Updating UI")
             self.ui_updater.update_command_status(self.wish)
 
             # Check if all commands have completed
             if not self.all_completed:
+                logger.debug("Checking if all commands have completed")
                 self.check_all_commands_completed()
+                logger.debug(f"All completed check: {self.all_completed}")
 
             await asyncio.sleep(0.5)
 
     def check_all_commands_completed(self) -> None:
         """Check if all commands have completed and update wish state."""
+        logger = logging.getLogger(__name__)
+        logger.debug("Checking if all commands have completed")
+        
         # Check if all commands have completed
         all_completed, any_failed = self.tracker.is_all_completed(self.wish)
+        logger.debug(f"All completed: {all_completed}, Any failed: {any_failed}")
 
         if all_completed:
             # Update wish state
+            logger.debug("All commands completed, updating wish state")
             self.tracker.update_wish_state(self.wish)
             self.all_completed = True
+            logger.debug(f"Wish state updated to: {self.wish.state}")
 
             # Display completion message
             completion_message = self.tracker.get_completion_message(self.wish)
+            logger.debug(f"Completion message: {completion_message}")
 
             # Add API error message if needed
             if self.api_error_detected:
                 completion_message += "\nAPI error detected. Please check your internet connection and API key."
+                logger.debug("Added API error message to completion message")
 
             self.ui_updater.show_completion_message(completion_message)
+            logger.debug("Completion message displayed")
 
     @on(Button.Pressed, "#back-button")
     def on_back_button_pressed(self) -> None:

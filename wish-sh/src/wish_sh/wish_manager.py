@@ -47,8 +47,16 @@ class WishManager:
 
     def save_wish(self, wish: Wish):
         """Save wish to history file."""
-        with open(self.paths.history_path, "a") as f:
-            f.write(json.dumps(wish.to_dict()) + "\n")
+        logger = logging.getLogger(__name__)
+        try:
+            logger.debug(f"WishManager.save_wish: Saving wish to {self.paths.history_path}")
+            with open(self.paths.history_path, "a") as f:
+                wish_json = json.dumps(wish.to_dict())
+                logger.debug(f"WishManager.save_wish: Writing JSON: {wish_json}")
+                f.write(wish_json + "\n")
+            logger.debug("WishManager.save_wish: Wish saved successfully")
+        except Exception as e:
+            logger.exception(f"WishManager.save_wish: Failed to save wish: {e}")
 
     def analyze_log(self, command_result: CommandResult) -> CommandResult:
         """Analyze command logs using LogAnalyzer.

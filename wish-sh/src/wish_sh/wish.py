@@ -2,6 +2,9 @@
 
 import argparse
 import asyncio
+import logging
+import os
+from pathlib import Path
 
 from sliver import SliverClient, SliverClientConfig
 from wish_command_execution.backend import BashConfig, SliverConfig
@@ -62,6 +65,26 @@ async def check_sliver_sessions(config_path):
 
 def main():
     """Entry point for the wish shell."""
+    # ログディレクトリの作成
+    log_dir = Path(os.path.expanduser("~/.wish/logs"))
+    log_dir.mkdir(parents=True, exist_ok=True)
+    
+    # ログファイルの設定
+    debug_log_path = log_dir / "wish_debug.log"
+    
+    # ロガーの設定
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(debug_log_path, mode='w'),
+        ]
+    )
+    
+    # ルートロガーの取得
+    logger = logging.getLogger()
+    logger.info("Starting wish application")
+    
     parser = argparse.ArgumentParser(description="wish - LLM-assisted shell for penetration testing")
 
     # Sliver C2 related arguments
