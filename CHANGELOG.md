@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+
+### Removed
+
+
+## [0.4.3] - 2025-03-10
+
+### Added
+
+### Changed
+
+### Fixed
 - Improved command execution in Windows environments:
   - Updated to execute commands through cmd.exe on Windows systems
   - Added proper command argument splitting for Windows
