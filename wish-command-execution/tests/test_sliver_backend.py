@@ -189,7 +189,8 @@ class TestSliverBackend:
         await sliver_backend.execute_command(mock_wish, "ls -la", 1, mock_log_files)
 
         # Verify that execute was called with the correct arguments
-        mock_interactive_session.execute.assert_called_once_with("ls -la", [])
+        # The command is now split into command name and arguments
+        mock_interactive_session.execute.assert_called_once_with("ls", ["-la"])
 
         # Verify that the command result was added to the wish
         assert len(mock_wish.command_results) == 1
