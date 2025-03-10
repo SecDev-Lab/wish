@@ -8,6 +8,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from wish_models.command_result import CommandInput
 
+from ..exceptions import CommandGenerationError
 from ..models import GraphState
 
 # Define the prompt template
@@ -195,8 +196,8 @@ def generate_commands(state: GraphState) -> GraphState:
         ]
         state_dict["error"] = error_message
 
-        # For tests compatibility, don't raise exception
-        # raise CommandGenerationError(error_message, api_response)
+        # Raise custom exception with structured data
+        raise CommandGenerationError(f"{error_message}. Response: {api_response}", api_response) from e
 
     except Exception as e:
         # Other errors
@@ -213,10 +214,10 @@ def generate_commands(state: GraphState) -> GraphState:
         ]
         state_dict["error"] = error_message
 
-        # For tests compatibility, don't raise exception
-        # if api_response:
-        #     raise CommandGenerationError(error_message, api_response)
-        # else:
-        #     raise CommandGenerationError(error_message)
+        # Raise custom exception with structured data
+        if api_response:
+            raise CommandGenerationError(error_message, api_response) from e
+        else:
+            raise CommandGenerationError(error_message) from e
 
     return GraphState(**state_dict)

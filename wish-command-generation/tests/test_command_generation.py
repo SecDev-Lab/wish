@@ -3,6 +3,8 @@
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from wish_command_generation.nodes.command_generation import generate_commands
 from wish_command_generation.test_factories.state_factory import GraphStateFactory
 
@@ -133,7 +135,7 @@ class TestCommandGeneration:
         assert "context" in call_args
 
     def test_generate_commands_api_error(self):
-        """Test that generate_commands handles API errors gracefully."""
+        """Test that generate_commands raises CommandGenerationError for API errors."""
         # Arrange
         state = GraphStateFactory.create_with_specific_wish("Conduct a full port scan on IP 10.10.10.123.")
 
@@ -142,7 +144,7 @@ class TestCommandGeneration:
         error_message = "API rate limit exceeded"
         mock_chain.invoke.side_effect = Exception(error_message)
 
-        # Act
+        # Act & Assert
         with patch("wish_command_generation.nodes.command_generation.PromptTemplate") as mock_prompt_template:
             with patch("wish_command_generation.nodes.command_generation.ChatOpenAI") as mock_chat_openai:
                 with patch(
@@ -165,18 +167,16 @@ class TestCommandGeneration:
                     # Make the chain invoke method raise our exception
                     mock_parser.invoke = mock_chain.invoke
 
-                    result = generate_commands(state)
+                    # Expect CommandGenerationError to be raised
+                    from wish_command_generation.exceptions import CommandGenerationError
+                    with pytest.raises(CommandGenerationError) as excinfo:
+                        generate_commands(state)
 
-        # Assert
-        assert len(result.command_inputs) == 1
-        assert f"Error generating commands: {error_message}" in result.command_inputs[0].command
-        assert result.command_inputs[0].timeout_sec is None
-        assert result.wish == state.wish
-        assert result.context == state.context
-        assert result.query == state.query
+                    # Verify the error message
+                    assert f"Command generation failed: {error_message}" in str(excinfo.value)
 
     def test_generate_commands_invalid_json(self):
-        """Test that generate_commands handles invalid JSON responses gracefully."""
+        """Test that generate_commands raises CommandGenerationError for invalid JSON responses."""
         # Arrange
         state = GraphStateFactory.create_with_specific_wish("Conduct a full port scan on IP 10.10.10.123.")
 
@@ -184,7 +184,7 @@ class TestCommandGeneration:
         mock_chain = MagicMock()
         mock_chain.invoke.return_value = "This is not valid JSON"
 
-        # Act
+        # Act & Assert
         with patch("wish_command_generation.nodes.command_generation.PromptTemplate") as mock_prompt_template:
             with patch("wish_command_generation.nodes.command_generation.ChatOpenAI") as mock_chat_openai:
                 with patch(
@@ -207,12 +207,11 @@ class TestCommandGeneration:
                     # Make the chain invoke method return invalid JSON
                     mock_parser.invoke = mock_chain.invoke
 
-                    result = generate_commands(state)
+                    # Expect CommandGenerationError to be raised
+                    from wish_command_generation.exceptions import CommandGenerationError
+                    with pytest.raises(CommandGenerationError) as excinfo:
+                        generate_commands(state)
 
-        # Assert
-        assert len(result.command_inputs) == 1
-        assert "Error generating commands:" in result.command_inputs[0].command
-        assert result.command_inputs[0].timeout_sec is None
-        assert result.wish == state.wish
-        assert result.context == state.context
-        assert result.query == state.query
+                    # Verify the error message
+                    assert "Invalid JSON format" in str(excinfo.value)
+                    assert "This is not valid JSON" in str(excinfo.value)
