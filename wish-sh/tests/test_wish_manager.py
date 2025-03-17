@@ -3,9 +3,8 @@ from unittest.mock import AsyncMock, mock_open, patch
 
 import pytest
 from wish_models import WishState
-from wish_models.test_factories import WishDoingFactory, WishDoneFactory
+from wish_models.test_factories import SettingsFactory, WishDoingFactory, WishDoneFactory
 
-from wish_sh.test_factories.settings_factory import SettingsFactory
 from wish_sh.wish_manager import WishManager
 from wish_sh.wish_paths import WishPaths
 
