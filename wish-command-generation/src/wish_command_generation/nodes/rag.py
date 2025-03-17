@@ -14,7 +14,8 @@ def generate_query(state: GraphState) -> GraphState:
 
     model = ChatOpenAI(
         model=settings.OPENAI_MODEL,
-        api_key=settings.OPENAI_API_KEY
+        api_key=settings.OPENAI_API_KEY,
+        use_responses_api=True,
     )
 
     prompt = PromptTemplate.from_template(

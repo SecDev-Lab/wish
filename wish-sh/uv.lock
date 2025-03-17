@@ -771,7 +771,7 @@ wheels = [
 
 [[package]]
 name = "langchain-core"
-version = "0.3.41"
+version = "0.3.45"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonpatch" },
@@ -782,23 +782,23 @@ dependencies = [
     { name = "tenacity" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2b/0a/aa5167a1a46094024b8fe50917e37f1df5bcd0034adb25452e121dae60e6/langchain_core-0.3.41.tar.gz", hash = "sha256:d3ee9f3616ebbe7943470ade23d4a04e1729b1512c0ec55a4a07bd2ac64dedb4", size = 528826 }
+sdist = { url = "https://files.pythonhosted.org/packages/38/85/4c896de87bc20915c5bf7be32fd325f4dfdbd0b262b4e49597a11d909ef7/langchain_core-0.3.45.tar.gz", hash = "sha256:a39b8446495d1ea97311aa726478c0a13ef1d77cb7644350bad6d9d3c0141a0c", size = 529844 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/a6/551de93e02b1ef4ec031f6e1c0ff31a70790096c1e7066168a7693e4efe5/langchain_core-0.3.41-py3-none-any.whl", hash = "sha256:1a27cca5333bae7597de4004fb634b5f3e71667a3da6493b94ce83bcf15a23bd", size = 415149 },
+    { url = "https://files.pythonhosted.org/packages/b6/8b/c41dbe55a502b71d84734be75c40d5a62fd6024dd8417c9ca2417e308782/langchain_core-0.3.45-py3-none-any.whl", hash = "sha256:fe560d644c102c3f5dcfb44eb5295e26d22deab259fdd084f6b1b55a0350b77c", size = 415868 },
 ]
 
 [[package]]
 name = "langchain-openai"
-version = "0.3.7"
+version = "0.3.9rc1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "langchain-core" },
     { name = "openai" },
     { name = "tiktoken" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8e/3c/08add067e46409d3e881933155f546edb08644e5e4e2360ff22c6a2104a8/langchain_openai-0.3.7.tar.gz", hash = "sha256:b8b51a3aaa1cc3bda060651ea41145f7728219e8a7150b5404fb1e8446de9cef", size = 256488 }
+sdist = { url = "https://files.pythonhosted.org/packages/1f/f5/eb0e72f6440ead214f839422c05092295a4f4dd1bbf84c826ee2a9f832c7/langchain_openai-0.3.9rc1.tar.gz", hash = "sha256:ac6e4a302bd218ad631a61c86f163f315d189f0450a0f9d099070bb3dcfa85f3", size = 264678 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/36/0e/816c5293eda67600d374bb8484a9adab873c9096489f6f91634581919f35/langchain_openai-0.3.7-py3-none-any.whl", hash = "sha256:0aefc7bdf8e7398d41e09c4313cace816df6438f2aa93d34f79523487310f0da", size = 55254 },
+    { url = "https://files.pythonhosted.org/packages/55/8c/e86a53771e881d0631bc6c6867c5ad63442bd4147e36b5e92a68e1e879ad/langchain_openai-0.3.9rc1-py3-none-any.whl", hash = "sha256:1686999eb6d01290748d2ddffb3b35f2b95e380d4969de9c70ecc17b3455c78c", size = 58515 },
 ]
 
 [[package]]
@@ -1117,7 +1117,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "1.65.4"
+version = "1.66.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1129,9 +1129,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fa/8d/1f7aace801afbbe4d6b8c7fa89b76eb9a3a8eeff38b84d4005d47b226b30/openai-1.65.4.tar.gz", hash = "sha256:0b08c58625d556f5c6654701af1023689c173eb0989ce8f73c7fd0eb22203c76", size = 359365 }
+sdist = { url = "https://files.pythonhosted.org/packages/a3/77/5172104ca1df35ed2ed8fb26dbc787f721c39498fc51d666c4db07756a0c/openai-1.66.3.tar.gz", hash = "sha256:8dde3aebe2d081258d4159c4cb27bdc13b5bb3f7ea2201d9bd940b9a89faf0c9", size = 397244 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/db/7bab832be24631a793492c1c61ecbf029018b99696f435db3b63d690bf1c/openai-1.65.4-py3-none-any.whl", hash = "sha256:15566d46574b94eae3d18efc2f9a4ebd1366d1d44bfc1bdafeea7a5cf8271bcb", size = 473523 },
+    { url = "https://files.pythonhosted.org/packages/78/5a/e20182f7b6171642d759c548daa0ba20a1d3ac10d2bd0a13fd75704a9ac3/openai-1.66.3-py3-none-any.whl", hash = "sha256:a427c920f727711877ab17c11b95f1230b27767ba7a01e5b66102945141ceca9", size = 567400 },
 ]
 
 [[package]]
@@ -2079,7 +2079,7 @@ requires-dist = [
     { name = "langchain", specifier = ">=0.3.20" },
     { name = "langchain-community", specifier = ">=0.1.0" },
     { name = "langchain-core", specifier = ">=0.3.41" },
-    { name = "langchain-openai", specifier = ">=0.3.7" },
+    { name = "langchain-openai", specifier = ">=0.3.9rc1" },
     { name = "langgraph", specifier = ">=0.3.5" },
     { name = "langsmith", specifier = ">=0.3.11" },
     { name = "pydantic", specifier = ">=2.10.6" },

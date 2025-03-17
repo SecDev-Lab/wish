@@ -77,7 +77,7 @@ def classify_command_state(state: GraphState) -> GraphState:
     prompt = PromptTemplate.from_template(COMMAND_STATE_CLASSIFIER_PROMPT)
 
     # Initialize the OpenAI model
-    model = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY)
+    model = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY, use_responses_api=True)
 
     # Create the chain
     chain = prompt | model | StrOutputParser()
