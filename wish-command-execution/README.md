@@ -69,7 +69,7 @@ def my_log_summarizer(log_files):
 config = BashConfig(log_summarizer=my_log_summarizer)
 backend = create_backend(config)
 
-# Using Sliver backend (future implementation)
+# Using Sliver backend
 config = SliverConfig(
     session_id="your-session-id",
     client_config_path="/path/to/sliver/config"

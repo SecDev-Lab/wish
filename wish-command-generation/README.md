@@ -32,11 +32,3 @@ Example:
 OPENAI_API_KEY=your-api-key-here
 OPENAI_MODEL=gpt-4o
 ```
-
-## Future work
-
-- Robust command generation (NETWORK_ERROR, TIMEOUT handling in Dify implementation)
-- Modify each command, as in Dify implementation
-- HackTricks RAG (for community edition)
-- English Prompt
-- API client/server

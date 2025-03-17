@@ -113,21 +113,3 @@ Command execution results are captured and stored in log files. The application 
 ## Data Models
 
 The application uses data models defined in the separate `wish-models` package. For detailed model definitions, please refer to the [wish-models repository](../wish-models).
-
-## Future Enhancements
-
-### Planned Improvements
-
-- Integration with a real LLM for command generation
-- Wish History Mode for viewing and managing past wishes
-- More sophisticated command execution with dependency handling
-- Enhanced error handling and recovery
-- Improved log summarization using AI
-
-### Additional Features
-
-- Command templates for common tasks
-- User preferences and customization
-- Integration with external tools and services
-- Multi-step workflows
-- Command suggestions based on execution context
