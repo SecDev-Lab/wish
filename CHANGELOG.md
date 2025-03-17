@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.4.5] - 2025-03-17
+
+### Added
+
 - YouTube movies in documents
 
 ### Changed
