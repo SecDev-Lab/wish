@@ -6,9 +6,8 @@ from unittest.mock import MagicMock, mock_open, patch
 import factory
 from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashBackend
-from wish_models import CommandState, UtcDatetime
+from wish_models import CommandState, Settings, UtcDatetime
 
-from wish_sh.test_factories.settings_factory import SettingsFactory
 from wish_sh.wish_manager import WishManager
 
 
@@ -18,8 +17,12 @@ class WishManagerFactory(factory.Factory):
     class Meta:
         model = WishManager
 
-    # SettingsFactoryを使用
-    settings = factory.SubFactory(SettingsFactory)
+    # Settingsを直接使用
+    settings = factory.LazyFunction(lambda: Settings(
+        OPENAI_API_KEY="sk-dummy-key-for-testing",
+        OPENAI_MODEL="gpt-4o-mini",
+        WISH_HOME="/tmp/wish-test-home"
+    ))
 
     @classmethod
     def create(cls, **kwargs):
