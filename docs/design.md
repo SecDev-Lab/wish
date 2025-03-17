@@ -151,15 +151,3 @@ sequenceDiagram
     LogAnalyzer-->>WishManager: CommandResult with log_summary and state
     WishManager-->>User: Display analyzed result
 ```
-
-## Future Enhancements
-
-- Robust command generation (NETWORK_ERROR, TIMEOUT handling)
-- Command modification capabilities
-- Additional knowledge bases for RAG
-- English prompt support
-- API client/server architecture
-- Enhanced error handling and recovery
-- Improved log summarization using AI
-- Command templates for common tasks
-- Multi-step workflows
