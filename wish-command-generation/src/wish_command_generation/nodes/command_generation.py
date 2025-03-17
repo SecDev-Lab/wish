@@ -141,10 +141,7 @@ def generate_commands(state: GraphState) -> GraphState:
     # Initialize the OpenAI model
     from wish_models import settings
 
-    model = ChatOpenAI(
-        model=settings.OPENAI_MODEL,
-        api_key=settings.OPENAI_API_KEY
-    )
+    model = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY, use_responses_api=True)
 
     # Create the chain
     chain = prompt | model | StrOutputParser()
