@@ -11,6 +11,10 @@
   - 依存関係のインストールには `uv sync --dev` を使用します
   - コマンド実行には `uv run` を使用します
 - lint には ruff を使います
+- 以下のMakeコマンドを使用できます
+  - `make test` - すべてのPythonプロジェクトで `uv run pytest` を実行
+  - `make lint` - すべてのPythonプロジェクトで `uv run ruff check` を実行
+  - `make format` - すべてのPythonプロジェクトで `uv run ruff check --fix` を実行
 
 ## Pythonコーディングルール
 
