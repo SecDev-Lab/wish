@@ -46,8 +46,6 @@ Resources:
             Method: post
       Layers:
         - !Ref WishLogAnalysisApiDepLayer
-    Metadata:
-      BuildMethod: makefile
 
 Outputs:
   AnalyzeApi:

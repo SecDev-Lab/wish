@@ -10,19 +10,19 @@ gen-requirements: deps
 
 # SAM用の依存関係をインストール
 install-sam-deps: gen-requirements
-	python3 -m pip install -r requirements.txt -t vendor/
+	python3 -m pip install -r vendor/requirements.txt -t vendor/
 
 # テスト実行
 test: deps
 	uv run pytest
 
-# ローカル開発サーバー起動
-dev: install-sam-deps
-	sam local start-api
+# ローカル開発サーバー起動（コンテナ使用）
+dev: gen-requirements
+	sam local start-api --use-container --skip-pull-image
 
-# SAMビルド
-build: install-sam-deps
-	sam build
+# SAMビルド（コンテナ使用）
+build: gen-requirements
+	sam build --use-container --skip-pull-image
 
 # デプロイ
 deploy: build
@@ -33,9 +33,8 @@ clean:
 	rm -rf .aws-sam
 	rm -rf vendor/
 	find src/ -type d -name "__pycache__" -exec rm -rf {} +
-	rm -f requirements.txt
 
-# SAM用のビルドターゲット
+# SAM用のビルドターゲット（コンテナ内で実行される）
 build-AnalyzeFunction:
-	python3 -m pip install -r requirements.txt -t $(ARTIFACTS_DIR)/
+	python3 -m pip install -r vendor/requirements.txt -t $(ARTIFACTS_DIR)/
 	cp -r src/wish_log_analysis_api $(ARTIFACTS_DIR)/

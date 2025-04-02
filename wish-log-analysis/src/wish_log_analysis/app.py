@@ -16,7 +16,7 @@ class LogAnalysisClient:
     ログ解析APIクライアント
     """
     def __init__(self, api_url: Optional[str] = None):
-        self.api_url = api_url or os.environ.get("WISH_LOG_ANALYSIS_API_URL", "http://localhost:3001/analyze")
+        self.api_url = api_url or os.environ.get("WISH_LOG_ANALYSIS_API_URL", "http://localhost:3000/analyze")
     
     def analyze(self, command_result: CommandResult) -> LogAnalysisOutput:
         """
