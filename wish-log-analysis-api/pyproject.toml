@@ -9,9 +9,9 @@ Repository = "https://github.com/SecDev-Lab/wish.git"
 Issues = "https://github.com/SecDev-Lab/wish/issues"
 
 [project]
-name = "wish-log-analysis"
+name = "wish-log-analysis-api"
 version = "0.0.0" # No need to update. GitHub Actions will update this on publish.
-description = "Log analysis client for wish"
+description = "Log analysis API for wish"
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [
@@ -20,7 +20,7 @@ authors = [
 maintainers = [
     {name = "Sho Nakatani", email = "lay.sakura@gmail.com"}
 ]
-keywords = ["wish", "llm", "ai", "shell", "log-analysis"]
+keywords = ["wish", "llm", "ai", "shell", "log-analysis", "api"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -33,7 +33,12 @@ license = {file = "../LICENSE"}
 dependencies = [
     "wish-models>=0.0.1",
     "pydantic>=2.10.6",
-    "requests>=2.31.0",
+    "langgraph>=0.3.5",
+    "langsmith>=0.3.11",
+    "langchain-openai>=0.3.7",
+    "langchain-core>=0.3.41",
+    "langchain>=0.3.20",
+    "pydantic-settings>=2.8.1",
 ]
 
 [tool.uv.sources]
@@ -45,7 +50,8 @@ dev-dependencies = [
     "pytest-asyncio>=0.25.2",
     "pytest>=8.3.4",
     "ruff>=0.9.8",
-    "requests-mock>=1.11.0",
+    "graphviz>=0.20.1",
+    "aws-sam-cli>=1.110.0",
 ]
 
 [tool.pdm.build]
