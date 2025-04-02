@@ -20,8 +20,8 @@ Resources:
   AnalyzeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/
-      Handler: wish_log_analysis_api.app.lambda_handler
+      CodeUri: ./
+      Handler: vendor.wish_log_analysis_api.app.lambda_handler
       Runtime: python3.13
       Architectures:
         - x86_64
@@ -37,6 +37,8 @@ Resources:
           Properties:
             Path: /analyze
             Method: post
+    Metadata:
+      BuildMethod: makefile
 
 Outputs:
   AnalyzeApi:
