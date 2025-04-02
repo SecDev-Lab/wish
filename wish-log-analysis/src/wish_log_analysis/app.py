@@ -22,26 +22,44 @@ class LogAnalysisClient:
         """
         APIサーバーを呼び出して解析を行う
         """
-        # APIリクエストの準備
-        input_data = LogAnalysisInput(
-            command=command_result.command,
-            output=str(command_result.log_files.stdout),  # Pathオブジェクトを文字列に変換
-            exit_code=command_result.exit_code or 0,
-        )
-        
         # APIリクエストの送信
         try:
+            print(f"APIリクエスト送信先: {self.api_url}")
+            request_data = {"command_result": command_result.model_dump()}
+            print(f"リクエストデータ: {json.dumps(request_data, indent=2)}")
+            
             response = requests.post(
                 self.api_url,
-                json=input_data.model_dump(),
+                json=request_data,
                 headers={"Content-Type": "application/json"},
                 timeout=30,
             )
-            response.raise_for_status()
+            print(f"レスポンスステータス: {response.status_code}")
+            
+            try:
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                print(f"HTTPエラー: {e}")
+                print(f"レスポンス内容: {response.text}")
+                raise
             
             # レスポンスの解析
             result = response.json()
-            return LogAnalysisOutput.model_validate(result)
+            
+            # サーバーからのレスポンスを適切に処理
+            if "analyzed_command_result" in result:
+                analyzed_result = result["analyzed_command_result"]
+                return LogAnalysisOutput(
+                    summary=analyzed_result.get("log_summary", "解析結果なし"),
+                    state=analyzed_result.get("state", "OTHERS"),
+                    error_message=result.get("error")
+                )
+            else:
+                return LogAnalysisOutput(
+                    summary="APIレスポンスの形式が不正です",
+                    state="error",
+                    error_message="Invalid API response format"
+                )
         
         except requests.RequestException as e:
             logger.error(f"API request failed: {e}")

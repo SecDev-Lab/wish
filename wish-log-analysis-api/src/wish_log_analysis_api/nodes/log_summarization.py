@@ -74,11 +74,18 @@ def summarize_log(state: GraphState) -> GraphState:
     stderr = ""
     if state.command_result.log_files:
         if state.command_result.log_files.stdout and os.path.exists(state.command_result.log_files.stdout):
-            with open(state.command_result.log_files.stdout, "r", encoding="utf-8") as f:
-                stdout = f.read()
+            if not os.path.isdir(state.command_result.log_files.stdout):
+                with open(state.command_result.log_files.stdout, "r", encoding="utf-8") as f:
+                    stdout = f.read()
+            else:
+                stdout = f"[Error: stdout path '{state.command_result.log_files.stdout}' is a directory]"
+        
         if state.command_result.log_files.stderr and os.path.exists(state.command_result.log_files.stderr):
-            with open(state.command_result.log_files.stderr, "r", encoding="utf-8") as f:
-                stderr = f.read()
+            if not os.path.isdir(state.command_result.log_files.stderr):
+                with open(state.command_result.log_files.stderr, "r", encoding="utf-8") as f:
+                    stderr = f.read()
+            else:
+                stderr = f"[Error: stderr path '{state.command_result.log_files.stderr}' is a directory]"
 
     # Create the prompt
     prompt = PromptTemplate.from_template(LOG_SUMMARIZATION_PROMPT)
