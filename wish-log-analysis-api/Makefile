@@ -10,15 +10,15 @@ gen-requirements: deps
 
 # Install dependencies for SAM
 install-sam-deps: gen-requirements
-	python3 -m pip install -r vendor/requirements.txt -t vendor/
+	python -m pip install -r vendor/requirements.txt -t vendor/
 
 # SAM build (using container)
-build: gen-requirements
+build: install-sam-deps
 	sam build --use-container --skip-pull-image
 
 # Start local development server (using container)
 run-api: build
-	sam local start-api --debug
+	sam local start-api
 
 # Clean up generated files
 clean:
