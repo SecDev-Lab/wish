@@ -1666,7 +1666,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "tomli" },
-    { name = "wish-models" },
 ]
 
 [package.dev-dependencies]
@@ -1689,7 +1688,6 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.10.6" },
     { name = "pydantic-settings", specifier = ">=2.8.1" },
     { name = "tomli", specifier = ">=2.0.0" },
-    { name = "wish-models", editable = "../wish-models" },
 ]
 
 [package.metadata.requires-dev]
@@ -1697,29 +1695,6 @@ dev = [
     { name = "aws-sam-cli", specifier = ">=1.110.0" },
     { name = "factory-boy", specifier = ">=3.3.1" },
     { name = "graphviz", specifier = ">=0.20.1" },
-    { name = "pytest", specifier = ">=8.3.4" },
-    { name = "pytest-asyncio", specifier = ">=0.25.2" },
-    { name = "ruff", specifier = ">=0.9.8" },
-]
-
-[[package]]
-name = "wish-models"
-version = "0.0.0"
-source = { editable = "../wish-models" }
-dependencies = [
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "pydantic", specifier = ">=2.10.6" },
-    { name = "pydantic-settings", specifier = ">=2.0.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "factory-boy", specifier = ">=3.3.1" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.2" },
     { name = "ruff", specifier = ">=0.9.8" },

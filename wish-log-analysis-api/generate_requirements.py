@@ -2,7 +2,7 @@
 """
 Generate requirements.txt from pyproject.toml dependencies.
 This script extracts production dependencies from pyproject.toml
-and writes them to requirements.txt.
+and writes them to vendor/requirements.txt.
 """
 
 import tomli
@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 def extract_dependencies():
-    """Extract dependencies from pyproject.toml and write to requirements.txt."""
+    """Extract dependencies from pyproject.toml and write to vendor/requirements.txt."""
     try:
         with open("pyproject.toml", "rb") as f:
             data = tomli.load(f)
@@ -19,22 +19,21 @@ def extract_dependencies():
         # Extract production dependencies
         deps = data["project"]["dependencies"]
         
-        with open("requirements.txt", "w") as f:
+        # Create vendor directory if it doesn't exist
+        vendor_dir = Path("vendor")
+        vendor_dir.mkdir(exist_ok=True)
+        
+        # Write dependencies to vendor/requirements.txt
+        requirements_path = vendor_dir / "requirements.txt"
+        with open(requirements_path, "w") as f:
             for dep in deps:
                 f.write(f"{dep}\n")
-            
-            # Add wish-models as editable install if it's in uv.sources
-            if "tool" in data and "uv" in data["tool"] and "sources" in data["tool"]["uv"]:
-                sources = data["tool"]["uv"]["sources"]
-                if "wish-models" in sources and "path" in sources["wish-models"]:
-                    path = sources["wish-models"]["path"]
-                    f.write(f"-e {path}\n")
         
-        print(f"Generated requirements.txt with {len(deps)} dependencies")
+        print(f"Generated vendor/requirements.txt with {len(deps)} dependencies")
         return True
     
     except Exception as e:
-        print(f"Error generating requirements.txt: {e}", file=sys.stderr)
+        print(f"Error generating vendor/requirements.txt: {e}", file=sys.stderr)
         return False
 
 

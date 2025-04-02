@@ -31,7 +31,6 @@ classifiers = [
 ]
 license = {file = "../LICENSE"}
 dependencies = [
-    "wish-models>=0.0.1",
     "pydantic>=2.10.6",
     "langgraph>=0.3.5",
     "langsmith>=0.3.11",
@@ -41,9 +40,6 @@ dependencies = [
     "pydantic-settings>=2.8.1",
     "tomli>=2.0.0",
 ]
-
-[tool.uv.sources]
-wish-models = { path = "../wish-models", editable = true }
 
 [tool.uv]
 dev-dependencies = [

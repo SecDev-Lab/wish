@@ -17,14 +17,21 @@ Globals:
     TracingEnabled: true
 
 Resources:
+  WishLogAnalysisApiDepLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: wish-log-analysis-api-dep-layer
+      ContentUri: ./vendor/
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Retain
+
   AnalyzeFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./
-      Handler: wish_log_analysis_api.app.lambda_handler
+      Handler: src.wish_log_analysis_api.app.lambda_handler
       Runtime: python3.13
-      Architectures:
-        - x86_64
       Environment:
         Variables:
           LANGCHAIN_TRACING_V2: false
@@ -37,6 +44,8 @@ Resources:
           Properties:
             Path: /analyze
             Method: post
+      Layers:
+        - !Ref WishLogAnalysisApiDepLayer
     Metadata:
       BuildMethod: makefile
 
