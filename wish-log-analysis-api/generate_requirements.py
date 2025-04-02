@@ -2,7 +2,7 @@
 """
 Generate requirements.txt from pyproject.toml dependencies.
 This script extracts production dependencies from pyproject.toml
-and writes them to vendor/requirements.txt.
+and writes them to requirements.txt in the project root.
 """
 
 import tomli
@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 def extract_dependencies():
-    """Extract dependencies from pyproject.toml and write to vendor/requirements.txt."""
+    """Extract dependencies from pyproject.toml and write to requirements.txt in project root."""
     try:
         with open("pyproject.toml", "rb") as f:
             data = tomli.load(f)
@@ -19,21 +19,17 @@ def extract_dependencies():
         # Extract production dependencies
         deps = data["project"]["dependencies"]
         
-        # Create vendor directory if it doesn't exist
-        vendor_dir = Path("vendor")
-        vendor_dir.mkdir(exist_ok=True)
-        
-        # Write dependencies to vendor/requirements.txt
-        requirements_path = vendor_dir / "requirements.txt"
+        # Write dependencies to requirements.txt in project root
+        requirements_path = Path("requirements.txt")
         with open(requirements_path, "w") as f:
             for dep in deps:
                 f.write(f"{dep}\n")
         
-        print(f"Generated vendor/requirements.txt with {len(deps)} dependencies")
+        print(f"Generated requirements.txt with {len(deps)} dependencies")
         return True
     
     except Exception as e:
-        print(f"Error generating vendor/requirements.txt: {e}", file=sys.stderr)
+        print(f"Error generating requirements.txt: {e}", file=sys.stderr)
         return False
 
 

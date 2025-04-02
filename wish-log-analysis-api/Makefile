@@ -10,7 +10,7 @@ gen-requirements: deps
 
 # Install dependencies for SAM
 install-sam-deps: gen-requirements
-	python -m pip install -r vendor/requirements.txt -t vendor/
+	python -m pip install -r requirements.txt -t vendor/
 
 # SAM build (using container)
 build: install-sam-deps
@@ -24,4 +24,5 @@ run-api: build
 clean:
 	rm -rf .aws-sam
 	rm -rf vendor/
+	rm -f requirements.txt
 	find src/ -type d -name "__pycache__" -exec rm -rf {} +
