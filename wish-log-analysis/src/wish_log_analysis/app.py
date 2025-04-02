@@ -2,9 +2,11 @@ import json
 import logging
 import os
 import requests
+import traceback
 from typing import Dict, Any, Optional
 
 from wish_models.command_result import CommandResult
+from wish_models.command_result.command_state import CommandState
 
 from .models import LogAnalysisInput, LogAnalysisOutput
 
@@ -20,7 +22,13 @@ class LogAnalysisClient:
     
     def analyze(self, command_result: CommandResult) -> LogAnalysisOutput:
         """
-        APIサーバーを呼び出して解析を行う
+        APIサーバーを呼び出して解析を行い、LogAnalysisOutputを返す
+        
+        Args:
+            command_result: 解析対象のコマンド実行結果
+            
+        Returns:
+            LogAnalysisOutput: 解析結果
         """
         # APIリクエストの送信
         try:
@@ -50,7 +58,7 @@ class LogAnalysisClient:
             if "analyzed_command_result" in result:
                 analyzed_result = result["analyzed_command_result"]
                 return LogAnalysisOutput(
-                    summary=analyzed_result.get("log_summary", "解析結果なし"),
+                    summary=analyzed_result.get("log_summary") or "解析結果なし",
                     state=analyzed_result.get("state", "OTHERS"),
                     error_message=result.get("error")
                 )
@@ -69,14 +77,87 @@ class LogAnalysisClient:
                 state="error",
                 error_message=str(e),
             )
+            
+    def analyze_result(self, command_result: CommandResult) -> CommandResult:
+        """
+        APIサーバーを呼び出して解析を行い、CommandResultを返す
+        
+        Args:
+            command_result: 解析対象のコマンド実行結果
+            
+        Returns:
+            CommandResult: 解析済みのCommandResult
+        """
+        try:
+            # APIリクエストの送信と解析
+            output = self.analyze(command_result)
+            
+            # 文字列のstateをCommandState列挙型に変換
+            try:
+                command_state = CommandState[output.state] if output.state in CommandState.__members__ else CommandState.API_ERROR
+            except (KeyError, ValueError):
+                command_state = CommandState.API_ERROR
+            
+            # 新しいCommandResultを作成
+            analyzed_result = CommandResult(
+                num=command_result.num,
+                command=command_result.command,
+                exit_code=command_result.exit_code,
+                log_files=command_result.log_files,
+                log_summary=output.summary,
+                state=command_state,
+                created_at=command_result.created_at,
+                finished_at=command_result.finished_at
+            )
+            
+            return analyzed_result
+            
+        except Exception as e:
+            # エラー時のフォールバック処理
+            logger.error(f"Error analyzing command result: {str(e)}")
+            logger.error(traceback.format_exc())
+            
+            # エラー情報を含むCommandResultを返す
+            error_result = CommandResult(
+                num=command_result.num,
+                command=command_result.command,
+                exit_code=command_result.exit_code,
+                log_files=command_result.log_files,
+                log_summary=f"Error analyzing command: {str(e)}",
+                state=CommandState.API_ERROR,
+                created_at=command_result.created_at,
+                finished_at=command_result.finished_at
+            )
+            
+            return error_result
 
 
 def analyze_logs(command_result: CommandResult) -> LogAnalysisOutput:
     """
-    APIサーバーを呼び出して解析を行う
+    APIサーバーを呼び出して解析を行い、LogAnalysisOutputを返す
+    
+    Args:
+        command_result: 解析対象のコマンド実行結果
+        
+    Returns:
+        LogAnalysisOutput: 解析結果
     """
     client = LogAnalysisClient()
     return client.analyze(command_result)
+
+
+def analyze_result(command_result: CommandResult) -> CommandResult:
+    """
+    APIサーバーを呼び出して解析を行い、CommandResultを返す
+    
+    Args:
+        command_result: 解析対象のコマンド実行結果
+        
+    Returns:
+        CommandResult: 解析済みのCommandResult
+    """
+    client = LogAnalysisClient()
+    return client.analyze_result(command_result)
 
 
 def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict[str, Any]:
