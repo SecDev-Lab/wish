@@ -7,6 +7,42 @@ This guide explains how to install and set up `wish-sh` and `wish-knowledge-load
 - Python 3.13 or higher
 - OpenAI API key (available from the [OpenAI website](https://platform.openai.com/))
 
+## Setup Overview
+
+This guide will walk you through the process of setting up the wish ecosystem components in the correct order. Follow these steps to ensure proper functionality:
+
+1. **Environment Setup**: Configure the necessary environment variables for all components
+2. **Start the API Server**: Launch the wish-log-analysis-api server using `make run-api`
+3. **Install and Configure wish-sh**: Install the wish-sh package and set up required configurations
+4. **Install wish-knowledge-loader** (Optional): Set up the knowledge loader if you need enhanced functionality
+
+The wish-sh command requires the wish-log-analysis-api server to be running, as it relies on the API for analyzing command execution logs. This setup ensures that all components work together seamlessly.
+
+The following sections provide detailed instructions for each step of the setup process.
+
+## wish-log-analysis-api
+
+### Environment Variables
+
+To use wish-log-analysis-api, you need to set the following environment variable:
+
+```bash
+# Set the base URL for the wish-log-analysis-api service (default: http://localhost:3000)
+export WISH_API_BASE_URL=http://localhost:3000
+```
+
+This environment variable specifies the base URL of the wish-log-analysis-api service. The client will automatically append the `/analyze` endpoint to this base URL.
+
+### Starting the API Server
+
+To start the wish-log-analysis-api server locally, run the following command:
+
+```bash
+make run-api
+```
+
+This will start a local development server and make the API endpoints available.
+
 ## wish-sh
 
 ### Installation
