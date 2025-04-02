@@ -8,32 +8,32 @@ from wish_log_analysis_api.app import lambda_handler, analyze_command_result
 from wish_log_analysis_api.models import AnalyzeRequest, AnalyzeResponse, GraphState
 from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
-from wish_models.test_factories.command_result_factory import CommandResultFactory
+from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
 
 
 @pytest.fixture
 def command_result():
     """Create a test command result."""
-    return CommandResultFactory.build(
+    return CommandResultSuccessFactory.build(
         command="ls -la",
         stdout="file1.txt\nfile2.txt",
         stderr=None,
         exit_code=0,
-        command_state=None,
-        summary=None,
+        state=CommandState.DOING,
+        log_summary=None,
     )
 
 
 @pytest.fixture
 def analyzed_command_result():
     """Create a test analyzed command result."""
-    return CommandResultFactory.build(
+    return CommandResultSuccessFactory.build(
         command="ls -la",
         stdout="file1.txt\nfile2.txt",
         stderr=None,
         exit_code=0,
-        command_state=CommandState.SUCCESS,
-        summary="Listed files: file1.txt, file2.txt",
+        state=CommandState.SUCCESS,
+        log_summary="Listed files: file1.txt, file2.txt",
     )
 
 
@@ -114,8 +114,8 @@ class TestLambdaHandler:
             body = json.loads(response["body"])
             assert "analyzed_command_result" in body
             assert body["analyzed_command_result"]["command"] == "ls -la"
-            assert body["analyzed_command_result"]["command_state"] == "SUCCESS"
-            assert body["analyzed_command_result"]["summary"] == "Listed files: file1.txt, file2.txt"
+            assert body["analyzed_command_result"]["state"] == "SUCCESS"
+            assert body["analyzed_command_result"]["log_summary"] == "Listed files: file1.txt, file2.txt"
 
     def test_handler_invalid_request(self):
         """Test handling of an invalid request."""
