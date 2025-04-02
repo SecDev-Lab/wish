@@ -1,3 +1,0 @@
-{
-  "body": "{\"command_result\": {\"num\": 1, \"command\": \"ls -la\", \"state\": \"DOING\", \"timeout_sec\": null, \"exit_code\": 0, \"log_summary\": null, \"log_files\": {\"stdout\": \"/tmp/stdout.log\", \"stderr\": \"/tmp/stderr.log\"}, \"created_at\": \"2025-04-02T05:50:00Z\", \"finished_at\": null}}"
-}
