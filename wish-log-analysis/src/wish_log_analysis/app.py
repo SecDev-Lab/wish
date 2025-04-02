@@ -15,26 +15,26 @@ logger = logging.getLogger(__name__)
 
 class LogAnalysisClient:
     """
-    ログ解析APIクライアント
+    Log Analysis API Client
     """
     def __init__(self, api_url: Optional[str] = None):
         self.api_url = api_url or os.environ.get("WISH_LOG_ANALYSIS_API_URL", "http://localhost:3000/analyze")
     
     def analyze(self, command_result: CommandResult) -> LogAnalysisOutput:
         """
-        APIサーバーを呼び出して解析を行い、LogAnalysisOutputを返す
+        Call the API server to perform analysis and return LogAnalysisOutput
         
         Args:
-            command_result: 解析対象のコマンド実行結果
+            command_result: Command execution result to be analyzed
             
         Returns:
-            LogAnalysisOutput: 解析結果
+            LogAnalysisOutput: Analysis result
         """
-        # APIリクエストの送信
+        # Send API request
         try:
-            print(f"APIリクエスト送信先: {self.api_url}")
+            print(f"API request destination: {self.api_url}")
             request_data = {"command_result": command_result.model_dump()}
-            print(f"リクエストデータ: {json.dumps(request_data, indent=2)}")
+            print(f"Request data: {json.dumps(request_data, indent=2)}")
             
             response = requests.post(
                 self.api_url,
@@ -42,63 +42,63 @@ class LogAnalysisClient:
                 headers={"Content-Type": "application/json"},
                 timeout=30,
             )
-            print(f"レスポンスステータス: {response.status_code}")
+            print(f"Response status: {response.status_code}")
             
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
-                print(f"HTTPエラー: {e}")
-                print(f"レスポンス内容: {response.text}")
+                print(f"HTTP error: {e}")
+                print(f"Response content: {response.text}")
                 raise
             
-            # レスポンスの解析
+            # Parse response
             result = response.json()
             
-            # サーバーからのレスポンスを適切に処理
+            # Process server response appropriately
             if "analyzed_command_result" in result:
                 analyzed_result = result["analyzed_command_result"]
                 return LogAnalysisOutput(
-                    summary=analyzed_result.get("log_summary") or "解析結果なし",
+                    summary=analyzed_result.get("log_summary") or "No analysis results",
                     state=analyzed_result.get("state", "OTHERS"),
                     error_message=result.get("error")
                 )
             else:
                 return LogAnalysisOutput(
-                    summary="APIレスポンスの形式が不正です",
+                    summary="Invalid API response format",
                     state="error",
                     error_message="Invalid API response format"
                 )
         
         except requests.RequestException as e:
             logger.error(f"API request failed: {e}")
-            # エラー時のフォールバック処理
+            # Fallback processing for errors
             return LogAnalysisOutput(
-                summary="APIリクエストに失敗しました",
+                summary="API request failed",
                 state="error",
                 error_message=str(e),
             )
             
     def analyze_result(self, command_result: CommandResult) -> CommandResult:
         """
-        APIサーバーを呼び出して解析を行い、CommandResultを返す
+        Call the API server to perform analysis and return CommandResult
         
         Args:
-            command_result: 解析対象のコマンド実行結果
+            command_result: Command execution result to be analyzed
             
         Returns:
-            CommandResult: 解析済みのCommandResult
+            CommandResult: Analyzed CommandResult
         """
         try:
-            # APIリクエストの送信と解析
+            # Send API request and analyze
             output = self.analyze(command_result)
             
-            # 文字列のstateをCommandState列挙型に変換
+            # Convert state string to CommandState enum
             try:
                 command_state = CommandState[output.state] if output.state in CommandState.__members__ else CommandState.API_ERROR
             except (KeyError, ValueError):
                 command_state = CommandState.API_ERROR
             
-            # 新しいCommandResultを作成
+            # Create new CommandResult
             analyzed_result = CommandResult(
                 num=command_result.num,
                 command=command_result.command,
@@ -113,11 +113,11 @@ class LogAnalysisClient:
             return analyzed_result
             
         except Exception as e:
-            # エラー時のフォールバック処理
+            # Fallback processing for errors
             logger.error(f"Error analyzing command result: {str(e)}")
             logger.error(traceback.format_exc())
             
-            # エラー情報を含むCommandResultを返す
+            # Return CommandResult with error information
             error_result = CommandResult(
                 num=command_result.num,
                 command=command_result.command,
@@ -134,13 +134,13 @@ class LogAnalysisClient:
 
 def analyze_logs(command_result: CommandResult) -> LogAnalysisOutput:
     """
-    APIサーバーを呼び出して解析を行い、LogAnalysisOutputを返す
+    Call the API server to perform analysis and return LogAnalysisOutput
     
     Args:
-        command_result: 解析対象のコマンド実行結果
+        command_result: Command execution result to be analyzed
         
     Returns:
-        LogAnalysisOutput: 解析結果
+        LogAnalysisOutput: Analysis result
     """
     client = LogAnalysisClient()
     return client.analyze(command_result)
@@ -148,13 +148,13 @@ def analyze_logs(command_result: CommandResult) -> LogAnalysisOutput:
 
 def analyze_result(command_result: CommandResult) -> CommandResult:
     """
-    APIサーバーを呼び出して解析を行い、CommandResultを返す
+    Call the API server to perform analysis and return CommandResult
     
     Args:
-        command_result: 解析対象のコマンド実行結果
+        command_result: Command execution result to be analyzed
         
     Returns:
-        CommandResult: 解析済みのCommandResult
+        CommandResult: Analyzed CommandResult
     """
     client = LogAnalysisClient()
     return client.analyze_result(command_result)
@@ -167,7 +167,7 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
     logger.info("Received event: %s", json.dumps(event))
     
     try:
-        # APIGatewayからのイベントを処理
+        # Process events from APIGateway
         if "body" in event:
             body = json.loads(event["body"])
             command_result = CommandResult(
@@ -179,7 +179,7 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
                 created_at=body.get("created_at", None),
             )
         else:
-            # 直接呼び出しの場合
+            # For direct invocation
             command_result = CommandResult(
                 num=1,
                 command=event.get("command", ""),
@@ -189,10 +189,10 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
                 created_at=event.get("created_at", None),
             )
         
-        # 解析の実行
+        # Execute analysis
         result = analyze_logs(command_result)
         
-        # レスポンスの返却
+        # Return response
         return {
             "statusCode": 200,
             "headers": {
@@ -215,7 +215,7 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
 
 
 if __name__ == "__main__":
-    # ローカルでのテスト用
+    # For local testing
     from wish_models.command_result.command_state import CommandState
     from wish_models.command_result.log_files import LogFiles
     from wish_models.utc_datetime import UtcDatetime
