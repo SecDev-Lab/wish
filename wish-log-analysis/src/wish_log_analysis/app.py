@@ -5,6 +5,7 @@ import requests
 import traceback
 from typing import Dict, Any, Optional
 
+from wish_models import settings
 from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
 
@@ -21,8 +22,7 @@ class LogAnalysisClient:
         if api_url:
             self.api_url = api_url
         else:
-            base_url = os.environ.get("WISH_API_BASE_URL", "http://localhost:3000")
-            self.api_url = f"{base_url}/analyze"
+            self.api_url = f"{settings.WISH_API_BASE_URL}/analyze"
     
     def analyze(self, command_result: CommandResult) -> LogAnalysisOutput:
         """

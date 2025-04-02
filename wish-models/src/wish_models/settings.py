@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     # Wish home directory
     WISH_HOME: str = Field(DEFAULT_WISH_HOME)
 
+    # API settings
+    WISH_API_BASE_URL: str = Field("http://localhost:3000")
+
     # Custom env file path
     ENV_FILE: str | None = Field(None)
 
