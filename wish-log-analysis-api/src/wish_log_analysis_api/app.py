@@ -32,48 +32,34 @@ def analyze_command_result(request: AnalyzeRequest) -> AnalyzeResponse:
         # Run the graph
         result = graph.invoke(initial_state)
         
-        # デバッグ情報を出力
-        logger.info(f"Result type: {type(result)}")
-        logger.info(f"Result attributes: {dir(result)}")
-        if hasattr(result, "__dict__"):
-            logger.info(f"Result __dict__: {result.__dict__}")
-        logger.info(f"Result as string: {str(result)}")
-        
-        # 結果の取得方法を変更
+        # Extract the analyzed result
         analyzed_result = None
         
-        # 方法1: 属性としてアクセス
+        # Method 1: Access as attribute
         if hasattr(result, "analyzed_command_result") and result.analyzed_command_result is not None:
-            logger.info("Found analyzed_command_result as attribute")
             analyzed_result = result.analyzed_command_result
         
-        # 方法2: 辞書としてアクセス
+        # Method 2: Access as dictionary
         elif isinstance(result, dict) and "analyzed_command_result" in result:
-            logger.info("Found analyzed_command_result in dict")
             analyzed_result = result["analyzed_command_result"]
         
-        # 方法3: AddableValuesDictの特殊な構造を確認
+        # Method 3: Check for AddableValuesDict structure
         elif hasattr(result, "values") and isinstance(result.values, dict) and "analyzed_command_result" in result.values:
-            logger.info("Found analyzed_command_result in result.values")
             analyzed_result = result.values["analyzed_command_result"]
             
-        # 方法4: 最後のノードの結果を取得
+        # Method 4: Get result from the last node
         elif hasattr(result, "result_combiner") and result.result_combiner is not None:
-            logger.info("Using result from result_combiner node")
             if hasattr(result.result_combiner, "analyzed_command_result"):
                 analyzed_result = result.result_combiner.analyzed_command_result
         
-        # 結果が見つかった場合
+        # If result was found
         if analyzed_result is not None:
-            logger.info("Successfully extracted analyzed_command_result")
             return AnalyzeResponse(
                 analyzed_command_result=analyzed_result
             )
         
-        # フォールバック: 結果が見つからない場合
+        # Fallback: If result was not found
         logger.error("Could not find analyzed_command_result in any expected location")
-        logger.info(f"Result object attributes: {dir(result)}")
-        logger.info(f"Result object type: {type(result)}")
         
         # Create a fallback analyzed_command_result
         from wish_models.command_result import CommandResult
@@ -114,23 +100,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     logger.info("Received event: %s", json.dumps(event))
     
-    # settings モジュールの値をデバッグログに出力
+    # Import settings
     from wish_models import settings
-    logger.info("Settings values:")
-    logger.info(f"settings.OPENAI_API_KEY exists: {bool(settings.OPENAI_API_KEY)}")
-    logger.info(f"settings.OPENAI_API_KEY length: {len(settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else 0}")
-    logger.info(f"settings.OPENAI_MODEL: {settings.OPENAI_MODEL}")
-    logger.info(f"settings.LANGCHAIN_API_KEY exists: {bool(settings.LANGCHAIN_API_KEY)}")
-    logger.info(f"settings.LANGCHAIN_API_KEY length: {len(settings.LANGCHAIN_API_KEY) if settings.LANGCHAIN_API_KEY else 0}")
-    logger.info(f"settings.LANGCHAIN_TRACING_V2: {settings.LANGCHAIN_TRACING_V2}")
-    logger.info(f"settings.LANGCHAIN_ENDPOINT: {settings.LANGCHAIN_ENDPOINT}")
-    logger.info(f"settings.LANGCHAIN_PROJECT: {settings.LANGCHAIN_PROJECT}")
-    
-    # 環境変数の読み込み元ファイルを確認
-    wish_home = settings.WISH_HOME
-    wish_home_env = os.path.join(wish_home, "env")
-    logger.info(f"WISH_HOME: {wish_home}")
-    logger.info(f"Checking if env file exists at {wish_home_env}: {os.path.exists(wish_home_env)}")
 
     try:
         # Parse the request body
