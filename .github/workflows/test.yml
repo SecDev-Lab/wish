@@ -20,6 +20,7 @@ jobs:
           - wish-command-execution
           - wish-command-generation
           - wish-log-analysis
+          - wish-log-analysis-api
           - wish-models
       fail-fast: false
     steps:

@@ -1671,10 +1671,12 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "aws-sam-cli" },
+    { name = "boto3" },
     { name = "factory-boy" },
     { name = "graphviz" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "requests" },
     { name = "ruff" },
 ]
 
@@ -1693,10 +1695,12 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "aws-sam-cli", specifier = ">=1.110.0" },
+    { name = "boto3", specifier = ">=1.34.0" },
     { name = "factory-boy", specifier = ">=3.3.1" },
     { name = "graphviz", specifier = ">=0.20.1" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.2" },
+    { name = "requests", specifier = ">=2.31.0" },
     { name = "ruff", specifier = ">=0.9.8" },
 ]
 
