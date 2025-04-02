@@ -1,0 +1,46 @@
+name: Deploy wish-log-analysis-api
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+
+jobs:
+  deploy:
+    name: Deploy wish-log-analysis-api
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "wish-log-analysis-api/.python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.BOT_DEPLOY_RAPIDPEN_CLOUD_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.BOT_DEPLOY_RAPIDPEN_CLOUD_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Build with SAM
+        run: |
+          cd wish-log-analysis-api
+          make build
+
+      - name: Deploy with SAM
+        run: |
+          cd wish-log-analysis-api
+          sam deploy \
+            --stack-name "wish-log-analysis-api-${{ inputs.environment }}" \
+            --no-fail-on-empty-changeset

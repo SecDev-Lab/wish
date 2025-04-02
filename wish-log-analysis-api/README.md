@@ -42,14 +42,6 @@ make run-api
 
 Starts a local development server to test the API.
 
-### Deploy
-
-```bash
-make deploy
-```
-
-Deploys the application to AWS.
-
 ### Clean Up
 
 ```bash

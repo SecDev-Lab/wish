@@ -20,10 +20,6 @@ build: gen-requirements
 run-api: build
 	sam local start-api --debug
 
-# Deploy
-deploy: build
-	sam deploy
-
 # Clean up generated files
 clean:
 	rm -rf .aws-sam
