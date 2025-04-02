@@ -24,7 +24,22 @@ This project receives command execution results (command, exit code, stdout, std
 
 ## Development Process
 
-This project uses the following make commands for development:
+### Environment Setup
+
+To use this package, you need to set up the following environment variables:
+
+1. Configure the required environment variables:
+   - `OPENAI_API_KEY`: Your OpenAI API key (used by the API server)
+   - `OPENAI_MODEL`: The OpenAI model to use (default: gpt-4o)
+   - `WISH_LOG_ANALYSIS_API_URL`: URL of the wish-log-analysis-api service (default: http://localhost:3000/analyze)
+
+Example:
+
+```bash
+OPENAI_API_KEY=your-api-key-here
+OPENAI_MODEL=gpt-4o
+WISH_LOG_ANALYSIS_API_URL=http://localhost:3000/analyze
+```
 
 ### Build
 
@@ -55,6 +70,18 @@ Cleans up generated files.
 ```bash
 uv run pytest
 ```
+
+### Graph Visualization
+
+The log analysis graph can be visualized using the following command:
+
+```bash
+# Update graph visualization in docs/graph.svg and docs/design.md
+uv sync --dev
+uv run python scripts/update_graph_visualization.py
+```
+
+This will generate an SVG visualization of the graph and update the `docs/design.md` file.
 
 ## API Usage
 

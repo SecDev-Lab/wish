@@ -1,34 +1,15 @@
 # wish-log-analysis
 
-Log analysis package for wish.
+Log analysis client package for wish.
+
+## Overview
+
+This package provides a client library that interfaces with the wish-log-analysis-api service to analyze command execution logs. It sends HTTP requests to the API server and processes the responses.
 
 ## Development
 
-### Graph Visualization
+## Integration with wish-log-analysis-api
 
-The log analysis graph can be visualized using the following command:
+This client library communicates with the wish-log-analysis-api service, which performs the actual log analysis using LangGraph. The client sends command execution results to the API and processes the responses.
 
-```bash
-# グラフを可視化してdocs/graph.svgとdocs/design.mdを更新
-uv sync --dev
-uv run python scripts/update_graph_visualization.py
-```
-
-This will generate an SVG visualization of the graph and update the `docs/design.md` file.
-
-## Environment Setup
-
-To use this package, you need to set up the following environment variables:
-
-1. Create a `.env` file (you can copy `.env.example` as a starting point)
-2. Configure the required environment variables:
-   - `OPENAI_API_KEY`: Your OpenAI API key
-   - `OPENAI_MODEL`: The OpenAI model to use (default: gpt-4o)
-
-Example:
-
-```bash
-# .env file
-OPENAI_API_KEY=your-api-key-here
-OPENAI_MODEL=gpt-4o
-```
+For local development, you can run the API server locally using the instructions in the wish-log-analysis-api README.
