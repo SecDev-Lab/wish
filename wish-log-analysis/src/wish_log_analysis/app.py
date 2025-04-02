@@ -1,15 +1,14 @@
 import json
 import logging
-import os
-import requests
 import traceback
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
+import requests
 from wish_models import settings
 from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
 
-from .models import LogAnalysisInput, LogAnalysisOutput
+from .models import LogAnalysisOutput
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,7 @@ class LogAnalysisClient:
             self.api_url = api_url
         else:
             self.api_url = f"{settings.WISH_API_BASE_URL}/analyze"
-    
+
     def analyze(self, command_result: CommandResult) -> LogAnalysisOutput:
         """
         Call the API server to perform analysis and return LogAnalysisOutput
@@ -39,7 +38,7 @@ class LogAnalysisClient:
             print(f"API request destination: {self.api_url}")
             request_data = {"command_result": command_result.model_dump()}
             print(f"Request data: {json.dumps(request_data, indent=2)}")
-            
+
             response = requests.post(
                 self.api_url,
                 json=request_data,
@@ -47,17 +46,17 @@ class LogAnalysisClient:
                 timeout=30,
             )
             print(f"Response status: {response.status_code}")
-            
+
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 print(f"HTTP error: {e}")
                 print(f"Response content: {response.text}")
                 raise
-            
+
             # Parse response
             result = response.json()
-            
+
             # Process server response appropriately
             if "analyzed_command_result" in result:
                 analyzed_result = result["analyzed_command_result"]
@@ -72,7 +71,7 @@ class LogAnalysisClient:
                     state="error",
                     error_message="Invalid API response format"
                 )
-        
+
         except requests.RequestException as e:
             logger.error(f"API request failed: {e}")
             # Fallback processing for errors
@@ -81,7 +80,7 @@ class LogAnalysisClient:
                 state="error",
                 error_message=str(e),
             )
-            
+
     def analyze_result(self, command_result: CommandResult) -> CommandResult:
         """
         Call the API server to perform analysis and return CommandResult
@@ -95,13 +94,13 @@ class LogAnalysisClient:
         try:
             # Send API request and analyze
             output = self.analyze(command_result)
-            
+
             # Convert state string to CommandState enum
             try:
                 command_state = CommandState[output.state] if output.state in CommandState.__members__ else CommandState.API_ERROR
             except (KeyError, ValueError):
                 command_state = CommandState.API_ERROR
-            
+
             # Create new CommandResult
             analyzed_result = CommandResult(
                 num=command_result.num,
@@ -113,14 +112,14 @@ class LogAnalysisClient:
                 created_at=command_result.created_at,
                 finished_at=command_result.finished_at
             )
-            
+
             return analyzed_result
-            
+
         except Exception as e:
             # Fallback processing for errors
             logger.error(f"Error analyzing command result: {str(e)}")
             logger.error(traceback.format_exc())
-            
+
             # Return CommandResult with error information
             error_result = CommandResult(
                 num=command_result.num,
@@ -132,7 +131,7 @@ class LogAnalysisClient:
                 created_at=command_result.created_at,
                 finished_at=command_result.finished_at
             )
-            
+
             return error_result
 
 
@@ -169,7 +168,7 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
     AWS Lambda handler
     """
     logger.info("Received event: %s", json.dumps(event))
-    
+
     try:
         # Process events from APIGateway
         if "body" in event:
@@ -192,10 +191,10 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
                 log_files={"stdout": event.get("output", ""), "stderr": ""},
                 created_at=event.get("created_at", None),
             )
-        
+
         # Execute analysis
         result = analyze_logs(command_result)
-        
+
         # Return response
         return {
             "statusCode": 200,
@@ -204,7 +203,7 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
             },
             "body": json.dumps(result.model_dump())
         }
-    
+
     except Exception as e:
         logger.exception("Error processing request")
         return {
@@ -223,7 +222,7 @@ if __name__ == "__main__":
     from wish_models.command_result.command_state import CommandState
     from wish_models.command_result.log_files import LogFiles
     from wish_models.utc_datetime import UtcDatetime
-    
+
     test_command_result = CommandResult(
         num=1,
         command="ls -la",

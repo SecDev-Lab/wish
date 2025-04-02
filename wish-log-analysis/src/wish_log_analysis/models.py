@@ -35,25 +35,25 @@ class GraphState(BaseModel):
 
 class LogAnalysisInput(BaseModel):
     """Input model for the log analysis API."""
-    
+
     command: str
     """The command that was executed."""
-    
+
     output: str
     """The output of the command."""
-    
+
     exit_code: int
     """The exit code of the command."""
 
 
 class LogAnalysisOutput(BaseModel):
     """Output model for the log analysis API."""
-    
+
     summary: str
     """Summary of the log."""
-    
+
     state: str
     """Classification of the command result."""
-    
+
     error_message: str | None = None
     """Error message if an error occurred during processing."""

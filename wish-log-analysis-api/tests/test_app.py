@@ -1,14 +1,14 @@
 """Tests for the wish-log-analysis-api Lambda handler."""
 
 import json
-import pytest
 from unittest.mock import MagicMock, patch
 
-from wish_log_analysis_api.app import lambda_handler, analyze_command_result
-from wish_log_analysis_api.models import AnalyzeRequest, AnalyzeResponse, GraphState
-from wish_models.command_result import CommandResult
+import pytest
 from wish_models.command_result.command_state import CommandState
 from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
+
+from wish_log_analysis_api.app import analyze_command_result, lambda_handler
+from wish_log_analysis_api.models import AnalyzeRequest, AnalyzeResponse, GraphState
 
 
 @pytest.fixture
@@ -110,7 +110,7 @@ class TestLambdaHandler:
             # Verify the response
             assert response["statusCode"] == 200
             assert response["headers"]["Content-Type"] == "application/json"
-            
+
             body = json.loads(response["body"])
             assert "analyzed_command_result" in body
             assert body["analyzed_command_result"]["command"] == "ls -la"
@@ -132,7 +132,7 @@ class TestLambdaHandler:
         # Verify the response
         assert response["statusCode"] == 500
         assert response["headers"]["Content-Type"] == "application/json"
-        
+
         body = json.loads(response["body"])
         assert "error" in body
 
@@ -148,7 +148,7 @@ class TestLambdaHandler:
             # Verify the response
             assert response["statusCode"] == 500
             assert response["headers"]["Content-Type"] == "application/json"
-            
+
             body = json.loads(response["body"])
             assert "error" in body
             assert "Test error" in body["error"]

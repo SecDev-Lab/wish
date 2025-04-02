@@ -1,16 +1,12 @@
 """Tests for the wish-log-analysis client."""
 
-import json
-import pytest
 import requests
 import requests_mock
-from unittest.mock import patch
-
-from wish_log_analysis.app import LogAnalysisClient, analyze_logs, analyze_result
 from wish_models import settings
-from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
-from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory, CommandResultDoingFactory
+from wish_models.test_factories.command_result_factory import CommandResultDoingFactory, CommandResultSuccessFactory
+
+from wish_log_analysis.app import LogAnalysisClient, analyze_result
 
 
 class TestLogAnalysisClient:

@@ -1,8 +1,9 @@
-from wish_log_analysis.app import LogAnalysisClient
 from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
 from wish_models.command_result.log_files import LogFiles
 from wish_models.utc_datetime import UtcDatetime
+
+from wish_log_analysis.app import LogAnalysisClient
 
 # クライアントの初期化
 client = LogAnalysisClient("http://localhost:3000/analyze")  # サーバーのURLを明示的に指定

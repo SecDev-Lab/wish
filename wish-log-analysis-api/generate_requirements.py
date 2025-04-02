@@ -5,9 +5,10 @@ This script extracts production dependencies from pyproject.toml
 and writes them to requirements.txt in the project root.
 """
 
-import tomli
 import sys
 from pathlib import Path
+
+import tomli
 
 
 def extract_dependencies():
@@ -15,19 +16,19 @@ def extract_dependencies():
     try:
         with open("pyproject.toml", "rb") as f:
             data = tomli.load(f)
-        
+
         # Extract production dependencies
         deps = data["project"]["dependencies"]
-        
+
         # Write dependencies to requirements.txt in project root
         requirements_path = Path("requirements.txt")
         with open(requirements_path, "w") as f:
             for dep in deps:
                 f.write(f"{dep}\n")
-        
+
         print(f"Generated requirements.txt with {len(deps)} dependencies")
         return True
-    
+
     except Exception as e:
         print(f"Error generating requirements.txt: {e}", file=sys.stderr)
         return False

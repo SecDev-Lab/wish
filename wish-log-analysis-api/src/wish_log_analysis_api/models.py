@@ -35,16 +35,16 @@ class GraphState(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     """Request model for the analyze endpoint."""
-    
+
     command_result: CommandResult
     """The CommandResult object to be analyzed."""
 
 
 class AnalyzeResponse(BaseModel):
     """Response model for the analyze endpoint."""
-    
+
     analyzed_command_result: CommandResult
     """The analyzed CommandResult object with all fields filled."""
-    
+
     error: str | None = None
     """Error message if an error occurred during processing."""

@@ -79,7 +79,7 @@ def summarize_log(state: GraphState) -> GraphState:
                     stdout = f.read()
             else:
                 stdout = f"[Error: stdout path '{state.command_result.log_files.stdout}' is a directory]"
-        
+
         if state.command_result.log_files.stderr and os.path.exists(state.command_result.log_files.stderr):
             if not os.path.isdir(state.command_result.log_files.stderr):
                 with open(state.command_result.log_files.stderr, "r", encoding="utf-8") as f:
