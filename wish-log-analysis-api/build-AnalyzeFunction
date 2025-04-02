@@ -1,8 +1,0 @@
-#!/bin/bash
-set -e
-
-# Copy dependencies to artifacts directory
-python3 -m pip install -r requirements.txt -t ${ARTIFACTS_DIR}/
-
-# Copy application code to artifacts directory
-cp -r src/wish_log_analysis_api ${ARTIFACTS_DIR}/wish_log_analysis_api
