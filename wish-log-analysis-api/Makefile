@@ -29,8 +29,3 @@ clean:
 	rm -rf .aws-sam
 	rm -rf vendor/
 	find src/ -type d -name "__pycache__" -exec rm -rf {} +
-
-# Build target for SAM (executed inside container)
-build-AnalyzeFunction:
-	python3 -m pip install -r vendor/requirements.txt -t $(ARTIFACTS_DIR)/
-	cp -r src/wish_log_analysis_api $(ARTIFACTS_DIR)/
