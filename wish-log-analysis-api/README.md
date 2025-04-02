@@ -31,15 +31,17 @@ To use this package, you need to set up the following environment variables:
 1. Configure the required environment variables:
    - `OPENAI_API_KEY`: Your OpenAI API key (used by the API server)
    - `OPENAI_MODEL`: The OpenAI model to use (default: gpt-4o)
-   - `WISH_LOG_ANALYSIS_API_URL`: URL of the wish-log-analysis-api service (default: http://localhost:3000/analyze)
+   - `WISH_API_BASE_URL`: Base URL of the wish-log-analysis-api service (default: http://localhost:3000)
 
 Example:
 
 ```bash
 OPENAI_API_KEY=your-api-key-here
 OPENAI_MODEL=gpt-4o
-WISH_LOG_ANALYSIS_API_URL=http://localhost:3000/analyze
+WISH_API_BASE_URL=http://localhost:3000
 ```
+
+The client will automatically append the `/analyze` endpoint to the base URL.
 
 ### Build
 

@@ -27,9 +27,9 @@ class TestLogAnalysisClient:
 
     def test_init_env_var(self):
         """Test that the client initializes with the URL from an environment variable."""
-        with patch.dict("os.environ", {"WISH_LOG_ANALYSIS_API_URL": "https://api.example.com"}):
+        with patch.dict("os.environ", {"WISH_API_BASE_URL": "https://api.example.com"}):
             client = LogAnalysisClient()
-            assert client.api_url == "https://api.example.com"
+            assert client.api_url == "https://api.example.com/analyze"
 
     def test_analyze_success(self):
         """Test that the client successfully analyzes a command result."""
@@ -98,7 +98,7 @@ class TestLogAnalysisClient:
             result = client.analyze(command_result)
 
             # Verify the result
-            assert result.summary == "解析結果なし"
+            assert result.summary == "No analysis results"
             assert result.state == command_result.state
             assert result.error_message == "API error"
 
@@ -124,7 +124,7 @@ class TestLogAnalysisClient:
             result = client.analyze(command_result)
 
             # Verify the result
-            assert result.summary == "APIリクエストに失敗しました"
+            assert result.summary == "API request failed"
             assert result.state == "error"
             assert "Connection error" in result.error_message
 

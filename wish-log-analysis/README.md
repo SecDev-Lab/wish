@@ -8,6 +8,20 @@ This package provides a client library that interfaces with the wish-log-analysi
 
 ## Development
 
+### Environment Variables
+
+To use this package, you need to set up the following environment variables:
+
+- `WISH_API_BASE_URL`: Base URL of the wish-log-analysis-api service (default: http://localhost:3000)
+
+Example:
+
+```bash
+WISH_API_BASE_URL=http://localhost:3000
+```
+
+The client will automatically append the `/analyze` endpoint to the base URL.
+
 ## Integration with wish-log-analysis-api
 
 This client library communicates with the wish-log-analysis-api service, which performs the actual log analysis using LangGraph. The client sends command execution results to the API and processes the responses.
