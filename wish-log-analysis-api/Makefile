@@ -1,4 +1,4 @@
-.PHONY: deps gen-requirements install-sam-deps test dev build deploy clean build-AnalyzeFunction
+.PHONY: deps gen-requirements install-sam-deps build run-api deploy clean build-AnalyzeFunction
 
 # 依存関係の管理
 deps:
@@ -12,17 +12,13 @@ gen-requirements: deps
 install-sam-deps: gen-requirements
 	python3 -m pip install -r vendor/requirements.txt -t vendor/
 
-# テスト実行
-test: deps
-	uv run pytest
-
-# ローカル開発サーバー起動（コンテナ使用）
-dev: gen-requirements
-	sam local start-api --use-container --skip-pull-image
-
 # SAMビルド（コンテナ使用）
 build: gen-requirements
 	sam build --use-container --skip-pull-image
+
+# ローカル開発サーバー起動（コンテナ使用）
+run-api: build
+	sam local start-api --debug
 
 # デプロイ
 deploy: build
