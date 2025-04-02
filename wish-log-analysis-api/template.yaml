@@ -21,7 +21,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./
-      Handler: vendor.wish_log_analysis_api.app.lambda_handler
+      Handler: wish_log_analysis_api.app.lambda_handler
       Runtime: python3.13
       Architectures:
         - x86_64
