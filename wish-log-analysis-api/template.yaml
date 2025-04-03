@@ -14,7 +14,9 @@ Globals:
     LoggingConfig:
       LogFormat: JSON
   Api:
-    TracingEnabled: true
+    TracingEnabled: false
+    OpenApiVersion: '2.0'
+    EndpointConfiguration: REGIONAL
 
 Resources:
   WishLogAnalysisApiDepLayer:
