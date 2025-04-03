@@ -44,5 +44,5 @@ jobs:
           sam deploy \
             --stack-name "wish-log-analysis-api-${{ inputs.environment }}" \
             --s3-bucket "aws-sam-cli-wish-log-analysis-api-artifacts" \
-            --no-fail-on-empty-changeset \
-            --debug
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset
