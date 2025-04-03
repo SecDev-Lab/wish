@@ -10,11 +10,6 @@ on:
         type: choice
         options:
           - prod
-      branch:
-        description: 'Branch to deploy'
-        required: true
-        default: 'main'
-        type: string
 
 jobs:
   deploy:
@@ -22,8 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.branch }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -50,4 +43,5 @@ jobs:
           cd wish-log-analysis-api
           sam deploy \
             --stack-name "wish-log-analysis-api-${{ inputs.environment }}" \
+            --resolve-s3 \
             --no-fail-on-empty-changeset
