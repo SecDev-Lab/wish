@@ -1,5 +1,5 @@
 """Log analysis package for wish."""
 
-from .analyzer import LogAnalyzer
+from .app import LogAnalysisClient, analyze_logs, analyze_result
 
-__all__ = ["LogAnalyzer"]
+__all__ = ["LogAnalysisClient", "analyze_logs", "analyze_result"]

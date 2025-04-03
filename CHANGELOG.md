@@ -8,8 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added new `wish-log-analysis-api` package:
+  - Implemented serverless API using AWS Lambda and API Gateway
+  - Created LangGraph-based analysis pipeline for command logs
+  - Added SAM template for AWS deployment
+  - Added GitHub Actions workflow for automated deployment
 
 ### Changed
+- Refactored `wish-log-analysis` to client-server architecture:
+  - Converted `wish-log-analysis` to API client
+  - Moved analysis logic to `wish-log-analysis-api` service
+  - Updated documentation to reflect new architecture
+- Updated environment configuration and dependencies
 
 ### Fixed
 

@@ -12,8 +12,18 @@ DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
 class Settings(BaseSettings):
     """Application settings."""
 
+    # クラスレベルでmodel_configを定義
+    model_config = ConfigDict(
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="allow",
+    )
+
     # Wish home directory
     WISH_HOME: str = Field(DEFAULT_WISH_HOME)
+
+    # API settings
+    WISH_API_BASE_URL: str = Field("http://localhost:3000")
 
     # Custom env file path
     ENV_FILE: str | None = Field(None)
@@ -45,17 +55,8 @@ class Settings(BaseSettings):
         # Get env files to load
         env_files = self._get_env_files(env_file)
 
-        # Set model_config dynamically
-        object.__setattr__(
-            self,
-            "model_config",
-            ConfigDict(
-                env_file=env_files,
-                env_file_encoding="utf-8",
-                case_sensitive=False,
-                extra="allow",
-            )
-        )
+        # 環境変数ファイルを設定
+        kwargs["_env_file"] = env_files
 
         # Initialize with kwargs
         super().__init__(**kwargs)

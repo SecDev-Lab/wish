@@ -2,7 +2,7 @@
 
 ## System Architecture
 
-wish-sh consists of six main packages, each with clear responsibilities:
+wish-sh consists of seven main packages, each with clear responsibilities:
 
 ```mermaid
 graph TD
@@ -11,8 +11,10 @@ graph TD
     A --> |Basic data models| D[wish-log-analysis]
     A --> |Basic data models| E[wish-command-generation]
     A --> |Basic data models| F[wish-knowledge-loader]
+    A --> |Basic data models| G[wish-log-analysis-api]
     B --> |Command execution functionality| C
-    D --> |Log analysis functionality| C
+    D --> |Log analysis client| C
+    D --> |API requests| G
     E --> |Command generation functionality| C
 ```
 
@@ -20,7 +22,8 @@ graph TD
 
 - **wish-models**: No external dependencies except for pydantic
 - **wish-command-execution**: Depends on wish-models
-- **wish-log-analysis**: Depends on wish-models, langchain, and OpenAI
+- **wish-log-analysis**: Depends on wish-models and makes API requests to wish-log-analysis-api
+- **wish-log-analysis-api**: Depends on wish-models, langchain, and OpenAI
 - **wish-command-generation**: Depends on wish-models, langchain, and OpenAI
 - **wish-knowledge-loader**: Depends on langchain and OpenAI
 - **wish-sh**: Depends on wish-models, wish-command-execution, wish-log-analysis, and wish-command-generation
@@ -49,11 +52,21 @@ Handles the execution of shell commands and tracks their status. Key features:
 
 ### wish-log-analysis
 
-Analyzes command execution logs and classifies command states. Key features:
+Acts as a client library that interfaces with the wish-log-analysis-api service to analyze command execution logs. Key features:
 
-- Log summarization using LLM
-- Command state classification based on exit code, stdout, and stderr
+- Provides LogAnalysisClient to send HTTP requests to the wish-log-analysis-api service
+- Sends command execution results (CommandResult) to the API and retrieves analysis results
+- Provides a simplified interface for use by wish-sh
+
+### wish-log-analysis-api
+
+Provides an API server for analyzing command execution logs. Key features:
+
+- API endpoint implemented as an AWS Lambda function
 - LangGraph-based analysis pipeline
+- Log summarization
+- Command state classification based on exit code, stdout, and stderr
+- Generation and return of analysis results
 - Integration with OpenAI API
 
 ### wish-command-generation

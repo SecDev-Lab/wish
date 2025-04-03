@@ -7,6 +7,48 @@ This guide explains how to install and set up `wish-sh` and `wish-knowledge-load
 - Python 3.13 or higher
 - OpenAI API key (available from the [OpenAI website](https://platform.openai.com/))
 
+## Setup Overview
+
+This guide will walk you through the process of setting up the wish ecosystem components in the correct order. Follow these steps to ensure proper functionality:
+
+1. **Environment Setup**: Configure the necessary environment variables for all components
+2. **Start the API Server**: Launch the wish-log-analysis-api server using `make run-api`
+3. **Install and Configure wish-sh**: Install the wish-sh package and set up required configurations
+4. **Install wish-knowledge-loader** (Optional): Set up the knowledge loader if you need enhanced functionality
+
+The wish-sh command requires the wish-log-analysis-api server to be running, as it relies on the API for analyzing command execution logs. This setup ensures that all components work together seamlessly.
+
+The following sections provide detailed instructions for each step of the setup process.
+
+## wish-log-analysis-api
+
+### Environment Variables
+
+wish-log-analysis-api automatically reads environment variables from the `~/.wish/env` file. Set the following environment variables:
+
+```
+# OpenAI API settings
+OPENAI_API_KEY=your-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# API settings
+WISH_API_BASE_URL=http://localhost:3000
+```
+
+See the "Using env File" section for instructions on setting up the environment variable file.
+
+**Note**: The previous method (setting environment variables using `export` commands) does not affect the API server running in a container. Environment variables are automatically loaded from the `~/.wish/env` file and passed to the container.
+
+### Starting the API Server
+
+To start the wish-log-analysis-api server locally, run the following command:
+
+```bash
+make run-api
+```
+
+This will start a local development server and make the API endpoints available.
+
 ## wish-sh
 
 ### Installation
@@ -31,14 +73,14 @@ export OPENAI_MODEL=gpt-4o
 # Optional: Set the wish home directory (default: ~/.wish)
 export WISH_HOME=~/.wish
 
-# Optional: Set a custom .env file path (default: $WISH_HOME/env)
+# Optional: Set a custom env File path (default: $WISH_HOME/env)
 # This is used by all wish packages
 export WISH_ENV_FILE=/path/to/your/custom/.env
 ```
 
 You can add these environment variables to your shell configuration file (like `.bashrc` or `.zshrc`) to have them automatically set when you open a terminal.
 
-### Using .env File
+### Using env File
 
 Instead of setting environment variables directly, you can use a `.env` file. The default location for this file is `$WISH_HOME/env`. Here's how to set it up:
 
@@ -97,7 +139,7 @@ wish-sh
 
 Both commands provide identical functionality.
 
-You can also specify a custom .env file path using the `--env-file` option:
+You can also specify a custom env File path using the `--env-file` option:
 
 ```bash
 wish --env-file /path/to/your/custom/.env

@@ -7,7 +7,7 @@ from wish_command_execution import CommandExecutor, CommandStatusTracker
 from wish_command_execution.backend import BashConfig, create_backend
 from wish_command_generation import CommandGenerator
 from wish_command_generation.exceptions import CommandGenerationError
-from wish_log_analysis import LogAnalyzer
+from wish_log_analysis import LogAnalysisClient
 from wish_models import CommandResult, Settings, Wish, WishState
 from wish_models.command_result.command_state import CommandState
 
@@ -33,7 +33,7 @@ class WishManager:
         self.command_generator = CommandGenerator()
 
         # Initialize log analysis component
-        self.log_analyzer = LogAnalyzer()
+        self.log_analyzer = LogAnalysisClient()
 
         # Initialize command execution components
         backend = create_backend(backend_config or BashConfig())
@@ -51,7 +51,7 @@ class WishManager:
             f.write(json.dumps(wish.to_dict()) + "\n")
 
     def analyze_log(self, command_result: CommandResult) -> CommandResult:
-        """Analyze command logs using LogAnalyzer.
+        """Analyze command logs using LogAnalysisClient.
 
         Args:
             command_result: The command result to analyze.
@@ -60,7 +60,7 @@ class WishManager:
             The analyzed command result with log_summary and state set.
         """
         try:
-            # Analyze using LogAnalyzer
+            # Analyze using LogAnalysisClient
             analyzed_result = self.log_analyzer.analyze_result(command_result)
             return analyzed_result
         except Exception as e:

@@ -17,7 +17,7 @@ def create_log_analysis_graph(compile: bool = True) -> StateGraph:
         Compiled or pre-compiled graph object
     """
     # Set project name
-    settings.LANGCHAIN_PROJECT = "wish-log-analysis"
+    settings.LANGCHAIN_PROJECT = "wish-log-analysis-api"
 
     # Log LangSmith configuration if tracing is enabled
     if settings.LANGCHAIN_TRACING_V2:

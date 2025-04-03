@@ -1,4 +1,4 @@
-"""Models for the log analysis client."""
+"""Models for the log analysis graph."""
 
 from pydantic import BaseModel, Field
 from wish_models.command_result import CommandResult
@@ -9,7 +9,7 @@ class GraphState(BaseModel):
     """Class representing the state of LangGraph.
 
     This class is used to maintain state during LangGraph execution and pass data between nodes.
-    wish-log-analysis takes a CommandResult object with None fields and outputs a CommandResult
+    wish-log-analysis-api takes a CommandResult object with None fields and outputs a CommandResult
     with all fields filled.
     """
 
@@ -22,7 +22,7 @@ class GraphState(BaseModel):
     """Summary of the log. Used to improve readability of the command result."""
 
     command_state: CommandState | None = None
-    """Classification of the command result (SUCCESS, COMMAND_NOT_FOUND etc.)."""
+    """Classification of the command result (SUCCESS, COMMAND_NOT_FOUND, etc.)."""
 
     # Final output field
     analyzed_command_result: CommandResult | None = None
@@ -33,27 +33,18 @@ class GraphState(BaseModel):
     """Flag indicating whether an API error occurred during processing."""
 
 
-class LogAnalysisInput(BaseModel):
-    """Input model for the log analysis API."""
+class AnalyzeRequest(BaseModel):
+    """Request model for the analyze endpoint."""
 
-    command: str
-    """The command that was executed."""
-
-    output: str
-    """The output of the command."""
-
-    exit_code: int
-    """The exit code of the command."""
+    command_result: CommandResult
+    """The CommandResult object to be analyzed."""
 
 
-class LogAnalysisOutput(BaseModel):
-    """Output model for the log analysis API."""
+class AnalyzeResponse(BaseModel):
+    """Response model for the analyze endpoint."""
 
-    summary: str
-    """Summary of the log."""
+    analyzed_command_result: CommandResult
+    """The analyzed CommandResult object with all fields filled."""
 
-    state: str
-    """Classification of the command result."""
-
-    error_message: str | None = None
+    error: str | None = None
     """Error message if an error occurred during processing."""
