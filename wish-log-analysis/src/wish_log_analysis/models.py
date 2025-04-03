@@ -15,14 +15,14 @@ class GraphState(BaseModel):
 
     # Input field - treated as read-only
     command_result: CommandResult = Field(description="Input command result to be processed")
-    """The CommandResult object to be processed. May have None fields for stdout stderr."""
+    """The CommandResult object to be processed. May have None fields for stdout, stderr."""
 
     # Intermediate result fields - no Annotated for serial execution
     log_summary: str | None = None
     """Summary of the log. Used to improve readability of the command result."""
 
     command_state: CommandState | None = None
-    """Classification of the command result (SUCCESS COMMAND_NOT_FOUND etc.)."""
+    """Classification of the command result (SUCCESS, COMMAND_NOT_FOUND etc.)."""
 
     # Final output field
     analyzed_command_result: CommandResult | None = None

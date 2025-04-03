@@ -215,21 +215,3 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
                 "error": str(e)
             })
         }
-
-
-if __name__ == "__main__":
-    # For local testing
-    from wish_models.command_result.command_state import CommandState
-    from wish_models.command_result.log_files import LogFiles
-    from wish_models.utc_datetime import UtcDatetime
-
-    test_command_result = CommandResult(
-        num=1,
-        command="ls -la",
-        state=CommandState.DOING,
-        exit_code=0,
-        log_files=LogFiles(stdout="total 16\ndrwxr-xr-x  4 user  staff  128 Apr  2 10:00 .\ndrwxr-xr-x  3 user  staff   96 Apr  2 10:00 ..\n-rw-r--r--  1 user  staff    0 Apr  2 10:00 file1.txt\n-rw-r--r--  1 user  staff    0 Apr  2 10:00 file2.txt", stderr=""),
-        created_at=UtcDatetime.now()
-    )
-    result = analyze_logs(test_command_result)
-    print(json.dumps(result.model_dump(), indent=2))
