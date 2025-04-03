@@ -44,4 +44,5 @@ jobs:
           sam deploy \
             --stack-name "wish-log-analysis-api-${{ inputs.environment }}" \
             --resolve-s3 \
-            --no-fail-on-empty-changeset
+            --no-fail-on-empty-changeset \
+            --debug
