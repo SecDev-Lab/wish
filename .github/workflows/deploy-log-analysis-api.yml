@@ -38,6 +38,12 @@ jobs:
           cd wish-log-analysis-api
           make build
 
+      - name: Delete existing stack
+        run: |
+          aws cloudformation delete-stack --stack-name "wish-log-analysis-api-${{ inputs.environment }}" || true
+          echo "Waiting for stack deletion to complete..."
+          aws cloudformation wait stack-delete-complete --stack-name "wish-log-analysis-api-${{ inputs.environment }}" || true
+
       - name: Deploy with SAM
         run: |
           cd wish-log-analysis-api
