@@ -6,7 +6,7 @@ deps:
 
 # Generate requirements.txt from pyproject.toml
 gen-requirements: deps
-	uv run ./generate_requirements.py
+	uv run ./scripts/generate_requirements.py
 
 # Install dependencies for SAM
 install-sam-deps: gen-requirements
