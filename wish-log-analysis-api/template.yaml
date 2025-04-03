@@ -32,10 +32,17 @@ Resources:
       CodeUri: ./
       Handler: src.wish_log_analysis_api.app.lambda_handler
       Runtime: python3.13
-      # Environment:
-      #   Variables:
-      #     LANGCHAIN_API_KEY: '{{resolve:secretsmanager:wish/api-keys:SecretString:LANGCHAIN_API_KEY}}'
-      #     OPENAI_API_KEY: '{{resolve:secretsmanager:wish/api-keys:SecretString:OPENAI_API_KEY}}'
+      Environment:
+        Variables:
+          WISH_HOME: ''
+          WISH_API_BASE_URL: ''
+          OPENAI_API_KEY: ''
+          OPENAI_MODEL: ''
+          OPENAI_EMBEDDING_MODEL: ''
+          LANGCHAIN_TRACING_V2: ''
+          LANGCHAIN_ENDPOINT: ''
+          LANGCHAIN_API_KEY: ''
+          LANGCHAIN_PROJECT: ''
       Events:
         Analyze:
           Type: Api

@@ -18,7 +18,8 @@ build: install-sam-deps
 
 # Start local development server (using container)
 run-api: build
-	sam local start-api
+	uv run python scripts/env_to_json.py
+	sam local start-api --env-vars .env.json
 
 # Clean up generated files
 clean:
