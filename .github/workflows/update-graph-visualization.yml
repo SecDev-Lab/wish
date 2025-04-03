@@ -5,8 +5,8 @@ on:
     paths:
       - 'wish-command-generation/src/wish_command_generation/graph.py'
       - 'wish-command-generation/src/wish_command_generation/nodes/**'
-      - 'wish-log-analysis-api/src/wish_log_analysis/graph.py'
-      - 'wish-log-analysis-api/src/wish_log_analysis/nodes/**'
+      - 'wish-log-analysis-api/src/wish_log_analysis_api/graph.py'
+      - 'wish-log-analysis-api/src/wish_log_analysis_api/nodes/**'
 
 jobs:
   update-graph:
