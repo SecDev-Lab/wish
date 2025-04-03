@@ -43,6 +43,11 @@ jobs:
           aws cloudformation delete-stack --stack-name "wish-log-analysis-api-${{ inputs.environment }}" || true
           echo "Waiting for stack deletion to complete..."
           aws cloudformation wait stack-delete-complete --stack-name "wish-log-analysis-api-${{ inputs.environment }}" || true
+          
+      - name: Create API Gateway Service Linked Role
+        run: |
+          echo "Creating API Gateway Service Linked Role..."
+          aws iam create-service-linked-role --aws-service-name apigateway.amazonaws.com || echo "Service linked role already exists or cannot be created"          
 
       - name: Deploy with SAM
         run: |
