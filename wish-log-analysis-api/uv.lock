@@ -138,6 +138,7 @@ dependencies = [
     { name = "jmespath" },
     { name = "s3transfer" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/c5/67/624011e0bf632818e786fcaa457e0a9421befede9ea7afe8dbe91ad4c8a3/boto3-1.37.25.tar.gz", hash = "sha256:23e9cbad028ef3723567f4556411ee8d0f732594316b4c78c174a03ba3ca3159", size = 111321 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/6a/05352f633876b28bc311092ba0be5286f604e36d33a1347fff7045721d99/boto3-1.37.25-py3-none-any.whl", hash = "sha256:00a025c621198508dc20c45224baaa7bd2a695323d999cce08b0d4deab5ada6f", size = 139561 },
 ]
@@ -1691,7 +1692,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.10.6" },
     { name = "pydantic-settings", specifier = ">=2.8.1" },
     { name = "tomli", specifier = ">=2.0.0" },
-    { name = "wish-models", specifier = ">=0.4.5" },
+    { name = "wish-models", editable = "../wish-models" },
 ]
 
 [package.metadata.requires-dev]
@@ -1708,15 +1709,25 @@ dev = [
 
 [[package]]
 name = "wish-models"
-version = "0.4.5"
-source = { registry = "https://pypi.org/simple" }
+version = "0.0.0"
+source = { editable = "../wish-models" }
 dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/08/ab/913a38e01315fbe8f318d99a7b4c6e4a16f32727efad7aea236777931f85/wish_models-0.4.5.tar.gz", hash = "sha256:133a41484b210a3517a0cbba1fc4552dc354082aa44ee58f31961b9aeee7a27f", size = 38665 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9a/7e/4178f503b35c8bf2ccd10c0583a80ba586ee7afb63c46b9344408e47f68d/wish_models-0.4.5-py3-none-any.whl", hash = "sha256:60ca4027d174fb549b69138b214588fcd5890016540eff9859a72bf795364245", size = 40202 },
+
+[package.metadata]
+requires-dist = [
+    { name = "pydantic", specifier = ">=2.10.6" },
+    { name = "pydantic-settings", specifier = ">=2.0.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "factory-boy", specifier = ">=3.3.1" },
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.2" },
+    { name = "ruff", specifier = ">=0.9.8" },
 ]
 
 [[package]]

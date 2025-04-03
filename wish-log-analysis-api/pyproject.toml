@@ -42,6 +42,9 @@ dependencies = [
     "wish-models>=0.4.5",
 ]
 
+[tool.uv.sources]
+wish-models = { path = "../wish-models", editable = true }
+
 [tool.uv]
 dev-dependencies = [
     "factory-boy>=3.3.1",
