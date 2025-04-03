@@ -43,6 +43,6 @@ jobs:
           cd wish-log-analysis-api
           sam deploy \
             --stack-name "wish-log-analysis-api-${{ inputs.environment }}" \
-            --s3-bucket "wish-log-analysis-api-artifacts" \
+            --s3-bucket "aws-sam-cli-wish-log-analysis-api-artifacts" \
             --no-fail-on-empty-changeset \
             --debug
