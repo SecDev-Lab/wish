@@ -24,14 +24,20 @@ The following sections provide detailed instructions for each step of the setup 
 
 ### Environment Variables
 
-To use wish-log-analysis-api, you need to set the following environment variable:
+wish-log-analysis-api automatically reads environment variables from the `~/.wish/env` file. Set the following environment variables:
 
-```bash
-# Set the base URL for the wish-log-analysis-api service (default: http://localhost:3000)
-export WISH_API_BASE_URL=http://localhost:3000
+```
+# OpenAI API settings
+OPENAI_API_KEY=your-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# API settings
+WISH_API_BASE_URL=http://localhost:3000
 ```
 
-This environment variable specifies the base URL of the wish-log-analysis-api service. The client will automatically append the `/analyze` endpoint to this base URL.
+See the "Using env File" section for instructions on setting up the environment variable file.
+
+**Note**: The previous method (setting environment variables using `export` commands) does not affect the API server running in a container. Environment variables are automatically loaded from the `~/.wish/env` file and passed to the container.
 
 ### Starting the API Server
 
@@ -67,14 +73,14 @@ export OPENAI_MODEL=gpt-4o
 # Optional: Set the wish home directory (default: ~/.wish)
 export WISH_HOME=~/.wish
 
-# Optional: Set a custom .env file path (default: $WISH_HOME/env)
+# Optional: Set a custom env File path (default: $WISH_HOME/env)
 # This is used by all wish packages
 export WISH_ENV_FILE=/path/to/your/custom/.env
 ```
 
 You can add these environment variables to your shell configuration file (like `.bashrc` or `.zshrc`) to have them automatically set when you open a terminal.
 
-### Using .env File
+### Using env File
 
 Instead of setting environment variables directly, you can use a `.env` file. The default location for this file is `$WISH_HOME/env`. Here's how to set it up:
 
@@ -133,7 +139,7 @@ wish-sh
 
 Both commands provide identical functionality.
 
-You can also specify a custom .env file path using the `--env-file` option:
+You can also specify a custom env File path using the `--env-file` option:
 
 ```bash
 wish --env-file /path/to/your/custom/.env
