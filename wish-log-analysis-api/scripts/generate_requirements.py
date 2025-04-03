@@ -9,9 +9,8 @@ For SAM deployment:
 - Uses latest versions for all wish-* packages
 """
 
-import sys
-import os
 import re
+import sys
 from pathlib import Path
 
 import tomli
@@ -25,7 +24,7 @@ def extract_dependencies():
 
         # Extract production dependencies
         deps = data["project"]["dependencies"]
-        
+
         # Process dependencies for SAM deployment
         processed_deps = []
         for dep in deps:
