@@ -26,10 +26,10 @@ class LogAnalysisClient:
     def analyze(self, command_result: CommandResult) -> LogAnalysisOutput:
         """
         Call the API server to perform analysis and return LogAnalysisOutput
-        
+
         Args:
             command_result: Command execution result to be analyzed
-            
+
         Returns:
             LogAnalysisOutput: Analysis result
         """
@@ -84,10 +84,10 @@ class LogAnalysisClient:
     def analyze_result(self, command_result: CommandResult) -> CommandResult:
         """
         Call the API server to perform analysis and return CommandResult
-        
+
         Args:
             command_result: Command execution result to be analyzed
-            
+
         Returns:
             CommandResult: Analyzed CommandResult
         """
@@ -97,7 +97,9 @@ class LogAnalysisClient:
 
             # Convert state string to CommandState enum
             try:
-                command_state = CommandState[output.state] if output.state in CommandState.__members__ else CommandState.API_ERROR
+                command_state = (CommandState[output.state]
+                                if output.state in CommandState.__members__
+                                else CommandState.API_ERROR)
             except (KeyError, ValueError):
                 command_state = CommandState.API_ERROR
 
@@ -138,10 +140,10 @@ class LogAnalysisClient:
 def analyze_logs(command_result: CommandResult) -> LogAnalysisOutput:
     """
     Call the API server to perform analysis and return LogAnalysisOutput
-    
+
     Args:
         command_result: Command execution result to be analyzed
-        
+
     Returns:
         LogAnalysisOutput: Analysis result
     """
@@ -152,10 +154,10 @@ def analyze_logs(command_result: CommandResult) -> LogAnalysisOutput:
 def analyze_result(command_result: CommandResult) -> CommandResult:
     """
     Call the API server to perform analysis and return CommandResult
-    
+
     Args:
         command_result: Command execution result to be analyzed
-        
+
     Returns:
         CommandResult: Analyzed CommandResult
     """

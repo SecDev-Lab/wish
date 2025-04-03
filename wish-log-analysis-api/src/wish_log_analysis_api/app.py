@@ -43,7 +43,9 @@ def analyze_command_result(request: AnalyzeRequest) -> AnalyzeResponse:
             analyzed_result = result["analyzed_command_result"]
 
         # Method 3: Check for AddableValuesDict structure
-        elif hasattr(result, "values") and isinstance(result.values, dict) and "analyzed_command_result" in result.values:
+        elif (hasattr(result, "values")
+              and isinstance(result.values, dict)
+              and "analyzed_command_result" in result.values):
             analyzed_result = result.values["analyzed_command_result"]
 
         # Method 4: Get result from the last node
