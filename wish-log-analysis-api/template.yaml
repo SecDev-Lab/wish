@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  wish-log-analysis-api
+  RapidPen Cloud - Log Analysis API Component (wish-log-analysis-api)
 
 Parameters:
   Environment:
@@ -14,7 +14,7 @@ Parameters:
 
   OpenAIApiKey:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: /wish/log-analysis-api/${Environment}/openai-api-key
+    Default: /rapidpen-cloud/${Environment}/openai-api-key
     NoEcho: true
 
   OpenAIModel:
@@ -23,11 +23,11 @@ Parameters:
 
   ApiBaseUrl:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: /wish/log-analysis-api/${Environment}/api-base-url
+    Default: /rapidpen-cloud/${Environment}/api-base-url
 
   LangchainApiKey:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: /wish/log-analysis-api/langchain-api-key
+    Default: /rapidpen-cloud/langchain-api-key
     NoEcho: true
 
 Globals:
@@ -60,15 +60,15 @@ Resources:
   ApiKey:
     Type: AWS::ApiGateway::ApiKey
     Properties:
-      Name: !Sub "wish-log-analysis-api-key-${Environment}"
-      Description: !Sub "API key for wish-log-analysis-api ${Environment}"
+      Name: !Sub "rapidpen-cloud-key-${Environment}"
+      Description: !Sub "API key for RapidPen Cloud ${Environment}"
       Enabled: true
   
   UsagePlan:
     Type: AWS::ApiGateway::UsagePlan
     Properties:
-      UsagePlanName: !Sub "wish-log-analysis-api-usage-plan-${Environment}"
-      Description: !Sub "Usage plan for wish-log-analysis-api ${Environment}"
+      UsagePlanName: !Sub "rapidpen-cloud-usage-plan-${Environment}"
+      Description: !Sub "Usage plan for RapidPen Cloud ${Environment}"
       ApiStages:
         - ApiId: !Ref ApiGatewayApi
           Stage: !Ref Environment
@@ -83,10 +83,10 @@ Resources:
       KeyType: API_KEY
       UsagePlanId: !Ref UsagePlan
 
-  WishLogAnalysisApiDepLayer:
+  RapidPenCloudDepLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: !Sub "wish-log-analysis-api-dep-layer-${Environment}"
+      LayerName: !Sub "rapidpen-cloud-dep-layer-${Environment}"
       ContentUri: ./vendor/
       CompatibleRuntimes:
         - python3.13
@@ -95,7 +95,7 @@ Resources:
   AnalyzeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "wish-log-analysis-api-analyze-${Environment}"
+      FunctionName: !Sub "rapidpen-cloud-analyze-${Environment}"
       CodeUri: ./
       Handler: src.wish_log_analysis_api.app.lambda_handler
       Runtime: python3.13
@@ -109,7 +109,7 @@ Resources:
           LANGCHAIN_TRACING_V2: 'true'
           LANGCHAIN_ENDPOINT: 'https://api.smith.langchain.com'
           LANGCHAIN_API_KEY: !Ref LangchainApiKey
-          LANGCHAIN_PROJECT: !Sub "wish-log-analysis-${Environment}"
+          LANGCHAIN_PROJECT: !Sub "rapidpen-cloud-${Environment}"
       Events:
         Analyze:
           Type: Api
@@ -118,10 +118,11 @@ Resources:
             Path: /analyze
             Method: post
       Layers:
-        - !Ref WishLogAnalysisApiDepLayer
+        - !Ref RapidPenCloudDepLayer
       Tags:
         Environment: !Ref Environment
         Service: wish-log-analysis-api
+        Project: RapidPen-Cloud
 
 Outputs:
   AnalyzeApi:
