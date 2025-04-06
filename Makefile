@@ -4,7 +4,7 @@
 # Find all Python projects (directories containing pyproject.toml)
 PYTHON_PROJECTS := $(dir $(shell find . -name "pyproject.toml" -not -path "*/\.*"))
 
-.PHONY: test lint format help
+.PHONY: test lint format e2e help
 
 # Default target
 help:
@@ -12,6 +12,7 @@ help:
 	@echo "  make test    - Run tests in all Python projects"
 	@echo "  make lint    - Run linting in all Python projects"
 	@echo "  make format  - Format code in all Python projects"
+	@echo "  make e2e     - Run E2E tests for wish-log-analysis-api"
 
 # Run tests in all Python projects
 test:
@@ -36,3 +37,8 @@ format:
 		echo "\n=== Formatting code in $$project ==="; \
 		(cd $$project && uv run ruff check --fix) || echo "Formatting failed in $$project"; \
 	done
+
+# Run E2E tests for wish-log-analysis-api
+e2e:
+	@echo "Running E2E tests for wish-log-analysis-api..."
+	@(cd wish-log-analysis-api && uv run pytest tests/e2e/)
