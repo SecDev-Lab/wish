@@ -26,6 +26,17 @@ Parameters:
   LangchainApiKey:
     Type: String
     NoEcho: true
+    
+  # 共有APIリソースのパラメータ
+  ApiKeyId:
+    Type: String
+    Default: ""
+    Description: ID of the shared API Key (leave empty to skip UsagePlan association)
+
+  UsagePlanId:
+    Type: String
+    Default: ""
+    Description: ID of the shared Usage Plan (leave empty to skip UsagePlan association)
 
 Globals:
   Function:
@@ -53,34 +64,24 @@ Resources:
       Auth:
         ApiKeyRequired: true
 
-  # API Key and Usage Plan
-  ApiKey:
-    Type: AWS::ApiGateway::ApiKey
-    Properties:
-      Name: !Sub "rapidpen-cloud-key-${Environment}"
-      Description: !Sub "API key for RapidPen Cloud ${Environment}"
-      Enabled: true
-  
-  UsagePlan:
-    Type: AWS::ApiGateway::UsagePlan
+  # UsagePlanとAPIステージの関連付け（条件付き）
+  UsagePlanStageAssociation:
+    Type: AWS::ApiGateway::UsagePlanStage
+    Condition: HasUsagePlan
     DependsOn: ApiGatewayApiStage
     Properties:
-      UsagePlanName: !Sub "rapidpen-cloud-usage-plan-${Environment}"
-      Description: !Sub "Usage plan for RapidPen Cloud ${Environment}"
-      ApiStages:
-        - ApiId: !Ref ApiGatewayApi
-          Stage: !Ref Environment
-      Throttle:
-        BurstLimit: 10
-        RateLimit: 5
+      UsagePlanId: !Ref UsagePlanId
+      ApiId: !Ref ApiGatewayApi
+      Stage: !Ref Environment
   
-  UsagePlanKey:
+  # UsagePlanとAPIキーの関連付け（条件付き）
+  UsagePlanKeyAssociation:
     Type: AWS::ApiGateway::UsagePlanKey
-    DependsOn: [UsagePlan, ApiKey]
+    Condition: HasUsagePlan
     Properties:
-      KeyId: !Ref ApiKey
+      KeyId: !Ref ApiKeyId
       KeyType: API_KEY
-      UsagePlanId: !Ref UsagePlan
+      UsagePlanId: !Ref UsagePlanId
 
   RapidPenCloudDepLayer:
     Type: AWS::Serverless::LayerVersion
@@ -123,6 +124,12 @@ Resources:
         Service: wish-log-analysis-api
         Project: RapidPen-Cloud
 
+Conditions:
+  # UsagePlanとApiKeyIdが指定されている場合のみ、関連付けを行う
+  HasUsagePlan: !And
+    - !Not [!Equals [!Ref UsagePlanId, ""]]
+    - !Not [!Equals [!Ref ApiKeyId, ""]]
+
 Outputs:
   AnalyzeApi:
     Description: API Gateway endpoint URL
@@ -136,6 +143,3 @@ Outputs:
   ApiId:
     Description: API Gateway ID
     Value: !Ref ApiGatewayApi
-  ApiKey:
-    Description: API Key ID
-    Value: !Ref ApiKey
