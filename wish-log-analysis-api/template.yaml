@@ -63,6 +63,7 @@ Resources:
   
   UsagePlan:
     Type: AWS::ApiGateway::UsagePlan
+    DependsOn: ApiGatewayApiStage
     Properties:
       UsagePlanName: !Sub "rapidpen-cloud-usage-plan-${Environment}"
       Description: !Sub "Usage plan for RapidPen Cloud ${Environment}"
@@ -75,6 +76,7 @@ Resources:
   
   UsagePlanKey:
     Type: AWS::ApiGateway::UsagePlanKey
+    DependsOn: [UsagePlan, ApiKey]
     Properties:
       KeyId: !Ref ApiKey
       KeyType: API_KEY
