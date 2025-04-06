@@ -95,7 +95,7 @@ Resources:
   AnalyzeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "rapidpen-cloud-analyze-${Environment}"
+      FunctionName: !Sub "${AWS::StackName}-analyze"
       CodeUri: ./
       Handler: src.wish_log_analysis_api.app.lambda_handler
       Runtime: python3.13
