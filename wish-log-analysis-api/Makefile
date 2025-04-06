@@ -1,4 +1,4 @@
-.PHONY: deps gen-requirements install-sam-deps build run-api deploy clean build-AnalyzeFunction
+.PHONY: deps gen-requirements install-sam-deps build run-api deploy clean build-AnalyzeFunction e2e
 
 # Dependency management
 deps:
@@ -27,3 +27,7 @@ clean:
 	rm -rf vendor/
 	rm -f requirements.txt
 	find src/ -type d -name "__pycache__" -exec rm -rf {} +
+
+# Run E2E tests
+e2e:
+	uv run pytest tests/e2e/
