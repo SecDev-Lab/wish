@@ -13,8 +13,7 @@ Parameters:
     Description: Deployment environment
 
   OpenAIApiKey:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /rapidpen-cloud/${Environment}/openai-api-key
+    Type: String
     NoEcho: true
 
   OpenAIModel:
@@ -22,12 +21,10 @@ Parameters:
     Default: gpt-4o
 
   ApiBaseUrl:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /rapidpen-cloud/${Environment}/api-base-url
+    Type: String
 
   LangchainApiKey:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /rapidpen-cloud/langchain-api-key
+    Type: String
     NoEcho: true
 
 Globals:
