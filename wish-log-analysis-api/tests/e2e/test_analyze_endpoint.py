@@ -15,10 +15,10 @@ def test_analyze_endpoint_success():
     This test sends a request to the deployed API endpoint and verifies
     that it returns a 200 OK response with the expected structure.
     """
-    # 環境変数の読み込み
+    # Load environment variables
     load_dotenv()
     
-    # 環境変数のチェック
+    # Check environment variables
     api_endpoint = os.environ.get("API_ENDPOINT")
     api_key = os.environ.get("API_KEY")
     
@@ -29,12 +29,12 @@ def test_analyze_endpoint_success():
         missing_vars.append("API_KEY")
     
     if missing_vars:
-        pytest.skip(f"必要な環境変数が設定されていません: {', '.join(missing_vars)}")
+        pytest.skip(f"Required environment variables are not set: {', '.join(missing_vars)}")
     
-    # テストデータの作成
+    # Create test data
     command_result = CommandResultSuccessFactory.build()
     
-    # リクエストの送信
+    # Send request
     headers = {
         "Content-Type": "application/json",
         "x-api-key": api_key
@@ -52,34 +52,34 @@ def test_analyze_endpoint_success():
             timeout=30
         )
         
-        # エラーレスポンスの詳細表示
+        # Display error response details
         if response.status_code != 200:
-            print(f"\n===== エラーレスポンス =====")
-            print(f"ステータスコード: {response.status_code}")
-            print(f"レスポンスヘッダー: {response.headers}")
+            print(f"\n===== Error Response =====")
+            print(f"Status code: {response.status_code}")
+            print(f"Response headers: {response.headers}")
             try:
                 error_json = response.json()
-                print(f"レスポンスボディ (JSON): {json.dumps(error_json, indent=2, ensure_ascii=False)}")
+                print(f"Response body (JSON): {json.dumps(error_json, indent=2, ensure_ascii=False)}")
             except ValueError:
-                print(f"レスポンスボディ (テキスト): {response.text}")
+                print(f"Response body (text): {response.text}")
             print("==========================\n")
         
-        # レスポンスの検証
-        assert response.status_code == 200, f"APIが200以外のステータスコードを返しました: {response.status_code}"
+        # Validate response
+        assert response.status_code == 200, f"API returned a status code other than 200: {response.status_code}"
         
         try:
             response_data = response.json()
         except ValueError as e:
-            pytest.fail(f"レスポンスがJSONではありません: {e}\nレスポンス: {response.text}")
+            pytest.fail(f"Response is not JSON: {e}\nResponse: {response.text}")
         
-        assert "analyzed_command_result" in response_data, "レスポンスに 'analyzed_command_result' が含まれていません"
-        assert response_data.get("error") is None, f"エラーが返されました: {response_data.get('error')}"
+        assert "analyzed_command_result" in response_data, "Response does not contain 'analyzed_command_result'"
+        assert response_data.get("error") is None, f"Error was returned: {response_data.get('error')}"
         
         analyzed_result = response_data["analyzed_command_result"]
-        assert analyzed_result["num"] == command_result.num, f"numが一致しません: 期待値={command_result.num}, 実際={analyzed_result['num']}"
-        assert analyzed_result["command"] == command_result.command, f"commandが一致しません: 期待値={command_result.command}, 実際={analyzed_result['command']}"
-        assert "log_summary" in analyzed_result, "レスポンスに 'log_summary' が含まれていません"
-        assert "state" in analyzed_result, "レスポンスに 'state' が含まれていません"
+        assert analyzed_result["num"] == command_result.num, f"num does not match: expected={command_result.num}, actual={analyzed_result['num']}"
+        assert analyzed_result["command"] == command_result.command, f"command does not match: expected={command_result.command}, actual={analyzed_result['command']}"
+        assert "log_summary" in analyzed_result, "Response does not contain 'log_summary'"
+        assert "state" in analyzed_result, "Response does not contain 'state'"
         
     except requests.RequestException as e:
-        pytest.fail(f"APIリクエスト中にエラーが発生しました: {e}")
+        pytest.fail(f"Error occurred during API request: {e}")
