@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Improved API key settings
+  - Changed OPENAI_API_KEY from required field to default value with warning message
+    - Before: `Field(...)` (required parameter)
+    - After: `Field(default="WARNING: Set OPENAI_API_KEY env var or in .env file to use OpenAI features")`
+  - Changed LANGCHAIN_API_KEY from required field to default value with warning message
+    - Before: `Field(...)` (required parameter)
+    - After: `Field(default="WARNING: Set LANGCHAIN_API_KEY env var or in .env file to use LangChain features")`
+
 ### Removed
 
 

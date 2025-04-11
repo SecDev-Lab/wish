@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     ENV_FILE: str | None = Field(None)
 
     # OpenAI API settings
-    OPENAI_API_KEY: str = Field(...)
+    OPENAI_API_KEY: str = Field(default="WARNING: Set OPENAI_API_KEY env var or in .env file to use OpenAI features")
     OPENAI_MODEL: str = Field("gpt-4o")
 
     # Embedding model settings
@@ -41,7 +41,9 @@ class Settings(BaseSettings):
     # LangSmith settings
     LANGCHAIN_TRACING_V2: bool = Field(True)
     LANGCHAIN_ENDPOINT: str = Field("https://api.smith.langchain.com")
-    LANGCHAIN_API_KEY: str = Field(...)
+    LANGCHAIN_API_KEY: str = Field(
+        default="WARNING: Set LANGCHAIN_API_KEY env var or in .env file to use LangChain features"
+    )
     LANGCHAIN_PROJECT: str = Field("wish")
 
     def __init__(self, env_file: str | None = None, project: str | None = None, **kwargs):
