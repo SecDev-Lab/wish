@@ -1,4 +1,13 @@
-"""E2E tests for the /analyze endpoint."""
+"""E2E tests for the /analyze endpoint.
+
+These tests are designed to be run against a deployed API endpoint, typically
+hosted in a different repository or environment than the local development setup.
+The tests require environment variables (API_ENDPOINT and API_KEY) to be set in
+the .env.test file or in the environment where the tests are run.
+
+When running `make e2e` from the parent repository, these tests will be executed
+against the remote API endpoint specified in the environment variables.
+"""
 
 import json
 import os

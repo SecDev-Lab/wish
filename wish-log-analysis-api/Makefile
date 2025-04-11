@@ -28,6 +28,7 @@ clean:
 	rm -f requirements.txt
 	find src/ -type d -name "__pycache__" -exec rm -rf {} +
 
-# Run E2E tests
+# Run E2E tests against a deployed API endpoint
 e2e:
+	@echo "Note: This command is typically called from another repository that references this one."
 	uv run pytest tests/e2e/
