@@ -41,7 +41,9 @@ class Settings(BaseSettings):
     # LangSmith settings
     LANGCHAIN_TRACING_V2: bool = Field(True)
     LANGCHAIN_ENDPOINT: str = Field("https://api.smith.langchain.com")
-    LANGCHAIN_API_KEY: str = Field(default="WARNING: Set LANGCHAIN_API_KEY env var or in .env file to use LangChain features")
+    LANGCHAIN_API_KEY: str = Field(
+        default="WARNING: Set LANGCHAIN_API_KEY env var or in .env file to use LangChain features"
+    )
     LANGCHAIN_PROJECT: str = Field("wish")
 
     def __init__(self, env_file: str | None = None, project: str | None = None, **kwargs):
