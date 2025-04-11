@@ -74,9 +74,26 @@ Cleans up generated files.
 
 ### Testing
 
+#### Unit Tests
+
 ```bash
 uv run pytest
 ```
+
+#### E2E Tests
+
+```bash
+make e2e
+```
+
+E2E tests are executed against a deployed API endpoint. These tests are designed to be run from another repository or deployment environment that references this repository.
+
+To run E2E tests, you need to set the following environment variables in the `.env.test` file:
+
+- `API_ENDPOINT`: URL of the deployed API endpoint (e.g., `https://xxxxx.execute-api.ap-northeast-1.amazonaws.com/stg`)
+- `API_KEY`: Key for API access
+
+When the `make e2e` command is executed from a parent repository, the tests will run against the remote API endpoint specified in these environment variables.
 
 ### Graph Visualization
 

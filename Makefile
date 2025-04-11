@@ -38,7 +38,8 @@ format:
 		(cd $$project && uv run ruff check --fix) || echo "Formatting failed in $$project"; \
 	done
 
-# Run E2E tests for wish-log-analysis-api
+# Run E2E tests for wish-log-analysis-api against a deployed API endpoint
 e2e:
-	@echo "Running E2E tests for wish-log-analysis-api..."
-	@(cd wish-log-analysis-api && uv run pytest tests/e2e/)
+	@echo "Running E2E tests for wish-log-analysis-api against a deployed API endpoint..."
+	@echo "Note: This command is typically called from another repository that references this one."
+	@(cd wish-log-analysis-api && make e2e)
