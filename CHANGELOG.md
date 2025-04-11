@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Removed
+
+
+## [0.5.1] - 2025-04-11
+
+### Added
+
+### Changed
+
+### Fixed
+
 - Improved API key settings
   - Changed OPENAI_API_KEY from required field to default value with warning message
     - Before: `Field(...)` (required parameter)
