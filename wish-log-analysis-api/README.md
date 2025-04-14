@@ -1,10 +1,10 @@
 # wish-log-analysis-api
 
-A serverless application that provides an API for analyzing command execution logs.
+A serverless application that provides both an API and a library for analyzing command execution logs.
 
 ## Project Overview
 
-This project receives command execution results (command, exit code, stdout, stderr), analyzes them using a LangGraph processing flow, and returns the results via an API.
+This project receives command execution results (command, exit code, stdout, stderr), analyzes them using a LangGraph processing flow, and returns the results via an API or library interface.
 
 ### Main Features
 
@@ -16,10 +16,16 @@ This project receives command execution results (command, exit code, stdout, std
 
 - `src/wish_log_analysis_api` - Lambda function code for the application
   - `app.py` - Lambda handler
+  - `config.py` - Configuration class
+  - `core/` - Core functionality
+    - `analyzer.py` - Command result analysis function
   - `graph.py` - LangGraph processing flow definition
   - `models.py` - Data models
   - `nodes/` - Processing nodes
-- `tests` - Unit tests for the application code
+- `tests` - Tests for the application code
+  - `unit/` - Unit tests
+  - `integration/` - Integration tests
+- `scripts` - Utility scripts
 - `template.yaml` - Template defining the application's AWS resources
 
 ## Development Process
@@ -77,8 +83,26 @@ Cleans up generated files.
 #### Unit Tests
 
 ```bash
+uv run pytest tests/unit
+```
+
+Unit tests verify the functionality of individual components without external dependencies.
+
+#### Integration Tests
+
+```bash
+uv run pytest tests/integration -m integration
+```
+
+Integration tests verify the functionality of the library as a whole, including interactions with external services.
+
+#### All Tests
+
+```bash
 uv run pytest
 ```
+
+This command runs all tests in the project.
 
 #### E2E Tests
 
@@ -107,29 +131,31 @@ uv run python scripts/update_graph_visualization.py
 
 This will generate an SVG visualization of the graph and update the `docs/design.md` file.
 
-## API Usage
+## Usage
 
-The API provides an `/analyze` endpoint that receives command execution results via POST method and returns analysis results.
+### Using as an API
 
-### Request Example
+#### API Request Example
 
-```json
-{
-  "command_result": {
-    "num": 1,
-    "command": "ls -la",
-    "exit_code": 0,
-    "log_files": {
-      "stdout": "/path/to/stdout.log",
-      "stderr": "/path/to/stderr.log"
-    },
-    "created_at": "2025-04-02T12:00:00Z",
-    "finished_at": "2025-04-02T12:00:01Z"
-  }
-}
+```bash
+curl -X POST http://localhost:3000/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command_result": {
+      "num": 1,
+      "command": "ls -la",
+      "exit_code": 0,
+      "log_files": {
+        "stdout": "/path/to/stdout.log",
+        "stderr": "/path/to/stderr.log"
+      },
+      "created_at": "2025-04-02T12:00:00Z",
+      "finished_at": "2025-04-02T12:00:01Z"
+    }
+  }'
 ```
 
-### Response Example
+#### API Response Example
 
 ```json
 {
@@ -147,4 +173,80 @@ The API provides an `/analyze` endpoint that receives command execution results 
     "finished_at": "2025-04-02T12:00:01Z"
   }
 }
+```
+
+### Using as a Library
+
+#### Installation
+
+```bash
+pip install git+https://github.com/SecDev-Lab/wish-log-analysis-api.git
+```
+
+#### Basic Usage
+
+```python
+from wish_log_analysis_api.core.analyzer import analyze_command_result
+from wish_log_analysis_api.models import AnalyzeRequest
+from wish_log_analysis_api.config import AnalyzerConfig
+from wish_models.command_result import CommandResult
+from wish_models.command_result.log_files import LogFiles
+from pathlib import Path
+
+# Create command result
+command_result = CommandResult(
+    num=1,
+    command="ls -la",
+    exit_code=0,
+    log_files=LogFiles(
+        stdout=Path("/path/to/stdout.log"),
+        stderr=Path("/path/to/stderr.log")
+    ),
+    created_at="2025-04-02T12:00:00Z",
+    finished_at="2025-04-02T12:00:01Z"
+)
+
+# Create request
+request = AnalyzeRequest(command_result=command_result)
+
+# Run analysis with default configuration (loads from environment variables)
+response = analyze_command_result(request)
+
+# Or run analysis with custom configuration
+config = AnalyzerConfig(
+    openai_api_key="your-api-key-here",
+    openai_model="gpt-4o"
+)
+response = analyze_command_result(request, config=config)
+
+# Get results
+analyzed_result = response.analyzed_command_result
+print(f"State: {analyzed_result.state}")
+print(f"Summary: {analyzed_result.log_summary}")
+```
+
+#### Advanced Usage
+
+```python
+from wish_log_analysis_api.graph import create_log_analysis_graph
+from wish_log_analysis_api.models import GraphState
+from wish_log_analysis_api.config import AnalyzerConfig
+
+# Create custom configuration
+config = AnalyzerConfig(
+    openai_model="gpt-4o",
+    langchain_tracing_v2=True
+)
+
+# Create graph directly
+graph = create_log_analysis_graph(config=config)
+
+# Create initial state
+initial_state = GraphState(command_result=command_result)
+
+# Run graph
+result = graph.invoke(initial_state)
+
+# Get results
+analyzed_result = result.analyzed_command_result
 ```
