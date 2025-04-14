@@ -9,9 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added library interface to wish-log-analysis-api:
+  - Refactored code structure to support both API and library usage
+  - Added core/analyzer.py with analyze_command_result function that accepts custom configuration
+  - Added config.py with AnalyzerConfig class for flexible configuration
+  - Added comprehensive documentation for library usage in README.md
+  - Added unit and integration tests for library functionality
+
 ### Changed
 
+- Improved project organization in wish-log-analysis-api:
+  - Restructured test directory with separate unit/ and integration/ folders
+  - Updated project description to reflect dual API/library nature
+  - Made test assertions more flexible to accommodate different response formats
+
 ### Fixed
+
+- Fixed error handling in wish-log-analysis-api:
+  - Fixed Lambda handler to properly return error responses when analyze_command_result returns an error
+  - Ensured error messages are correctly included in API responses for invalid requests
+  - Fixed failing test case in test_handler_invalid_request
 
 ### Removed
 
