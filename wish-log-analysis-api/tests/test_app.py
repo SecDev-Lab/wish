@@ -9,7 +9,7 @@ from wish_models.test_factories.command_result_factory import CommandResultSucce
 
 from wish_log_analysis_api.app import lambda_handler
 from wish_log_analysis_api.core.analyzer import analyze_command_result
-from wish_log_analysis_api.models import AnalyzeRequest, AnalyzeResponse, GraphState
+from wish_log_analysis_api.models import AnalyzeRequest, GraphState
 
 
 # Mock OpenAI API calls globally for all tests in this file
@@ -23,12 +23,12 @@ def mock_openai_api():
         mock_instance.__or__.return_value = mock_instance
         # Set the mock instance as the return value of the constructor
         mock_chat.return_value = mock_instance
-        
+
         # Mock the chain.invoke method
         mock_chain = MagicMock()
         mock_instance.__or__.return_value = mock_chain
         mock_chain.invoke.return_value = "Mocked response"
-        
+
         # Mock StrOutputParser
         with patch("langchain_core.output_parsers.StrOutputParser") as mock_parser:
             # Create a mock instance
@@ -37,7 +37,7 @@ def mock_openai_api():
             mock_parser_instance.__or__.return_value = mock_parser_instance
             # Set the mock instance as the return value of the constructor
             mock_parser.return_value = mock_parser_instance
-            
+
             yield
 
 
@@ -137,7 +137,7 @@ class TestLambdaHandler:
             analyzed_command_result=analyzed_command_result
         )
         mock_graph.invoke.return_value = mock_result
-        
+
         # Mock create_log_analysis_graph to return our mock graph
         with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph", return_value=mock_graph):
             # Mock model_validate

@@ -13,7 +13,7 @@ logger.setLevel(logging.INFO)
 
 
 def analyze_command_result(
-    request: AnalyzeRequest, 
+    request: AnalyzeRequest,
     config: Optional[AnalyzerConfig] = None
 ) -> AnalyzeResponse:
     """Analyze a command result using the log analysis graph.

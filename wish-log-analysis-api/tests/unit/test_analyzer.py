@@ -1,17 +1,19 @@
 """Unit tests for the analyzer module."""
 
-import pytest
+import os
+import tempfile
+from pathlib import Path
 from unittest.mock import MagicMock, patch
-from wish_log_analysis_api.core.analyzer import analyze_command_result
-from wish_log_analysis_api.config import AnalyzerConfig
-from wish_log_analysis_api.models import AnalyzeRequest, GraphState
+
+import pytest
 from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
 from wish_models.command_result.log_files import LogFiles
 from wish_models.utc_datetime import UtcDatetime
-from pathlib import Path
-import tempfile
-import os
+
+from wish_log_analysis_api.config import AnalyzerConfig
+from wish_log_analysis_api.core.analyzer import analyze_command_result
+from wish_log_analysis_api.models import AnalyzeRequest, GraphState
 
 
 @pytest.fixture
@@ -20,13 +22,13 @@ def sample_log_files():
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as stdout_file:
         stdout_file.write("Sample stdout content")
         stdout_path = stdout_file.name
-        
+
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as stderr_file:
         stderr_file.write("Sample stderr content")
         stderr_path = stderr_file.name
-        
+
     yield LogFiles(stdout=Path(stdout_path), stderr=Path(stderr_path))
-    
+
     # Cleanup
     os.unlink(stdout_path)
     os.unlink(stderr_path)
@@ -77,13 +79,13 @@ def test_analyze_command_result_with_mocks(sample_command_result, mock_chat_open
     # Configure mocks for the chain
     mock_chain = MagicMock()
     mock_chat_openai.__or__.return_value = mock_chain
-    
+
     # Configure mock responses
     mock_chain.invoke.side_effect = [
         "This is a mock summary of the command output",  # For log_summarization
         "SUCCESS"  # For command_state_classifier
     ]
-    
+
     # Create a mock graph state for the result
     mock_result = GraphState(
         command_result=sample_command_result,
@@ -100,26 +102,26 @@ def test_analyze_command_result_with_mocks(sample_command_result, mock_chat_open
             finished_at=sample_command_result.finished_at
         )
     )
-    
+
     # Mock the graph
     with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph") as mock_create_graph:
         mock_graph = MagicMock()
         mock_graph.invoke.return_value = mock_result
         mock_create_graph.return_value = mock_graph
-        
+
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
-        
+
         # Run analysis
         response = analyze_command_result(request)
-        
+
         # Verify results
         assert response is not None
         assert response.analyzed_command_result is not None
         assert response.analyzed_command_result.log_summary == "This is a mock summary of the command output"
         assert response.analyzed_command_result.state == CommandState.SUCCESS
         assert response.error is None
-        
+
         # Verify the graph was created and invoked
         mock_create_graph.assert_called_once()
         mock_graph.invoke.assert_called_once()
@@ -132,13 +134,13 @@ def test_analyze_command_result_with_error(sample_command_result, mock_chat_open
         mock_graph = MagicMock()
         mock_graph.invoke.side_effect = Exception("Test error")
         mock_create_graph.return_value = mock_graph
-        
+
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
-        
+
         # Run analysis
         response = analyze_command_result(request)
-        
+
         # Verify results
         assert response is not None
         assert response.analyzed_command_result == sample_command_result
@@ -154,7 +156,7 @@ def test_analyze_command_result_with_custom_config(sample_command_result, mock_c
         "This is a mock summary with custom config",
         "SUCCESS"
     ]
-    
+
     # Create a mock graph state for the result
     mock_result = GraphState(
         command_result=sample_command_result,
@@ -171,31 +173,31 @@ def test_analyze_command_result_with_custom_config(sample_command_result, mock_c
             finished_at=sample_command_result.finished_at
         )
     )
-    
+
     # Mock the graph
     with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph") as mock_create_graph:
         mock_graph = MagicMock()
         mock_graph.invoke.return_value = mock_result
         mock_create_graph.return_value = mock_graph
-        
+
         # Create custom configuration
         config = AnalyzerConfig(
             openai_model="gpt-3.5-turbo",  # Use lightweight model for testing
         )
-        
+
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
-        
+
         # Run analysis
         response = analyze_command_result(request, config=config)
-        
+
         # Verify results
         assert response is not None
         assert response.analyzed_command_result is not None
         assert response.analyzed_command_result.log_summary == "This is a mock summary with custom config"
         assert response.analyzed_command_result.state == CommandState.SUCCESS
         assert response.error is None
-        
+
         # Verify the graph was created with the custom config
         mock_create_graph.assert_called_once_with(config=config)
 
@@ -209,7 +211,7 @@ def test_analyze_command_result_with_default_config(sample_command_result, mock_
         "This is a mock summary with default config",
         "SUCCESS"
     ]
-    
+
     # Create a mock graph state for the result
     mock_result = GraphState(
         command_result=sample_command_result,
@@ -226,25 +228,25 @@ def test_analyze_command_result_with_default_config(sample_command_result, mock_
             finished_at=sample_command_result.finished_at
         )
     )
-    
+
     # Mock the graph
     with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph") as mock_create_graph:
         mock_graph = MagicMock()
         mock_graph.invoke.return_value = mock_result
         mock_create_graph.return_value = mock_graph
-        
+
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
-        
+
         # Run analysis
         response = analyze_command_result(request)
-        
+
         # Verify results
         assert response is not None
         assert response.analyzed_command_result is not None
         assert response.analyzed_command_result.log_summary == "This is a mock summary with default config"
         assert response.analyzed_command_result.state == CommandState.SUCCESS
         assert response.error is None
-        
+
         # Verify the graph was created with default config (None)
         mock_create_graph.assert_called_once_with(config=None)

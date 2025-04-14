@@ -1,6 +1,7 @@
 """Main graph definition for the log analysis system."""
 
 from typing import Optional
+
 from langgraph.graph import END, START, StateGraph
 from wish_models import settings
 
@@ -22,14 +23,14 @@ def create_log_analysis_graph(config: Optional[AnalyzerConfig] = None, compile: 
     # Load from environment variables if no config is provided
     if config is None:
         config = AnalyzerConfig.from_env()
-    
+
     # Apply configuration
     import os
     os.environ["OPENAI_API_KEY"] = config.openai_api_key
     os.environ["OPENAI_MODEL"] = config.openai_model
     os.environ["LANGCHAIN_PROJECT"] = config.langchain_project
     os.environ["LANGCHAIN_TRACING_V2"] = str(config.langchain_tracing_v2).lower()
-    
+
     # Set project name
     settings.LANGCHAIN_PROJECT = config.langchain_project
 
