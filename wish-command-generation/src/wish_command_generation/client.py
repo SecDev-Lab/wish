@@ -53,7 +53,7 @@ class CommandGenerationClient:
 
             # Check for errors
             if response.error:
-                raise CommandGenerationError(f"Error generating command: {response.error}")
+                raise CommandGenerationError(f"Error generating command: {response.error}", str(response))
 
             # Create command inputs
             command_inputs = [{
@@ -66,7 +66,8 @@ class CommandGenerationClient:
             # Wrap any exceptions in CommandGenerationError
             if isinstance(e, CommandGenerationError):
                 raise
-            raise CommandGenerationError(f"Error generating commands: {str(e)}") from e
+            # No API response for general exceptions
+            raise CommandGenerationError(f"Error generating commands: {str(e)}", None) from e
 
     def generate_command(
         self, query: str, context: Optional[Dict[str, Any]] = None
