@@ -126,27 +126,35 @@ class TestAnalyzeCommandResult:
 class TestLambdaHandler:
     """Tests for the Lambda handler."""
 
-    def test_handler_success(self, lambda_event, analyzed_command_result):
+    def test_handler_success(self, lambda_event, analyzed_command_result, command_result):
         """Test successful handling of a Lambda event."""
-        # Mock the analyze_command_result function
-        with patch("wish_log_analysis_api.core.analyzer.analyze_command_result") as mock_analyze:
-            mock_analyze.return_value = AnalyzeResponse(
-                analyzed_command_result=analyzed_command_result
-            )
+        # Create a mock graph
+        mock_graph = MagicMock()
+        mock_result = GraphState(
+            command_result=command_result,
+            log_summary="Mocked log summary",
+            command_state=CommandState.SUCCESS,
+            analyzed_command_result=analyzed_command_result
+        )
+        mock_graph.invoke.return_value = mock_result
+        
+        # Mock create_log_analysis_graph to return our mock graph
+        with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph", return_value=mock_graph):
+            # Mock model_validate
+            with patch("wish_log_analysis_api.models.AnalyzeRequest.model_validate", return_value=AnalyzeRequest(command_result=command_result)):
+                # Call the handler
+                response = lambda_handler(lambda_event, {})
 
-            # Call the handler
-            response = lambda_handler(lambda_event, {})
+                # Verify the response
+                assert response["statusCode"] == 200
+                assert response["headers"]["Content-Type"] == "application/json"
 
-            # Verify the response
-            assert response["statusCode"] == 200
-            assert response["headers"]["Content-Type"] == "application/json"
-
-            body = json.loads(response["body"])
-            assert "analyzed_command_result" in body
-            assert body["analyzed_command_result"]["command"] == "ls -la"
-            assert body["analyzed_command_result"]["state"] == "SUCCESS"
-            # Just check that log_summary exists, not its exact content
-            assert "log_summary" in body["analyzed_command_result"]
+                body = json.loads(response["body"])
+                assert "analyzed_command_result" in body
+                assert body["analyzed_command_result"]["command"] == "ls -la"
+                assert body["analyzed_command_result"]["state"] == "SUCCESS"
+                # Just check that log_summary exists, not its exact content
+                assert "log_summary" in body["analyzed_command_result"]
 
     def test_handler_invalid_request(self):
         """Test handling of an invalid request."""
