@@ -11,7 +11,7 @@ Issues = "https://github.com/SecDev-Lab/wish/issues"
 [project]
 name = "wish-log-analysis-api"
 version = "0.0.0" # No need to update. GitHub Actions will update this on publish.
-description = "Log analysis API for wish"
+description = "A library and API for analyzing command execution logs"
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [
@@ -20,7 +20,7 @@ authors = [
 maintainers = [
     {name = "Sho Nakatani", email = "lay.sakura@gmail.com"}
 ]
-keywords = ["wish", "llm", "ai", "shell", "log-analysis", "api"]
+keywords = ["wish", "llm", "ai", "shell", "log-analysis"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
