@@ -141,7 +141,10 @@ class TestLambdaHandler:
         # Mock create_log_analysis_graph to return our mock graph
         with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph", return_value=mock_graph):
             # Mock model_validate
-            with patch("wish_log_analysis_api.models.AnalyzeRequest.model_validate", return_value=AnalyzeRequest(command_result=command_result)):
+            with patch(
+                "wish_log_analysis_api.models.AnalyzeRequest.model_validate",
+                return_value=AnalyzeRequest(command_result=command_result)
+            ):
                 # Call the handler
                 response = lambda_handler(lambda_event, {})
 
