@@ -9,13 +9,13 @@ Repository = "https://github.com/SecDev-Lab/wish.git"
 Issues = "https://github.com/SecDev-Lab/wish/issues"
 
 [project]
-name = "wish-command-generation"
+name = "wish-command-generation-api"
 version = "0.0.0" # No need to update. GitHub Actions will update this on publish.
-description = "Command generation client for wish"
+description = "Command generation API for wish"
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [
-    {name = "Security & Development Lab", email = "lay.sakura+secdevlab@gmail.com"}
+    {name = "SecDevLab", email = "dev@secdevlab.com"}
 ]
 maintainers = [
     {name = "Sho Nakatani", email = "lay.sakura@gmail.com"}
@@ -33,7 +33,14 @@ license = {file = "../LICENSE"}
 dependencies = [
     "wish-models>=0.0.1",
     "pydantic>=2.10.6",
-    "requests>=2.31.0",
+    "langgraph>=0.3.5",
+    "langsmith>=0.3.11",
+    "langchain-openai>=0.3.9rc1",
+    "langchain-core>=0.3.41",
+    "langchain>=0.3.20",
+    "langchain-community>=0.1.0",
+    "chromadb>=0.4.22",
+    "pydantic-settings>=2.8.1",
 ]
 
 [tool.uv.sources]
@@ -45,7 +52,7 @@ dev-dependencies = [
     "pytest-asyncio>=0.25.2",
     "pytest>=8.3.4",
     "ruff>=0.9.8",
-    "requests-mock>=1.11.0",
+    "graphviz>=0.20.1",
 ]
 
 [tool.pdm.build]
