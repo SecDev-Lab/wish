@@ -34,7 +34,19 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Analyze the command result
         response = analyze_command_result(request)
 
-        # Return the response
+        # Check if there was an error during analysis
+        if response.error is not None:
+            return {
+                "statusCode": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": json.dumps({
+                    "error": response.error
+                })
+            }
+
+        # Return the successful response
         return {
             "statusCode": 200,
             "headers": {
