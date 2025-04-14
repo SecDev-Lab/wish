@@ -12,6 +12,35 @@ from wish_log_analysis_api.core.analyzer import analyze_command_result
 from wish_log_analysis_api.models import AnalyzeRequest, AnalyzeResponse, GraphState
 
 
+# Mock OpenAI API calls globally for all tests in this file
+@pytest.fixture(autouse=True)
+def mock_openai_api():
+    """Mock OpenAI API calls."""
+    with patch("langchain_openai.ChatOpenAI") as mock_chat:
+        # Create a mock instance
+        mock_instance = MagicMock()
+        # Configure the mock to return itself when piped
+        mock_instance.__or__.return_value = mock_instance
+        # Set the mock instance as the return value of the constructor
+        mock_chat.return_value = mock_instance
+        
+        # Mock the chain.invoke method
+        mock_chain = MagicMock()
+        mock_instance.__or__.return_value = mock_chain
+        mock_chain.invoke.return_value = "Mocked response"
+        
+        # Mock StrOutputParser
+        with patch("langchain_core.output_parsers.StrOutputParser") as mock_parser:
+            # Create a mock instance
+            mock_parser_instance = MagicMock()
+            # Configure the mock to return itself when piped
+            mock_parser_instance.__or__.return_value = mock_parser_instance
+            # Set the mock instance as the return value of the constructor
+            mock_parser.return_value = mock_parser_instance
+            
+            yield
+
+
 @pytest.fixture
 def command_result():
     """Create a test command result."""
