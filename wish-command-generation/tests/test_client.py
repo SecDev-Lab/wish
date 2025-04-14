@@ -151,7 +151,7 @@ def test_generate_command_invalid_json(mock_config, sample_query):
         assert response is not None
         assert response.generated_command is not None
         assert response.generated_command.command == "echo 'Command generation failed'"
-        assert "parse API response" in response.generated_command.explanation
+        assert "Failed to generate command due to API error" in response.generated_command.explanation
         assert response.error is not None
 
 

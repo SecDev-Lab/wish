@@ -2,11 +2,12 @@
 
 import json
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 
 import requests
 
 from .config import ClientConfig
+from .exceptions import CommandGenerationError
 from .models import GenerateRequest, GenerateResponse, GeneratedCommand
 
 # Configure logging
@@ -24,6 +25,48 @@ class CommandGenerationClient:
         """
         self.config = config or ClientConfig.from_env()
         logger.debug(f"Initialized CommandGenerationClient with API URL: {self.config.api_base_url}")
+
+    def generate_commands(self, wish_obj, system_info=None) -> List[Dict[str, str]]:
+        """Generate commands based on a wish object.
+
+        Args:
+            wish_obj: The wish object containing the query.
+            system_info: Optional system information for command generation.
+
+        Returns:
+            A list of command inputs, each containing a command and explanation.
+
+        Raises:
+            CommandGenerationError: If there is an error generating commands.
+        """
+        try:
+            # Extract the query from the wish object
+            query = wish_obj.wish
+
+            # Create context from system_info
+            context = {}
+            if system_info:
+                context["system_info"] = system_info.to_dict() if hasattr(system_info, "to_dict") else system_info
+
+            # Generate command using the API
+            response = self.generate_command(query, context)
+
+            # Check for errors
+            if response.error:
+                raise CommandGenerationError(f"Error generating command: {response.error}")
+
+            # Create command inputs
+            command_inputs = [{
+                "command": response.generated_command.command,
+                "explanation": response.generated_command.explanation
+            }]
+
+            return command_inputs
+        except Exception as e:
+            # Wrap any exceptions in CommandGenerationError
+            if isinstance(e, CommandGenerationError):
+                raise
+            raise CommandGenerationError(f"Error generating commands: {str(e)}") from e
 
     def generate_command(
         self, query: str, context: Optional[Dict[str, Any]] = None

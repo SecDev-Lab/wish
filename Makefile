@@ -19,7 +19,7 @@ test:
 	@echo "Running tests in all Python projects..."
 	@for project in $(PYTHON_PROJECTS); do \
 		echo "\n=== Running tests in $$project ==="; \
-		(cd $$project && uv run pytest) || echo "Tests failed in $$project"; \
+		(cd $$project && python -m venv .venv && source .venv/bin/activate && uv sync --dev && python -m pytest) || echo "Tests failed in $$project"; \
 	done
 
 # Run linting in all Python projects
