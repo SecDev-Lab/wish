@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.6.0] - 2025-04-14
+
+### Added
+
 - Added library interface to wish-log-analysis-api:
   - Refactored code structure to support both API and library usage
   - Added core/analyzer.py with analyze_command_result function that accepts custom configuration
