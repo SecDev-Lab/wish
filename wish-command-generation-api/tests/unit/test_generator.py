@@ -47,7 +47,8 @@ def test_generate_command_with_mocks(sample_query, sample_context, mock_chat_ope
     mock_chain.invoke.side_effect = [
         MagicMock(content="list all files including hidden ones"),  # For query_processor
         MagicMock(content="ls -la"),  # For command_generator
-        MagicMock(content="This command lists all files in the current directory, including hidden files.")  # For result_formatter
+        MagicMock(content="This command lists all files in the current directory, including hidden files.")
+        # For result_formatter
     ]
 
     # Create a mock graph state for the result
@@ -78,7 +79,9 @@ def test_generate_command_with_mocks(sample_query, sample_context, mock_chat_ope
         assert response is not None
         assert response.generated_command is not None
         assert response.generated_command.command == "ls -la"
-        assert response.generated_command.explanation == "This command lists all files in the current directory, including hidden files."
+        assert response.generated_command.explanation == (
+            "This command lists all files in the current directory, including hidden files."
+        )
         assert response.error is None
 
         # Verify the graph was created and invoked

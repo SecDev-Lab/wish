@@ -81,7 +81,10 @@ class TestGenerateCommand:
         )
 
         # Mock the create_command_generation_graph function
-        with patch("wish_command_generation_api.core.generator.create_command_generation_graph", return_value=mock_graph):
+        with patch(
+            "wish_command_generation_api.core.generator.create_command_generation_graph",
+            return_value=mock_graph
+        ):
             # Call the function
             request = GenerateRequest(query=sample_query, context=sample_context)
             response = generate_command(request)
@@ -103,7 +106,10 @@ class TestGenerateCommand:
         mock_graph.invoke.side_effect = Exception("Test error")
 
         # Mock the create_command_generation_graph function
-        with patch("wish_command_generation_api.core.generator.create_command_generation_graph", return_value=mock_graph):
+        with patch(
+            "wish_command_generation_api.core.generator.create_command_generation_graph",
+            return_value=mock_graph
+        ):
             # Call the function
             request = GenerateRequest(query=sample_query, context=sample_context)
             response = generate_command(request)
@@ -132,7 +138,10 @@ class TestLambdaHandler:
         mock_graph.invoke.return_value = mock_result
 
         # Mock create_command_generation_graph to return our mock graph
-        with patch("wish_command_generation_api.core.generator.create_command_generation_graph", return_value=mock_graph):
+        with patch(
+            "wish_command_generation_api.core.generator.create_command_generation_graph",
+            return_value=mock_graph
+        ):
             # Mock model_validate
             with patch(
                 "wish_command_generation_api.models.GenerateRequest.model_validate",
@@ -148,7 +157,9 @@ class TestLambdaHandler:
                 body = json.loads(response["body"])
                 assert "generated_command" in body
                 assert body["generated_command"]["command"] == "ls -la"
-                assert body["generated_command"]["explanation"] == "This command lists all files in the current directory, including hidden files."
+                assert body["generated_command"]["explanation"] == (
+                    "This command lists all files in the current directory, including hidden files."
+                )
 
     def test_handler_invalid_request(self):
         """Test handling of an invalid request."""

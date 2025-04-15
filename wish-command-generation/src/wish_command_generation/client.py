@@ -57,8 +57,16 @@ class CommandGenerationClient:
 
             # Create command inputs
             command_inputs = [{
-                "command": response.generated_command["command"] if isinstance(response.generated_command, dict) else response.generated_command.command,
-                "explanation": response.generated_command["explanation"] if isinstance(response.generated_command, dict) else response.generated_command.explanation
+                "command": (
+                    response.generated_command["command"]
+                    if isinstance(response.generated_command, dict)
+                    else response.generated_command.command
+                ),
+                "explanation": (
+                    response.generated_command["explanation"]
+                    if isinstance(response.generated_command, dict)
+                    else response.generated_command.explanation
+                )
             }]
 
             return command_inputs

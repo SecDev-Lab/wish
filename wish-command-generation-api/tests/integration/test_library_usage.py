@@ -38,7 +38,8 @@ def test_end_to_end_generation(mock_chat_openai):
     mock_chain.invoke.side_effect = [
         MagicMock(content="list all files including hidden ones"),  # For query_processor
         MagicMock(content="ls -la"),  # For command_generator
-        MagicMock(content="This command lists all files in the current directory, including hidden files.")  # For result_formatter
+        MagicMock(content="This command lists all files in the current directory, including hidden files.")
+        # For result_formatter
     ]
 
     # Create a mock graph state for the result
@@ -89,7 +90,8 @@ def test_custom_config_integration(mock_chat_openai):
     mock_chain.invoke.side_effect = [
         MagicMock(content="find text files in the system"),  # For query_processor
         MagicMock(content="find / -name '*.txt'"),  # For command_generator
-        MagicMock(content="This command searches for all .txt files starting from the root directory.")  # For result_formatter
+        MagicMock(content="This command searches for all .txt files starting from the root directory.")
+        # For result_formatter
     ]
 
     # Create a mock graph state for the result
@@ -149,7 +151,10 @@ def test_complex_query_integration(mock_chat_openai):
     mock_chain.invoke.side_effect = [
         MagicMock(content="find recent python files and count them"),  # For query_processor
         MagicMock(content="find . -name '*.py' -mtime -7 | wc -l"),  # For command_generator
-        MagicMock(content="This command finds all Python files (*.py) modified in the last 7 days in the current directory and its subdirectories, then counts them using wc -l.")  # For result_formatter
+        MagicMock(
+            content="This command finds all Python files (*.py) modified in the last 7 days "
+                   "in the current directory and its subdirectories, then counts them using wc -l."
+        )  # For result_formatter
     ]
 
     # Create a mock graph state for the result
@@ -160,7 +165,8 @@ def test_complex_query_integration(mock_chat_openai):
         command_candidates=["find . -name '*.py' -mtime -7 | wc -l"],
         generated_command=GeneratedCommand(
             command="find . -name '*.py' -mtime -7 | wc -l",
-            explanation="This command finds all Python files (*.py) modified in the last 7 days in the current directory and its subdirectories, then counts them using wc -l."
+            explanation="This command finds all Python files (*.py) modified in the last 7 days "
+                        "in the current directory and its subdirectories, then counts them using wc -l."
         )
     )
 

@@ -74,7 +74,9 @@ def test_generate_response():
     # Test serialization
     data = response.model_dump()
     assert data["generated_command"]["command"] == "ls -la"
-    assert data["generated_command"]["explanation"] == "This command lists all files in the current directory, including hidden files."
+    assert data["generated_command"]["explanation"] == (
+        "This command lists all files in the current directory, including hidden files."
+    )
     assert data["error"] == "An error occurred"
 
     # Test deserialization
