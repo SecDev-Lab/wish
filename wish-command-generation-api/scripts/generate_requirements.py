@@ -13,14 +13,14 @@ import re
 import sys
 from pathlib import Path
 
-import tomli
+import tomllib
 
 
 def extract_dependencies():
     """Extract dependencies from pyproject.toml and write to requirements.txt in project root."""
     try:
         with open("pyproject.toml", "rb") as f:
-            data = tomli.load(f)
+            data = tomllib.load(f)
 
         # Extract production dependencies
         deps = data["project"]["dependencies"]
@@ -41,14 +41,19 @@ def extract_dependencies():
             else:
                 # Keep other dependencies as they are
                 processed_deps.append(dep)
+        
+        # Add exclusion for problematic packages in SAM environment
+        # This is to handle platform-specific packages that cause issues in SAM build
+        exclusions = ["onnxruntime", "chromadb"]
+        final_deps = [dep for dep in processed_deps if not any(excluded in dep for excluded in exclusions)]
 
         # Write dependencies to requirements.txt in project root
         requirements_path = Path("requirements.txt")
         with open(requirements_path, "w") as f:
-            for dep in processed_deps:
+            for dep in final_deps:
                 f.write(f"{dep}\n")
 
-        print(f"Generated requirements.txt with {len(processed_deps)} dependencies")
+        print(f"Generated requirements.txt with {len(final_deps)} dependencies")
         return True
 
     except Exception as e:
