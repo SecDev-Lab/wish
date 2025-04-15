@@ -19,6 +19,7 @@ jobs:
           - wish-knowledge-loader
           - wish-command-execution
           - wish-command-generation
+          - wish-command-generation-api
           - wish-log-analysis
           - wish-log-analysis-api
           - wish-models
@@ -50,6 +51,7 @@ jobs:
           - wish-knowledge-loader
           - wish-command-execution
           - wish-command-generation
+          - wish-command-generation-api
           - wish-log-analysis
           - wish-log-analysis-api
           - wish-models
