@@ -1,4 +1,4 @@
-.PHONY: deps gen-requirements install-sam-deps build run-api deploy clean build-GenerateFunction e2e
+.PHONY: deps gen-requirements install-sam-deps build deploy clean build-GenerateFunction e2e
 
 # Dependency management
 deps:
@@ -16,10 +16,8 @@ install-sam-deps: gen-requirements
 build: install-sam-deps
 	sam build --use-container --skip-pull-image
 
-# Start local development server (using container)
-run-api: build
-	uv run python scripts/env_to_json.py
-	sam local start-api --env-vars .env.json
+# Note: API is now started via the unified wish-api package
+# To start the API, run `make run-api` from the top-level directory
 
 # Clean up generated files
 clean:
