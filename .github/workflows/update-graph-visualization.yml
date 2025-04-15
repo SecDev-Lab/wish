@@ -3,8 +3,8 @@ name: Update Graph Visualization
 on:
   pull_request:
     paths:
-      - 'wish-command-generation/src/wish_command_generation/graph.py'
-      - 'wish-command-generation/src/wish_command_generation/nodes/**'
+      - 'wish-command-generation-api/src/wish_command_generation_api/graph.py'
+      - 'wish-command-generation-api/src/wish_command_generation_api/nodes/**'
       - 'wish-log-analysis-api/src/wish_log_analysis_api/graph.py'
       - 'wish-log-analysis-api/src/wish_log_analysis_api/nodes/**'
 
@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         project:
-          - wish-command-generation
+          - wish-command-generation-api
           - wish-log-analysis-api
       fail-fast: false    
     steps:
