@@ -105,6 +105,9 @@ class CommandGenerationClient:
 
             # Parse the response
             data = response.json()
+            if "generated_command" in data and isinstance(data["generated_command"], dict):
+                # 辞書を明示的にGeneratedCommandオブジェクトに変換
+                data["generated_command"] = GeneratedCommand(**data["generated_command"])
             return GenerateResponse.model_validate(data)
 
         except requests.RequestException as e:

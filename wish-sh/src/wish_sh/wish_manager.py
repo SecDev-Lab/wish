@@ -122,11 +122,25 @@ class WishManager:
 
             # Generate commands using CommandGenerator with system info
             command_inputs = self.command_generator.generate_commands(wish_obj, system_info)
+            
+            # Add debug logging
+            logging.debug(f"Command inputs type: {type(command_inputs)}")
+            logging.debug(f"Command inputs: {command_inputs}")
+            for i, cmd_input in enumerate(command_inputs):
+                logging.debug(f"Command input {i} type: {type(cmd_input)}")
+                logging.debug(f"Command input {i}: {cmd_input}")
+                if isinstance(cmd_input, dict):
+                    logging.debug(f"Command input {i} keys: {cmd_input.keys()}")
+                else:
+                    logging.debug(f"Command input {i} dir: {dir(cmd_input)}")
 
             # Extract commands from the result
             commands = []
             for cmd_input in command_inputs:
-                commands.append(cmd_input.command)
+                if isinstance(cmd_input, dict):
+                    commands.append(cmd_input["command"])
+                else:
+                    commands.append(cmd_input.command)
 
             return commands, None
         except Exception as e:
