@@ -4,7 +4,7 @@ This guide explains how to install and set up `wish-sh` and `wish-knowledge-load
 
 ## Prerequisites
 
-- Python 3.13 or higher
+- Python 3.10 or higher
 - OpenAI API key (available from the [OpenAI website](https://platform.openai.com/))
 
 ## Setup Overview
@@ -223,10 +223,10 @@ Options:
 3. **Python Version Error**
    
    ```
-   Error: Python 3.13 or higher is required
+   Error: Python 3.10 or higher is required
    ```
    
-   Solution: Ensure that Python 3.13 or higher is installed.
+   Solution: Ensure that Python 3.10 or higher is installed.
 
 4. **Embedding Model Error**
    

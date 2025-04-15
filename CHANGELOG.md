@@ -11,6 +11,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Changed Python version requirement from >=3.13 to >=3.10:
+  - Updated `requires-python` in all packages' pyproject.toml files
+  - Added Python 3.10, 3.11, and 3.12 to classifiers in all packages
+  - Updated documentation to reflect new minimum Python version requirement
+
+### Fixed
+
+### Removed
+
+
+## [0.6.4] - 2025-04-15
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.6.4-a1] - 2025-04-15
+
+### Added
+
+### Changed
+
 ### Fixed
 
 ### Removed
