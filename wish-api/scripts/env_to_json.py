@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Convert ~/.wish/env file to SAM CLI compatible JSON format."""
 
 import json
@@ -24,6 +24,7 @@ def parse_env_file(file_path):
 
     return env_vars
 
+
 def main():
     """Convert ~/.wish/env to SAM CLI compatible JSON format."""
     # Get WISH_HOME from environment or use default
@@ -33,8 +34,9 @@ def main():
     # Parse the env file
     env_vars = parse_env_file(env_file)
 
-    # Create SAM CLI compatible JSON structure
+    # Create SAM CLI compatible JSON structure with both functions
     sam_env = {
+        "GenerateFunction": env_vars,
         "AnalyzeFunction": env_vars
     }
 
@@ -44,6 +46,7 @@ def main():
         json.dump(sam_env, f, indent=2)
 
     print(f"Environment variables from {env_file} written to {output_file}")
+
 
 if __name__ == "__main__":
     main()

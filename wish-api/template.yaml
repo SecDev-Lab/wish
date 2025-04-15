@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  RapidPen Cloud - Log Analysis API Component (wish-log-analysis-api)
+  RapidPen Cloud - Unified API Gateway for wish services
 
 Parameters:
   Environment:
@@ -53,7 +53,7 @@ Globals:
       ApiKeyRequired: true
 
 Resources:
-  # API Gateway
+  # 共有API Gateway
   ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -92,12 +92,46 @@ Resources:
         - python3.13
       RetentionPolicy: Retain
 
+  # コマンド生成Lambda
+  GenerateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-generate"
+      CodeUri: ./
+      Handler: wish_command_generation_api.app.lambda_handler
+      Runtime: python3.13
+      Environment:
+        Variables:
+          WISH_HOME: ''
+          WISH_API_BASE_URL: !Ref ApiBaseUrl
+          OPENAI_API_KEY: !Ref OpenAIApiKey
+          OPENAI_MODEL: !Ref OpenAIModel
+          OPENAI_EMBEDDING_MODEL: 'text-embedding-3-small'
+          LANGCHAIN_TRACING_V2: 'true'
+          LANGCHAIN_ENDPOINT: 'https://api.smith.langchain.com'
+          LANGCHAIN_API_KEY: !Ref LangchainApiKey
+          LANGCHAIN_PROJECT: !Sub "rapidpen-cloud-${Environment}"
+      Events:
+        Generate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /generate
+            Method: post
+      Layers:
+        - !Ref RapidPenCloudDepLayer
+      Tags:
+        Environment: !Ref Environment
+        Service: wish-command-generation-api
+        Project: RapidPen-Cloud
+
+  # ログ分析Lambda
   AnalyzeFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-analyze"
       CodeUri: ./
-      Handler: src.wish_log_analysis_api.app.lambda_handler
+      Handler: wish_log_analysis_api.app.lambda_handler
       Runtime: python3.13
       Environment:
         Variables:
@@ -131,15 +165,21 @@ Conditions:
     - !Not [!Equals [!Ref ApiKeyId, ""]]
 
 Outputs:
-  AnalyzeApi:
+  ApiEndpoint:
     Description: API Gateway endpoint URL
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+  GenerateApi:
+    Description: Generate API endpoint URL
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/generate/"
+  AnalyzeApi:
+    Description: Analyze API endpoint URL
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/analyze/"
+  GenerateFunction:
+    Description: Generate Lambda Function ARN
+    Value: !GetAtt GenerateFunction.Arn
   AnalyzeFunction:
     Description: Analyze Lambda Function ARN
     Value: !GetAtt AnalyzeFunction.Arn
-  AnalyzeFunctionIamRole:
-    Description: Implicit IAM Role created for Analyze function
-    Value: !GetAtt AnalyzeFunctionRole.Arn
   ApiId:
     Description: API Gateway ID
     Value: !Ref ApiGatewayApi

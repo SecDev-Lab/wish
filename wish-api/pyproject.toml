@@ -9,13 +9,13 @@ Repository = "https://github.com/SecDev-Lab/wish.git"
 Issues = "https://github.com/SecDev-Lab/wish/issues"
 
 [project]
-name = "wish-command-generation"
+name = "wish-api"
 version = "0.0.0" # No need to update. GitHub Actions will update this on publish.
-description = "Command generation client for wish"
+description = "Unified API Gateway for wish services"
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [
-    {name = "Security & Development Lab", email = "lay.sakura+secdevlab@gmail.com"}
+    {name = "SecDevLab", email = "dev@secdevlab.com"}
 ]
 maintainers = [
     {name = "Sho Nakatani", email = "lay.sakura@gmail.com"}
@@ -30,14 +30,16 @@ classifiers = [
     "Topic :: System :: Shells",
 ]
 license = {file = "../LICENSE"}
+
 dependencies = [
-    "wish-models>=0.0.1",
-    "pydantic>=2.10.6",
-    "requests>=2.31.0",
+    "wish-command-generation-api",
+    "wish-log-analysis-api",
+    "aws-sam-cli",
 ]
 
 [tool.uv.sources]
-wish-models = { path = "../wish-models", editable = true }
+wish-command-generation-api = { path = "../wish-command-generation-api", editable = true }
+wish-log-analysis-api = { path = "../wish-log-analysis-api", editable = true }
 
 [tool.uv]
 dev-dependencies = [
@@ -45,7 +47,7 @@ dev-dependencies = [
     "pytest-asyncio>=0.25.2",
     "pytest>=8.3.4",
     "ruff>=0.9.8",
-    "requests-mock>=1.11.0",
+    "graphviz>=0.20.1",
 ]
 
 [tool.pdm.build]

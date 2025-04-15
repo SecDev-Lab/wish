@@ -1,8 +1,11 @@
-.PHONY: deps gen-requirements install-sam-deps build deploy clean build-AnalyzeFunction e2e
+.PHONY: deps gen-requirements install-sam-deps build run-api deploy clean e2e
 
 # Dependency management
 deps:
 	uv sync --dev
+	# 両方のAPIパッケージの依存関係をインストール
+	cd ../wish-command-generation-api && uv sync --dev
+	cd ../wish-log-analysis-api && uv sync --dev
 
 # Generate requirements.txt from pyproject.toml
 gen-requirements: deps
@@ -16,15 +19,17 @@ install-sam-deps: gen-requirements
 build: install-sam-deps
 	sam build --use-container --skip-pull-image
 
-# Note: API is now started via the unified wish-api package
-# To start the API, run `make run-api` from the top-level directory
+# Start local development server (using container)
+run-api: build
+	uv run python scripts/env_to_json.py
+	sam local start-api --env-vars .env.json
 
 # Clean up generated files
 clean:
 	rm -rf .aws-sam
 	rm -rf vendor/
 	rm -f requirements.txt
-	find src/ -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type d -name "__pycache__" -exec rm -rf {} +
 
 # Run E2E tests against a deployed API endpoint
 e2e:

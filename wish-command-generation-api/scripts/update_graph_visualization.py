@@ -26,7 +26,7 @@ MD_PATH = DOCS_DIR / "design.md"
 def generate_graph_visualization():
     """Visualize the graph and save it as SVG"""
     # Import the graph module
-    from wish_command_generation.graph import create_command_generation_graph
+    from wish_command_generation_api.graph import create_command_generation_graph
 
     # Create the graph (get the pre-compiled graph object)
     graph = create_command_generation_graph(compile=False)

@@ -1,4 +1,4 @@
-.PHONY: deps gen-requirements install-sam-deps build deploy clean build-AnalyzeFunction e2e
+.PHONY: deps gen-requirements install-sam-deps build deploy clean build-GenerateFunction e2e
 
 # Dependency management
 deps:

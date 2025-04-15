@@ -1,0 +1,65 @@
+"""Lambda handler for the wish-command-generation-api."""
+
+import json
+import logging
+from typing import Any, Dict
+
+from .core.generator import generate_command
+from .models import GenerateRequest
+
+# Configure logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+
+def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """AWS Lambda handler for the wish-command-generation-api.
+
+    Args:
+        event: The Lambda event.
+        context: The Lambda context.
+
+    Returns:
+        The Lambda response.
+    """
+    logger.info("Received event: %s", json.dumps(event))
+
+    try:
+        # Parse the request body
+        body = json.loads(event.get("body", "{}"))
+        request = GenerateRequest.model_validate(body)
+
+        # Generate the command
+        response = generate_command(request)
+
+        # Check if there was an error during generation
+        if response.error is not None:
+            return {
+                "statusCode": 500,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": json.dumps({
+                    "error": response.error
+                })
+            }
+
+        # Return the successful response
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": json.dumps(response.model_dump())
+        }
+    except Exception as e:
+        logger.exception("Error handling request")
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": json.dumps({
+                "error": str(e)
+            })
+        }

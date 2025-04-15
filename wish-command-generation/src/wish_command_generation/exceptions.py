@@ -1,19 +1,16 @@
-"""Exceptions for wish-command-generation."""
+"""Exceptions for the command generation client."""
 
 
 class CommandGenerationError(Exception):
-    """Exception raised for errors during command generation."""
+    """Exception raised when command generation fails."""
 
     def __init__(self, message: str, api_response: str = None):
         """Initialize the exception.
+
         Args:
-            message: Error message
-            api_response: The raw API response that caused the error (if available)
+            message: The error message.
+            api_response: The API response that caused the error (if available).
         """
-        super().__init__(message)
         self.message = message
         self.api_response = api_response
-
-    def __str__(self) -> str:
-        """Return string representation of the error."""
-        return self.message
+        super().__init__(self.message)

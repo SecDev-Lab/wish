@@ -1,34 +1,35 @@
-"""Models for the command generation graph."""
+"""Models for the command generation client."""
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
-from wish_models.command_result import CommandInput
-from wish_models.system_info import SystemInfo
-from wish_models.wish.wish import Wish
 
 
-class GraphState(BaseModel):
-    """Class representing the state of LangGraph.
+class GeneratedCommand(BaseModel):
+    """Class representing a generated shell command."""
 
-    This class is used to maintain state during LangGraph execution and pass data between nodes.
-    wish-command-generation takes a Wish object and outputs multiple commands (CommandInput) to fulfill it.
-    """
+    command: str = Field(description="The generated shell command")
+    """The generated shell command string."""
 
-    wish: Wish
-    """The Wish object to be processed. The Wish.wish field contains the natural language command request."""
+    explanation: str = Field(description="Explanation of what the command does")
+    """Explanation of what the command does and why it was chosen."""
 
-    context: list[str] | None = None
-    """List of reference documents retrieved from RAG. Used to improve command generation accuracy."""
 
-    query: str | None = None
-    """Query for RAG search. Used to search for relevant documents in the RAG system."""
+class GenerateRequest(BaseModel):
+    """Request model for the generate endpoint."""
 
-    command_inputs: list[CommandInput] = Field(default_factory=list)
-    """List of generated command inputs. This is the final output of the graph."""
+    query: str = Field(description="User query for command generation")
+    """The user's natural language query for command generation."""
+
+    context: Dict[str, Any] = Field(default_factory=dict, description="Context for command generation")
+    """Context information for command generation, such as current directory, history, etc."""
+
+
+class GenerateResponse(BaseModel):
+    """Response model for the generate endpoint."""
+
+    generated_command: GeneratedCommand
+    """The generated command with explanation."""
 
     error: Optional[str] = None
-    """Error message if command generation fails. None if successful."""
-
-    system_info: SystemInfo | None = None
-    """System information for command generation."""
+    """Error message if an error occurred during processing."""
