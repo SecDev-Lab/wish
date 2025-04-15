@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.6.1] - 2025-04-15
+
+### Added
+
 - Added unified API Gateway for wish services:
   - Created new `wish-api` package that integrates multiple API services
   - Combined `wish-command-generation-api` and `wish-log-analysis-api` under a single API Gateway
