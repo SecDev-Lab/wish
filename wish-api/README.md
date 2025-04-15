@@ -39,7 +39,7 @@ This project depends on the following packages:
 
 ### Prerequisites
 
-- Python 3.13 or higher
+- Python 3.10 or higher
 - uv (Python dependency management tool)
 - AWS SAM CLI
 
