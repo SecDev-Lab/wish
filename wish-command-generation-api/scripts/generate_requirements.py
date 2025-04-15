@@ -43,7 +43,7 @@ def extract_dependencies():
 
         # Add exclusion for problematic packages in SAM environment
         # This is to handle platform-specific packages that cause issues in SAM build
-        exclusions = ["onnxruntime", "chromadb"]
+        exclusions = ["onnxruntime", "chromadb", "chroma-hnswlib"]
         final_deps = [dep for dep in processed_deps if not any(excluded in dep for excluded in exclusions)]
 
         # Write dependencies to requirements.txt in project root

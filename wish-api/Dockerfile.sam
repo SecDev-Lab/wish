@@ -1,0 +1,13 @@
+FROM public.ecr.aws/sam/build-python3.10:latest
+
+# 必要なビルドツールをインストール
+RUN yum update -y && yum install -y gcc gcc-c++ make
+
+# 依存関係をインストールするためのディレクトリを作成
+WORKDIR /var/task
+
+# requirements.txtをコピー
+COPY requirements.txt .
+
+# 依存関係をインストール
+RUN pip install -r requirements.txt
