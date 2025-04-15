@@ -11,8 +11,9 @@ For SAM deployment:
 
 import re
 import sys
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 
 def extract_dependencies():
