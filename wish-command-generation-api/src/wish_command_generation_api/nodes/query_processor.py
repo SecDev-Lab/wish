@@ -79,7 +79,7 @@ def process_query(state: Annotated[GraphState, "Current state"]) -> GraphState:
             context=state.context,
             processed_query=processed_query
         )
-    except Exception as e:
+    except Exception:
         logger.exception("Error processing query")
         # Return the original state with the original query as processed query
         return GraphState(

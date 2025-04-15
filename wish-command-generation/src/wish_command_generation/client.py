@@ -2,13 +2,13 @@
 
 import json
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
 from .config import ClientConfig
 from .exceptions import CommandGenerationError
-from .models import GenerateRequest, GenerateResponse, GeneratedCommand
+from .models import GeneratedCommand, GenerateRequest, GenerateResponse
 
 # Configure logging
 logger = logging.getLogger(__name__)

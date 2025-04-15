@@ -88,7 +88,7 @@ def generate_command(state: Annotated[GraphState, "Current state"]) -> GraphStat
             processed_query=state.processed_query,
             command_candidates=command_candidates
         )
-    except Exception as e:
+    except Exception:
         logger.exception("Error generating command")
         # Return the original state with a fallback command
         return GraphState(

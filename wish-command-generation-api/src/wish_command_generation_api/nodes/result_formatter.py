@@ -7,7 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from wish_models import settings
 
-from ..models import GraphState, GeneratedCommand
+from ..models import GeneratedCommand, GraphState
 
 # Configure logging
 logger = logging.getLogger()
@@ -44,7 +44,7 @@ def format_result(state: Annotated[GraphState, "Current state"]) -> GraphState:
         # Extract query and command candidates
         original_query = state.query
         command_candidates = state.command_candidates or ["echo 'No command generated'"]
-        
+
         # Use the first command candidate
         command = command_candidates[0]
 
@@ -86,12 +86,12 @@ def format_result(state: Annotated[GraphState, "Current state"]) -> GraphState:
         logger.exception("Error formatting result")
         # Return the original state with a fallback generated command
         command = state.command_candidates[0] if state.command_candidates else "echo 'Command generation failed'"
-        
+
         fallback_command = GeneratedCommand(
             command=command,
             explanation=f"Error: Failed to generate explanation due to {str(e)}"
         )
-        
+
         return GraphState(
             query=state.query,
             context=state.context,

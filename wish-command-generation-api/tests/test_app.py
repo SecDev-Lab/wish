@@ -7,7 +7,7 @@ import pytest
 
 from wish_command_generation_api.app import lambda_handler
 from wish_command_generation_api.core.generator import generate_command
-from wish_command_generation_api.models import GenerateRequest, GraphState, GeneratedCommand
+from wish_command_generation_api.models import GeneratedCommand, GenerateRequest, GraphState
 
 
 # Mock OpenAI API calls globally for all tests in this file

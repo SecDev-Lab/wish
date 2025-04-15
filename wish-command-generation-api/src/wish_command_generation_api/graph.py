@@ -7,7 +7,7 @@ from wish_models import settings
 
 from .config import GeneratorConfig
 from .models import GraphState
-from .nodes import query_processor, command_generator, result_formatter
+from .nodes import command_generator, query_processor, result_formatter
 
 
 def create_command_generation_graph(config: Optional[GeneratorConfig] = None, compile: bool = True) -> StateGraph:

@@ -1,6 +1,5 @@
 """Tests for the models module."""
 
-import pytest
 
 from wish_command_generation.models import GeneratedCommand, GenerateRequest, GenerateResponse
 

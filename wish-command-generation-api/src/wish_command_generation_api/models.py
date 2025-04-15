@@ -1,6 +1,7 @@
 """Models for the command generation graph."""
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from pydantic import BaseModel, Field
 
 

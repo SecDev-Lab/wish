@@ -1,6 +1,6 @@
 """Models for the command generation client."""
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 

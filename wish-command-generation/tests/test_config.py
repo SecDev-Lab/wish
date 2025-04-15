@@ -3,8 +3,6 @@
 import os
 from unittest.mock import patch
 
-import pytest
-
 from wish_command_generation.config import ClientConfig
 
 

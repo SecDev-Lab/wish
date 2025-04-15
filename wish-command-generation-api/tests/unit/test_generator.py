@@ -1,13 +1,12 @@
 """Unit tests for the generator module."""
 
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from wish_command_generation_api.config import GeneratorConfig
 from wish_command_generation_api.core.generator import generate_command
-from wish_command_generation_api.models import GenerateRequest, GraphState, GeneratedCommand
+from wish_command_generation_api.models import GeneratedCommand, GenerateRequest, GraphState
 
 
 @pytest.fixture

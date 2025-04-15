@@ -9,7 +9,7 @@ import requests_mock
 
 from wish_command_generation.client import CommandGenerationClient, generate_command
 from wish_command_generation.config import ClientConfig
-from wish_command_generation.models import GenerateResponse, GeneratedCommand
+from wish_command_generation.models import GeneratedCommand, GenerateResponse
 
 
 @pytest.fixture

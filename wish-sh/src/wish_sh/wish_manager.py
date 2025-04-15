@@ -122,7 +122,7 @@ class WishManager:
 
             # Generate commands using CommandGenerator with system info
             command_inputs = self.command_generator.generate_commands(wish_obj, system_info)
-            
+
             # Add debug logging
             logging.debug(f"Command inputs type: {type(command_inputs)}")
             logging.debug(f"Command inputs: {command_inputs}")

@@ -5,7 +5,7 @@ from typing import Optional
 
 from ..config import GeneratorConfig
 from ..graph import create_command_generation_graph
-from ..models import GenerateRequest, GenerateResponse, GraphState, GeneratedCommand
+from ..models import GeneratedCommand, GenerateRequest, GenerateResponse, GraphState
 
 # Configure logging
 logger = logging.getLogger()
@@ -78,13 +78,13 @@ def generate_command(
         )
     except Exception as e:
         logger.exception("Error generating command")
-        
+
         # Create a fallback generated_command for the exception case
         fallback_command = GeneratedCommand(
             command="echo 'Command generation failed'",
             explanation=f"Error: {str(e)}"
         )
-        
+
         return GenerateResponse(
             generated_command=fallback_command,
             error=str(e)
