@@ -4,7 +4,7 @@
 # Find all Python projects (directories containing pyproject.toml)
 PYTHON_PROJECTS := $(dir $(shell find . -name "pyproject.toml" -not -path "*/\.*"))
 
-.PHONY: test lint format e2e help
+.PHONY: test lint format e2e run-api help
 
 # Default target
 help:
@@ -13,6 +13,7 @@ help:
 	@echo "  make lint    - Run linting in all Python projects"
 	@echo "  make format  - Format code in all Python projects"
 	@echo "  make e2e     - Run E2E tests for wish-log-analysis-api"
+	@echo "  make run-api - Start unified API Gateway for wish services"
 
 # Run tests in all Python projects
 test:
@@ -43,3 +44,8 @@ e2e:
 	@echo "Running E2E tests for wish-log-analysis-api against a deployed API endpoint..."
 	@echo "Note: This command is typically called from another repository that references this one."
 	@(cd wish-log-analysis-api && make e2e)
+
+# Start unified API Gateway for wish services
+run-api:
+	@echo "Starting unified API Gateway for wish services..."
+	@(cd wish-api && make run-api)

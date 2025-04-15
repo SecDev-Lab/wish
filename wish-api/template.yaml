@@ -1,0 +1,185 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  RapidPen Cloud - Unified API Gateway for wish services
+
+Parameters:
+  Environment:
+    Type: String
+    Default: stg
+    AllowedValues:
+      - stg
+      - prd
+    Description: Deployment environment
+
+  OpenAIApiKey:
+    Type: String
+    NoEcho: true
+
+  OpenAIModel:
+    Type: String
+    Default: gpt-4o
+
+  ApiBaseUrl:
+    Type: String
+
+  LangchainApiKey:
+    Type: String
+    NoEcho: true
+    
+  # 共有APIリソースのパラメータ
+  ApiKeyId:
+    Type: String
+    Default: ""
+    Description: ID of the shared API Key (leave empty to skip UsagePlan association)
+
+  UsagePlanId:
+    Type: String
+    Default: ""
+    Description: ID of the shared Usage Plan (leave empty to skip UsagePlan association)
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Tracing: Active
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: false
+    OpenApiVersion: '2.0'
+    EndpointConfiguration: EDGE
+    Auth:
+      ApiKeyRequired: true
+
+Resources:
+  # 共有API Gateway
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      EndpointConfiguration: EDGE
+      TracingEnabled: false
+      OpenApiVersion: '2.0'
+      Auth:
+        ApiKeyRequired: true
+
+  # UsagePlanとAPIステージの関連付け（条件付き）
+  UsagePlanStageAssociation:
+    Type: AWS::ApiGateway::UsagePlanStage
+    Condition: HasUsagePlan
+    DependsOn: ApiGatewayApiStage
+    Properties:
+      UsagePlanId: !Ref UsagePlanId
+      ApiId: !Ref ApiGatewayApi
+      Stage: !Ref Environment
+  
+  # UsagePlanとAPIキーの関連付け（条件付き）
+  UsagePlanKeyAssociation:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Condition: HasUsagePlan
+    Properties:
+      KeyId: !Ref ApiKeyId
+      KeyType: API_KEY
+      UsagePlanId: !Ref UsagePlanId
+
+  RapidPenCloudDepLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "rapidpen-cloud-dep-layer-${Environment}"
+      ContentUri: ./vendor/
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Retain
+
+  # コマンド生成Lambda
+  GenerateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-generate"
+      CodeUri: ./
+      Handler: wish_command_generation_api.app.lambda_handler
+      Runtime: python3.13
+      Environment:
+        Variables:
+          WISH_HOME: ''
+          WISH_API_BASE_URL: !Ref ApiBaseUrl
+          OPENAI_API_KEY: !Ref OpenAIApiKey
+          OPENAI_MODEL: !Ref OpenAIModel
+          OPENAI_EMBEDDING_MODEL: 'text-embedding-3-small'
+          LANGCHAIN_TRACING_V2: 'true'
+          LANGCHAIN_ENDPOINT: 'https://api.smith.langchain.com'
+          LANGCHAIN_API_KEY: !Ref LangchainApiKey
+          LANGCHAIN_PROJECT: !Sub "rapidpen-cloud-${Environment}"
+      Events:
+        Generate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /generate
+            Method: post
+      Layers:
+        - !Ref RapidPenCloudDepLayer
+      Tags:
+        Environment: !Ref Environment
+        Service: wish-command-generation-api
+        Project: RapidPen-Cloud
+
+  # ログ分析Lambda
+  AnalyzeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-analyze"
+      CodeUri: ./
+      Handler: wish_log_analysis_api.app.lambda_handler
+      Runtime: python3.13
+      Environment:
+        Variables:
+          WISH_HOME: ''
+          WISH_API_BASE_URL: !Ref ApiBaseUrl
+          OPENAI_API_KEY: !Ref OpenAIApiKey
+          OPENAI_MODEL: !Ref OpenAIModel
+          OPENAI_EMBEDDING_MODEL: 'text-embedding-3-small'
+          LANGCHAIN_TRACING_V2: 'true'
+          LANGCHAIN_ENDPOINT: 'https://api.smith.langchain.com'
+          LANGCHAIN_API_KEY: !Ref LangchainApiKey
+          LANGCHAIN_PROJECT: !Sub "rapidpen-cloud-${Environment}"
+      Events:
+        Analyze:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /analyze
+            Method: post
+      Layers:
+        - !Ref RapidPenCloudDepLayer
+      Tags:
+        Environment: !Ref Environment
+        Service: wish-log-analysis-api
+        Project: RapidPen-Cloud
+
+Conditions:
+  # UsagePlanとApiKeyIdが指定されている場合のみ、関連付けを行う
+  HasUsagePlan: !And
+    - !Not [!Equals [!Ref UsagePlanId, ""]]
+    - !Not [!Equals [!Ref ApiKeyId, ""]]
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+  GenerateApi:
+    Description: Generate API endpoint URL
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/generate/"
+  AnalyzeApi:
+    Description: Analyze API endpoint URL
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/analyze/"
+  GenerateFunction:
+    Description: Generate Lambda Function ARN
+    Value: !GetAtt GenerateFunction.Arn
+  AnalyzeFunction:
+    Description: Analyze Lambda Function ARN
+    Value: !GetAtt AnalyzeFunction.Arn
+  ApiId:
+    Description: API Gateway ID
+    Value: !Ref ApiGatewayApi

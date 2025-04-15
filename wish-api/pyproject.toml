@@ -1,0 +1,73 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project.urls]
+Homepage = "https://github.com/SecDev-Lab/wish"
+Documentation = "https://github.com/SecDev-Lab/wish"
+Repository = "https://github.com/SecDev-Lab/wish.git"
+Issues = "https://github.com/SecDev-Lab/wish/issues"
+
+[project]
+name = "wish-api"
+version = "0.0.0" # No need to update. GitHub Actions will update this on publish.
+description = "Unified API Gateway for wish services"
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [
+    {name = "SecDevLab", email = "dev@secdevlab.com"}
+]
+maintainers = [
+    {name = "Sho Nakatani", email = "lay.sakura@gmail.com"}
+]
+keywords = ["wish", "llm", "ai", "shell", "command-generation"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: System :: Shells",
+]
+license = {file = "../LICENSE"}
+
+dependencies = [
+    "wish-command-generation-api",
+    "wish-log-analysis-api",
+    "aws-sam-cli",
+]
+
+[tool.uv.sources]
+wish-command-generation-api = { path = "../wish-command-generation-api", editable = true }
+wish-log-analysis-api = { path = "../wish-log-analysis-api", editable = true }
+
+[tool.uv]
+dev-dependencies = [
+    "factory-boy>=3.3.1",
+    "pytest-asyncio>=0.25.2",
+    "pytest>=8.3.4",
+    "ruff>=0.9.8",
+    "graphviz>=0.20.1",
+]
+
+[tool.pdm.build]
+includes = ["src/"]
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "I", # isort
+    "B", # flake8-bugbear
+    "W", # pycodestyle warnings
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = ["--import-mode=importlib"]
+asyncio_default_fixture_loop_scope = "function"

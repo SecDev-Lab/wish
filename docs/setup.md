@@ -12,19 +12,24 @@ This guide explains how to install and set up `wish-sh` and `wish-knowledge-load
 This guide will walk you through the process of setting up the wish ecosystem components in the correct order. Follow these steps to ensure proper functionality:
 
 1. **Environment Setup**: Configure the necessary environment variables for all components
-2. **Start the API Server**: Launch the wish-log-analysis-api server using `make run-api`
+2. **Start the API Server**: Launch the unified API server using `make run-api`
 3. **Install and Configure wish-sh**: Install the wish-sh package and set up required configurations
 4. **Install wish-knowledge-loader** (Optional): Set up the knowledge loader if you need enhanced functionality
 
-The wish-sh command requires the wish-log-analysis-api server to be running, as it relies on the API for analyzing command execution logs. This setup ensures that all components work together seamlessly.
+The wish-sh command requires the API server to be running, as it relies on the API services for command generation and analyzing command execution logs. This setup ensures that all components work together seamlessly.
 
 The following sections provide detailed instructions for each step of the setup process.
 
-## wish-log-analysis-api
+## API Services
+
+The wish ecosystem includes a unified API Gateway that provides multiple API services:
+
+- **Command Generation API** (`/generate` endpoint): Generates shell commands from natural language queries
+- **Log Analysis API** (`/analyze` endpoint): Analyzes command execution logs
 
 ### Environment Variables
 
-wish-log-analysis-api automatically reads environment variables from the `~/.wish/env` file. Set the following environment variables:
+The API services automatically read environment variables from the `~/.wish/env` file. Set the following environment variables:
 
 ```
 # OpenAI API settings
@@ -41,13 +46,18 @@ See the "Using env File" section for instructions on setting up the environment 
 
 ### Starting the API Server
 
-To start the wish-log-analysis-api server locally, run the following command:
+To start the unified API server locally, run the following command:
 
 ```bash
 make run-api
 ```
 
-This will start a local development server and make the API endpoints available.
+This will start a local development server and make the following API endpoints available:
+
+- `http://localhost:3000/generate` - Command Generation API
+- `http://localhost:3000/analyze` - Log Analysis API
+
+For more details about the API services, see the [API Development Guide](api-development.md).
 
 ## wish-sh
 
