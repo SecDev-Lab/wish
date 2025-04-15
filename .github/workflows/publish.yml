@@ -51,10 +51,10 @@ jobs:
       matrix:
         package:
           - wish-command-execution
-          - wish-command-execution-api
           - wish-command-generation
           - wish-command-generation-api
           - wish-log-analysis
+          - wish-log-analysis-api
           - wish-knowledge-loader
 
     steps:
