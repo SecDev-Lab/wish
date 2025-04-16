@@ -9,5 +9,5 @@ WORKDIR /var/task
 # requirements.txtをコピー
 COPY requirements.txt .
 
-# 依存関係をインストール
-RUN pip install -r requirements.txt
+# 依存関係をvendorディレクトリにインストール
+RUN pip install -r requirements.txt -t vendor/
