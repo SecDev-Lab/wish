@@ -3,23 +3,18 @@
 # Dependency management
 deps:
 	uv sync --dev
-	# 両方のAPIパッケージの依存関係をインストール
-	cd ../wish-command-generation-api && uv sync --dev
-	cd ../wish-log-analysis-api && uv sync --dev
 
 # Generate requirements.txt from pyproject.toml
 gen-requirements: deps
 	uv run ./scripts/generate_requirements.py
 
-# Build custom Docker image for SAM
-build-docker-image: gen-requirements
-	@echo "Building custom SAM Docker image with Python 3.10..."
-	docker build -t custom-sam-build -f Dockerfile.sam .
-	@echo "Custom SAM Docker image built successfully"
+# Install dependencies for SAM
+install-sam-deps: gen-requirements
+	python -m pip install -r requirements.txt -t vendor/
 
-# SAM build (ローカル環境で実行)
-build: build-docker-image
-	sam build --use-container --skip-pull-image --build-image custom-sam-build
+# SAM build (using container)
+build: install-sam-deps
+	sam build --use-container --skip-pull-image
 
 # Start local development server (using container)
 run-api: build
@@ -32,13 +27,6 @@ clean:
 	rm -rf vendor/
 	rm -f requirements.txt
 	find . -type d -name "__pycache__" -exec rm -rf {} +
-	@echo "Checking if custom-sam-build Docker image exists..."
-	@if docker image inspect custom-sam-build >/dev/null 2>&1; then \
-		echo "Removing custom-sam-build Docker image..."; \
-		docker rmi custom-sam-build; \
-	else \
-		echo "custom-sam-build Docker image not found, skipping removal"; \
-	fi
 
 # Run E2E tests against a deployed API endpoint
 e2e:
