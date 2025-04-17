@@ -42,10 +42,8 @@ def extract_dependencies():
                 # Keep other dependencies as they are
                 processed_deps.append(dep)
 
-        # Add exclusion for problematic packages in SAM environment
-        # This is to handle platform-specific packages that cause issues in SAM build
-        exclusions = ["onnxruntime", "chromadb"]
-        final_deps = [dep for dep in processed_deps if not any(excluded in dep for excluded in exclusions)]
+        # 除外処理を削除
+        final_deps = processed_deps
 
         # Write dependencies to requirements.txt in project root
         requirements_path = Path("requirements.txt")

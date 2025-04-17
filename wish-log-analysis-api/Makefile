@@ -1,30 +1,4 @@
-.PHONY: deps gen-requirements install-sam-deps build deploy clean build-AnalyzeFunction e2e
-
-# Dependency management
-deps:
-	uv sync --dev
-
-# Generate requirements.txt from pyproject.toml
-gen-requirements: deps
-	uv run ./scripts/generate_requirements.py
-
-# Install dependencies for SAM
-install-sam-deps: gen-requirements
-	python -m pip install -r requirements.txt -t vendor/
-
-# SAM build (using container)
-build: install-sam-deps
-	sam build --use-container --skip-pull-image
-
-# Note: API is now started via the unified wish-api package
-# To start the API, run `make run-api` from the top-level directory
-
-# Clean up generated files
-clean:
-	rm -rf .aws-sam
-	rm -rf vendor/
-	rm -f requirements.txt
-	find src/ -type d -name "__pycache__" -exec rm -rf {} +
+.PHONY: e2e
 
 # Run E2E tests against a deployed API endpoint
 e2e:

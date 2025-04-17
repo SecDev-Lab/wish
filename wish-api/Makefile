@@ -1,11 +1,8 @@
-.PHONY: deps gen-requirements install-sam-deps build run-api deploy clean e2e
+.PHONY: deps gen-requirements build run-api deploy clean e2e
 
 # Dependency management
 deps:
 	uv sync --dev
-	# 両方のAPIパッケージの依存関係をインストール
-	cd ../wish-command-generation-api && uv sync --dev
-	cd ../wish-log-analysis-api && uv sync --dev
 
 # Generate requirements.txt from pyproject.toml
 gen-requirements: deps

@@ -89,7 +89,7 @@ Resources:
       LayerName: !Sub "rapidpen-cloud-dep-layer-${Environment}"
       ContentUri: ./vendor/
       CompatibleRuntimes:
-        - python3.13
+        - python3.10
       RetentionPolicy: Retain
 
   # コマンド生成Lambda
@@ -98,8 +98,8 @@ Resources:
     Properties:
       FunctionName: !Sub "${AWS::StackName}-generate"
       CodeUri: ./
-      Handler: wish_command_generation_api.app.lambda_handler
-      Runtime: python3.13
+      Handler: vendor.wish_command_generation_api.app.lambda_handler
+      Runtime: python3.10
       Environment:
         Variables:
           WISH_HOME: ''
@@ -131,8 +131,8 @@ Resources:
     Properties:
       FunctionName: !Sub "${AWS::StackName}-analyze"
       CodeUri: ./
-      Handler: wish_log_analysis_api.app.lambda_handler
-      Runtime: python3.13
+      Handler: vendor.wish_log_analysis_api.app.lambda_handler
+      Runtime: python3.10
       Environment:
         Variables:
           WISH_HOME: ''
