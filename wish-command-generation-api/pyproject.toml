@@ -46,6 +46,12 @@ dependencies = [
     "pydantic-settings>=2.8.1",
 ]
 
+[project.optional-dependencies]
+qdrant = [
+    "langchain-qdrant>=0.2.0",
+    "qdrant-client>=1.7.0",
+]
+
 [tool.uv.sources]
 wish-models = { path = "../wish-models", editable = true }
 

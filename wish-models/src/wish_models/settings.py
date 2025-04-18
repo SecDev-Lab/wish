@@ -37,6 +37,12 @@ class Settings(BaseSettings):
 
     # RAG settings (for wish-command-generation)
     EMBEDDING_MODEL: str = Field("text-embedding-3-small")
+    VECTOR_STORE_TYPE: str = Field("chroma")  # "chroma" or "qdrant"
+
+    # Qdrant settings (optional)
+    QDRANT_HOST: str = Field("localhost")
+    QDRANT_PORT: int = Field(6333)
+    QDRANT_COLLECTION_NAME: str = Field("wish")
 
     # LangSmith settings
     LANGCHAIN_TRACING_V2: bool = Field(True)

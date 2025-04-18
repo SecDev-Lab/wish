@@ -63,21 +63,102 @@ FTP upload reverse shell user interaction batch
 
 
 def retrieve_documents(state: GraphState) -> GraphState:
-    """Retrieve relevant documents using the generated query from ChromaDB"""
-    import os
-    from pathlib import Path
-
-    from langchain_community.document_loaders import TextLoader
-    from langchain_community.vectorstores import Chroma
-    from langchain_openai import OpenAIEmbeddings
+    """Retrieve relevant documents using the generated query from vector store"""
     from wish_models import settings
 
     # Return empty context if no query is available
     if not state.query:
-        state_dict = state.model_dump()
-        state_dict["context"] = []
-        return GraphState(**state_dict)
+        return _return_empty_context(state)
 
+    # Branch based on vector store type
+    vector_store_type = getattr(settings, "VECTOR_STORE_TYPE", "chroma").lower()
+    
+    if vector_store_type == "qdrant":
+        try:
+            # Use Qdrant for document retrieval
+            return _retrieve_from_qdrant(state)
+        except ImportError:
+            print("Qdrant dependencies not installed. Please install with 'pip install \"wish-command-generation-api[qdrant]\"'")
+            # Fallback to Chroma if Qdrant dependencies are not available
+            return _retrieve_from_chroma(state)
+    else:
+        # Use Chroma for document retrieval (default)
+        return _retrieve_from_chroma(state)
+
+
+def _return_empty_context(state: GraphState) -> GraphState:
+    """Return state with empty context"""
+    state_dict = state.model_dump()
+    state_dict["context"] = []
+    return GraphState(**state_dict)
+
+
+def _retrieve_from_qdrant(state: GraphState) -> GraphState:
+    """Retrieve documents from Qdrant vector store"""
+    from wish_models import settings
+    from langchain_openai import OpenAIEmbeddings
+    from langchain_community.vectorstores import Qdrant
+    from qdrant_client import QdrantClient
+    
+    # Initialize embeddings
+    embeddings = OpenAIEmbeddings(
+        model=settings.EMBEDDING_MODEL,
+        api_key=settings.OPENAI_API_KEY,
+        disallowed_special=()
+    )
+    
+    # Initialize Qdrant client
+    client = QdrantClient(
+        host=getattr(settings, "QDRANT_HOST", "localhost"),
+        port=getattr(settings, "QDRANT_PORT", 6333)
+    )
+    
+    collection_name = getattr(settings, "QDRANT_COLLECTION_NAME", "wish")
+    
+    # Check if collection exists
+    if not client.collection_exists(collection_name):
+        print(f"Collection {collection_name} does not exist")
+        return _return_empty_context(state)
+    
+    # Initialize Qdrant vector store
+    vectorstore = Qdrant(
+        client=client,
+        collection_name=collection_name,
+        embedding_function=embeddings
+    )
+    
+    # Execute search
+    chunks = vectorstore.similarity_search(state.query, k=5)
+    
+    # Process search results
+    all_documents = [chunk.page_content for chunk in chunks]
+    
+    # Remove duplicates
+    unique_documents = list(set(all_documents))
+    
+    # Update state
+    state_dict = state.model_dump()
+    state_dict["context"] = unique_documents
+    
+    return GraphState(**state_dict)
+
+
+def _retrieve_from_chroma(state: GraphState) -> GraphState:
+    """Retrieve documents from Chroma vector store"""
+    import os
+    from pathlib import Path
+    from wish_models import settings
+    from langchain_openai import OpenAIEmbeddings
+    from langchain_community.document_loaders import TextLoader
+    from langchain_community.vectorstores import Chroma
+    
+    # Initialize embeddings
+    embeddings = OpenAIEmbeddings(
+        model=settings.EMBEDDING_MODEL,
+        api_key=settings.OPENAI_API_KEY,
+        disallowed_special=()
+    )
+    
     # Get knowledge base path - explicitly expand tilde (~) in path
     wish_home_str = os.path.expanduser(settings.WISH_HOME)
     wish_home = Path(wish_home_str)
@@ -86,29 +167,17 @@ def retrieve_documents(state: GraphState) -> GraphState:
     # Check if directory exists
     if not knowledge_dir.exists():
         print(f"Knowledge directory not found: {knowledge_dir}")
-        state_dict = state.model_dump()
-        state_dict["context"] = []
-        return GraphState(**state_dict)
+        return _return_empty_context(state)
 
     # Get available knowledge bases
     available_knowledge = [d.name for d in knowledge_dir.iterdir() if d.is_dir()]
 
     if not available_knowledge:
         # Return empty context if no knowledge bases are available
-        state_dict = state.model_dump()
-        state_dict["context"] = []
-        return GraphState(**state_dict)
-
-    # Initialize embeddings
-    embeddings = OpenAIEmbeddings(
-        model=settings.EMBEDDING_MODEL,
-        api_key=settings.OPENAI_API_KEY,
-        disallowed_special=()
-    )
-
-    # Collect search results from all knowledge bases
+        return _return_empty_context(state)
+    
     all_documents = []
-
+        
     for knowledge_title in available_knowledge:
         db_path = knowledge_dir / knowledge_title
         repo_path = wish_home / "knowledge" / "repo" / knowledge_title.split('/')[-1]
