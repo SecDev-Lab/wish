@@ -17,11 +17,11 @@ class WishManagerFactory(factory.Factory):
     class Meta:
         model = WishManager
 
-    # Settingsを直接使用
+    # Use Settings directly
     settings = factory.LazyFunction(lambda: Settings(
         OPENAI_API_KEY="sk-dummy-key-for-testing",
         OPENAI_MODEL="gpt-4o-mini",
-        WISH_HOME="/tmp/wish-test-home"
+        WISH_HOME=Path("/tmp/wish-test-home")
     ))
 
     @classmethod
