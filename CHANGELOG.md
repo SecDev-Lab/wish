@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Fixed
+
+### Removed
+
+
+## [0.6.9] - 2025-04-18
+
+### Added
+
+### Changed
+
 - Improved Settings class in wish-models:
   - Changed WISH_HOME to use Path objects instead of strings for better path handling
   - Simplified environment file loading to use explicit paths instead of implicit multiple locations
