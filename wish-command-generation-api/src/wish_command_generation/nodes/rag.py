@@ -78,7 +78,8 @@ def retrieve_documents(state: GraphState) -> GraphState:
             # Use Qdrant for document retrieval
             return _retrieve_from_qdrant(state)
         except ImportError:
-            print("Qdrant dependencies not installed. Please install with 'pip install \"wish-command-generation-api[qdrant]\"'")
+            print("Qdrant dependencies not installed.")
+            print("Please install with: pip install \"wish-command-generation-api[qdrant]\"")
             # Fallback to Chroma if Qdrant dependencies are not available
             return _retrieve_from_chroma(state)
     else:
