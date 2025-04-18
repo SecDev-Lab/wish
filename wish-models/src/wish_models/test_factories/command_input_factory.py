@@ -3,6 +3,7 @@ CommandInput のファクトリクラス
 """
 
 import factory
+
 from wish_models.command_result import CommandInput
 
 
