@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-import pytest
 from wish_models.settings import Settings
 
 
@@ -47,11 +46,11 @@ class TestSettings:
         try:
             # Set environment variable
             os.environ["WISH_ENV_FILE"] = env_path
-            
+
             # Load settings
             settings = Settings()
             assert settings.OPENAI_MODEL == "gpt-4-turbo"
-            
+
             # Clean up environment
             del os.environ["WISH_ENV_FILE"]
         finally:
@@ -68,13 +67,13 @@ class TestSettings:
         try:
             # Set environment variable
             os.environ["OPENAI_MODEL"] = "gpt-4-vision"
-            
+
             # Load settings
             settings = Settings(env_file=env_path)
-            
+
             # Environment variable should override env file
             assert settings.OPENAI_MODEL == "gpt-4-vision"
-            
+
             # Clean up environment
             del os.environ["OPENAI_MODEL"]
         finally:
@@ -85,13 +84,13 @@ class TestSettings:
         """Test that constructor parameters override environment variables and env file."""
         # Set environment variable
         os.environ["OPENAI_MODEL"] = "gpt-4-vision"
-        
+
         # Load settings with constructor override
         settings = Settings(OPENAI_MODEL="gpt-4o-mini")
-        
+
         # Constructor parameter should override environment variable
         assert settings.OPENAI_MODEL == "gpt-4o-mini"
-        
+
         # Clean up environment
         del os.environ["OPENAI_MODEL"]
 
@@ -101,7 +100,7 @@ class TestSettings:
         settings = Settings(WISH_HOME="/tmp/wish")
         assert isinstance(settings.WISH_HOME, Path)
         assert settings.WISH_HOME == Path("/tmp/wish")
-        
+
         # Test with tilde expansion
         settings = Settings(WISH_HOME="~/wish")
         assert isinstance(settings.WISH_HOME, Path)

@@ -1,7 +1,8 @@
 """Factory for Settings."""
 
-import factory
 from pathlib import Path
+
+import factory
 
 from wish_models.settings import Settings
 
