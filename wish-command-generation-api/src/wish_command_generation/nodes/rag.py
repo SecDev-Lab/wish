@@ -106,8 +106,8 @@ def _return_empty_context(state: GraphState) -> GraphState:
 
 def _retrieve_from_qdrant(state: GraphState) -> GraphState:
     """Retrieve documents from Qdrant vector store"""
-    from langchain_community.vectorstores import Qdrant
     from langchain_openai import OpenAIEmbeddings
+    from langchain_qdrant import Qdrant
     from qdrant_client import QdrantClient
     from wish_models import settings
 
@@ -135,7 +135,7 @@ def _retrieve_from_qdrant(state: GraphState) -> GraphState:
     vectorstore = Qdrant(
         client=client,
         collection_name=collection_name,
-        embedding_function=embeddings
+        embeddings=embeddings
     )
 
     # Execute search
