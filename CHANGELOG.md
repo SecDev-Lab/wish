@@ -9,7 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added Qdrant vector store support to wish-command-generation-api:
+  - Added optional Qdrant integration as an alternative to ChromaDB
+  - Added feature-based dependencies with `[qdrant]` extra in pyproject.toml
+  - Added configuration options for Qdrant in settings.py
+  - Updated documentation with Qdrant setup and usage instructions
+
 ### Changed
+
+- Refactored RAG implementation in wish-command-generation-api:
+  - Improved code organization with separate functions for different vector stores
+- Restructured dependencies to make vector store backends truly optional:
+  - Moved ChromaDB from base dependencies to optional `[chroma]` extra
+  - Updated code to handle missing dependencies gracefully with clear error messages
 
 ### Fixed
 

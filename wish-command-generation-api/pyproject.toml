@@ -42,8 +42,16 @@ dependencies = [
     "langchain-core>=0.3.41",
     "langchain>=0.3.20",
     "langchain-community>=0.1.0",
-    "chromadb>=0.4.22",
     "pydantic-settings>=2.8.1",
+]
+
+[project.optional-dependencies]
+chroma = [
+    "chromadb>=0.4.22",
+]
+qdrant = [
+    "langchain-qdrant>=0.2.0",
+    "qdrant-client>=1.7.0",
 ]
 
 [tool.uv.sources]

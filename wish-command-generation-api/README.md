@@ -50,6 +50,34 @@ OPENAI_MODEL=gpt-4o
 WISH_API_BASE_URL=http://localhost:3000
 ```
 
+### RAG Configuration
+
+The command generation API uses Retrieval-Augmented Generation (RAG) to improve command suggestions. By default, it uses ChromaDB as the vector store, but you can also configure it to use Qdrant:
+
+- `VECTOR_STORE_TYPE`: Vector store type to use (default: "chroma", options: "chroma" or "qdrant")
+- `EMBEDDING_MODEL`: OpenAI embedding model to use (default: text-embedding-3-small)
+
+#### Qdrant Configuration (Optional)
+
+If you want to use Qdrant as the vector store, set the following environment variables:
+
+- `QDRANT_HOST`: Qdrant server host (default: localhost)
+- `QDRANT_PORT`: Qdrant server port (default: 6333)
+- `QDRANT_COLLECTION_NAME`: Qdrant collection name (default: wish)
+
+Example:
+
+```
+# RAG settings
+VECTOR_STORE_TYPE=qdrant
+EMBEDDING_MODEL=text-embedding-3-small
+
+# Qdrant settings
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+QDRANT_COLLECTION_NAME=wish
+```
+
 Environment variables are automatically loaded from the `~/.wish/env` file and passed to the SAM local container.
 
 The client will automatically append the `/generate` endpoint to the base URL.
@@ -157,9 +185,20 @@ curl -X POST http://localhost:3000/generate \
 
 #### Installation
 
+The package can be installed with different vector store backends:
+
 ```bash
+# Basic installation (no vector stores)
 pip install git+https://github.com/SecDev-Lab/wish-command-generation-api.git
+
+# With ChromaDB support (default vector store)
+pip install "git+https://github.com/SecDev-Lab/wish-command-generation-api.git#egg=wish-command-generation-api[chroma]"
+
+# With Qdrant support
+pip install "git+https://github.com/SecDev-Lab/wish-command-generation-api.git#egg=wish-command-generation-api[qdrant]"
 ```
+
+Note that you must install the appropriate dependencies for the vector store you want to use. If you try to use a vector store without installing its dependencies, the system will display an error message with installation instructions.
 
 #### Basic Usage
 
@@ -224,3 +263,24 @@ result = graph.invoke(initial_state)
 # Get results
 generated_command = result.generated_command
 ```
+
+#### Using with Qdrant
+
+To use Qdrant as the vector store:
+
+```python
+from wish_command_generation_api.config import GeneratorConfig
+
+# Create configuration with Qdrant
+config = GeneratorConfig(
+    vector_store_type="qdrant",
+    qdrant_host="localhost",
+    qdrant_port=6333,
+    qdrant_collection_name="wish"
+)
+
+# Use this config with the generator
+response = generate_command(request, config=config)
+```
+
+Note: Make sure you have installed the package with Qdrant support as described in the Installation section.
