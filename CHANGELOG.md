@@ -11,9 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Improved Settings class in wish-models:
+  - Changed WISH_HOME to use Path objects instead of strings for better path handling
+  - Simplified environment file loading to use explicit paths instead of implicit multiple locations
+  - Added support for env_file parameter as Path object
+  - Added WISH_ENV_FILE environment variable support for specifying env file location
+  - Improved default behavior to use $WISH_HOME/env when no env file is specified
+
 ### Fixed
 
+- Fixed environment variable handling in Settings:
+  - Removed automatic process-wide environment variable modification
+  - Fixed path handling to consistently use Path objects throughout the codebase
+  - Added comprehensive test suite for Settings configuration
+
 ### Removed
+
+- Removed implicit loading of multiple .env files from different locations
 
 
 ## [0.6.8] - 2025-04-18
