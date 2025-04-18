@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+from pathlib import Path
 
 from sliver import SliverClient, SliverClientConfig
 from wish_command_execution.backend import BashConfig, SliverConfig
@@ -100,7 +101,7 @@ def main():
         backend_config = BashConfig()
 
     # Create settings with custom env file if specified
-    settings = Settings(env_file=args.env_file) if args.env_file else Settings()
+    settings = Settings(env_file=Path(args.env_file) if args.env_file else None)
 
     # Launch TUI with settings
     tui_main(backend_config, settings=settings)

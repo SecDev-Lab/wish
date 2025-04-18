@@ -2,17 +2,19 @@
 
 import os
 from pathlib import Path
+from typing import Optional
 
 from pydantic import ConfigDict, Field, field_validator
 from pydantic_settings import BaseSettings
 
 # Constants
-DEFAULT_WISH_HOME = os.path.join(os.path.expanduser("~"), ".wish")
+DEFAULT_WISH_HOME = Path.home() / ".wish"
+
 
 class Settings(BaseSettings):
     """Application settings."""
 
-    # クラスレベルでmodel_configを定義
+    # Class-level model configuration
     model_config = ConfigDict(
         env_file_encoding="utf-8",
         case_sensitive=False,
@@ -20,13 +22,10 @@ class Settings(BaseSettings):
     )
 
     # Wish home directory
-    WISH_HOME: str = Field(DEFAULT_WISH_HOME)
+    WISH_HOME: Path = Field(DEFAULT_WISH_HOME)
 
     # API settings
     WISH_API_BASE_URL: str = Field("http://localhost:3000")
-
-    # Custom env file path
-    ENV_FILE: str | None = Field(None)
 
     # OpenAI API settings
     OPENAI_API_KEY: str = Field(default="WARNING: Set OPENAI_API_KEY env var or in .env file to use OpenAI features")
@@ -52,7 +51,7 @@ class Settings(BaseSettings):
     )
     LANGCHAIN_PROJECT: str = Field("wish")
 
-    def __init__(self, env_file: str | None = None, project: str | None = None, **kwargs):
+    def __init__(self, env_file: Optional[Path] = None, project: Optional[str] = None, **kwargs):
         """Initialize settings with optional custom env file and project.
 
         Args:
@@ -60,52 +59,35 @@ class Settings(BaseSettings):
             project: Project name for LangSmith
             **kwargs: Additional keyword arguments
         """
-        # Get env files to load
-        env_files = self._get_env_files(env_file)
+        # Get env_file from environment variable if not provided
+        if env_file is None:
+            env_file_str = os.environ.get("WISH_ENV_FILE")
+            if env_file_str:
+                env_file = Path(env_file_str)
+            else:
+                # Default to $WISH_HOME/env if no env_file is specified
+                # Use environment variable or default value
+                wish_home_str = os.environ.get("WISH_HOME", str(DEFAULT_WISH_HOME))
+                wish_home = Path(os.path.expanduser(wish_home_str))
+                env_file = wish_home / "env"
 
-        # 環境変数ファイルを設定
-        kwargs["_env_file"] = env_files
+        # Use env_file if it exists
+        if env_file is not None and env_file.exists():
+            kwargs["_env_file"] = str(env_file)
 
         # Initialize with kwargs
+        # Note: BaseSettings automatically loads values from environment variables
         super().__init__(**kwargs)
 
         # Override project if specified
         if project:
             self.LANGCHAIN_PROJECT = project
 
-        # Set environment variables for LangChain/LangGraph
-        # NOTE: This modifies process-wide environment variables, which may have side effects:
-        # - It affects other code running in the same process
-        # - Environment variable changes are inherited by child processes
-        # - Be cautious when switching between multiple projects or tracing configurations
-        os.environ["LANGCHAIN_TRACING_V2"] = "true" if self.LANGCHAIN_TRACING_V2 else "false"
-        os.environ["LANGCHAIN_ENDPOINT"] = self.LANGCHAIN_ENDPOINT
-        os.environ["LANGCHAIN_API_KEY"] = self.LANGCHAIN_API_KEY
-        os.environ["LANGCHAIN_PROJECT"] = self.LANGCHAIN_PROJECT
-
-    def _get_env_files(self, env_file: str | None = None) -> list[str]:
-        """Get list of env files to load."""
-        if env_file:
-            return [env_file]
-
-        # Default env file in WISH_HOME
-        wish_home = os.environ.get("WISH_HOME", DEFAULT_WISH_HOME)
-        if wish_home.startswith("~"):
-            wish_home = os.path.expanduser(wish_home)
-
-        wish_home_env = os.path.join(wish_home, "env")
-
-        # Project root .env for backward compatibility
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
-        project_env = os.path.join(project_root, ".env")
-
-        return [wish_home_env, project_env, ".env"]
-
     # Knowledge properties
     @property
     def knowledge_dir(self) -> Path:
         """Path to the knowledge directory."""
-        return Path(self.WISH_HOME) / "knowledge"
+        return self.WISH_HOME / "knowledge"
 
     @property
     def repo_dir(self) -> Path:
@@ -122,12 +104,14 @@ class Settings(BaseSettings):
         """Path to the metadata file."""
         return self.knowledge_dir / "meta.json"
 
-    # Validate wish_home value and expand ~ if present
+    # Validate wish_home value and convert to Path if needed
     @field_validator("WISH_HOME")
-    def expand_home_dir(cls, v):
-        if v.startswith("~"):
-            return os.path.expanduser(v)
+    def ensure_path(cls, v):
+        """Ensure WISH_HOME is a Path object and expand ~ if present."""
+        if isinstance(v, str):
+            return Path(os.path.expanduser(v))
         return v
+
 
 # Create default settings instance
 settings = Settings()
