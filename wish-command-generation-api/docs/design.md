@@ -86,13 +86,19 @@ The system can be configured using environment variables:
 
 ## Vector Store Support
 
-The system supports two vector store backends for document retrieval:
+The system supports two vector store backends for document retrieval, which are installed as optional dependencies:
 
-### ChromaDB (Default)
+### ChromaDB
 
-ChromaDB is used by default for document retrieval. It stores document embeddings locally in the `~/.wish/knowledge/db` directory.
+ChromaDB can be used for document retrieval. It stores document embeddings locally in the `~/.wish/knowledge/db` directory.
 
-### Qdrant (Optional)
+To use ChromaDB:
+
+1. Install the package with ChromaDB support: `pip install "wish-command-generation-api[chroma]"`
+2. Configure the environment variables:
+   - `VECTOR_STORE_TYPE=chroma` (this is the default)
+
+### Qdrant
 
 Qdrant can be used as an alternative vector store backend. To use Qdrant:
 
@@ -103,4 +109,12 @@ Qdrant can be used as an alternative vector store backend. To use Qdrant:
    - `QDRANT_PORT=6333` (or your Qdrant server port)
    - `QDRANT_COLLECTION_NAME=wish` (or your collection name)
 
-If Qdrant dependencies are not installed but `VECTOR_STORE_TYPE` is set to "qdrant", the system will fall back to using ChromaDB.
+### Dependency Management
+
+The system uses a feature-based dependency approach:
+
+- Base installation: No vector store dependencies are included
+- `[chroma]` extra: Includes ChromaDB dependencies
+- `[qdrant]` extra: Includes Qdrant dependencies
+
+If you try to use a vector store without installing its dependencies, the system will display an error message with installation instructions.

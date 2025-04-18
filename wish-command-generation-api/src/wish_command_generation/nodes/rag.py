@@ -64,6 +64,8 @@ FTP upload reverse shell user interaction batch
 
 def retrieve_documents(state: GraphState) -> GraphState:
     """Retrieve relevant documents using the generated query from vector store"""
+    import importlib.util
+
     from wish_models import settings
 
     # Return empty context if no query is available
@@ -74,17 +76,25 @@ def retrieve_documents(state: GraphState) -> GraphState:
     vector_store_type = getattr(settings, "VECTOR_STORE_TYPE", "chroma").lower()
 
     if vector_store_type == "qdrant":
-        try:
+        # Check if Qdrant dependencies are installed
+        if (importlib.util.find_spec("qdrant_client") is not None and
+                importlib.util.find_spec("langchain_qdrant") is not None):
             # Use Qdrant for document retrieval
             return _retrieve_from_qdrant(state)
-        except ImportError:
+        else:
             print("Qdrant dependencies not installed.")
             print("Please install with: pip install \"wish-command-generation-api[qdrant]\"")
-            # Fallback to Chroma if Qdrant dependencies are not available
+            # Don't automatically fall back to Chroma
+            return _return_empty_context(state)
+    else:  # vector_store_type == "chroma"
+        # Check if Chroma dependencies are installed
+        if importlib.util.find_spec("chromadb") is not None:
+            # Use Chroma for document retrieval
             return _retrieve_from_chroma(state)
-    else:
-        # Use Chroma for document retrieval (default)
-        return _retrieve_from_chroma(state)
+        else:
+            print("Chroma dependencies not installed.")
+            print("Please install with: pip install \"wish-command-generation-api[chroma]\"")
+            return _return_empty_context(state)
 
 
 def _return_empty_context(state: GraphState) -> GraphState:

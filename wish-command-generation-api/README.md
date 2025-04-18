@@ -185,19 +185,20 @@ curl -X POST http://localhost:3000/generate \
 
 #### Installation
 
+The package can be installed with different vector store backends:
+
 ```bash
+# Basic installation (no vector stores)
 pip install git+https://github.com/SecDev-Lab/wish-command-generation-api.git
-```
 
-#### Installing with Qdrant Support
+# With ChromaDB support (default vector store)
+pip install "git+https://github.com/SecDev-Lab/wish-command-generation-api.git#egg=wish-command-generation-api[chroma]"
 
-To install with Qdrant support:
-
-```bash
+# With Qdrant support
 pip install "git+https://github.com/SecDev-Lab/wish-command-generation-api.git#egg=wish-command-generation-api[qdrant]"
 ```
 
-This will install the additional dependencies required for Qdrant integration.
+Note that you must install the appropriate dependencies for the vector store you want to use. If you try to use a vector store without installing its dependencies, the system will display an error message with installation instructions.
 
 #### Basic Usage
 

@@ -19,7 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Refactored RAG implementation in wish-command-generation-api:
   - Improved code organization with separate functions for different vector stores
-  - Added graceful fallback to ChromaDB if Qdrant dependencies are not installed
+- Restructured dependencies to make vector store backends truly optional:
+  - Moved ChromaDB from base dependencies to optional `[chroma]` extra
+  - Updated code to handle missing dependencies gracefully with clear error messages
 
 ### Fixed
 
