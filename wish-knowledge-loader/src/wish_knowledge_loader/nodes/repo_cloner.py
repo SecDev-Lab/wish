@@ -6,17 +6,18 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from wish_models.settings import Settings
 from wish_knowledge_loader.utils.logging_utils import setup_logger
 
 
 class RepoCloner:
     """Class for cloning GitHub repositories."""
 
-    def __init__(self, settings_obj: Any, logger: logging.Logger = None):
+    def __init__(self, settings_obj: Settings, logger: logging.Logger = None):
         """Initialize the RepoCloner.
 
         Args:
-            settings: Application settings
+            settings_obj: Application settings
             logger: Logger instance
         """
         self.settings = settings_obj

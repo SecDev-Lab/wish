@@ -23,16 +23,17 @@ class TestCli:
         return CliRunner()
 
     @patch("wish_knowledge_loader.cli.setup_logger")
-    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    @patch("wish_knowledge_loader.cli.Settings", return_value=MagicMock())
     @patch("wish_knowledge_loader.cli.KnowledgeMetadataContainer")
     @patch("wish_knowledge_loader.cli.RepoCloner")
     @patch("wish_knowledge_loader.cli.DocumentLoader")
     @patch("wish_knowledge_loader.cli.VectorStore")
     @patch("wish_knowledge_loader.cli.UtcDatetime")
     def test_main_success(self, mock_utc_datetime, mock_vector_store, mock_document_loader,
-                          mock_repo_cloner, mock_container, mock_settings, mock_setup_logger, runner):
+                          mock_repo_cloner, mock_container, mock_settings_class, mock_setup_logger, runner):
         """Test successful execution of the CLI."""
         # Set up mocks
+        mock_settings = mock_settings_class.return_value
         mock_settings.WISH_HOME = "/tmp/.wish"
         mock_settings.meta_path = Path("/tmp/meta.json")
 
@@ -90,10 +91,11 @@ class TestCli:
         mock_container_instance.save.assert_called_once()
 
     @patch("wish_knowledge_loader.cli.setup_logger")
-    @patch("wish_models.settings.settings", new_callable=MagicMock)
-    def test_main_error(self, mock_settings, mock_setup_logger, runner):
+    @patch("wish_knowledge_loader.cli.Settings", return_value=MagicMock())
+    def test_main_error(self, mock_settings_class, mock_setup_logger, runner):
         """Test error handling in the CLI."""
         # Set up mocks
+        mock_settings = mock_settings_class.return_value
         mock_settings.WISH_HOME = "/tmp/.wish"
         mock_settings.meta_path = Path("/tmp/meta.json")
         mock_settings.knowledge_dir = Path("/tmp/.wish/knowledge")

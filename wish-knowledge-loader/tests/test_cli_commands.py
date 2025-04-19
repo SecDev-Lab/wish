@@ -55,11 +55,12 @@ class TestCliCommands:
         return container
 
     @patch("wish_knowledge_loader.cli.setup_logger")
-    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    @patch("wish_knowledge_loader.cli.Settings", return_value=MagicMock())
     @patch("wish_knowledge_loader.cli.KnowledgeMetadataContainer")
-    def test_list_command(self, mock_container_class, mock_settings, mock_setup_logger, runner, mock_container):
+    def test_list_command(self, mock_container_class, mock_settings_class, mock_setup_logger, runner, mock_container):
         """Test list command."""
         # Set up mocks
+        mock_settings = mock_settings_class.return_value
         mock_settings.meta_path = Path("/tmp/meta.json")
         mock_container_class.load.return_value = mock_container
 
@@ -79,11 +80,12 @@ class TestCliCommands:
         assert "https://github.com/test/repo2" in result.output
 
     @patch("wish_knowledge_loader.cli.setup_logger")
-    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    @patch("wish_knowledge_loader.cli.Settings", return_value=MagicMock())
     @patch("wish_knowledge_loader.cli.KnowledgeMetadataContainer")
-    def test_list_command_empty(self, mock_container_class, mock_settings, mock_setup_logger, runner):
+    def test_list_command_empty(self, mock_container_class, mock_settings_class, mock_setup_logger, runner):
         """Test list command with empty container."""
         # Set up mocks
+        mock_settings = mock_settings_class.return_value
         mock_settings.meta_path = Path("/tmp/meta.json")
         empty_container = MagicMock(spec=KnowledgeMetadataContainer)
         empty_container.m = {}
@@ -101,16 +103,17 @@ class TestCliCommands:
         assert "No knowledge bases found." in result.output
 
     @patch("wish_knowledge_loader.cli.setup_logger")
-    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    @patch("wish_knowledge_loader.cli.Settings", return_value=MagicMock())
     @patch("wish_knowledge_loader.cli.KnowledgeMetadataContainer")
     @patch("wish_knowledge_loader.cli.Chroma")
     @patch("wish_knowledge_loader.cli.OpenAIEmbeddings")
     @patch("wish_knowledge_loader.cli.shutil.rmtree")
     def test_delete_command(self, mock_rmtree, mock_embeddings, mock_chroma,
-                           mock_container_class, mock_settings, mock_setup_logger,
+                           mock_container_class, mock_settings_class, mock_setup_logger,
                            runner, mock_container):
         """Test delete command."""
         # Set up mocks
+        mock_settings = mock_settings_class.return_value
         mock_settings.meta_path = Path("/tmp/meta.json")
         mock_settings.db_dir = Path("/tmp/db")
         mock_settings.OPENAI_API_KEY = "test-api-key"
@@ -145,12 +148,13 @@ class TestCliCommands:
         mock_container.save.assert_called_once()
 
     @patch("wish_knowledge_loader.cli.setup_logger")
-    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    @patch("wish_knowledge_loader.cli.Settings", return_value=MagicMock())
     @patch("wish_knowledge_loader.cli.KnowledgeMetadataContainer")
-    def test_delete_command_not_found(self, mock_container_class, mock_settings, mock_setup_logger,
+    def test_delete_command_not_found(self, mock_container_class, mock_settings_class, mock_setup_logger,
                                      runner, mock_container):
         """Test delete command with non-existent knowledge base."""
         # Set up mocks
+        mock_settings = mock_settings_class.return_value
         mock_settings.meta_path = Path("/tmp/meta.json")
         mock_container_class.load.return_value = mock_container
 
@@ -174,13 +178,14 @@ class TestCliCommands:
         assert not mock_container.save.called
 
     @patch("wish_knowledge_loader.cli.setup_logger")
-    @patch("wish_models.settings.settings", new_callable=MagicMock)
+    @patch("wish_knowledge_loader.cli.Settings", return_value=MagicMock())
     @patch("wish_knowledge_loader.cli.KnowledgeMetadataContainer")
     @patch("wish_knowledge_loader.cli.click.confirm")
-    def test_delete_command_cancelled(self, mock_confirm, mock_container_class, mock_settings,
+    def test_delete_command_cancelled(self, mock_confirm, mock_container_class, mock_settings_class,
                                      mock_setup_logger, runner, mock_container):
         """Test delete command with cancelled confirmation."""
         # Set up mocks
+        mock_settings = mock_settings_class.return_value
         mock_settings.meta_path = Path("/tmp/meta.json")
         mock_container_class.load.return_value = mock_container
 
