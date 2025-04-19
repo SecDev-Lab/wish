@@ -30,7 +30,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Create settings instance
         env_path = get_default_env_path()
         settings = Settings(env_file=env_path)
-        
+
         # Parse the request body
         body = json.loads(event.get("body", "{}"))
         request = GenerateRequest.model_validate(body)

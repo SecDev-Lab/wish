@@ -153,7 +153,6 @@ def _retrieve_from_qdrant(state: GraphState, settings_obj: Settings) -> GraphSta
 
 def _retrieve_from_chroma(state: GraphState, settings_obj: Settings) -> GraphState:
     """Retrieve documents from Chroma vector store"""
-    import os
     from pathlib import Path
 
     from langchain_community.document_loaders import TextLoader

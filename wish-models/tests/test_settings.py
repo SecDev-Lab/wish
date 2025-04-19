@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-import pytest
 from wish_models.settings import Settings, get_default_env_path
 
 
@@ -41,14 +40,14 @@ class TestSettings:
         """Test that nonexistent env file is ignored."""
         # Create a path to a nonexistent file
         env_path = Path("/tmp/nonexistent-env-file-for-testing")
-        
+
         # Make sure the file doesn't exist
         if env_path.exists():
             os.unlink(env_path)
-            
+
         # Load settings with nonexistent env file
         settings = Settings(env_file=env_path)
-        
+
         # Default values should be used
         assert settings.OPENAI_MODEL == "gpt-4o"
 
@@ -116,7 +115,7 @@ class TestSettings:
         # Test with default WISH_HOME
         default_path = get_default_env_path()
         assert str(default_path).endswith(".wish/env")
-        
+
         # Test with custom WISH_HOME
         try:
             os.environ["WISH_HOME"] = "/tmp/custom-wish-home"
