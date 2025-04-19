@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from wish_models.settings import Settings
+from wish_models.settings import Settings, get_default_env_path
 
 
 class TestSettings:
@@ -36,26 +36,20 @@ class TestSettings:
             # Clean up
             os.unlink(env_path)
 
-    def test_env_file_from_env_var(self):
-        """Test loading settings from env file specified in environment variable."""
-        # Create temporary env file
-        with NamedTemporaryFile(mode="w", delete=False) as f:
-            f.write("OPENAI_MODEL=gpt-4-turbo\n")
-            env_path = f.name
+    def test_nonexistent_env_file(self):
+        """Test that nonexistent env file is ignored."""
+        # Create a path to a nonexistent file
+        env_path = Path("/tmp/nonexistent-env-file-for-testing")
 
-        try:
-            # Set environment variable
-            os.environ["WISH_ENV_FILE"] = env_path
-
-            # Load settings
-            settings = Settings()
-            assert settings.OPENAI_MODEL == "gpt-4-turbo"
-
-            # Clean up environment
-            del os.environ["WISH_ENV_FILE"]
-        finally:
-            # Clean up
+        # Make sure the file doesn't exist
+        if env_path.exists():
             os.unlink(env_path)
+
+        # Load settings with nonexistent env file
+        settings = Settings(env_file=env_path)
+
+        # Default values should be used
+        assert settings.OPENAI_MODEL == "gpt-4o"
 
     def test_environment_variables_override(self):
         """Test that environment variables override env file settings."""
@@ -115,3 +109,18 @@ class TestSettings:
         assert settings.repo_dir == Path("/tmp/wish-test/knowledge/repo")
         assert settings.db_dir == Path("/tmp/wish-test/knowledge/db")
         assert settings.meta_path == Path("/tmp/wish-test/knowledge/meta.json")
+
+    def test_get_default_env_path(self):
+        """Test get_default_env_path function."""
+        # Test with default WISH_HOME
+        default_path = get_default_env_path()
+        assert str(default_path).endswith(".wish/env")
+
+        # Test with custom WISH_HOME
+        try:
+            os.environ["WISH_HOME"] = "/tmp/custom-wish-home"
+            custom_path = get_default_env_path()
+            assert custom_path == Path("/tmp/custom-wish-home/env")
+        finally:
+            # Clean up environment
+            del os.environ["WISH_HOME"]

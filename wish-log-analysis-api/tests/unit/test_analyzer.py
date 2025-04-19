@@ -9,6 +9,7 @@ import pytest
 from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
 from wish_models.command_result.log_files import LogFiles
+from wish_models.settings import Settings
 from wish_models.utc_datetime import UtcDatetime
 
 from wish_log_analysis_api.config import AnalyzerConfig
@@ -112,8 +113,11 @@ def test_analyze_command_result_with_mocks(sample_command_result, mock_chat_open
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run analysis
-        response = analyze_command_result(request)
+        response = analyze_command_result(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
@@ -138,8 +142,11 @@ def test_analyze_command_result_with_error(sample_command_result, mock_chat_open
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run analysis
-        response = analyze_command_result(request)
+        response = analyze_command_result(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
@@ -188,8 +195,11 @@ def test_analyze_command_result_with_custom_config(sample_command_result, mock_c
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run analysis
-        response = analyze_command_result(request, config=config)
+        response = analyze_command_result(request, settings_obj=settings_obj, config=config)
 
         # Verify results
         assert response is not None
@@ -199,7 +209,7 @@ def test_analyze_command_result_with_custom_config(sample_command_result, mock_c
         assert response.error is None
 
         # Verify the graph was created with the custom config
-        mock_create_graph.assert_called_once_with(config=config)
+        mock_create_graph.assert_called_once_with(config=config, settings_obj=settings_obj)
 
 
 def test_analyze_command_result_with_default_config(sample_command_result, mock_chat_openai, mock_str_output_parser):
@@ -238,8 +248,11 @@ def test_analyze_command_result_with_default_config(sample_command_result, mock_
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run analysis
-        response = analyze_command_result(request)
+        response = analyze_command_result(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
@@ -249,4 +262,4 @@ def test_analyze_command_result_with_default_config(sample_command_result, mock_
         assert response.error is None
 
         # Verify the graph was created with default config (None)
-        mock_create_graph.assert_called_once_with(config=None)
+        mock_create_graph.assert_called_once_with(config=None, settings_obj=settings_obj)

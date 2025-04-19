@@ -5,7 +5,7 @@ import os
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-from wish_models import settings
+from wish_models.settings import Settings
 
 from ..models import GraphState
 
@@ -47,7 +47,7 @@ Please follow these steps to complete the task:
 """
 
 
-def summarize_log(state: GraphState) -> GraphState:
+def summarize_log(state: GraphState, settings_obj: Settings) -> GraphState:
     """Summarize the log from a command result.
 
     Args:
@@ -91,7 +91,7 @@ def summarize_log(state: GraphState) -> GraphState:
     prompt = PromptTemplate.from_template(LOG_SUMMARIZATION_PROMPT)
 
     # Initialize the OpenAI model
-    model = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY, use_responses_api=True)
+    model = ChatOpenAI(model=settings_obj.OPENAI_MODEL, api_key=settings_obj.OPENAI_API_KEY, use_responses_api=True)
 
     # Create the chain
     chain = prompt | model | StrOutputParser()

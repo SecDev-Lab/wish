@@ -5,7 +5,7 @@ from typing import Annotated
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from wish_models import settings
+from wish_models.settings import Settings
 
 from ..models import GraphState
 
@@ -33,7 +33,7 @@ Output the processed query that will be used for command generation.
 """
 
 
-def process_query(state: Annotated[GraphState, "Current state"]) -> GraphState:
+def process_query(state: Annotated[GraphState, "Current state"], settings_obj: Settings) -> GraphState:
     """Process and normalize the user query.
 
     Args:
@@ -53,7 +53,7 @@ def process_query(state: Annotated[GraphState, "Current state"]) -> GraphState:
         command_history_str = "\n".join(command_history) if command_history else "No command history available"
 
         # Create the LLM
-        model = settings.OPENAI_MODEL or "gpt-4o"
+        model = settings_obj.OPENAI_MODEL or "gpt-4o"
         llm = ChatOpenAI(model=model, temperature=0.1)
 
         # Create the prompt

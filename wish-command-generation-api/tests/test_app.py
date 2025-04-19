@@ -4,6 +4,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+from wish_models.settings import Settings
 
 from wish_command_generation_api.app import lambda_handler
 from wish_command_generation_api.core.generator import generate_command
@@ -87,7 +88,11 @@ class TestGenerateCommand:
         ):
             # Call the function
             request = GenerateRequest(query=sample_query, context=sample_context)
-            response = generate_command(request)
+
+            # Create settings object
+            settings_obj = Settings()
+
+            response = generate_command(request, settings_obj=settings_obj)
 
             # Verify the response
             assert response.generated_command == generated_command
@@ -112,7 +117,11 @@ class TestGenerateCommand:
         ):
             # Call the function
             request = GenerateRequest(query=sample_query, context=sample_context)
-            response = generate_command(request)
+
+            # Create settings object
+            settings_obj = Settings()
+
+            response = generate_command(request, settings_obj=settings_obj)
 
             # Verify the response
             assert response.generated_command is not None
@@ -147,19 +156,24 @@ class TestLambdaHandler:
                 "wish_command_generation_api.models.GenerateRequest.model_validate",
                 return_value=GenerateRequest(query=sample_query, context=sample_context)
             ):
-                # Call the handler
-                response = lambda_handler(lambda_event, {})
+                # Mock Settings
+                with patch(
+                    "wish_models.settings.Settings",
+                    return_value=MagicMock()
+                ):
+                    # Call the handler
+                    response = lambda_handler(lambda_event, {})
 
-                # Verify the response
-                assert response["statusCode"] == 200
-                assert response["headers"]["Content-Type"] == "application/json"
+                    # Verify the response
+                    assert response["statusCode"] == 200
+                    assert response["headers"]["Content-Type"] == "application/json"
 
-                body = json.loads(response["body"])
-                assert "generated_command" in body
-                assert body["generated_command"]["command"] == "ls -la"
-                assert body["generated_command"]["explanation"] == (
-                    "This command lists all files in the current directory, including hidden files."
-                )
+                    body = json.loads(response["body"])
+                    assert "generated_command" in body
+                    assert body["generated_command"]["command"] == "ls -la"
+                    assert body["generated_command"]["explanation"] == (
+                        "This command lists all files in the current directory, including hidden files."
+                    )
 
     def test_handler_invalid_request(self):
         """Test handling of an invalid request."""

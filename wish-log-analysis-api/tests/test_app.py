@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from wish_models.command_result.command_state import CommandState
+from wish_models.settings import Settings
 from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
 
 from wish_log_analysis_api.app import lambda_handler
@@ -95,7 +96,11 @@ class TestAnalyzeCommandResult:
         with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph", return_value=mock_graph):
             # Call the function
             request = AnalyzeRequest(command_result=command_result)
-            response = analyze_command_result(request)
+
+            # Create settings object
+            settings_obj = Settings()
+
+            response = analyze_command_result(request, settings_obj=settings_obj)
 
             # Verify the response
             assert response.analyzed_command_result == analyzed_command_result
@@ -116,7 +121,11 @@ class TestAnalyzeCommandResult:
         with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph", return_value=mock_graph):
             # Call the function
             request = AnalyzeRequest(command_result=command_result)
-            response = analyze_command_result(request)
+
+            # Create settings object
+            settings_obj = Settings()
+
+            response = analyze_command_result(request, settings_obj=settings_obj)
 
             # Verify the response
             assert response.analyzed_command_result == command_result
@@ -145,19 +154,24 @@ class TestLambdaHandler:
                 "wish_log_analysis_api.models.AnalyzeRequest.model_validate",
                 return_value=AnalyzeRequest(command_result=command_result)
             ):
-                # Call the handler
-                response = lambda_handler(lambda_event, {})
+                # Mock Settings
+                with patch(
+                    "wish_models.settings.Settings",
+                    return_value=MagicMock()
+                ):
+                    # Call the handler
+                    response = lambda_handler(lambda_event, {})
 
-                # Verify the response
-                assert response["statusCode"] == 200
-                assert response["headers"]["Content-Type"] == "application/json"
+                    # Verify the response
+                    assert response["statusCode"] == 200
+                    assert response["headers"]["Content-Type"] == "application/json"
 
-                body = json.loads(response["body"])
-                assert "analyzed_command_result" in body
-                assert body["analyzed_command_result"]["command"] == "ls -la"
-                assert body["analyzed_command_result"]["state"] == "SUCCESS"
-                # Just check that log_summary exists, not its exact content
-                assert "log_summary" in body["analyzed_command_result"]
+                    body = json.loads(response["body"])
+                    assert "analyzed_command_result" in body
+                    assert body["analyzed_command_result"]["command"] == "ls -la"
+                    assert body["analyzed_command_result"]["state"] == "SUCCESS"
+                    # Just check that log_summary exists, not its exact content
+                    assert "log_summary" in body["analyzed_command_result"]
 
     def test_handler_invalid_request(self):
         """Test handling of an invalid request."""

@@ -3,14 +3,18 @@
 from typing import Optional
 
 from langgraph.graph import END, START, StateGraph
-from wish_models import settings
+from wish_models.settings import Settings
 
 from .config import AnalyzerConfig
 from .models import GraphState
 from .nodes import command_state_classifier, log_summarization, result_combiner
 
 
-def create_log_analysis_graph(config: Optional[AnalyzerConfig] = None, compile: bool = True) -> StateGraph:
+def create_log_analysis_graph(
+    settings_obj: Settings,
+    config: Optional[AnalyzerConfig] = None,
+    compile: bool = True
+) -> StateGraph:
     """Create a log analysis graph
 
     Args:
@@ -32,20 +36,29 @@ def create_log_analysis_graph(config: Optional[AnalyzerConfig] = None, compile: 
     os.environ["LANGCHAIN_TRACING_V2"] = str(config.langchain_tracing_v2).lower()
 
     # Set project name
-    settings.LANGCHAIN_PROJECT = config.langchain_project
+    settings_obj.LANGCHAIN_PROJECT = config.langchain_project
 
     # Log LangSmith configuration if tracing is enabled
     if config.langchain_tracing_v2:
         import logging
-        logging.info(f"LangSmith tracing enabled for project: {settings.LANGCHAIN_PROJECT}")
+        logging.info(f"LangSmith tracing enabled for project: {settings_obj.LANGCHAIN_PROJECT}")
 
     # Create the graph
     graph = StateGraph(GraphState)
 
     # Add nodes
-    graph.add_node("log_summarization", log_summarization.summarize_log)
-    graph.add_node("command_state_classifier", command_state_classifier.classify_command_state)
-    graph.add_node("result_combiner", result_combiner.combine_results)
+    graph.add_node(
+        "log_summarization",
+        lambda state: log_summarization.summarize_log(state, settings_obj)
+    )
+    graph.add_node(
+        "command_state_classifier",
+        lambda state: command_state_classifier.classify_command_state(state, settings_obj)
+    )
+    graph.add_node(
+        "result_combiner",
+        lambda state: result_combiner.combine_results(state, settings_obj)
+    )
 
     # Add edges for serial execution
     graph.add_edge(START, "log_summarization")

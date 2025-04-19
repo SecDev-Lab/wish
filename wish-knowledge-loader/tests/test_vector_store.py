@@ -25,10 +25,11 @@ class TestVectorStore:
 
     @patch("wish_knowledge_loader.nodes.vector_store.OpenAIEmbeddings")
     @patch("wish_knowledge_loader.nodes.vector_store.Chroma")
-    @patch("wish_models.settings.settings", new_callable=MagicMock)
-    def test_store(self, mock_settings, mock_chroma, mock_embeddings, settings):
+    @patch("wish_knowledge_loader.nodes.vector_store.Settings", return_value=MagicMock())
+    def test_store(self, mock_settings_class, mock_chroma, mock_embeddings, settings):
         """Test storing documents in a vector store."""
         # Set up mock settings
+        mock_settings = mock_settings_class.return_value
         mock_settings.OPENAI_API_KEY = settings.OPENAI_API_KEY
         mock_settings.OPENAI_MODEL = settings.OPENAI_MODEL
         mock_settings.db_dir = settings.db_dir

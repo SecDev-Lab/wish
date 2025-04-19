@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from wish_models.settings import Settings
 
 from wish_command_generation_api.config import GeneratorConfig
 from wish_command_generation_api.core.generator import generate_command
@@ -63,8 +64,11 @@ def test_end_to_end_generation(mock_chat_openai):
         # Create request
         request = GenerateRequest(query=query, context=context)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run generation
-        response = generate_command(request)
+        response = generate_command(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
@@ -121,8 +125,11 @@ def test_custom_config_integration(mock_chat_openai):
         # Create request
         request = GenerateRequest(query=query, context=context)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run generation with custom configuration
-        response = generate_command(request, config=config)
+        response = generate_command(request, settings_obj=settings_obj, config=config)
 
         # Verify results
         assert response is not None
@@ -132,7 +139,7 @@ def test_custom_config_integration(mock_chat_openai):
         assert "searches" in response.generated_command.explanation.lower()
 
         # Verify the graph was created with the custom config
-        mock_create_graph.assert_called_once_with(config=config)
+        mock_create_graph.assert_called_once_with(settings_obj=settings_obj, config=config)
 
 
 @pytest.mark.integration
@@ -179,8 +186,11 @@ def test_complex_query_integration(mock_chat_openai):
         # Create request
         request = GenerateRequest(query=query, context=context)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run generation
-        response = generate_command(request)
+        response = generate_command(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None

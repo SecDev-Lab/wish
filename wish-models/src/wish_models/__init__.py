@@ -4,7 +4,7 @@ from .command_result.log_files import LogFiles
 from .executable_collection import ExecutableCollection
 from .executable_info import ExecutableInfo
 from .knowledge.knowledge_metadata import KnowledgeMetadata, KnowledgeMetadataContainer
-from .settings import Settings, settings
+from .settings import Settings, get_default_env_path
 from .system_info import SystemInfo
 from .utc_datetime import UtcDatetime
 from .wish.wish import Wish
@@ -24,5 +24,5 @@ __all__ = [
     "ExecutableInfo",
     "ExecutableCollection",
     "Settings",
-    "settings",
+    "get_default_env_path",
 ]

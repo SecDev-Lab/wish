@@ -9,6 +9,7 @@ import pytest
 from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
 from wish_models.command_result.log_files import LogFiles
+from wish_models.settings import Settings
 from wish_models.utc_datetime import UtcDatetime
 
 from wish_log_analysis_api.config import AnalyzerConfig
@@ -101,8 +102,11 @@ def test_end_to_end_analysis(mock_chat_openai, mock_str_output_parser):
             # Create request
             request = AnalyzeRequest(command_result=command_result)
 
+            # Create settings object
+            settings_obj = Settings()
+
             # Run analysis
-            response = analyze_command_result(request)
+            response = analyze_command_result(request, settings_obj=settings_obj)
 
             # Verify results
             assert response is not None
@@ -182,8 +186,11 @@ def test_custom_config_integration(mock_chat_openai, mock_str_output_parser):
             # Create request
             request = AnalyzeRequest(command_result=command_result)
 
+            # Create settings object
+            settings_obj = Settings()
+
             # Run analysis with custom configuration
-            response = analyze_command_result(request, config=config)
+            response = analyze_command_result(request, settings_obj=settings_obj, config=config)
 
             # Verify results
             assert response is not None
@@ -193,7 +200,7 @@ def test_custom_config_integration(mock_chat_openai, mock_str_output_parser):
             assert "not found" in response.analyzed_command_result.log_summary.lower()
 
             # Verify the graph was created with the custom config
-            mock_create_graph.assert_called_once_with(config=config)
+            mock_create_graph.assert_called_once_with(config=config, settings_obj=settings_obj)
 
     finally:
         # Cleanup

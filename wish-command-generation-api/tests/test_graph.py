@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 from wish_models.command_result import CommandInput
+from wish_models.settings import Settings
 from wish_models.system_info import SystemInfo
 from wish_models.wish.wish import Wish
 
@@ -132,8 +133,11 @@ class TestGraph:
         )
         mock_generate_commands.return_value = command_state
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Create the graph
-        graph = create_command_generation_graph()
+        graph = create_command_generation_graph(settings_obj=settings_obj)
 
         # Act
         result = graph.invoke(initial_state)
@@ -159,8 +163,11 @@ class TestGraph:
         # This test would be more complex and require mocking external dependencies
         # like OpenAI API. For simplicity, we'll just verify the graph structure.
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Create the graph without compiling to inspect its structure
-        graph = create_command_generation_graph(compile=False)
+        graph = create_command_generation_graph(settings_obj=settings_obj, compile=False)
 
         # Verify the graph structure
         assert "query_generation" in graph.nodes

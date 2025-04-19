@@ -1,6 +1,9 @@
 """Test script for the RAG nodes."""
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+from wish_models.settings import Settings
 
 from wish_command_generation.nodes.rag import generate_query, retrieve_documents
 from wish_command_generation.test_factories.state_factory import GraphStateFactory
@@ -13,6 +16,7 @@ class TestRag:
         """Test that generate_query correctly uses LLM to generate a query."""
         # Arrange
         state = GraphStateFactory.create_with_specific_wish("Conduct a full port scan on IP 10.10.10.123.")
+        settings_obj = Settings()
 
         # Mock the LLM chain
         mock_chain = MagicMock()
@@ -37,7 +41,7 @@ class TestRag:
                     mock_model.__or__.return_value = mock_parser
                     mock_parser.invoke = mock_chain.invoke
 
-                    result = generate_query(state)
+                    result = generate_query(state, settings_obj)
 
         # Assert
         assert result.query == "nmap port scan techniques"
@@ -50,10 +54,11 @@ class TestRag:
         """Test that retrieve_documents returns empty context when query is None."""
         # Arrange
         state = GraphStateFactory.create_with_specific_wish("Conduct a full port scan on IP 10.10.10.123.")
+        settings_obj = Settings()
         # No query set
 
         # Act
-        result = retrieve_documents(state)
+        result = retrieve_documents(state, settings_obj)
 
         # Assert
         assert result.context == []
@@ -68,6 +73,7 @@ class TestRag:
             "Conduct a full port scan on IP 10.10.10.123.",
             "nmap port scan techniques"
         )
+        settings_obj = Settings()
 
         # Mock Path.iterdir to return empty list
         with patch("pathlib.Path.iterdir") as mock_iterdir:
@@ -77,7 +83,7 @@ class TestRag:
                 mock_iterdir.return_value = []
 
                 # Act
-                result = retrieve_documents(state)
+                result = retrieve_documents(state, settings_obj)
 
         # Assert
         assert result.context == []
@@ -92,6 +98,8 @@ class TestRag:
             "Conduct a full port scan on IP 10.10.10.123.",
             "nmap port scan techniques"
         )
+        settings_obj = Settings()
+        settings_obj.VECTOR_STORE_TYPE = "chroma"
 
         # Create mock documents
         mock_doc1 = MagicMock()
@@ -107,29 +115,28 @@ class TestRag:
         mock_text_loader.load.return_value = [MagicMock(page_content="Full document content")]
 
         # Act
-        with patch("os.path.expanduser") as mock_expanduser:
-            with patch("pathlib.Path.iterdir") as mock_iterdir:
-                with patch("pathlib.Path.exists") as mock_exists:
-                    with patch("langchain_community.vectorstores.Chroma") as mock_chroma:
-                        with patch("langchain_openai.OpenAIEmbeddings"):
-                            with patch("langchain_community.document_loaders.TextLoader") as mock_loader:
-                                # Set up the mocks
-                                mock_expanduser.return_value = "/home/user/.wish"
+        with patch.object(settings_obj, "WISH_HOME", Path("/home/user/.wish")):
+            with patch("importlib.util.find_spec", return_value=MagicMock()):
+                with patch("pathlib.Path.iterdir") as mock_iterdir:
+                    with patch("pathlib.Path.exists") as mock_exists:
+                        with patch("langchain_community.vectorstores.Chroma") as mock_chroma:
+                            with patch("langchain_openai.OpenAIEmbeddings"):
+                                with patch("langchain_community.document_loaders.TextLoader") as mock_loader:
+                                    # Set up the mocks
+                                    mock_dir = MagicMock()
+                                    mock_dir.name = "test_knowledge"
+                                    mock_dir.is_dir.return_value = True
+                                    mock_iterdir.return_value = [mock_dir]
 
-                                mock_dir = MagicMock()
-                                mock_dir.name = "test_knowledge"
-                                mock_dir.is_dir.return_value = True
-                                mock_iterdir.return_value = [mock_dir]
+                                    mock_exists.return_value = True
 
-                                mock_exists.return_value = True
+                                    mock_vectorstore = MagicMock()
+                                    mock_vectorstore.similarity_search.return_value = [mock_doc1, mock_doc2]
+                                    mock_chroma.return_value = mock_vectorstore
 
-                                mock_vectorstore = MagicMock()
-                                mock_vectorstore.similarity_search.return_value = [mock_doc1, mock_doc2]
-                                mock_chroma.return_value = mock_vectorstore
+                                    mock_loader.return_value = mock_text_loader
 
-                                mock_loader.return_value = mock_text_loader
-
-                                result = retrieve_documents(state)
+                                    result = retrieve_documents(state, settings_obj)
 
         # Assert
         assert len(result.context) == 1  # After removing duplicates
@@ -137,8 +144,6 @@ class TestRag:
         assert result.wish == state.wish
         assert result.query == state.query
         assert result.command_inputs == state.command_inputs
-        # Verify expanduser was called
-        mock_expanduser.assert_called_once()
 
     def test_retrieve_documents_with_tilde_path(self):
         """Test that retrieve_documents correctly handles paths with tilde (~)."""
@@ -147,27 +152,24 @@ class TestRag:
             "Conduct a full port scan on IP 10.10.10.123.",
             "nmap port scan techniques"
         )
+        settings_obj = Settings()
 
         # Act
-        with patch("os.path.expanduser") as mock_expanduser:
+        with patch.object(settings_obj, "WISH_HOME", Path("/home/user/.wish")):
             with patch("pathlib.Path.exists") as mock_exists:
                 with patch("pathlib.Path.iterdir") as mock_iterdir:
-                    # Mock expanduser to return a specific path
-                    mock_expanduser.return_value = "/home/user/.wish"
                     # Mock exists to return True
                     mock_exists.return_value = True
                     # Mock iterdir to return empty list
                     mock_iterdir.return_value = []
 
-                    result = retrieve_documents(state)
+                    result = retrieve_documents(state, settings_obj)
 
         # Assert
         assert result.context == []
         assert result.wish == state.wish
         assert result.query == state.query
         assert result.command_inputs == state.command_inputs
-        # Verify expanduser was called with the correct path
-        mock_expanduser.assert_called_once()
 
     def test_retrieve_documents_with_nonexistent_directory(self):
         """Test that retrieve_documents handles nonexistent directories gracefully."""
@@ -176,21 +178,18 @@ class TestRag:
             "Conduct a full port scan on IP 10.10.10.123.",
             "nmap port scan techniques"
         )
+        settings_obj = Settings()
 
         # Act
-        with patch("os.path.expanduser") as mock_expanduser:
+        with patch.object(settings_obj, "WISH_HOME", Path("/home/user/.wish")):
             with patch("pathlib.Path.exists") as mock_exists:
-                # Mock expanduser to return a specific path
-                mock_expanduser.return_value = "/home/user/.wish"
                 # Mock exists to return False (directory doesn't exist)
                 mock_exists.return_value = False
 
-                result = retrieve_documents(state)
+                result = retrieve_documents(state, settings_obj)
 
         # Assert
         assert result.context == []
         assert result.wish == state.wish
         assert result.query == state.query
         assert result.command_inputs == state.command_inputs
-        # Verify expanduser was called
-        mock_expanduser.assert_called_once()
