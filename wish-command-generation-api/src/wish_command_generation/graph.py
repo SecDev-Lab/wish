@@ -28,9 +28,9 @@ def create_command_generation_graph(compile: bool = True) -> StateGraph:
     graph = StateGraph(GraphState)
 
     # Add nodes
-    graph.add_node("query_generation", rag.generate_query)
-    graph.add_node("retrieve_documents", rag.retrieve_documents)
-    graph.add_node("generate_commands", command_generation.generate_commands)
+    graph.add_node("query_generation", lambda state: rag.generate_query(state, settings))
+    graph.add_node("retrieve_documents", lambda state: rag.retrieve_documents(state, settings))
+    graph.add_node("generate_commands", lambda state: command_generation.generate_commands(state, settings))
 
     # Add edges (linear graph)
     graph.add_edge(START, "query_generation")
