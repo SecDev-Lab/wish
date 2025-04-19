@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed Markdown code block handling in command generation:
+  - Added code to strip Markdown code block formatting (```bash) from generated commands
+  - Ensured commands are returned in plain text format suitable for shell execution
+  - Fixed COMMAND_NOT_FOUND errors caused by Markdown-formatted command strings
+  - Updated command_generator.py to properly handle LLM responses with code blocks
+
 ### Removed
 
 
