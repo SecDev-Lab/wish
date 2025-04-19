@@ -13,7 +13,7 @@ DEFAULT_WISH_HOME = Path.home() / ".wish"
 
 def get_default_env_path() -> Path:
     """Get the default env file path (WISH_HOME/env).
-    
+
     Returns:
         Path to the default env file
     """

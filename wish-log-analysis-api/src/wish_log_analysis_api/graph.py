@@ -47,9 +47,18 @@ def create_log_analysis_graph(
     graph = StateGraph(GraphState)
 
     # Add nodes
-    graph.add_node("log_summarization", lambda state: log_summarization.summarize_log(state, settings_obj))
-    graph.add_node("command_state_classifier", lambda state: command_state_classifier.classify_command_state(state, settings_obj))
-    graph.add_node("result_combiner", lambda state: result_combiner.combine_results(state, settings_obj))
+    graph.add_node(
+        "log_summarization",
+        lambda state: log_summarization.summarize_log(state, settings_obj)
+    )
+    graph.add_node(
+        "command_state_classifier",
+        lambda state: command_state_classifier.classify_command_state(state, settings_obj)
+    )
+    graph.add_node(
+        "result_combiner",
+        lambda state: result_combiner.combine_results(state, settings_obj)
+    )
 
     # Add edges for serial execution
     graph.add_edge(START, "log_summarization")
