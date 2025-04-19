@@ -4,11 +4,11 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+from wish_models.settings import Settings
 
 from wish_command_generation_api.app import lambda_handler
 from wish_command_generation_api.core.generator import generate_command
 from wish_command_generation_api.models import GeneratedCommand, GenerateRequest, GraphState
-from wish_models.settings import Settings
 
 
 # Mock OpenAI API calls globally for all tests in this file
@@ -88,10 +88,10 @@ class TestGenerateCommand:
         ):
             # Call the function
             request = GenerateRequest(query=sample_query, context=sample_context)
-            
+
             # Create settings object
             settings_obj = Settings()
-            
+
             response = generate_command(request, settings_obj=settings_obj)
 
             # Verify the response
@@ -117,10 +117,10 @@ class TestGenerateCommand:
         ):
             # Call the function
             request = GenerateRequest(query=sample_query, context=sample_context)
-            
+
             # Create settings object
             settings_obj = Settings()
-            
+
             response = generate_command(request, settings_obj=settings_obj)
 
             # Verify the response

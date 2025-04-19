@@ -96,10 +96,10 @@ class TestAnalyzeCommandResult:
         with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph", return_value=mock_graph):
             # Call the function
             request = AnalyzeRequest(command_result=command_result)
-            
+
             # Create settings object
             settings_obj = Settings()
-            
+
             response = analyze_command_result(request, settings_obj=settings_obj)
 
             # Verify the response
@@ -121,10 +121,10 @@ class TestAnalyzeCommandResult:
         with patch("wish_log_analysis_api.core.analyzer.create_log_analysis_graph", return_value=mock_graph):
             # Call the function
             request = AnalyzeRequest(command_result=command_result)
-            
+
             # Create settings object
             settings_obj = Settings()
-            
+
             response = analyze_command_result(request, settings_obj=settings_obj)
 
             # Verify the response

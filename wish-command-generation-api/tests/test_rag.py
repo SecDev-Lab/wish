@@ -3,9 +3,10 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from wish_models.settings import Settings
+
 from wish_command_generation.nodes.rag import generate_query, retrieve_documents
 from wish_command_generation.test_factories.state_factory import GraphStateFactory
-from wish_models.settings import Settings
 
 
 class TestRag:

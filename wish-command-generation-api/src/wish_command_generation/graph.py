@@ -17,7 +17,7 @@ def create_command_generation_graph(settings_obj: Settings, compile: bool = True
     Returns:
         Compiled or pre-compiled graph object
     """
-    
+
     # Set project name
     settings_obj.LANGCHAIN_PROJECT = "wish-command-generation"
 

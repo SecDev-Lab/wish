@@ -3,10 +3,10 @@
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any
 from urllib.parse import urlparse
 
 from wish_models.settings import Settings
+
 from wish_knowledge_loader.utils.logging_utils import setup_logger
 
 

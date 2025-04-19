@@ -101,7 +101,7 @@ def test_end_to_end_analysis(mock_chat_openai, mock_str_output_parser):
 
             # Create request
             request = AnalyzeRequest(command_result=command_result)
-            
+
             # Create settings object
             settings_obj = Settings()
 
@@ -185,7 +185,7 @@ def test_custom_config_integration(mock_chat_openai, mock_str_output_parser):
 
             # Create request
             request = AnalyzeRequest(command_result=command_result)
-            
+
             # Create settings object
             settings_obj = Settings()
 

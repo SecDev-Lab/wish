@@ -112,7 +112,7 @@ def test_analyze_command_result_with_mocks(sample_command_result, mock_chat_open
 
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
-        
+
         # Create settings object
         settings_obj = Settings()
 
@@ -141,7 +141,7 @@ def test_analyze_command_result_with_error(sample_command_result, mock_chat_open
 
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
-        
+
         # Create settings object
         settings_obj = Settings()
 
@@ -194,7 +194,7 @@ def test_analyze_command_result_with_custom_config(sample_command_result, mock_c
 
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
-        
+
         # Create settings object
         settings_obj = Settings()
 
@@ -247,7 +247,7 @@ def test_analyze_command_result_with_default_config(sample_command_result, mock_
 
         # Create request
         request = AnalyzeRequest(command_result=sample_command_result)
-        
+
         # Create settings object
         settings_obj = Settings()
 

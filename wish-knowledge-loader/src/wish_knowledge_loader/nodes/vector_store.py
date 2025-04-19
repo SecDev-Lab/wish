@@ -1,7 +1,6 @@
 """Vector store functionality."""
 
 import logging
-from typing import Any
 
 from langchain.schema import Document
 from langchain_community.vectorstores import Chroma

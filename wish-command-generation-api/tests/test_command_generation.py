@@ -4,10 +4,10 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+from wish_models.settings import Settings
 
 from wish_command_generation.nodes.command_generation import generate_commands
 from wish_command_generation.test_factories.state_factory import GraphStateFactory
-from wish_models.settings import Settings
 
 
 class TestCommandGeneration:
