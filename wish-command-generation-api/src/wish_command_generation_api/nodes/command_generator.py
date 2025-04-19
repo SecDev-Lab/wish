@@ -76,7 +76,7 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
 
         # Extract the generated command and remove Markdown code block formatting if present
         command = result.content.strip()
-        
+
         # Remove Markdown code block formatting if present
         if command.startswith("```"):
             # Extract the command from the code block
@@ -88,7 +88,7 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
                 lines = lines[:-1]
             # Join the remaining lines
             command = "\n".join(lines).strip()
-        
+
         logger.info(f"Generated command: {command}")
 
         # Generate a list of command candidates (in this case, just one)
