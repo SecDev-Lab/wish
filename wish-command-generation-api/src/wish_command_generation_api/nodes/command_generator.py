@@ -74,8 +74,21 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             "command_history": command_history_str
         })
 
-        # Extract the generated command
+        # Extract the generated command and remove Markdown code block formatting if present
         command = result.content.strip()
+
+        # Remove Markdown code block formatting if present
+        if command.startswith("```"):
+            # Extract the command from the code block
+            lines = command.split("\n")
+            # Remove the first line (```bash or similar)
+            lines = lines[1:]
+            # Remove the last line if it's a closing ```
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            # Join the remaining lines
+            command = "\n".join(lines).strip()
+
         logger.info(f"Generated command: {command}")
 
         # Generate a list of command candidates (in this case, just one)
