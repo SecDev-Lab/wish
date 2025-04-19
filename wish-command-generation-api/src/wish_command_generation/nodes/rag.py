@@ -3,18 +3,18 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
+from wish_models.settings import Settings
 
 from ..models import GraphState
 
 
-def generate_query(state: GraphState) -> GraphState:
+def generate_query(state: GraphState, settings_obj: Settings) -> GraphState:
     """Generate a query for RAG search from the task using LLM"""
     # Use LLM to generate a query
-    from wish_models import settings
 
     model = ChatOpenAI(
-        model=settings.OPENAI_MODEL,
-        api_key=settings.OPENAI_API_KEY,
+        model=settings_obj.OPENAI_MODEL,
+        api_key=settings_obj.OPENAI_API_KEY,
         use_responses_api=True,
     )
 
@@ -62,25 +62,23 @@ FTP upload reverse shell user interaction batch
     return GraphState(**state_dict)
 
 
-def retrieve_documents(state: GraphState) -> GraphState:
+def retrieve_documents(state: GraphState, settings_obj: Settings) -> GraphState:
     """Retrieve relevant documents using the generated query from vector store"""
     import importlib.util
-
-    from wish_models import settings
 
     # Return empty context if no query is available
     if not state.query:
         return _return_empty_context(state)
 
     # Branch based on vector store type
-    vector_store_type = getattr(settings, "VECTOR_STORE_TYPE", "chroma").lower()
+    vector_store_type = settings_obj.VECTOR_STORE_TYPE.lower()
 
     if vector_store_type == "qdrant":
         # Check if Qdrant dependencies are installed
         if (importlib.util.find_spec("qdrant_client") is not None and
                 importlib.util.find_spec("langchain_qdrant") is not None):
             # Use Qdrant for document retrieval
-            return _retrieve_from_qdrant(state)
+            return _retrieve_from_qdrant(state, settings_obj)
         else:
             print("Qdrant dependencies not installed.")
             print("Please install with: pip install \"wish-command-generation-api[qdrant]\"")
@@ -90,7 +88,7 @@ def retrieve_documents(state: GraphState) -> GraphState:
         # Check if Chroma dependencies are installed
         if importlib.util.find_spec("chromadb") is not None:
             # Use Chroma for document retrieval
-            return _retrieve_from_chroma(state)
+            return _retrieve_from_chroma(state, settings_obj)
         else:
             print("Chroma dependencies not installed.")
             print("Please install with: pip install \"wish-command-generation-api[chroma]\"")
@@ -104,27 +102,26 @@ def _return_empty_context(state: GraphState) -> GraphState:
     return GraphState(**state_dict)
 
 
-def _retrieve_from_qdrant(state: GraphState) -> GraphState:
+def _retrieve_from_qdrant(state: GraphState, settings_obj: Settings) -> GraphState:
     """Retrieve documents from Qdrant vector store"""
     from langchain_openai import OpenAIEmbeddings
     from langchain_qdrant import Qdrant
     from qdrant_client import QdrantClient
-    from wish_models import settings
 
     # Initialize embeddings
     embeddings = OpenAIEmbeddings(
-        model=settings.EMBEDDING_MODEL,
-        api_key=settings.OPENAI_API_KEY,
+        model=settings_obj.EMBEDDING_MODEL,
+        api_key=settings_obj.OPENAI_API_KEY,
         disallowed_special=()
     )
 
     # Initialize Qdrant client
     client = QdrantClient(
-        host=getattr(settings, "QDRANT_HOST", "localhost"),
-        port=getattr(settings, "QDRANT_PORT", 6333)
+        host=settings_obj.QDRANT_HOST,
+        port=settings_obj.QDRANT_PORT
     )
 
-    collection_name = getattr(settings, "QDRANT_COLLECTION_NAME", "wish")
+    collection_name = settings_obj.QDRANT_COLLECTION_NAME
 
     # Check if collection exists
     if not client.collection_exists(collection_name):
@@ -154,7 +151,7 @@ def _retrieve_from_qdrant(state: GraphState) -> GraphState:
     return GraphState(**state_dict)
 
 
-def _retrieve_from_chroma(state: GraphState) -> GraphState:
+def _retrieve_from_chroma(state: GraphState, settings_obj: Settings) -> GraphState:
     """Retrieve documents from Chroma vector store"""
     import os
     from pathlib import Path
@@ -162,18 +159,16 @@ def _retrieve_from_chroma(state: GraphState) -> GraphState:
     from langchain_community.document_loaders import TextLoader
     from langchain_community.vectorstores import Chroma
     from langchain_openai import OpenAIEmbeddings
-    from wish_models import settings
 
     # Initialize embeddings
     embeddings = OpenAIEmbeddings(
-        model=settings.EMBEDDING_MODEL,
-        api_key=settings.OPENAI_API_KEY,
+        model=settings_obj.EMBEDDING_MODEL,
+        api_key=settings_obj.OPENAI_API_KEY,
         disallowed_special=()
     )
 
-    # Get knowledge base path - explicitly expand tilde (~) in path
-    wish_home_str = os.path.expanduser(settings.WISH_HOME)
-    wish_home = Path(wish_home_str)
+    # Get knowledge base path
+    wish_home = settings_obj.WISH_HOME
     knowledge_dir = wish_home / "knowledge" / "db"
 
     # Check if directory exists

@@ -11,6 +11,17 @@ from pydantic_settings import BaseSettings
 DEFAULT_WISH_HOME = Path.home() / ".wish"
 
 
+def get_default_env_path() -> Path:
+    """Get the default env file path (WISH_HOME/env).
+    
+    Returns:
+        Path to the default env file
+    """
+    wish_home_str = os.environ.get("WISH_HOME", str(DEFAULT_WISH_HOME))
+    wish_home = Path(os.path.expanduser(wish_home_str))
+    return wish_home / "env"
+
+
 class Settings(BaseSettings):
     """Application settings."""
 
@@ -59,19 +70,7 @@ class Settings(BaseSettings):
             project: Project name for LangSmith
             **kwargs: Additional keyword arguments
         """
-        # Get env_file from environment variable if not provided
-        if env_file is None:
-            env_file_str = os.environ.get("WISH_ENV_FILE")
-            if env_file_str:
-                env_file = Path(env_file_str)
-            else:
-                # Default to $WISH_HOME/env if no env_file is specified
-                # Use environment variable or default value
-                wish_home_str = os.environ.get("WISH_HOME", str(DEFAULT_WISH_HOME))
-                wish_home = Path(os.path.expanduser(wish_home_str))
-                env_file = wish_home / "env"
-
-        # Use env_file if it exists
+        # Use env_file only if explicitly provided and it exists
         if env_file is not None and env_file.exists():
             kwargs["_env_file"] = str(env_file)
 
@@ -111,7 +110,3 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return Path(os.path.expanduser(v))
         return v
-
-
-# Create default settings instance
-settings = Settings()

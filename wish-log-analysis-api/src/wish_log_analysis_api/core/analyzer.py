@@ -3,6 +3,8 @@
 import logging
 from typing import Optional
 
+from wish_models.settings import Settings
+
 from ..config import AnalyzerConfig
 from ..graph import create_log_analysis_graph
 from ..models import AnalyzeRequest, AnalyzeResponse, GraphState
@@ -14,6 +16,7 @@ logger.setLevel(logging.INFO)
 
 def analyze_command_result(
     request: AnalyzeRequest,
+    settings_obj: Settings,
     config: Optional[AnalyzerConfig] = None
 ) -> AnalyzeResponse:
     """Analyze a command result using the log analysis graph.
@@ -27,7 +30,7 @@ def analyze_command_result(
     """
     try:
         # Create the graph
-        graph = create_log_analysis_graph(config=config)
+        graph = create_log_analysis_graph(config=config, settings_obj=settings_obj)
 
         # Create the initial state
         initial_state = GraphState(command_result=request.command_result)

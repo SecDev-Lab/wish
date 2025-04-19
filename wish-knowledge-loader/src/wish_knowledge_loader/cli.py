@@ -7,7 +7,7 @@ import click
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
 from wish_models.knowledge.knowledge_metadata import KnowledgeMetadata, KnowledgeMetadataContainer
-from wish_models.settings import settings
+from wish_models.settings import Settings, get_default_env_path
 from wish_models.utc_datetime import UtcDatetime
 
 from wish_knowledge_loader.nodes.document_loader import DocumentLoader
@@ -35,6 +35,10 @@ def load_knowledge(repo_url: str, glob: str, title: str, verbose: bool = False, 
         log_level = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
         logger = setup_logger("wish-knowledge-loader", level=log_level)
         logger.info(f"Starting knowledge loader with log level: {logging.getLevelName(log_level)}")
+
+        # Create settings instance
+        env_path = get_default_env_path()
+        settings = Settings(env_file=env_path)
 
         # Log settings
         logger.info("Loading settings")
@@ -117,6 +121,10 @@ def list_knowledge(verbose: bool = False, debug: bool = False) -> int:
         log_level = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
         logger = setup_logger("wish-knowledge-loader", level=log_level)
 
+        # Create settings instance
+        env_path = get_default_env_path()
+        settings = Settings(env_file=env_path)
+
         # Load metadata container
         container = KnowledgeMetadataContainer.load(settings.meta_path)
 
@@ -152,6 +160,10 @@ def delete_knowledge(title: str, force: bool = False, verbose: bool = False, deb
         # Set up logging
         log_level = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
         logger = setup_logger("wish-knowledge-loader", level=log_level)
+
+        # Create settings instance
+        env_path = get_default_env_path()
+        settings = Settings(env_file=env_path)
 
         # Load metadata container
         container = KnowledgeMetadataContainer.load(settings.meta_path)

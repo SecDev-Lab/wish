@@ -3,11 +3,12 @@
 
 from wish_models.command_result import CommandResult
 from wish_models.command_result.command_state import CommandState
+from wish_models.settings import Settings
 
 from ..models import GraphState
 
 
-def combine_results(state: GraphState) -> GraphState:
+def combine_results(state: GraphState, settings_obj: Settings) -> GraphState:
     """Combine the results from log summarization and command state classifier.
 
     Args:

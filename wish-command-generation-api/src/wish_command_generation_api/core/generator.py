@@ -3,6 +3,8 @@
 import logging
 from typing import Optional
 
+from wish_models.settings import Settings
+
 from ..config import GeneratorConfig
 from ..graph import create_command_generation_graph
 from ..models import GeneratedCommand, GenerateRequest, GenerateResponse, GraphState
@@ -14,6 +16,7 @@ logger.setLevel(logging.INFO)
 
 def generate_command(
     request: GenerateRequest,
+    settings_obj: Settings,
     config: Optional[GeneratorConfig] = None
 ) -> GenerateResponse:
     """Generate a command using the command generation graph.
@@ -27,7 +30,7 @@ def generate_command(
     """
     try:
         # Create the graph
-        graph = create_command_generation_graph(config=config)
+        graph = create_command_generation_graph(config=config, settings_obj=settings_obj)
 
         # Create the initial state
         initial_state = GraphState(query=request.query, context=request.context)

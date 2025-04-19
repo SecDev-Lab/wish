@@ -4,6 +4,8 @@ import json
 import logging
 from typing import Any, Dict
 
+from wish_models.settings import Settings, get_default_env_path
+
 from .core.analyzer import analyze_command_result
 from .models import AnalyzeRequest
 
@@ -24,15 +26,17 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     logger.info("Received event: %s", json.dumps(event))
 
-    # Import settings
-
     try:
+        # Create settings instance
+        env_path = get_default_env_path()
+        settings = Settings(env_file=env_path)
+        
         # Parse the request body
         body = json.loads(event.get("body", "{}"))
         request = AnalyzeRequest.model_validate(body)
 
         # Analyze the command result
-        response = analyze_command_result(request)
+        response = analyze_command_result(request, settings_obj=settings)
 
         # Check if there was an error during analysis
         if response.error is not None:

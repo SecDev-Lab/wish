@@ -5,7 +5,7 @@ from typing import Annotated
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from wish_models import settings
+from wish_models.settings import Settings
 
 from ..models import GeneratedCommand, GraphState
 
@@ -31,7 +31,7 @@ Output only the explanation for the command.
 """
 
 
-def format_result(state: Annotated[GraphState, "Current state"]) -> GraphState:
+def format_result(state: Annotated[GraphState, "Current state"], settings_obj: Settings) -> GraphState:
     """Format the result with explanation.
 
     Args:
@@ -49,7 +49,7 @@ def format_result(state: Annotated[GraphState, "Current state"]) -> GraphState:
         command = command_candidates[0]
 
         # Create the LLM
-        model = settings.OPENAI_MODEL or "gpt-4o"
+        model = settings_obj.OPENAI_MODEL or "gpt-4o"
         llm = ChatOpenAI(model=model, temperature=0.1)
 
         # Create the prompt

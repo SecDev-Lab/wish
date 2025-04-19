@@ -4,6 +4,8 @@ import json
 import logging
 from typing import Any, Dict
 
+from wish_models.settings import Settings, get_default_env_path
+
 from .core.generator import generate_command
 from .models import GenerateRequest
 
@@ -25,12 +27,16 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     logger.info("Received event: %s", json.dumps(event))
 
     try:
+        # Create settings instance
+        env_path = get_default_env_path()
+        settings = Settings(env_file=env_path)
+        
         # Parse the request body
         body = json.loads(event.get("body", "{}"))
         request = GenerateRequest.model_validate(body)
 
         # Generate the command
-        response = generate_command(request)
+        response = generate_command(request, settings_obj=settings)
 
         # Check if there was an error during generation
         if response.error is not None:

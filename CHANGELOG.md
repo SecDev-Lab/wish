@@ -11,10 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Further improved Settings class in wish-models:
+  - Removed global singleton instance for better dependency management
+  - Added get_default_env_path utility function to access WISH_HOME/env path
+  - Updated all code to explicitly create Settings instances
+
 ### Fixed
 
 ### Removed
 
+- Removed global settings instance from wish-models package
 
 ## [0.6.9] - 2025-04-18
 

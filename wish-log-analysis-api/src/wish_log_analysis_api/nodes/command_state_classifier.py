@@ -5,7 +5,7 @@ import os
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-from wish_models import settings
+from wish_models.settings import Settings
 from wish_models.command_result.command_state import CommandState
 
 from ..models import GraphState
@@ -40,7 +40,7 @@ Follow these specific steps:
 """
 
 
-def classify_command_state(state: GraphState) -> GraphState:
+def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphState:
     """Classify the command state from a command result.
 
     Args:
@@ -77,7 +77,7 @@ def classify_command_state(state: GraphState) -> GraphState:
     prompt = PromptTemplate.from_template(COMMAND_STATE_CLASSIFIER_PROMPT)
 
     # Initialize the OpenAI model
-    model = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY, use_responses_api=True)
+    model = ChatOpenAI(model=settings_obj.OPENAI_MODEL, api_key=settings_obj.OPENAI_API_KEY, use_responses_api=True)
 
     # Create the chain
     chain = prompt | model | StrOutputParser()
