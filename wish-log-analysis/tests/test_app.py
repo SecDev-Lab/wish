@@ -29,7 +29,10 @@ class TestLogAnalysisClient:
         # Instead, we just verify that the URL is correctly formed with the /analyze endpoint.
         client = LogAnalysisClient()
         assert client.api_url.endswith("/analyze")
-        assert settings.WISH_API_BASE_URL in client.api_url
+        
+        # Create settings object to get the base URL
+        settings_obj = settings.Settings()
+        assert settings_obj.WISH_API_BASE_URL in client.api_url
 
     def test_analyze_success(self):
         """Test that the client successfully analyzes a command result."""

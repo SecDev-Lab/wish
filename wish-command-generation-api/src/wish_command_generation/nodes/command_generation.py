@@ -117,7 +117,7 @@ List all hidden files in the current directory.
 """
 
 
-def generate_commands(state: GraphState) -> GraphState:
+def generate_commands(state: GraphState, settings_obj) -> GraphState:
     """Generate commands from Wish using OpenAI's gpt-4o model"""
     # Get the task from the state
     task = state.wish.wish
@@ -139,9 +139,11 @@ def generate_commands(state: GraphState) -> GraphState:
     prompt = PromptTemplate.from_template(COMMAND_GENERATION_PROMPT)
 
     # Initialize the OpenAI model
-    from wish_models import settings
-
-    model = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY, use_responses_api=True)
+    model = ChatOpenAI(
+        model=settings_obj.OPENAI_MODEL,
+        api_key=settings_obj.OPENAI_API_KEY,
+        use_responses_api=True
+    )
 
     # Create the chain
     chain = prompt | model | StrOutputParser()

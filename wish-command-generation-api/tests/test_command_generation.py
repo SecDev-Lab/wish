@@ -7,6 +7,7 @@ import pytest
 
 from wish_command_generation.nodes.command_generation import generate_commands
 from wish_command_generation.test_factories.state_factory import GraphStateFactory
+from wish_models.settings import Settings
 
 
 class TestCommandGeneration:
@@ -57,7 +58,10 @@ class TestCommandGeneration:
                     # Make the chain invoke method return our expected response
                     mock_parser.invoke = mock_chain.invoke
 
-                    result = generate_commands(state)
+                    # Create settings object
+                    settings_obj = Settings()
+
+                    result = generate_commands(state, settings_obj)
 
         # Assert
         assert len(result.command_inputs) == 1
@@ -114,7 +118,10 @@ class TestCommandGeneration:
                     # Make the chain invoke method return our expected response
                     mock_parser.invoke = mock_chain.invoke
 
-                    result = generate_commands(state)
+                    # Create settings object
+                    settings_obj = Settings()
+
+                    result = generate_commands(state, settings_obj)
 
         # Assert
         assert len(result.command_inputs) == 1
@@ -170,7 +177,9 @@ class TestCommandGeneration:
                     # Expect CommandGenerationError to be raised
                     from wish_command_generation.exceptions import CommandGenerationError
                     with pytest.raises(CommandGenerationError) as excinfo:
-                        generate_commands(state)
+                        # Create settings object
+                        settings_obj = Settings()
+                        generate_commands(state, settings_obj)
 
                     # Verify the error message
                     assert f"Command generation failed: {error_message}" in str(excinfo.value)
@@ -210,7 +219,9 @@ class TestCommandGeneration:
                     # Expect CommandGenerationError to be raised
                     from wish_command_generation.exceptions import CommandGenerationError
                     with pytest.raises(CommandGenerationError) as excinfo:
-                        generate_commands(state)
+                        # Create settings object
+                        settings_obj = Settings()
+                        generate_commands(state, settings_obj)
 
                     # Verify the error message
                     assert "Invalid JSON format" in str(excinfo.value)

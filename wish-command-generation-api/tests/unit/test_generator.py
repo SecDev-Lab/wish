@@ -7,6 +7,7 @@ import pytest
 from wish_command_generation_api.config import GeneratorConfig
 from wish_command_generation_api.core.generator import generate_command
 from wish_command_generation_api.models import GeneratedCommand, GenerateRequest, GraphState
+from wish_models.settings import Settings
 
 
 @pytest.fixture
@@ -72,8 +73,11 @@ def test_generate_command_with_mocks(sample_query, sample_context, mock_chat_ope
         # Create request
         request = GenerateRequest(query=sample_query, context=sample_context)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run generation
-        response = generate_command(request)
+        response = generate_command(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
@@ -100,8 +104,11 @@ def test_generate_command_with_error(sample_query, sample_context, mock_chat_ope
         # Create request
         request = GenerateRequest(query=sample_query, context=sample_context)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run generation
-        response = generate_command(request)
+        response = generate_command(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
@@ -148,8 +155,11 @@ def test_generate_command_with_custom_config(sample_query, sample_context, mock_
         # Create request
         request = GenerateRequest(query=sample_query, context=sample_context)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run generation
-        response = generate_command(request, config=config)
+        response = generate_command(request, settings_obj=settings_obj, config=config)
 
         # Verify results
         assert response is not None
@@ -159,7 +169,7 @@ def test_generate_command_with_custom_config(sample_query, sample_context, mock_
         assert response.error is None
 
         # Verify the graph was created with the custom config
-        mock_create_graph.assert_called_once_with(config=config)
+        mock_create_graph.assert_called_once_with(settings_obj=settings_obj, config=config)
 
 
 def test_generate_command_with_default_config(sample_query, sample_context, mock_chat_openai):
@@ -194,8 +204,11 @@ def test_generate_command_with_default_config(sample_query, sample_context, mock
         # Create request
         request = GenerateRequest(query=sample_query, context=sample_context)
 
+        # Create settings object
+        settings_obj = Settings()
+
         # Run generation
-        response = generate_command(request)
+        response = generate_command(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
@@ -205,4 +218,4 @@ def test_generate_command_with_default_config(sample_query, sample_context, mock
         assert response.error is None
 
         # Verify the graph was created with default config (None)
-        mock_create_graph.assert_called_once_with(config=None)
+        mock_create_graph.assert_called_once_with(settings_obj=settings_obj, config=None)
