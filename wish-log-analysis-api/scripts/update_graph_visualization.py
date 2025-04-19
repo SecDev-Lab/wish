@@ -26,8 +26,9 @@ MD_PATH = DOCS_DIR / "design.md"
 def generate_graph_visualization():
     """Visualize the graph and save it as SVG"""
     # Import the graph module
-    from wish_log_analysis_api.graph import create_log_analysis_graph
     from wish_models.settings import Settings
+
+    from wish_log_analysis_api.graph import create_log_analysis_graph
 
     # Create settings object
     settings_obj = Settings()
