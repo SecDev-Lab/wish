@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Removed
+
+
+## [0.6.11] - 2025-04-19
+
+### Added
+
+### Changed
+
+### Fixed
+
 - Fixed Markdown code block handling in command generation:
   - Added code to strip Markdown code block formatting (```bash) from generated commands
   - Ensured commands are returned in plain text format suitable for shell execution
