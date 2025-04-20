@@ -35,8 +35,8 @@ def generate_command(
         # Create the initial state
         initial_state = GraphState(query=request.query, context=request.context)
 
-        # Run the graph
-        result = graph.invoke(initial_state)
+        # Run the graph with static name
+        result = graph.invoke(initial_state, {"run_name": "ActL1-Command-Generation"})
 
         # Extract the generated command
         generated_command = None

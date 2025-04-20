@@ -36,7 +36,7 @@ class CommandGenerator:
             state_input["system_info"] = system_info
 
         try:
-            result = graph.invoke(state_input)
+            result = graph.invoke(state_input, {"run_name": "ActL1-Command-Generation"})
 
             # Return the generated commands
             return result["command_inputs"]

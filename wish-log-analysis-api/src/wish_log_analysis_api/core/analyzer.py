@@ -35,8 +35,8 @@ def analyze_command_result(
         # Create the initial state
         initial_state = GraphState(command_result=request.command_result)
 
-        # Run the graph
-        result = graph.invoke(initial_state)
+        # Run the graph with static name
+        result = graph.invoke(initial_state, {"run_name": "ActL1-Log-Analysis"})
 
         # Extract the analyzed result
         analyzed_result = None
