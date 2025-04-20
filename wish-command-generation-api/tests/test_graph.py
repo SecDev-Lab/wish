@@ -40,7 +40,7 @@ class TestGraph:
 
             # Assert
             mock_create_graph.assert_called_once()
-            mock_graph.invoke.assert_called_once_with({"wish": wish})
+            mock_graph.invoke.assert_called_once_with({"wish": wish}, {"run_name": "ActL1-Command-Generation"})
             assert len(result) == 1
             assert result[0].command == "rustscan -a 10.10.10.123"
             assert result[0].timeout_sec is None
@@ -81,6 +81,7 @@ class TestGraph:
 
             # Check that system_info was passed correctly
             call_args = mock_graph.invoke.call_args[0][0]
+            assert mock_graph.invoke.call_args[0][1] == {"run_name": "ActL1-Command-Generation"}
             assert "wish" in call_args
             assert call_args["wish"] == wish
             assert "system_info" in call_args

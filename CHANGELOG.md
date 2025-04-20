@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added static run names to LangGraph executions for better traceability in LangSmith:
+  - Set "ActL1-Command-Generation" name for wish-command-generation-api
+  - Set "ActL1-Log-Analysis" name for wish-log-analysis-api
+  - Set "ActL1-Command-Generation-Core" name for wish-command-generation core library
+  - Improved visibility and filtering capabilities in LangSmith UI
+
 ### Fixed
 
 ### Removed
