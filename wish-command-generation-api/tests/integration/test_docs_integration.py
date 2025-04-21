@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wish_models.command_result import ActResult
+from wish_models.command_result import CommandResult
 from wish_models.settings import Settings
 
 from wish_command_generation_api.constants import (
@@ -66,7 +66,7 @@ def test_network_error_handler_uses_dialog_avoidance_doc(mock_handle_network_err
     # Arrange
     # Create feedback with a network error
     act_result = [
-        ActResult(
+        CommandResult(
             command="smbclient -N //10.10.10.40/Users --option='client min protocol'=LANMAN1",
             exit_class="NETWORK_ERROR",
             exit_code="1",
@@ -123,7 +123,7 @@ def test_timeout_handler_uses_fast_alternative_and_divide_conquer_docs(mock_hand
     # Arrange
     # Create feedback with a timeout error
     act_result = [
-        ActResult(
+        CommandResult(
             command="nmap -p- 10.10.10.40",
             exit_class="TIMEOUT",
             exit_code="1",

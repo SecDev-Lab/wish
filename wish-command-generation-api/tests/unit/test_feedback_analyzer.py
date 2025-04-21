@@ -1,10 +1,12 @@
 """Unit tests for the feedback analyzer node."""
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wish_models.command_result import ActResult
+from wish_models.command_result import CommandResult, CommandState, LogFiles
 from wish_models.settings import Settings
+from wish_models.utc_datetime import UtcDatetime
 
 from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import feedback_analyzer
@@ -33,7 +35,18 @@ def test_analyze_feedback_no_feedback(settings):
 def test_analyze_feedback_timeout(settings):
     """Test analyzing feedback with a TIMEOUT error."""
     # Arrange
-    act_result = [ActResult(command="test command", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="test command",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
     state = GraphState(query="test query", context={}, act_result=act_result)
 
     # Act
@@ -48,12 +61,16 @@ def test_analyze_feedback_timeout(settings):
 def test_analyze_feedback_network_error(settings):
     """Test analyzing feedback with a NETWORK_ERROR."""
     # Arrange
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
-        ActResult(
+        CommandResult(
+            num=1,
             command="test command",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="network error"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="network error",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
     state = GraphState(query="test query", context={}, act_result=act_result)
@@ -70,10 +87,35 @@ def test_analyze_feedback_network_error(settings):
 def test_analyze_feedback_multiple_errors(settings):
     """Test analyzing feedback with multiple errors, should prioritize TIMEOUT."""
     # Arrange
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
-        ActResult(command="command1", exit_class="SUCCESS", exit_code="0", log_summary="success"),
-        ActResult(command="command2", exit_class="NETWORK_ERROR", exit_code="1", log_summary="network error"),
-        ActResult(command="command3", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")
+        CommandResult(
+            num=1,
+            command="command1",
+            state=CommandState.SUCCESS,
+            exit_code=0,
+            log_summary="success",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        ),
+        CommandResult(
+            num=2,
+            command="command2",
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="network error",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        ),
+        CommandResult(
+            num=3,
+            command="command3",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
     ]
     state = GraphState(query="test query", context={}, act_result=act_result)
 
@@ -106,7 +148,18 @@ def test_analyze_feedback_preserve_state(settings):
     # Arrange
     processed_query = "processed test query"
     command_candidates = ["ls -la", "find . -name '*.py'"]
-    act_result = [ActResult(command="test command", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="test command",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
 
     state = GraphState(
         query="test query",

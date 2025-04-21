@@ -1,11 +1,13 @@
 """Unit tests for the timeout handler node."""
 
 import json
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wish_models.command_result import ActResult
+from wish_models.command_result import CommandResult, CommandState, LogFiles
 from wish_models.settings import Settings
+from wish_models.utc_datetime import UtcDatetime
 
 from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import timeout_handler
@@ -32,12 +34,16 @@ def test_handle_timeout_no_error(settings):
 def test_handle_timeout_not_timeout(settings):
     """Test handling timeout when the error is not a timeout."""
     # Arrange
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
-        ActResult(
+        CommandResult(
+            num=1,
             command="test command",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="network error"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="network error",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
     state = GraphState(
@@ -75,7 +81,18 @@ def test_handle_timeout_success(mock_chat, settings):
     })
 
     # Create a state with a timeout error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="nmap -p- 10.10.10.40",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
@@ -129,7 +146,18 @@ def test_handle_timeout_multiple_commands(mock_chat, settings):
     })
 
     # Create a state with a timeout error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="nmap -p- 10.10.10.40",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
@@ -163,7 +191,18 @@ def test_handle_timeout_json_error(mock_chat, settings):
     mock_chain.invoke.return_value = "Invalid JSON"
 
     # Create a state with a timeout error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="nmap -p- 10.10.10.40",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
@@ -190,7 +229,18 @@ def test_handle_timeout_exception(mock_chat, settings):
     mock_chat.side_effect = Exception("Test error")
 
     # Create a state with a timeout error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="nmap -p- 10.10.10.40",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
@@ -231,7 +281,18 @@ def test_handle_timeout_preserve_state(mock_chat, settings):
 
     # Create a state with a timeout error and additional fields
     processed_query = "processed test query"
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="nmap -p- 10.10.10.40",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
 
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",

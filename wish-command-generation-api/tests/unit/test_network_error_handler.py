@@ -1,13 +1,14 @@
 """Unit tests for the network error handler node."""
 
 import json
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wish_models.command_result import ActResult
+from wish_models.command_result import CommandResult, CommandState, LogFiles
 from wish_models.settings import Settings
+from wish_models.utc_datetime import UtcDatetime
 
-from wish_command_generation_api.constants import DIALOG_AVOIDANCE_DOC
 from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import network_error_handler
 
@@ -33,7 +34,18 @@ def test_handle_network_error_no_error(settings):
 def test_handle_network_error_not_network_error(settings):
     """Test handling network error when the error is not a network error."""
     # Arrange
-    act_result = [ActResult(command="test command", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="test command",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
     state = GraphState(
         query="test query",
         context={},
@@ -69,12 +81,16 @@ def test_handle_network_error_success(mock_chat, settings):
     })
 
     # Create a state with a network error
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
-        ActResult(
+        CommandResult(
+            num=1,
             command="nmap -p- 10.10.10.40",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="Connection closed by peer"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="Connection closed by peer",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
     state = GraphState(
@@ -120,12 +136,16 @@ def test_handle_network_error_with_dialog_avoidance_doc(mock_chat, settings):
     })
 
     # Create a state with a network error
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
-        ActResult(
+        CommandResult(
+            num=1,
             command="smbclient -N //10.10.10.40/Users --option='client min protocol'=LANMAN1",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="Connection closed by peer"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="Connection closed by peer",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
     state = GraphState(
@@ -146,6 +166,7 @@ def test_handle_network_error_with_dialog_avoidance_doc(mock_chat, settings):
     # Check that the invoke method was called with the dialog_avoidance_doc parameter
     args, kwargs = mock_chain.invoke.call_args
     assert "dialog_avoidance_doc" in kwargs
+    from wish_command_generation_api.docs.interactive_avoidance import DIALOG_AVOIDANCE_DOC
     assert kwargs["dialog_avoidance_doc"] == DIALOG_AVOIDANCE_DOC
 
 
@@ -170,12 +191,16 @@ def test_handle_network_error_alternative_command(mock_chat, settings):
     })
 
     # Create a state with a network error
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
-        ActResult(
+        CommandResult(
+            num=1,
             command="nmap -p- 10.10.10.40",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="Connection closed by peer"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="Connection closed by peer",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
     state = GraphState(
@@ -209,12 +234,16 @@ def test_handle_network_error_json_error(mock_chat, settings):
     mock_chain.invoke.return_value = "Invalid JSON"
 
     # Create a state with a network error
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
-        ActResult(
+        CommandResult(
+            num=1,
             command="nmap -p- 10.10.10.40",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="Connection closed by peer"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="Connection closed by peer",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
     state = GraphState(
@@ -243,12 +272,16 @@ def test_handle_network_error_exception(mock_chat, settings):
     mock_chat.side_effect = Exception("Test error")
 
     # Create a state with a network error
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
-        ActResult(
+        CommandResult(
+            num=1,
             command="nmap -p- 10.10.10.40",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="Connection closed by peer"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="Connection closed by peer",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
     state = GraphState(
@@ -291,12 +324,16 @@ def test_handle_network_error_preserve_state(mock_chat, settings):
 
     # Create a state with a network error and additional fields
     processed_query = "processed test query"
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
-        ActResult(
+        CommandResult(
+            num=1,
             command="nmap -p- 10.10.10.40",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="Connection closed by peer"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="Connection closed by peer",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
 

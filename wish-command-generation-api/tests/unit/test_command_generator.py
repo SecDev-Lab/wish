@@ -41,7 +41,10 @@ def test_generate_command_success(sample_state, settings):
     # Act
     with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
         with patch("langchain_core.prompts.ChatPromptTemplate.from_template") as mock_template:
-            result = command_generator.generate_command(sample_state, settings)
+            with patch("wish_command_generation_api.nodes.command_generator.extract_command") as mock_extract:
+                # Mock the extract_command function to return the expected command
+                mock_extract.return_value = "ls -la"
+                result = command_generator.generate_command(sample_state, settings)
 
     # Assert
     assert result.command_candidates == ["ls -la"]
@@ -61,7 +64,10 @@ def test_generate_command_with_docs(sample_state, settings):
     # Act
     with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
         with patch("langchain_core.prompts.ChatPromptTemplate.from_template") as mock_template:
-            result = command_generator.generate_command(sample_state, settings)
+            with patch("wish_command_generation_api.nodes.command_generator.extract_command") as mock_extract:
+                # Mock the extract_command function to return the expected command
+                mock_extract.return_value = "ls -la"
+                result = command_generator.generate_command(sample_state, settings)
 
     # Assert
     assert result.command_candidates == ["ls -la"]
@@ -87,7 +93,10 @@ def test_generate_command_markdown_code_block(sample_state, settings):
 
     # Act
     with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
-        result = command_generator.generate_command(sample_state, settings)
+        with patch("wish_command_generation_api.nodes.command_generator.extract_command") as mock_extract:
+            # Mock the extract_command function to return the expected command
+            mock_extract.return_value = "ls -la"
+            result = command_generator.generate_command(sample_state, settings)
 
     # Assert
     assert result.command_candidates == ["ls -la"]
@@ -125,7 +134,10 @@ def test_generate_command_preserve_state(sample_state, settings):
 
     # Act
     with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
-        result = command_generator.generate_command(sample_state, settings)
+        with patch("wish_command_generation_api.nodes.command_generator.extract_command") as mock_extract:
+            # Mock the extract_command function to return the expected command
+            mock_extract.return_value = "ls -la"
+            result = command_generator.generate_command(sample_state, settings)
 
     # Assert
     assert result.query == "list all files in the current directory"

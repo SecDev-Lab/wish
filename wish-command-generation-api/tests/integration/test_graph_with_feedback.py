@@ -3,7 +3,7 @@
 from unittest.mock import patch
 
 import pytest
-from wish_models.command_result import ActResult
+from wish_models.command_result import CommandResult
 from wish_models.settings import Settings
 
 from wish_command_generation_api.graph import create_command_generation_graph
@@ -77,7 +77,8 @@ def test_graph_with_no_feedback(
     graph = create_command_generation_graph(settings_obj=settings)
 
     # Act
-    result = graph.invoke(initial_state)
+    # Use dict() to ensure we get a proper dictionary instead of AddableValuesDict
+    result = dict(graph.invoke(initial_state))
 
     # Assert
     # Verify that the nodes were called in the correct order
@@ -88,8 +89,8 @@ def test_graph_with_no_feedback(
     mock_format_result.assert_called_once()
 
     # Verify the result
-    assert result.generated_command.command == "ls -la"
-    assert result.generated_command.explanation == (
+    assert result["generated_command"].command == "ls -la"
+    assert result["generated_command"].explanation == (
         "This command lists all files in the current directory, including hidden files."
     )
 
@@ -106,7 +107,7 @@ def test_graph_with_timeout_feedback(
     """Test graph execution with timeout feedback."""
     # Arrange
     # Create feedback with a timeout error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    act_result = [CommandResult(command="nmap -p- 10.10.10.40", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
 
     # Mock the node functions
     mock_analyze_feedback.return_value = GraphState(
@@ -156,7 +157,8 @@ def test_graph_with_timeout_feedback(
     graph = create_command_generation_graph(settings_obj=settings)
 
     # Act
-    result = graph.invoke(initial_state)
+    # Use dict() to ensure we get a proper dictionary instead of AddableValuesDict
+    result = dict(graph.invoke(initial_state))
 
     # Assert
     # Verify that the nodes were called in the correct order
@@ -167,8 +169,8 @@ def test_graph_with_timeout_feedback(
     mock_format_result.assert_called_once()
 
     # Verify the result
-    assert result.generated_command.command == "rustscan -a 10.10.10.40"
-    assert "fast port scan" in result.generated_command.explanation
+    assert result["generated_command"].command == "rustscan -a 10.10.10.40"
+    assert "fast port scan" in result["generated_command"].explanation
 
 
 @patch("wish_command_generation_api.nodes.feedback_analyzer.analyze_feedback")
@@ -184,7 +186,7 @@ def test_graph_with_network_error_feedback(
     # Arrange
     # Create feedback with a network error
     act_result = [
-        ActResult(
+        CommandResult(
             command="nmap -p- 10.10.10.40",
             exit_class="NETWORK_ERROR",
             exit_code="1",
@@ -240,7 +242,8 @@ def test_graph_with_network_error_feedback(
     graph = create_command_generation_graph(settings_obj=settings)
 
     # Act
-    result = graph.invoke(initial_state)
+    # Use dict() to ensure we get a proper dictionary instead of AddableValuesDict
+    result = dict(graph.invoke(initial_state))
 
     # Assert
     # Verify that the nodes were called in the correct order
@@ -251,8 +254,8 @@ def test_graph_with_network_error_feedback(
     mock_format_result.assert_called_once()
 
     # Verify the result
-    assert result.generated_command.command == "nmap -Pn -p- 10.10.10.40"
-    assert "skipping host discovery" in result.generated_command.explanation
+    assert result["generated_command"].command == "nmap -Pn -p- 10.10.10.40"
+    assert "skipping host discovery" in result["generated_command"].explanation
 
 
 @patch("wish_command_generation_api.nodes.feedback_analyzer.analyze_feedback")
@@ -268,7 +271,7 @@ def test_graph_with_unknown_error_feedback(
     # Arrange
     # Create feedback with an unknown error
     act_result = [
-        ActResult(
+        CommandResult(
             command="nmap -p- 10.10.10.40",
             exit_class="UNKNOWN_ERROR",
             exit_code="1",
@@ -335,7 +338,8 @@ def test_graph_with_unknown_error_feedback(
     graph = create_command_generation_graph(settings_obj=settings)
 
     # Act
-    result = graph.invoke(initial_state)
+    # Use dict() to ensure we get a proper dictionary instead of AddableValuesDict
+    result = dict(graph.invoke(initial_state))
 
     # Assert
     # Verify that the nodes were called in the correct order
@@ -346,5 +350,5 @@ def test_graph_with_unknown_error_feedback(
     mock_format_result.assert_called_once()
 
     # Verify the result
-    assert result.generated_command.command == "nmap -sS -p- 10.10.10.40"
-    assert "SYN scan" in result.generated_command.explanation
+    assert result["generated_command"].command == "nmap -sS -p- 10.10.10.40"
+    assert "SYN scan" in result["generated_command"].explanation
