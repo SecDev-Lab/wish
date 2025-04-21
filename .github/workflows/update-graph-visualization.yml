@@ -52,6 +52,7 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
+          cd ${{ matrix.project }}
           if git diff --quiet docs/; then
             echo "No changes to graph visualization"
             echo "changes=false" >> $GITHUB_OUTPUT
