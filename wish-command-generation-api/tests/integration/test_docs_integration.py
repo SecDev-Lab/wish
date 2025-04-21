@@ -1,8 +1,11 @@
 """Integration tests for document integration with command generation."""
 
+from pathlib import Path
+
 import pytest
-from wish_models.command_result import CommandResult
+from wish_models.command_result import CommandResult, CommandState, LogFiles
 from wish_models.settings import Settings
+from wish_models.utc_datetime import UtcDatetime
 
 from wish_command_generation_api.graph import create_command_generation_graph
 from wish_command_generation_api.models import GraphState
@@ -45,10 +48,13 @@ def test_command_generation_with_network_error_feedback(settings):
     # Create feedback with a network error
     act_result = [
         CommandResult(
+            num=1,
             command="smbclient -N //10.10.10.40/Users --option='client min protocol'=LANMAN1",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="Connection closed by peer"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="Connection closed by peer",
+            log_files=LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log")),
+            created_at=UtcDatetime.now()
         )
     ]
 
@@ -82,10 +88,13 @@ def test_command_generation_with_timeout_feedback(settings):
     # Create feedback with a timeout error
     act_result = [
         CommandResult(
+            num=1,
             command="nmap -p- 10.10.10.40",
-            exit_class="TIMEOUT",
-            exit_code="1",
-            log_summary="timeout"
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log")),
+            created_at=UtcDatetime.now()
         )
     ]
 

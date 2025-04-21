@@ -43,7 +43,7 @@ def generate_command(
         if request.act_result:
             logger.info(f"Received feedback with {len(request.act_result)} results")
             for i, result in enumerate(request.act_result):
-                logger.info(f"Feedback {i+1}: Command '{result.command}' - Exit class: {result.exit_class}")
+                logger.info(f"Feedback {i+1}: Command '{result.command}' - State: {result.state}")
 
         # Run the graph with static name
         result = graph.invoke(initial_state, {"run_name": "ActL1-Command-Generation"})

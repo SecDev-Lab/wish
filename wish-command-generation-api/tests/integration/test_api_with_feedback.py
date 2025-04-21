@@ -29,7 +29,7 @@ def test_lambda_handler_with_feedback(settings):
                 "stdout": "/tmp/stdout.log",
                 "stderr": "/tmp/stderr.log"
             },
-            "created_at": "2025-04-21T04:16:38.000Z"
+            "created_at": "2025-04-21T04:16:38Z"
         }
     ]
 
@@ -79,7 +79,7 @@ def test_lambda_handler_with_network_error_feedback(settings):
                 "stdout": "/tmp/stdout.log",
                 "stderr": "/tmp/stderr.log"
             },
-            "created_at": "2025-04-21T04:16:38.000Z"
+            "created_at": "2025-04-21T04:16:38Z"
         }
     ]
 
@@ -129,7 +129,7 @@ def test_lambda_handler_with_multiple_feedback(settings):
                 "stdout": "/tmp/stdout.log",
                 "stderr": "/tmp/stderr.log"
             },
-            "created_at": "2025-04-21T04:16:38.000Z"
+            "created_at": "2025-04-21T04:16:38Z"
         },
         {
             "num": 2,
@@ -141,7 +141,7 @@ def test_lambda_handler_with_multiple_feedback(settings):
                 "stdout": "/tmp/stdout.log",
                 "stderr": "/tmp/stderr.log"
             },
-            "created_at": "2025-04-21T04:16:38.000Z"
+            "created_at": "2025-04-21T04:16:38Z"
         }
     ]
 
