@@ -19,7 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added fast_alternative_commands.md with faster alternatives to common slow commands
   - Added list_files.md with approved wordlists for dictionary attacks
   - Added divide_and_conquer.md with strategies for parallelizing long-running commands
-- Added ActResult model in wish-models for standardized command execution feedback
 
 ### Changed
 
