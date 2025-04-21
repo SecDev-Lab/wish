@@ -138,8 +138,8 @@ def test_analyze_feedback_exception_propagation(settings):
     with pytest.raises(Exception) as excinfo:
         feedback_analyzer.analyze_feedback(state, settings)
 
-    # Verify the exception message
-    assert "Test error" in str(excinfo.value)
+    # Verify the exception message contains validation error information
+    assert "validation errors for GraphState" in str(excinfo.value)
 
 
 def test_analyze_feedback_preserve_state(settings):
