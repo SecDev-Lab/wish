@@ -109,17 +109,32 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         else:
             context_str = "No context available"
 
-        # Create the chain
-        chain = prompt | llm | StrOutputParser()
+        try:
+            # Create the chain
+            chain = prompt | llm | StrOutputParser()
 
-        # Invoke the chain
-        result = chain.invoke({
-            "query": state.query,
-            "feedback": feedback_str,
-            "context": context_str,
-            "fast_alternative_doc": FAST_ALTERNATIVE_DOC,
-            "divide_and_conquer_doc": DIVIDE_AND_CONQUER_DOC
-        })
+            # Invoke the chain
+            result = chain.invoke({
+                "query": state.query,
+                "feedback": feedback_str,
+                "context": context_str,
+                "fast_alternative_doc": FAST_ALTERNATIVE_DOC,
+                "divide_and_conquer_doc": DIVIDE_AND_CONQUER_DOC
+            })
+        except Exception as e:
+            logger.exception(f"Error invoking LLM chain: {e}")
+            # Get the original command from the act_result
+            original_command = state.act_result[0].command if state.act_result else "echo 'No command found'"
+            return GraphState(
+                query=state.query,
+                context=state.context,
+                processed_query=state.processed_query,
+                command_candidates=[original_command],
+                generated_command=state.generated_command,
+                is_retry=True,
+                error_type="TIMEOUT",
+                act_result=state.act_result
+            )
 
         # Parse the result
         try:

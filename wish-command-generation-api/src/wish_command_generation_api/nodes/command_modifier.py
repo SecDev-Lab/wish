@@ -81,13 +81,13 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         # Create the output parser
         str_parser = StrOutputParser()
         
-        # Create the chains
-        dialog_avoidance_chain = dialog_avoidance_prompt | llm | str_parser
-        list_files_chain = list_files_prompt | llm | str_parser
-
         # Process each command
         modified_commands = []
         for command in state.command_candidates:
+            # Create the chains for each command to avoid reusing the same chain
+            dialog_avoidance_chain = dialog_avoidance_prompt | llm | str_parser
+            list_files_chain = list_files_prompt | llm | str_parser
+            
             # Apply dialog avoidance
             try:
                 dialog_result = dialog_avoidance_chain.invoke({
@@ -98,7 +98,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 modified_command = dialog_json.get("command", command)
                 logger.info(f"Dialog avoidance applied: {command} -> {modified_command}")
             except Exception as e:
-                logger.warning(f"Error applying dialog avoidance: {e}")
+                logger.exception(f"Error applying dialog avoidance: {e}")
                 modified_command = command
 
             # Apply list file replacement
@@ -111,7 +111,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 final_command = list_files_json.get("command", modified_command)
                 logger.info(f"List file replacement applied: {modified_command} -> {final_command}")
             except Exception as e:
-                logger.warning(f"Error applying list file replacement: {e}")
+                logger.exception(f"Error applying list file replacement: {e}")
                 final_command = modified_command
 
             modified_commands.append(final_command)
