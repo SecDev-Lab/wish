@@ -9,6 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from wish_models.settings import Settings
 
+from ..constants import DIALOG_AVOIDANCE_DOC
 from ..models import GraphState
 
 # Configure logging
@@ -71,6 +72,9 @@ def handle_network_error(state: Annotated[GraphState, "Current state"], settings
 # 参考ドキュメント
 {context}
 
+# 対話回避ガイドライン
+{dialog_avoidance_doc}
+
 出力は以下の形式のJSONで返してください:
 {{ "command_inputs": [
   {{
@@ -89,7 +93,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
         # Format the feedback as JSON string
         feedback_str = (
-            json.dumps([result.model_dump() for result in state.act_result], ensure_ascii=False) 
+            json.dumps([result.model_dump() for result in state.act_result], ensure_ascii=False)
             if state.act_result else "[]"
         )
 
@@ -109,7 +113,8 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         result = chain.invoke({
             "query": state.query,
             "feedback": feedback_str,
-            "context": context_str
+            "context": context_str,
+            "dialog_avoidance_doc": DIALOG_AVOIDANCE_DOC
         })
 
         # Parse the result

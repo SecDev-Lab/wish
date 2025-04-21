@@ -60,7 +60,7 @@ def create_command_generation_graph(
     graph.add_node("timeout_handler", lambda state: timeout_handler.handle_timeout(state, settings_obj))
     # Split long line to avoid E501 error
     graph.add_node(
-        "network_error_handler", 
+        "network_error_handler",
         lambda state: network_error_handler.handle_network_error(state, settings_obj)
     )
     graph.add_node("command_generator", lambda state: command_generator.generate_command(state, settings_obj))

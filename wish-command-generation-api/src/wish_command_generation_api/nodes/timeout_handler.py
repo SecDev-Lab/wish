@@ -50,7 +50,8 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
 フィードバックのコマンド列を、次はタイムアウトを起こさないものに修正してください。
 
 各コマンドは `bash -c "（あなたの出力）"` として実行されるため、複数のコマンドをパイプなどでつなげることもできます。
-各コマンドは並列実行されます。「`./a` の後に `./b` を実行する必要がある」ようなデータ依存がある場合は、パイプや `&&` を使って1個のコマンド文字列で表現してください。
+各コマンドは並列実行されます。「`./a` の後に `./b` を実行する必要がある」ようなデータ依存がある場合は、
+パイプや `&&` を使って1個のコマンド文字列で表現してください。
 
 実行ログはファイルではなく、標準出力と標準エラー出力にdumpしてください。
 
@@ -95,7 +96,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
         # Format the feedback as JSON string
         feedback_str = (
-            json.dumps([result.model_dump() for result in state.act_result], ensure_ascii=False) 
+            json.dumps([result.model_dump() for result in state.act_result], ensure_ascii=False)
             if state.act_result else "[]"
         )
 

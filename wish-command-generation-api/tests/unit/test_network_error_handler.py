@@ -68,7 +68,14 @@ def test_handle_network_error_success(mock_chat, settings):
     })
 
     # Create a state with a network error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
+    act_result = [
+        ActResult(
+            command="nmap -p- 10.10.10.40",
+            exit_class="NETWORK_ERROR",
+            exit_code="1",
+            log_summary="Connection closed by peer"
+        )
+    ]
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
@@ -112,7 +119,14 @@ def test_handle_network_error_alternative_command(mock_chat, settings):
     })
 
     # Create a state with a network error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
+    act_result = [
+        ActResult(
+            command="nmap -p- 10.10.10.40",
+            exit_class="NETWORK_ERROR",
+            exit_code="1",
+            log_summary="Connection closed by peer"
+        )
+    ]
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
@@ -144,7 +158,14 @@ def test_handle_network_error_json_error(mock_chat, settings):
     mock_chain.invoke.return_value = "Invalid JSON"
 
     # Create a state with a network error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
+    act_result = [
+        ActResult(
+            command="nmap -p- 10.10.10.40",
+            exit_class="NETWORK_ERROR",
+            exit_code="1",
+            log_summary="Connection closed by peer"
+        )
+    ]
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
@@ -171,7 +192,14 @@ def test_handle_network_error_exception(mock_chat, settings):
     mock_chat.side_effect = Exception("Test error")
 
     # Create a state with a network error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
+    act_result = [
+        ActResult(
+            command="nmap -p- 10.10.10.40",
+            exit_class="NETWORK_ERROR",
+            exit_code="1",
+            log_summary="Connection closed by peer"
+        )
+    ]
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
@@ -212,7 +240,14 @@ def test_handle_network_error_preserve_state(mock_chat, settings):
 
     # Create a state with a network error and additional fields
     processed_query = "processed test query"
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
+    act_result = [
+        ActResult(
+            command="nmap -p- 10.10.10.40",
+            exit_class="NETWORK_ERROR",
+            exit_code="1",
+            log_summary="Connection closed by peer"
+        )
+    ]
 
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",

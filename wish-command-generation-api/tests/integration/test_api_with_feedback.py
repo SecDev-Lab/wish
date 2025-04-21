@@ -252,10 +252,13 @@ def test_lambda_handler_with_error_response(mock_env_path, mock_settings):
     )
 
     # Mock the generate_command function
-    with patch("wish_command_generation_api.app.generate_command", 
+    with patch("wish_command_generation_api.app.generate_command",
                return_value=mock_response) as mock_generate:
         # Act
         response = lambda_handler(event, {})
+
+        # Use mock_generate to avoid F841 error
+        assert mock_generate.called
 
         # Assert
         # Verify the response

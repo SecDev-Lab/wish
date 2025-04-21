@@ -32,7 +32,14 @@ def test_handle_timeout_no_error(settings):
 def test_handle_timeout_not_timeout(settings):
     """Test handling timeout when the error is not a timeout."""
     # Arrange
-    act_result = [ActResult(command="test command", exit_class="NETWORK_ERROR", exit_code="1", log_summary="network error")]
+    act_result = [
+        ActResult(
+            command="test command",
+            exit_class="NETWORK_ERROR",
+            exit_code="1",
+            log_summary="network error"
+        )
+    ]
     state = GraphState(
         query="test query",
         context={},

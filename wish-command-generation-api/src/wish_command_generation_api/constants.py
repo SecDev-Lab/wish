@@ -1,7 +1,24 @@
 """Constants for the command generation API."""
 
+import os
+import pathlib
+
+# ドキュメントファイルのパス
+DOCS_DIR = pathlib.Path(__file__).parent / "docs"
+
+# ドキュメントファイルの読み込み
+def _read_doc_file(filename):
+    """ドキュメントファイルを読み込む"""
+    file_path = DOCS_DIR / filename
+    if file_path.exists():
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return ""
+
 # 対話回避のドキュメント
-DIALOG_AVOIDANCE_DOC = """# 対話回避
+DIALOG_AVOIDANCE_DOC = _read_doc_file("interactive_avoidance.md")
+if not DIALOG_AVOIDANCE_DOC:
+    DIALOG_AVOIDANCE_DOC = """# 対話回避
 
 コマンド実行途中でのユーザー入力が不可である点に注意し、以下のように対話を回避すること。
 
@@ -25,7 +42,9 @@ smbclient -N //$TARGET_IP/$dir --option=''client min protocol''=LANMAN1 -c ''$CO
 """
 
 # 高速な代替コマンドのドキュメント
-FAST_ALTERNATIVE_DOC = """# 高速な代替コマンド
+FAST_ALTERNATIVE_DOC = _read_doc_file("fast_alternative_commands.md")
+if not FAST_ALTERNATIVE_DOC:
+    FAST_ALTERNATIVE_DOC = """# 高速な代替コマンド
 
 ## nmap -p- $TARGET_IP
 
@@ -55,7 +74,9 @@ rustscan -a $TARGET_IP -- (-p以外のオプション)
 """
 
 # リストファイルのドキュメント
-LIST_FILES_DOC = """# リストファイル
+LIST_FILES_DOC = _read_doc_file("list_files.md")
+if not LIST_FILES_DOC:
+    LIST_FILES_DOC = """# リストファイル
 
 辞書攻撃のために、以下のリストファイルの使用を許可する。
 
@@ -69,7 +90,9 @@ LIST_FILES_DOC = """# リストファイル
 """
 
 # 分割統治のドキュメント
-DIVIDE_AND_CONQUER_DOC = """# 分割統治
+DIVIDE_AND_CONQUER_DOC = _read_doc_file("divide_and_conquer.md")
+if not DIVIDE_AND_CONQUER_DOC:
+    DIVIDE_AND_CONQUER_DOC = """# 分割統治
 
 実行時間の長いコマンドは、コマンドを複数に分割して並列実行（分割統治と呼ぶ）することで高速化が期待できる。
 以下の分割統治のみを許可する。

@@ -89,7 +89,9 @@ def test_graph_with_no_feedback(
 
     # Verify the result
     assert result.generated_command.command == "ls -la"
-    assert result.generated_command.explanation == "This command lists all files in the current directory, including hidden files."
+    assert result.generated_command.explanation == (
+        "This command lists all files in the current directory, including hidden files."
+    )
 
 
 @patch("wish_command_generation_api.nodes.feedback_analyzer.analyze_feedback")
@@ -181,7 +183,14 @@ def test_graph_with_network_error_feedback(
     """Test graph execution with network error feedback."""
     # Arrange
     # Create feedback with a network error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
+    act_result = [
+        ActResult(
+            command="nmap -p- 10.10.10.40",
+            exit_class="NETWORK_ERROR",
+            exit_code="1",
+            log_summary="Connection closed by peer"
+        )
+    ]
 
     # Mock the node functions
     mock_analyze_feedback.return_value = GraphState(
@@ -258,7 +267,14 @@ def test_graph_with_unknown_error_feedback(
     """Test graph execution with unknown error feedback."""
     # Arrange
     # Create feedback with an unknown error
-    act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="UNKNOWN_ERROR", exit_code="1", log_summary="Unknown error")]
+    act_result = [
+        ActResult(
+            command="nmap -p- 10.10.10.40",
+            exit_class="UNKNOWN_ERROR",
+            exit_code="1",
+            log_summary="Unknown error"
+        )
+    ]
 
     # Mock the node functions
     mock_analyze_feedback.return_value = GraphState(

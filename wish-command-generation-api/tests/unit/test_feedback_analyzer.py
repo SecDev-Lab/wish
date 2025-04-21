@@ -48,7 +48,14 @@ def test_analyze_feedback_timeout(settings):
 def test_analyze_feedback_network_error(settings):
     """Test analyzing feedback with a NETWORK_ERROR."""
     # Arrange
-    act_result = [ActResult(command="test command", exit_class="NETWORK_ERROR", exit_code="1", log_summary="network error")]
+    act_result = [
+        ActResult(
+            command="test command",
+            exit_class="NETWORK_ERROR",
+            exit_code="1",
+            log_summary="network error"
+        )
+    ]
     state = GraphState(query="test query", context={}, act_result=act_result)
 
     # Act
