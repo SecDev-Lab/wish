@@ -59,7 +59,10 @@ def test_handle_network_error_not_network_error(settings):
     assert result == state  # Should return the original state unchanged
 
 
-@patch("wish_command_generation_api.nodes.network_error_handler.handle_network_error", wraps=network_error_handler.handle_network_error)
+@patch(
+    "wish_command_generation_api.nodes.network_error_handler.handle_network_error",
+    wraps=network_error_handler.handle_network_error
+)
 def test_handle_network_error_success(mock_handler, settings, mock_network_error_response):
     """Test successful handling of a network error."""
     # Create a state with a network error

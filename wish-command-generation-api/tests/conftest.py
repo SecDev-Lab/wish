@@ -36,7 +36,7 @@ def setup_test_env(request):
 @pytest.fixture(autouse=True)
 def mock_openai_api(monkeypatch, request):
     """Mock OpenAI API calls for unit tests.
-    
+
     This prevents actual API calls during unit tests.
     """
     # Get test path
@@ -48,7 +48,9 @@ def mock_openai_api(monkeypatch, request):
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = json.dumps({"command": "mocked command response"})
-        mock_response.choices[0].message.model_dump.return_value = {"content": json.dumps({"command": "mocked command response"})}
+        mock_response.choices[0].message.model_dump.return_value = {
+            "content": json.dumps({"command": "mocked command response"})
+        }
         mock_response.generations = [[MagicMock()]]
 
         # OpenAIのcreateメソッドをモック
