@@ -21,10 +21,10 @@ def test_handle_network_error_no_error(settings):
     """Test handling network error when there is no error."""
     # Arrange
     state = GraphState(query="test query", context={})
-    
+
     # Act
     result = network_error_handler.handle_network_error(state, settings)
-    
+
     # Assert
     assert result == state  # Should return the original state unchanged
 
@@ -34,15 +34,15 @@ def test_handle_network_error_not_network_error(settings):
     # Arrange
     act_result = [ActResult(command="test command", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
     state = GraphState(
-        query="test query", 
-        context={}, 
-        act_result=act_result, 
+        query="test query",
+        context={},
+        act_result=act_result,
         error_type="TIMEOUT"
     )
-    
+
     # Act
     result = network_error_handler.handle_network_error(state, settings)
-    
+
     # Assert
     assert result == state  # Should return the original state unchanged
 
@@ -56,7 +56,7 @@ def test_handle_network_error_success(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM response
     mock_chain.invoke.return_value = json.dumps({
         "command_inputs": [
@@ -66,26 +66,26 @@ def test_handle_network_error_success(mock_chat, settings):
             }
         ]
     })
-    
+
     # Create a state with a network error
     act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
     state = GraphState(
-        query="Conduct a full port scan on IP 10.10.10.40", 
-        context={}, 
-        act_result=act_result, 
+        query="Conduct a full port scan on IP 10.10.10.40",
+        context={},
+        act_result=act_result,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
-    
+
     # Act
     result = network_error_handler.handle_network_error(state, settings)
-    
+
     # Assert
     assert result.command_candidates == ["nmap -p- 10.10.10.40"]
     assert result.is_retry is True
     assert result.error_type == "NETWORK_ERROR"
     assert result.act_result == act_result
-    
+
     # Verify the LLM was called correctly
     mock_chat.assert_called_once()
     mock_chain.invoke.assert_called_once()
@@ -100,7 +100,7 @@ def test_handle_network_error_alternative_command(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM response with an alternative command
     mock_chain.invoke.return_value = json.dumps({
         "command_inputs": [
@@ -110,20 +110,20 @@ def test_handle_network_error_alternative_command(mock_chat, settings):
             }
         ]
     })
-    
+
     # Create a state with a network error
     act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
     state = GraphState(
-        query="Conduct a full port scan on IP 10.10.10.40", 
-        context={}, 
-        act_result=act_result, 
+        query="Conduct a full port scan on IP 10.10.10.40",
+        context={},
+        act_result=act_result,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
-    
+
     # Act
     result = network_error_handler.handle_network_error(state, settings)
-    
+
     # Assert
     assert result.command_candidates == ["nmap -Pn -p- 10.10.10.40"]
     assert result.is_retry is True
@@ -139,24 +139,24 @@ def test_handle_network_error_json_error(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM response with invalid JSON
     mock_chain.invoke.return_value = "Invalid JSON"
-    
+
     # Create a state with a network error
     act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
     state = GraphState(
-        query="Conduct a full port scan on IP 10.10.10.40", 
-        context={}, 
-        act_result=act_result, 
+        query="Conduct a full port scan on IP 10.10.10.40",
+        context={},
+        act_result=act_result,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
-    
+
     # Act
     with patch("wish_command_generation_api.nodes.network_error_handler.logger") as mock_logger:
         result = network_error_handler.handle_network_error(state, settings)
-        
+
         # Assert
         assert "Failed to generate" in result.command_candidates[0]
         assert result.api_error is True
@@ -169,21 +169,21 @@ def test_handle_network_error_exception(mock_chat, settings):
     # Arrange
     # Mock the LLM to raise an exception
     mock_chat.side_effect = Exception("Test error")
-    
+
     # Create a state with a network error
     act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
     state = GraphState(
-        query="Conduct a full port scan on IP 10.10.10.40", 
-        context={}, 
-        act_result=act_result, 
+        query="Conduct a full port scan on IP 10.10.10.40",
+        context={},
+        act_result=act_result,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
-    
+
     # Act
     with patch("wish_command_generation_api.nodes.network_error_handler.logger") as mock_logger:
         result = network_error_handler.handle_network_error(state, settings)
-        
+
         # Assert
         assert "Error handling network error" in result.command_candidates[0]
         assert result.api_error is True
@@ -199,7 +199,7 @@ def test_handle_network_error_preserve_state(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM response
     mock_chain.invoke.return_value = json.dumps({
         "command_inputs": [
@@ -209,23 +209,23 @@ def test_handle_network_error_preserve_state(mock_chat, settings):
             }
         ]
     })
-    
+
     # Create a state with a network error and additional fields
     processed_query = "processed test query"
     act_result = [ActResult(command="nmap -p- 10.10.10.40", exit_class="NETWORK_ERROR", exit_code="1", log_summary="Connection closed by peer")]
-    
+
     state = GraphState(
-        query="Conduct a full port scan on IP 10.10.10.40", 
+        query="Conduct a full port scan on IP 10.10.10.40",
         context={"current_directory": "/home/user"},
         processed_query=processed_query,
-        act_result=act_result, 
+        act_result=act_result,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
-    
+
     # Act
     result = network_error_handler.handle_network_error(state, settings)
-    
+
     # Assert
     assert result.query == "Conduct a full port scan on IP 10.10.10.40"
     assert result.context == {"current_directory": "/home/user"}

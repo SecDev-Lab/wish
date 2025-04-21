@@ -34,7 +34,7 @@ def generate_command(
 
         # Create the initial state
         initial_state = GraphState(
-            query=request.query, 
+            query=request.query,
             context=request.context,
             act_result=request.act_result
         )

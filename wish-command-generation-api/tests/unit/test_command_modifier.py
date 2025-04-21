@@ -20,10 +20,10 @@ def test_modify_command_no_commands(settings):
     """Test modifying commands when there are no commands."""
     # Arrange
     state = GraphState(query="test query", context={})
-    
+
     # Act
     result = command_modifier.modify_command(state, settings)
-    
+
     # Assert
     assert result == state  # Should return the original state unchanged
 
@@ -37,7 +37,7 @@ def test_modify_command_dialog_avoidance(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM responses for dialog avoidance and list files
     mock_chain.invoke.side_effect = [
         # Dialog avoidance response
@@ -49,25 +49,25 @@ def test_modify_command_dialog_avoidance(mock_chat, settings):
             "command": "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
         })
     ]
-    
+
     # Create a state with an interactive command
     state = GraphState(
-        query="Start a Metasploit handler", 
-        context={}, 
+        query="Start a Metasploit handler",
+        context={},
         command_candidates=["msfconsole"]
     )
-    
+
     # Act
     result = command_modifier.modify_command(state, settings)
-    
+
     # Assert
     assert len(result.command_candidates) == 1
     assert "exit -y" in result.command_candidates[0]
-    
+
     # Verify the LLM was called correctly
     assert mock_chat.call_count == 1
     assert mock_chain.invoke.call_count == 2
-    
+
     # Check that the dialog avoidance document was used
     args, _ = mock_chain.invoke.call_args_list[0]
     prompt_args = args[0]
@@ -83,7 +83,7 @@ def test_modify_command_list_files(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM responses for dialog avoidance and list files
     mock_chain.invoke.side_effect = [
         # Dialog avoidance response (no change)
@@ -95,26 +95,26 @@ def test_modify_command_list_files(mock_chat, settings):
             "command": "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt -P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
         })
     ]
-    
+
     # Create a state with a command using list files
     state = GraphState(
-        query="Brute force SMB login", 
-        context={}, 
+        query="Brute force SMB login",
+        context={},
         command_candidates=["hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40"]
     )
-    
+
     # Act
     result = command_modifier.modify_command(state, settings)
-    
+
     # Assert
     assert len(result.command_candidates) == 1
     assert "/usr/share/seclists/Usernames/top-usernames-shortlist.txt" in result.command_candidates[0]
     assert "/usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt" in result.command_candidates[0]
-    
+
     # Verify the LLM was called correctly
     assert mock_chat.call_count == 1
     assert mock_chain.invoke.call_count == 2
-    
+
     # Check that the list files document was used
     args, _ = mock_chain.invoke.call_args_list[1]
     prompt_args = args[0]
@@ -130,7 +130,7 @@ def test_modify_command_both_modifications(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM responses for dialog avoidance and list files
     mock_chain.invoke.side_effect = [
         # Dialog avoidance response
@@ -142,17 +142,17 @@ def test_modify_command_both_modifications(mock_chat, settings):
             "command": "smbclient -N //10.10.10.40/share -c 'get /usr/share/seclists/Usernames/top-usernames-shortlist.txt'"
         })
     ]
-    
+
     # Create a state with a command needing both modifications
     state = GraphState(
-        query="Download user list from SMB share", 
-        context={}, 
+        query="Download user list from SMB share",
+        context={},
         command_candidates=["smbclient -N //10.10.10.40/share"]
     )
-    
+
     # Act
     result = command_modifier.modify_command(state, settings)
-    
+
     # Assert
     assert len(result.command_candidates) == 1
     assert "-c 'get" in result.command_candidates[0]
@@ -168,21 +168,21 @@ def test_modify_command_json_error(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM response with invalid JSON
     mock_chain.invoke.return_value = "Invalid JSON"
-    
+
     # Create a state with a command
     state = GraphState(
-        query="Start a Metasploit handler", 
-        context={}, 
+        query="Start a Metasploit handler",
+        context={},
         command_candidates=["msfconsole"]
     )
-    
+
     # Act
     with patch("wish_command_generation_api.nodes.command_modifier.logger") as mock_logger:
         result = command_modifier.modify_command(state, settings)
-        
+
         # Assert
         assert result.command_candidates == ["msfconsole"]  # Original command should be preserved
         mock_logger.warning.assert_called()
@@ -194,18 +194,18 @@ def test_modify_command_exception(mock_chat, settings):
     # Arrange
     # Mock the LLM to raise an exception
     mock_chat.side_effect = Exception("Test error")
-    
+
     # Create a state with a command
     state = GraphState(
-        query="Start a Metasploit handler", 
-        context={}, 
+        query="Start a Metasploit handler",
+        context={},
         command_candidates=["msfconsole"]
     )
-    
+
     # Act
     with patch("wish_command_generation_api.nodes.command_modifier.logger") as mock_logger:
         result = command_modifier.modify_command(state, settings)
-        
+
         # Assert
         assert result.command_candidates == ["msfconsole"]  # Original command should be preserved
         mock_logger.exception.assert_called_once()
@@ -220,7 +220,7 @@ def test_modify_command_multiple_commands(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM responses for dialog avoidance and list files
     # For first command
     mock_chain.invoke.side_effect = [
@@ -241,26 +241,26 @@ def test_modify_command_multiple_commands(mock_chat, settings):
             "command": "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt -P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
         })
     ]
-    
+
     # Create a state with multiple commands
     state = GraphState(
-        query="Run multiple commands", 
-        context={}, 
+        query="Run multiple commands",
+        context={},
         command_candidates=[
             "msfconsole",
             "hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40"
         ]
     )
-    
+
     # Act
     result = command_modifier.modify_command(state, settings)
-    
+
     # Assert
     assert len(result.command_candidates) == 2
     assert "exit -y" in result.command_candidates[0]
     assert "/usr/share/seclists/Usernames/top-usernames-shortlist.txt" in result.command_candidates[1]
     assert "/usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt" in result.command_candidates[1]
-    
+
     # Verify the LLM was called correctly
     assert mock_chat.call_count == 1
     assert mock_chain.invoke.call_count == 4
@@ -275,7 +275,7 @@ def test_modify_command_preserve_state(mock_chat, settings):
     mock_chain = MagicMock()
     mock_instance.__or__.return_value = mock_chain
     mock_chat.return_value = mock_instance
-    
+
     # Mock the LLM responses
     mock_chain.invoke.side_effect = [
         # Dialog avoidance response
@@ -287,13 +287,13 @@ def test_modify_command_preserve_state(mock_chat, settings):
             "command": "msfconsole -q -x \"exit -y\""
         })
     ]
-    
+
     # Create a state with additional fields
     processed_query = "processed test query"
     act_result = [{"command": "test command", "exit_class": "SUCCESS", "exit_code": "0", "log_summary": "success"}]
-    
+
     state = GraphState(
-        query="Start Metasploit", 
+        query="Start Metasploit",
         context={"current_directory": "/home/user"},
         processed_query=processed_query,
         command_candidates=["msfconsole"],
@@ -301,10 +301,10 @@ def test_modify_command_preserve_state(mock_chat, settings):
         is_retry=True,
         error_type="TIMEOUT"
     )
-    
+
     # Act
     result = command_modifier.modify_command(state, settings)
-    
+
     # Assert
     assert result.query == "Start Metasploit"
     assert result.context == {"current_directory": "/home/user"}

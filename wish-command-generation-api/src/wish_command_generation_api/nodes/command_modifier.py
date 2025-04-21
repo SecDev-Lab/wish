@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Annotated, List
+from typing import Annotated
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -124,7 +124,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             error_type=state.error_type,
             act_result=state.act_result
         )
-    except Exception as e:
+    except Exception:
         logger.exception("Error modifying commands")
         # Return the original state
         return state

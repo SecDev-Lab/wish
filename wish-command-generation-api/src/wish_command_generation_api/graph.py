@@ -86,14 +86,14 @@ def create_command_generation_graph(
             "network_error_handler": "network_error_handler"
         }
     )
-    
+
     # Add edges for normal flow
     graph.add_edge("query_processor", "command_generator")
-    
+
     # Add edges for error handling flows
     graph.add_edge("timeout_handler", "command_generator")
     graph.add_edge("network_error_handler", "command_generator")
-    
+
     # Add edges for command modification and result formatting
     graph.add_edge("command_generator", "command_modifier")
     graph.add_edge("command_modifier", "result_formatter")

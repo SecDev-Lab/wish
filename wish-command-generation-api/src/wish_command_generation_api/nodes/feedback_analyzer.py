@@ -59,7 +59,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
             error_type=error_type,
             act_result=state.act_result
         )
-    except Exception as e:
+    except Exception:
         logger.exception("Error analyzing feedback")
         # Return the original state with error flag
         return GraphState(

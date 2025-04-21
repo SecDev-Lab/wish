@@ -4,7 +4,6 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wish_models.command_result import ActResult
 from wish_models.settings import Settings
 
 from wish_command_generation_api.app import lambda_handler
@@ -46,7 +45,7 @@ def test_lambda_handler_with_feedback(mock_env_path, mock_settings):
             "log_summary": "timeout"
         }
     ]
-    
+
     # Create a mock event with feedback
     event = {
         "body": json.dumps({
@@ -55,7 +54,7 @@ def test_lambda_handler_with_feedback(mock_env_path, mock_settings):
             "act_result": act_result
         })
     }
-    
+
     # Create a mock response
     mock_response = GenerateResponse(
         generated_command=GeneratedCommand(
@@ -63,25 +62,25 @@ def test_lambda_handler_with_feedback(mock_env_path, mock_settings):
             explanation="This command performs a fast port scan using rustscan."
         )
     )
-    
+
     # Mock the generate_command function
     with patch("wish_command_generation_api.app.generate_command", return_value=mock_response) as mock_generate:
         # Act
         response = lambda_handler(event, {})
-        
+
         # Assert
         # Verify the response
         assert response["statusCode"] == 200
         assert response["headers"]["Content-Type"] == "application/json"
-        
+
         body = json.loads(response["body"])
         assert body["generated_command"]["command"] == "rustscan -a 10.10.10.40"
         assert body["generated_command"]["explanation"] == "This command performs a fast port scan using rustscan."
-        
+
         # Verify that generate_command was called with the correct parameters
         mock_generate.assert_called_once()
         args, kwargs = mock_generate.call_args
-        
+
         # Check the request object
         request = args[0]
         assert request.query == "Conduct a full port scan on IP 10.10.10.40"
@@ -105,7 +104,7 @@ def test_lambda_handler_with_network_error_feedback(mock_env_path, mock_settings
             "log_summary": "Connection closed by peer"
         }
     ]
-    
+
     # Create a mock event with feedback
     event = {
         "body": json.dumps({
@@ -114,7 +113,7 @@ def test_lambda_handler_with_network_error_feedback(mock_env_path, mock_settings
             "act_result": act_result
         })
     }
-    
+
     # Create a mock response
     mock_response = GenerateResponse(
         generated_command=GeneratedCommand(
@@ -122,25 +121,25 @@ def test_lambda_handler_with_network_error_feedback(mock_env_path, mock_settings
             explanation="This command performs a port scan while skipping host discovery."
         )
     )
-    
+
     # Mock the generate_command function
     with patch("wish_command_generation_api.app.generate_command", return_value=mock_response) as mock_generate:
         # Act
         response = lambda_handler(event, {})
-        
+
         # Assert
         # Verify the response
         assert response["statusCode"] == 200
         assert response["headers"]["Content-Type"] == "application/json"
-        
+
         body = json.loads(response["body"])
         assert body["generated_command"]["command"] == "nmap -Pn -p- 10.10.10.40"
         assert body["generated_command"]["explanation"] == "This command performs a port scan while skipping host discovery."
-        
+
         # Verify that generate_command was called with the correct parameters
         mock_generate.assert_called_once()
         args, kwargs = mock_generate.call_args
-        
+
         # Check the request object
         request = args[0]
         assert request.query == "Conduct a full port scan on IP 10.10.10.40"
@@ -170,7 +169,7 @@ def test_lambda_handler_with_multiple_feedback(mock_env_path, mock_settings):
             "log_summary": "timeout"
         }
     ]
-    
+
     # Create a mock event with feedback
     event = {
         "body": json.dumps({
@@ -179,7 +178,7 @@ def test_lambda_handler_with_multiple_feedback(mock_env_path, mock_settings):
             "act_result": act_result
         })
     }
-    
+
     # Create a mock response
     mock_response = GenerateResponse(
         generated_command=GeneratedCommand(
@@ -187,25 +186,25 @@ def test_lambda_handler_with_multiple_feedback(mock_env_path, mock_settings):
             explanation="This command performs a fast port scan on the remaining port range."
         )
     )
-    
+
     # Mock the generate_command function
     with patch("wish_command_generation_api.app.generate_command", return_value=mock_response) as mock_generate:
         # Act
         response = lambda_handler(event, {})
-        
+
         # Assert
         # Verify the response
         assert response["statusCode"] == 200
         assert response["headers"]["Content-Type"] == "application/json"
-        
+
         body = json.loads(response["body"])
         assert body["generated_command"]["command"] == "rustscan -a 10.10.10.40 -r 1001-65535"
         assert body["generated_command"]["explanation"] == "This command performs a fast port scan on the remaining port range."
-        
+
         # Verify that generate_command was called with the correct parameters
         mock_generate.assert_called_once()
         args, kwargs = mock_generate.call_args
-        
+
         # Check the request object
         request = args[0]
         assert request.query == "Conduct a full port scan on IP 10.10.10.40"
@@ -229,7 +228,7 @@ def test_lambda_handler_with_error_response(mock_env_path, mock_settings):
             "log_summary": "timeout"
         }
     ]
-    
+
     # Create a mock event with feedback
     event = {
         "body": json.dumps({
@@ -238,7 +237,7 @@ def test_lambda_handler_with_error_response(mock_env_path, mock_settings):
             "act_result": act_result
         })
     }
-    
+
     # Create a mock response with an error
     mock_response = GenerateResponse(
         generated_command=GeneratedCommand(
@@ -247,16 +246,16 @@ def test_lambda_handler_with_error_response(mock_env_path, mock_settings):
         ),
         error="Failed to generate command"
     )
-    
+
     # Mock the generate_command function
     with patch("wish_command_generation_api.app.generate_command", return_value=mock_response) as mock_generate:
         # Act
         response = lambda_handler(event, {})
-        
+
         # Assert
         # Verify the response
         assert response["statusCode"] == 500
         assert response["headers"]["Content-Type"] == "application/json"
-        
+
         body = json.loads(response["body"])
         assert body["error"] == "Failed to generate command"

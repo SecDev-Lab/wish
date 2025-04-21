@@ -105,20 +105,20 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         # Parse the result
         try:
             response_json = json.loads(result)
-            
+
             # Extract commands
             command_candidates = []
             for cmd_input in response_json.get("command_inputs", []):
                 command = cmd_input.get("command", "")
                 if command:
                     command_candidates.append(command)
-            
+
             if not command_candidates:
                 logger.warning("No valid commands found in LLM response")
                 command_candidates = ["echo 'No valid commands generated'"]
-            
+
             logger.info(f"Generated {len(command_candidates)} commands to handle network error")
-            
+
             # Update the state
             return GraphState(
                 query=state.query,
@@ -144,7 +144,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 act_result=state.act_result,
                 api_error=True
             )
-    except Exception as e:
+    except Exception:
         logger.exception("Error handling network error")
         # Return the original state with a fallback command
         return GraphState(
