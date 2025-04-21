@@ -135,8 +135,11 @@ def test_analyze_feedback_exception_propagation(settings):
     state.act_result = MagicMock(side_effect=Exception("Test error"))
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as excinfo:
         feedback_analyzer.analyze_feedback(state, settings)
+
+    # Verify the exception message
+    assert "Test error" in str(excinfo.value)
 
 
 def test_analyze_feedback_preserve_state(settings):
