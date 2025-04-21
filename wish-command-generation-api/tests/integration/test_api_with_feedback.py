@@ -134,7 +134,9 @@ def test_lambda_handler_with_network_error_feedback(mock_env_path, mock_settings
 
         body = json.loads(response["body"])
         assert body["generated_command"]["command"] == "nmap -Pn -p- 10.10.10.40"
-        assert body["generated_command"]["explanation"] == "This command performs a port scan while skipping host discovery."
+        assert body["generated_command"]["explanation"] == (
+            "This command performs a port scan while skipping host discovery."
+        )
 
         # Verify that generate_command was called with the correct parameters
         mock_generate.assert_called_once()
@@ -199,7 +201,9 @@ def test_lambda_handler_with_multiple_feedback(mock_env_path, mock_settings):
 
         body = json.loads(response["body"])
         assert body["generated_command"]["command"] == "rustscan -a 10.10.10.40 -r 1001-65535"
-        assert body["generated_command"]["explanation"] == "This command performs a fast port scan on the remaining port range."
+        assert body["generated_command"]["explanation"] == (
+            "This command performs a fast port scan on the remaining port range."
+        )
 
         # Verify that generate_command was called with the correct parameters
         mock_generate.assert_called_once()
@@ -248,7 +252,8 @@ def test_lambda_handler_with_error_response(mock_env_path, mock_settings):
     )
 
     # Mock the generate_command function
-    with patch("wish_command_generation_api.app.generate_command", return_value=mock_response) as mock_generate:
+    with patch("wish_command_generation_api.app.generate_command", 
+               return_value=mock_response) as mock_generate:
         # Act
         response = lambda_handler(event, {})
 
