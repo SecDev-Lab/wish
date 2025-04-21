@@ -33,7 +33,17 @@ def generate_command(
         graph = create_command_generation_graph(config=config, settings_obj=settings_obj)
 
         # Create the initial state
-        initial_state = GraphState(query=request.query, context=request.context)
+        initial_state = GraphState(
+            query=request.query,
+            context=request.context,
+            act_result=request.act_result
+        )
+
+        # Log feedback if present
+        if request.act_result:
+            logger.info(f"Received feedback with {len(request.act_result)} results")
+            for i, result in enumerate(request.act_result):
+                logger.info(f"Feedback {i+1}: Command '{result.command}' - State: {result.state}")
 
         # Run the graph with static name
         result = graph.invoke(initial_state, {"run_name": "ActL1-Command-Generation"})

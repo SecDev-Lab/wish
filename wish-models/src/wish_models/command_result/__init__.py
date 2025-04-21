@@ -8,5 +8,5 @@ __all__ = [
     "CommandResult",
     "CommandState",
     "LogFiles",
-    "parse_command_results_json",
+    "parse_command_results_json"
 ]

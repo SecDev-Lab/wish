@@ -7,6 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from wish_models.settings import Settings
 
+from ..constants import DIALOG_AVOIDANCE_DOC, DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC, LIST_FILES_DOC
 from ..models import GraphState
 
 # Configure logging
@@ -31,6 +32,19 @@ Instructions:
 3. Use standard shell syntax (bash/zsh)
 4. Prioritize common utilities and avoid complex one-liners unless necessary
 5. Generate only the command, no explanation
+6. Follow the guidelines in the documentation below for specific scenarios
+
+# 対話回避ガイドライン
+{dialog_avoidance_doc}
+
+# 高速な代替コマンドガイドライン
+{fast_alternative_doc}
+
+# リストファイルガイドライン
+{list_files_doc}
+
+# 分割統治ガイドライン
+{divide_and_conquer_doc}
 
 Output only the shell command that should be executed.
 """
@@ -71,7 +85,11 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             "processed_query": processed_query,
             "original_query": original_query,
             "current_directory": current_directory,
-            "command_history": command_history_str
+            "command_history": command_history_str,
+            "dialog_avoidance_doc": DIALOG_AVOIDANCE_DOC,
+            "fast_alternative_doc": FAST_ALTERNATIVE_DOC,
+            "list_files_doc": LIST_FILES_DOC,
+            "divide_and_conquer_doc": DIVIDE_AND_CONQUER_DOC
         })
 
         # Extract the generated command and remove Markdown code block formatting if present
@@ -99,7 +117,10 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             query=state.query,
             context=state.context,
             processed_query=state.processed_query,
-            command_candidates=command_candidates
+            command_candidates=command_candidates,
+            is_retry=state.is_retry,
+            error_type=state.error_type,
+            act_result=state.act_result
         )
     except Exception:
         logger.exception("Error generating command")
@@ -109,5 +130,8 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             context=state.context,
             processed_query=state.processed_query,
             command_candidates=["echo 'Command generation failed'"],
-            api_error=True
+            api_error=True,
+            is_retry=state.is_retry,
+            error_type=state.error_type,
+            act_result=state.act_result
         )

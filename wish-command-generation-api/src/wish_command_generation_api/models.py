@@ -3,6 +3,7 @@
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
+from wish_models.command_result import CommandResult
 
 
 class GeneratedCommand(BaseModel):
@@ -44,6 +45,16 @@ class GraphState(BaseModel):
     api_error: bool = False
     """Flag indicating whether an API error occurred during processing."""
 
+    # Feedback fields
+    act_result: List[CommandResult] | None = None
+    """フィードバック情報（コマンド実行結果）"""
+
+    is_retry: bool = False
+    """リトライフラグ（初回実行かリトライか）"""
+
+    error_type: str | None = None
+    """エラータイプ（TIMEOUT, NETWORK_ERROR, etc.）"""
+
 
 class GenerateRequest(BaseModel):
     """Request model for the generate endpoint."""
@@ -53,6 +64,9 @@ class GenerateRequest(BaseModel):
 
     context: Dict[str, Any] = Field(default_factory=dict, description="Context for command generation")
     """Context information for command generation, such as current directory, history, etc."""
+
+    act_result: List[CommandResult] | None = None
+    """フィードバック情報（コマンド実行結果）"""
 
 
 class GenerateResponse(BaseModel):

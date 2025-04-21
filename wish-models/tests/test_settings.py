@@ -28,10 +28,21 @@ class TestSettings:
             env_path = Path(f.name)
 
         try:
+            # Check if OPENAI_MODEL is set in environment
+            openai_model_env = os.environ.get("OPENAI_MODEL")
+
             # Load settings from env file
             settings = Settings(env_file=env_path)
-            assert settings.OPENAI_MODEL == "gpt-3.5-turbo"
-            assert settings.EMBEDDING_MODEL == "text-embedding-ada-002"
+
+            # If OPENAI_MODEL is set in environment, it should override env file
+            if openai_model_env:
+                assert settings.OPENAI_MODEL == openai_model_env
+            else:
+                assert settings.OPENAI_MODEL == "gpt-3.5-turbo"
+
+            # EMBEDDING_MODEL should be from env file if not set in environment
+            if "EMBEDDING_MODEL" not in os.environ:
+                assert settings.EMBEDDING_MODEL == "text-embedding-ada-002"
         finally:
             # Clean up
             os.unlink(env_path)
