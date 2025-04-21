@@ -1,6 +1,5 @@
 """Tests for the ActResult class."""
 
-import pytest
 
 from wish_models.command_result import ActResult
 

@@ -34,7 +34,7 @@ def test_graph_with_no_feedback(settings):
     # Assert
     # Verify the result contains a generated command
     assert result is not None
-    
+
     # Get the generated command (handle different result structures)
     if hasattr(result, "generated_command"):
         generated_command = result.generated_command
@@ -43,7 +43,7 @@ def test_graph_with_no_feedback(settings):
     else:
         # Try to access as AddableValuesDict
         generated_command = result.values.get("generated_command")
-    
+
     assert generated_command is not None
     assert "ls" in generated_command.command
     assert "file" in generated_command.explanation.lower() or "list" in generated_command.explanation.lower()
@@ -81,7 +81,7 @@ def test_graph_with_timeout_feedback(settings):
     # Assert
     # Verify the result contains a generated command
     assert result is not None
-    
+
     # Get the generated command (handle different result structures)
     if hasattr(result, "generated_command"):
         generated_command = result.generated_command
@@ -90,7 +90,7 @@ def test_graph_with_timeout_feedback(settings):
     else:
         # Try to access as AddableValuesDict
         generated_command = result.values.get("generated_command")
-    
+
     assert generated_command is not None
     assert any(term in generated_command.command for term in ["scan", "10.10.10.40"])
     assert any(term in generated_command.explanation.lower() for term in ["fast", "timeout", "alternative"])
@@ -128,7 +128,7 @@ def test_graph_with_network_error_feedback(settings):
     # Assert
     # Verify the result contains a generated command
     assert result is not None
-    
+
     # Get the generated command (handle different result structures)
     if hasattr(result, "generated_command"):
         generated_command = result.generated_command
@@ -137,7 +137,7 @@ def test_graph_with_network_error_feedback(settings):
     else:
         # Try to access as AddableValuesDict
         generated_command = result.values.get("generated_command")
-    
+
     assert generated_command is not None
     assert any(term in generated_command.command for term in ["scan", "10.10.10.40"])
     # Modify the assertion to check for more general terms related to port scanning
@@ -176,7 +176,7 @@ def test_graph_with_unknown_error_feedback(settings):
     # Assert
     # Verify the result contains a generated command
     assert result is not None
-    
+
     # Get the generated command (handle different result structures)
     if hasattr(result, "generated_command"):
         generated_command = result.generated_command
@@ -185,7 +185,7 @@ def test_graph_with_unknown_error_feedback(settings):
     else:
         # Try to access as AddableValuesDict
         generated_command = result.values.get("generated_command")
-    
+
     assert generated_command is not None
     assert any(term in generated_command.command for term in ["scan", "10.10.10.40"])
     assert "port" in generated_command.explanation.lower()

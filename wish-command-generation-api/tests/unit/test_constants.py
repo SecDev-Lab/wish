@@ -1,6 +1,5 @@
 """Unit tests for the constants module."""
 
-import os
 import pathlib
 from unittest.mock import mock_open, patch
 
@@ -19,12 +18,12 @@ def test_read_doc_file_exists():
     """Test reading a document file that exists."""
     # Arrange
     mock_content = "# Test Document\n\nThis is a test document."
-    
+
     # Act
     with patch("builtins.open", mock_open(read_data=mock_content)) as mock_file:
         with patch("pathlib.Path.exists", return_value=True):
             result = constants._read_doc_file("test_doc.md")
-    
+
     # Assert
     assert result == mock_content
     mock_file.assert_called_once()
@@ -35,7 +34,7 @@ def test_read_doc_file_not_exists():
     # Arrange & Act
     with patch("pathlib.Path.exists", return_value=False):
         result = constants._read_doc_file("nonexistent_doc.md")
-    
+
     # Assert
     assert result == ""
 

@@ -5,12 +5,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from wish_models.settings import Settings
 
-from wish_command_generation_api.constants import (
-    DIALOG_AVOIDANCE_DOC,
-    DIVIDE_AND_CONQUER_DOC,
-    FAST_ALTERNATIVE_DOC,
-    LIST_FILES_DOC,
-)
 from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import command_generator
 

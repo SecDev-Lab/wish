@@ -34,10 +34,10 @@ def test_command_generation_with_basic_query(settings):
     # Assert
     assert result is not None
     assert hasattr(result, "generated_command") or "generated_command" in result
-    
+
     # Get the generated command
     generated_command = result.generated_command if hasattr(result, "generated_command") else result["generated_command"]
-    
+
     # Verify the command is related to listing files
     assert "ls" in generated_command.command
     assert "file" in generated_command.explanation.lower() or "list" in generated_command.explanation.lower()
@@ -74,10 +74,10 @@ def test_command_generation_with_network_error_feedback(settings):
     # Assert
     assert result is not None
     assert hasattr(result, "generated_command") or "generated_command" in result
-    
+
     # Get the generated command
     generated_command = result.generated_command if hasattr(result, "generated_command") else result["generated_command"]
-    
+
     # Verify the command is related to SMB and contains network error handling
     assert "smbclient" in generated_command.command
     assert any(term in generated_command.explanation.lower() for term in ["network", "connection", "error"])
@@ -114,10 +114,10 @@ def test_command_generation_with_timeout_feedback(settings):
     # Assert
     assert result is not None
     assert hasattr(result, "generated_command") or "generated_command" in result
-    
+
     # Get the generated command
     generated_command = result.generated_command if hasattr(result, "generated_command") else result["generated_command"]
-    
+
     # Verify the command is related to port scanning and addresses the timeout
     assert any(term in generated_command.command for term in ["scan", "10.10.10.40"])
     assert any(term in generated_command.explanation.lower() for term in ["fast", "timeout", "alternative"])
@@ -140,10 +140,10 @@ def test_command_generation_with_interactive_command(settings):
     # Assert
     assert result is not None
     assert hasattr(result, "generated_command") or "generated_command" in result
-    
+
     # Get the generated command
     generated_command = result.generated_command if hasattr(result, "generated_command") else result["generated_command"]
-    
+
     # Verify the command is related to Python and is non-interactive
     assert "python" in generated_command.command.lower()
     assert any(term in generated_command.explanation.lower() for term in ["python", "shell", "interactive"])

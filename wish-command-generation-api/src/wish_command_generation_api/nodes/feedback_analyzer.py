@@ -42,7 +42,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
         error_type = None
         has_timeout = False
         has_network_error = False
-        
+
         # First pass: check for all error types
         for result in state.act_result:
             if result.state == CommandState.TIMEOUT:
@@ -51,7 +51,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
             elif result.state == CommandState.NETWORK_ERROR:
                 has_network_error = True
                 logger.info(f"Detected NETWORK_ERROR in command: {result.command}")
-        
+
         # Prioritize TIMEOUT over NETWORK_ERROR
         if has_timeout:
             error_type = "TIMEOUT"
@@ -79,7 +79,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
             command_candidates = state.command_candidates if not isinstance(state.command_candidates, MagicMock) else None
             generated_command = state.generated_command if not isinstance(state.generated_command, MagicMock) else None
             act_result = state.act_result if not isinstance(state.act_result, MagicMock) else None
-            
+
             return GraphState(
                 query=query,
                 context=context,

@@ -1,6 +1,5 @@
 """Constants for the command generation API."""
 
-import os
 import pathlib
 
 # ドキュメントファイルのパス

@@ -1,7 +1,6 @@
 """Test configuration for wish-command-generation-api."""
 
 import os
-import sys
 from unittest.mock import patch
 
 import pytest
@@ -19,7 +18,7 @@ def setup_test_env(request):
     """
     # Get test path
     test_path = request.node.fspath.strpath
-    
+
     # For unit tests only
     if "/unit/" in test_path:
         with patch.dict(os.environ, {

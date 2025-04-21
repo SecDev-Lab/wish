@@ -7,7 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from wish_models.settings import Settings
 
-from ..constants import DIALOG_AVOIDANCE_DOC, FAST_ALTERNATIVE_DOC, LIST_FILES_DOC, DIVIDE_AND_CONQUER_DOC
+from ..constants import DIALOG_AVOIDANCE_DOC, DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC, LIST_FILES_DOC
 from ..models import GraphState
 
 # Configure logging
