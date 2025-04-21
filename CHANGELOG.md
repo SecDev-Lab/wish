@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.6.13] - 2025-04-21
+
+### Added
+
 - Added comprehensive error handling for command execution:
   - Added feedback analysis system to detect and classify command execution errors
   - Added timeout error handling with automatic retry strategies
