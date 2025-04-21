@@ -70,13 +70,13 @@ class Settings(BaseSettings):
             project: Project name for LangSmith
             **kwargs: Additional keyword arguments
         """
-        # Use env_file only if explicitly provided and it exists
-        if env_file is not None and env_file.exists():
-            kwargs["_env_file"] = str(env_file)
-
         # Initialize with kwargs
         # Note: BaseSettings automatically loads values from environment variables
-        super().__init__(**kwargs)
+        if env_file is not None and env_file.exists():
+            # Pass env_file directly to BaseSettings
+            super().__init__(_env_file=str(env_file), **kwargs)
+        else:
+            super().__init__(**kwargs)
 
         # Override project if specified
         if project:
