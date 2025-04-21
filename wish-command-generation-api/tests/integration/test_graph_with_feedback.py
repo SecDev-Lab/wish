@@ -1,10 +1,12 @@
 """Integration tests for the command generation graph with feedback."""
 
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from wish_models.command_result import CommandResult
+from wish_models.command_result import CommandResult, CommandState, LogFiles
 from wish_models.settings import Settings
+from wish_models.utc_datetime import UtcDatetime
 
 from wish_command_generation_api.graph import create_command_generation_graph
 from wish_command_generation_api.models import GeneratedCommand, GraphState
@@ -107,7 +109,18 @@ def test_graph_with_timeout_feedback(
     """Test graph execution with timeout feedback."""
     # Arrange
     # Create feedback with a timeout error
-    act_result = [CommandResult(command="nmap -p- 10.10.10.40", exit_class="TIMEOUT", exit_code="1", log_summary="timeout")]
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="nmap -p- 10.10.10.40",
+            state=CommandState.TIMEOUT,
+            exit_code=1,
+            log_summary="timeout",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
 
     # Mock the node functions
     mock_analyze_feedback.return_value = GraphState(
@@ -185,12 +198,16 @@ def test_graph_with_network_error_feedback(
     """Test graph execution with network error feedback."""
     # Arrange
     # Create feedback with a network error
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
         CommandResult(
+            num=1,
             command="nmap -p- 10.10.10.40",
-            exit_class="NETWORK_ERROR",
-            exit_code="1",
-            log_summary="Connection closed by peer"
+            state=CommandState.NETWORK_ERROR,
+            exit_code=1,
+            log_summary="Connection closed by peer",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
 
@@ -270,12 +287,16 @@ def test_graph_with_unknown_error_feedback(
     """Test graph execution with unknown error feedback."""
     # Arrange
     # Create feedback with an unknown error
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
         CommandResult(
+            num=1,
             command="nmap -p- 10.10.10.40",
-            exit_class="UNKNOWN_ERROR",
-            exit_code="1",
-            log_summary="Unknown error"
+            state=CommandState.UNKNOWN_ERROR,
+            exit_code=1,
+            log_summary="Unknown error",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
         )
     ]
 

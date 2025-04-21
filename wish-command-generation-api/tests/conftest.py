@@ -35,7 +35,7 @@ def setup_test_env(request):
         langchain_key = os.environ.get("LANGCHAIN_API_KEY")
         
         if openai_key in [None, "", "your-api-key-here"] or langchain_key in [None, "", "your-langsmith-api-key-here"]:
-            pytest.skip("Integration tests require valid API keys")
+            pytest.fail("Integration tests require valid API keys")
         
         # Enable tracing for integration tests
         os.environ["LANGCHAIN_TRACING_V2"] = "true"

@@ -39,10 +39,16 @@ def test_lambda_handler_with_feedback(mock_env_path, mock_settings):
     # Create a mock feedback
     act_result = [
         {
+            "num": 1,
             "command": "nmap -p- 10.10.10.40",
-            "exit_class": "TIMEOUT",
-            "exit_code": "1",
-            "log_summary": "timeout"
+            "state": "TIMEOUT",
+            "exit_code": 1,
+            "log_summary": "timeout",
+            "log_files": {
+                "stdout": "/tmp/stdout.log",
+                "stderr": "/tmp/stderr.log"
+            },
+            "created_at": "2025-04-21T04:16:38.000Z"
         }
     ]
 
@@ -87,8 +93,8 @@ def test_lambda_handler_with_feedback(mock_env_path, mock_settings):
         assert request.context == {"current_directory": "/home/user"}
         assert len(request.act_result) == 1
         assert request.act_result[0].command == "nmap -p- 10.10.10.40"
-        assert request.act_result[0].exit_class == "TIMEOUT"
-        assert request.act_result[0].exit_code == "1"
+        assert request.act_result[0].state.value == "TIMEOUT"
+        assert request.act_result[0].exit_code == 1
         assert request.act_result[0].log_summary == "timeout"
 
 
@@ -98,10 +104,16 @@ def test_lambda_handler_with_network_error_feedback(mock_env_path, mock_settings
     # Create a mock feedback
     act_result = [
         {
+            "num": 1,
             "command": "nmap -p- 10.10.10.40",
-            "exit_class": "NETWORK_ERROR",
-            "exit_code": "1",
-            "log_summary": "Connection closed by peer"
+            "state": "NETWORK_ERROR",
+            "exit_code": 1,
+            "log_summary": "Connection closed by peer",
+            "log_files": {
+                "stdout": "/tmp/stdout.log",
+                "stderr": "/tmp/stderr.log"
+            },
+            "created_at": "2025-04-21T04:16:38.000Z"
         }
     ]
 
@@ -148,8 +160,8 @@ def test_lambda_handler_with_network_error_feedback(mock_env_path, mock_settings
         assert request.context == {"current_directory": "/home/user"}
         assert len(request.act_result) == 1
         assert request.act_result[0].command == "nmap -p- 10.10.10.40"
-        assert request.act_result[0].exit_class == "NETWORK_ERROR"
-        assert request.act_result[0].exit_code == "1"
+        assert request.act_result[0].state.value == "NETWORK_ERROR"
+        assert request.act_result[0].exit_code == 1
         assert request.act_result[0].log_summary == "Connection closed by peer"
 
 
@@ -159,16 +171,28 @@ def test_lambda_handler_with_multiple_feedback(mock_env_path, mock_settings):
     # Create a mock feedback with multiple items
     act_result = [
         {
+            "num": 1,
             "command": "nmap -p1-1000 10.10.10.40",
-            "exit_class": "SUCCESS",
-            "exit_code": "0",
-            "log_summary": "Scan completed successfully"
+            "state": "SUCCESS",
+            "exit_code": 0,
+            "log_summary": "Scan completed successfully",
+            "log_files": {
+                "stdout": "/tmp/stdout.log",
+                "stderr": "/tmp/stderr.log"
+            },
+            "created_at": "2025-04-21T04:16:38.000Z"
         },
         {
+            "num": 2,
             "command": "nmap -p1001-65535 10.10.10.40",
-            "exit_class": "TIMEOUT",
-            "exit_code": "1",
-            "log_summary": "timeout"
+            "state": "TIMEOUT",
+            "exit_code": 1,
+            "log_summary": "timeout",
+            "log_files": {
+                "stdout": "/tmp/stdout.log",
+                "stderr": "/tmp/stderr.log"
+            },
+            "created_at": "2025-04-21T04:16:38.000Z"
         }
     ]
 
@@ -215,9 +239,9 @@ def test_lambda_handler_with_multiple_feedback(mock_env_path, mock_settings):
         assert request.context == {"current_directory": "/home/user"}
         assert len(request.act_result) == 2
         assert request.act_result[0].command == "nmap -p1-1000 10.10.10.40"
-        assert request.act_result[0].exit_class == "SUCCESS"
+        assert request.act_result[0].state.value == "SUCCESS"
         assert request.act_result[1].command == "nmap -p1001-65535 10.10.10.40"
-        assert request.act_result[1].exit_class == "TIMEOUT"
+        assert request.act_result[1].state.value == "TIMEOUT"
 
 
 def test_lambda_handler_with_error_response(mock_env_path, mock_settings):
@@ -226,10 +250,16 @@ def test_lambda_handler_with_error_response(mock_env_path, mock_settings):
     # Create a mock feedback
     act_result = [
         {
+            "num": 1,
             "command": "nmap -p- 10.10.10.40",
-            "exit_class": "TIMEOUT",
-            "exit_code": "1",
-            "log_summary": "timeout"
+            "state": "TIMEOUT",
+            "exit_code": 1,
+            "log_summary": "timeout",
+            "log_files": {
+                "stdout": "/tmp/stdout.log",
+                "stderr": "/tmp/stderr.log"
+            },
+            "created_at": "2025-04-21T04:16:38.000Z"
         }
     ]
 

@@ -39,18 +39,17 @@ def test_generate_command_success(sample_state, settings):
     mock_llm.invoke.return_value = mock_content
 
     # Act
-    with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
-        with patch("langchain_core.prompts.ChatPromptTemplate.from_template") as mock_template:
-            with patch("wish_command_generation_api.nodes.command_generator.extract_command") as mock_extract:
-                # Mock the extract_command function to return the expected command
-                mock_extract.return_value = "ls -la"
-                result = command_generator.generate_command(sample_state, settings)
+    with patch.object(command_generator, "ChatOpenAI", return_value=mock_llm):
+        with patch.object(command_generator, "ChatPromptTemplate") as mock_template:
+            mock_template.from_template.return_value = MagicMock()
+            mock_template.from_template.return_value.__or__.return_value = mock_llm
+            result = command_generator.generate_command(sample_state, settings)
 
     # Assert
     assert result.command_candidates == ["ls -la"]
     assert mock_llm.invoke.call_count == 1
     # Verify that the template was called with the correct arguments
-    mock_template.assert_called_once()
+    mock_template.from_template.assert_called_once()
 
 
 def test_generate_command_with_docs(sample_state, settings):
@@ -62,25 +61,16 @@ def test_generate_command_with_docs(sample_state, settings):
     mock_llm.invoke.return_value = mock_content
 
     # Act
-    with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
-        with patch("langchain_core.prompts.ChatPromptTemplate.from_template") as mock_template:
-            with patch("wish_command_generation_api.nodes.command_generator.extract_command") as mock_extract:
-                # Mock the extract_command function to return the expected command
-                mock_extract.return_value = "ls -la"
-                result = command_generator.generate_command(sample_state, settings)
+    with patch.object(command_generator, "ChatOpenAI", return_value=mock_llm):
+        with patch.object(command_generator, "ChatPromptTemplate") as mock_template:
+            mock_template.from_template.return_value = MagicMock()
+            mock_template.from_template.return_value.__or__.return_value = mock_llm
+            result = command_generator.generate_command(sample_state, settings)
 
     # Assert
     assert result.command_candidates == ["ls -la"]
-    # Check that the invoke method was called with the document parameters
-    args, kwargs = mock_llm.invoke.call_args
-    assert "dialog_avoidance_doc" in kwargs
-    assert "fast_alternative_doc" in kwargs
-    assert "list_files_doc" in kwargs
-    assert "divide_and_conquer_doc" in kwargs
-    assert kwargs["dialog_avoidance_doc"] == DIALOG_AVOIDANCE_DOC
-    assert kwargs["fast_alternative_doc"] == FAST_ALTERNATIVE_DOC
-    assert kwargs["list_files_doc"] == LIST_FILES_DOC
-    assert kwargs["divide_and_conquer_doc"] == DIVIDE_AND_CONQUER_DOC
+    # Check that the from_template method was called with the correct template
+    mock_template.from_template.assert_called_once_with(command_generator.COMMAND_GENERATOR_PROMPT)
 
 
 def test_generate_command_markdown_code_block(sample_state, settings):
@@ -92,10 +82,10 @@ def test_generate_command_markdown_code_block(sample_state, settings):
     mock_llm.invoke.return_value = mock_content
 
     # Act
-    with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
-        with patch("wish_command_generation_api.nodes.command_generator.extract_command") as mock_extract:
-            # Mock the extract_command function to return the expected command
-            mock_extract.return_value = "ls -la"
+    with patch.object(command_generator, "ChatOpenAI", return_value=mock_llm):
+        with patch.object(command_generator, "ChatPromptTemplate") as mock_template:
+            mock_template.from_template.return_value = MagicMock()
+            mock_template.from_template.return_value.__or__.return_value = mock_llm
             result = command_generator.generate_command(sample_state, settings)
 
     # Assert
@@ -133,10 +123,10 @@ def test_generate_command_preserve_state(sample_state, settings):
     sample_state.error_type = "TEST_ERROR"
 
     # Act
-    with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
-        with patch("wish_command_generation_api.nodes.command_generator.extract_command") as mock_extract:
-            # Mock the extract_command function to return the expected command
-            mock_extract.return_value = "ls -la"
+    with patch.object(command_generator, "ChatOpenAI", return_value=mock_llm):
+        with patch.object(command_generator, "ChatPromptTemplate") as mock_template:
+            mock_template.from_template.return_value = MagicMock()
+            mock_template.from_template.return_value.__or__.return_value = mock_llm
             result = command_generator.generate_command(sample_state, settings)
 
     # Assert

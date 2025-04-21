@@ -4,6 +4,7 @@ import logging
 from typing import Annotated
 from unittest.mock import MagicMock
 
+from wish_models.command_result import CommandState
 from wish_models.settings import Settings
 
 from ..models import GraphState
@@ -44,10 +45,10 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
         
         # First pass: check for all error types
         for result in state.act_result:
-            if result.exit_class == "TIMEOUT":
+            if result.state == CommandState.TIMEOUT:
                 has_timeout = True
                 logger.info(f"Detected TIMEOUT error in command: {result.command}")
-            elif result.exit_class == "NETWORK_ERROR":
+            elif result.state == CommandState.NETWORK_ERROR:
                 has_network_error = True
                 logger.info(f"Detected NETWORK_ERROR in command: {result.command}")
         

@@ -117,7 +117,10 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             query=state.query,
             context=state.context,
             processed_query=state.processed_query,
-            command_candidates=command_candidates
+            command_candidates=command_candidates,
+            is_retry=state.is_retry,
+            error_type=state.error_type,
+            act_result=state.act_result
         )
     except Exception:
         logger.exception("Error generating command")
@@ -127,5 +130,8 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             context=state.context,
             processed_query=state.processed_query,
             command_candidates=["echo 'Command generation failed'"],
-            api_error=True
+            api_error=True,
+            is_retry=state.is_retry,
+            error_type=state.error_type,
+            act_result=state.act_result
         )
