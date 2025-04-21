@@ -58,7 +58,11 @@ def create_command_generation_graph(
     graph.add_node("feedback_analyzer", lambda state: feedback_analyzer.analyze_feedback(state, settings_obj))
     graph.add_node("query_processor", lambda state: query_processor.process_query(state, settings_obj))
     graph.add_node("timeout_handler", lambda state: timeout_handler.handle_timeout(state, settings_obj))
-    graph.add_node("network_error_handler", lambda state: network_error_handler.handle_network_error(state, settings_obj))
+    # Split long line to avoid E501 error
+    graph.add_node(
+        "network_error_handler", 
+        lambda state: network_error_handler.handle_network_error(state, settings_obj)
+    )
     graph.add_node("command_generator", lambda state: command_generator.generate_command(state, settings_obj))
     graph.add_node("command_modifier", lambda state: command_modifier.modify_command(state, settings_obj))
     graph.add_node("result_formatter", lambda state: result_formatter.format_result(state, settings_obj))

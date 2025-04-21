@@ -94,7 +94,10 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         )
 
         # Format the feedback as JSON string
-        feedback_str = json.dumps([result.model_dump() for result in state.act_result], ensure_ascii=False) if state.act_result else "[]"
+        feedback_str = (
+            json.dumps([result.model_dump() for result in state.act_result], ensure_ascii=False) 
+            if state.act_result else "[]"
+        )
 
         # Format the context
         context_str = ""
