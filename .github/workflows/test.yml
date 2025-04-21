@@ -70,21 +70,17 @@ jobs:
       - name: Install the project
         run: cd ${{ matrix.project }} ; uv sync --all-extras --dev
 
-      - name: Setup environment variables for testing
-        run: |
-          # Check if .env.example exists
-          if [ ! -f .env.example ]; then
-            echo "Error: .env.example file not found"
-            exit 1
-          fi
-          
-          # Setup environment variables
-          mkdir -p ~/.wish/
-          cp .env.example ~/.wish/env
-          
-          # Set API keys from GitHub Secrets
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> ~/.wish/env
-          echo "LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}" >> ~/.wish/env
-
       - name: Run tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+          OPENAI_MODEL: "gpt-4o"
+          OPENAI_EMBEDDING_MODEL: "text-embedding-3-small"
+          VECTOR_STORE_TYPE: "chroma"
+          EMBEDDING_MODEL: "text-embedding-3-small"
+          LANGCHAIN_TRACING_V2: "true"
+          LANGCHAIN_ENDPOINT: "https://api.smith.langchain.com"
+          LANGCHAIN_PROJECT: "wish-ci"
+          WISH_HOME: "/home/runner/.wish"
+          WISH_API_BASE_URL: "http://localhost:3000"
         run: cd ${{ matrix.project }} ; uv run pytest
