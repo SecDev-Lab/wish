@@ -1,7 +1,7 @@
 """Unit tests for the feedback analyzer node."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from wish_models.command_result import CommandResult, CommandState, LogFiles
