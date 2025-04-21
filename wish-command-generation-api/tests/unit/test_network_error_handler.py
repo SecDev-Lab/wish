@@ -7,6 +7,7 @@ import pytest
 from wish_models.command_result import ActResult
 from wish_models.settings import Settings
 
+from wish_command_generation_api.constants import DIALOG_AVOIDANCE_DOC
 from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import network_error_handler
 
@@ -96,6 +97,56 @@ def test_handle_network_error_success(mock_chat, settings):
     # Verify the LLM was called correctly
     mock_chat.assert_called_once()
     mock_chain.invoke.assert_called_once()
+
+
+@patch("langchain_openai.ChatOpenAI")
+def test_handle_network_error_with_dialog_avoidance_doc(mock_chat, settings):
+    """Test that dialog avoidance document is included in the prompt."""
+    # Arrange
+    # Mock the LLM and chain
+    mock_instance = MagicMock()
+    mock_chain = MagicMock()
+    mock_instance.__or__.return_value = mock_chain
+    mock_chat.return_value = mock_instance
+
+    # Mock the LLM response
+    mock_chain.invoke.return_value = json.dumps({
+        "command_inputs": [
+            {
+                "command": "smbclient -N //10.10.10.40/Users --option='client min protocol'=LANMAN1 -c 'ls'",
+                "timeout_sec": 60
+            }
+        ]
+    })
+
+    # Create a state with a network error
+    act_result = [
+        ActResult(
+            command="smbclient -N //10.10.10.40/Users --option='client min protocol'=LANMAN1",
+            exit_class="NETWORK_ERROR",
+            exit_code="1",
+            log_summary="Connection closed by peer"
+        )
+    ]
+    state = GraphState(
+        query="List files in SMB share",
+        context={},
+        act_result=act_result,
+        error_type="NETWORK_ERROR",
+        is_retry=True
+    )
+
+    # Act
+    result = network_error_handler.handle_network_error(state, settings)
+
+    # Assert
+    assert "smbclient" in result.command_candidates[0]
+    assert "-c" in result.command_candidates[0]  # 対話回避のドキュメントに従って -c オプションが追加されている
+
+    # Check that the invoke method was called with the dialog_avoidance_doc parameter
+    args, kwargs = mock_chain.invoke.call_args
+    assert "dialog_avoidance_doc" in kwargs
+    assert kwargs["dialog_avoidance_doc"] == DIALOG_AVOIDANCE_DOC
 
 
 @patch("langchain_openai.ChatOpenAI")
