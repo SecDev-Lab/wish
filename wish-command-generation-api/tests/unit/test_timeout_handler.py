@@ -61,7 +61,7 @@ def test_handle_timeout_not_timeout(settings):
 
 
 @patch("langchain_openai.ChatOpenAI")
-def test_handle_timeout_success(mock_chat, settings):
+def test_handle_timeout_success(mock_chat, settings, mock_timeout_response):
     """Test successful handling of a timeout error."""
     # Arrange
     # Mock the LLM and chain
@@ -71,14 +71,7 @@ def test_handle_timeout_success(mock_chat, settings):
     mock_chat.return_value = mock_instance
 
     # Mock the LLM response
-    mock_chain.invoke.return_value = json.dumps({
-        "command_inputs": [
-            {
-                "command": "rustscan -a 10.10.10.40",
-                "timeout_sec": 60
-            }
-        ]
-    })
+    mock_chain.invoke.return_value = mock_timeout_response
 
     # Create a state with a timeout error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
@@ -122,7 +115,7 @@ def test_handle_timeout_success(mock_chat, settings):
 
 
 @patch("langchain_openai.ChatOpenAI")
-def test_handle_timeout_multiple_commands(mock_chat, settings):
+def test_handle_timeout_multiple_commands(mock_chat, settings, mock_timeout_multiple_response):
     """Test handling timeout with multiple command outputs."""
     # Arrange
     # Mock the LLM and chain
@@ -132,18 +125,7 @@ def test_handle_timeout_multiple_commands(mock_chat, settings):
     mock_chat.return_value = mock_instance
 
     # Mock the LLM response with multiple commands (divide and conquer)
-    mock_chain.invoke.return_value = json.dumps({
-        "command_inputs": [
-            {
-                "command": "nmap -p1-32768 10.10.10.40",
-                "timeout_sec": 60
-            },
-            {
-                "command": "nmap -p32769-65535 10.10.10.40",
-                "timeout_sec": 60
-            }
-        ]
-    })
+    mock_chain.invoke.return_value = mock_timeout_multiple_response
 
     # Create a state with a timeout error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))

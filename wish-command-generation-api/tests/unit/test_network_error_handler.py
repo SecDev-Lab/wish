@@ -61,7 +61,7 @@ def test_handle_network_error_not_network_error(settings):
 
 
 @patch("langchain_openai.ChatOpenAI")
-def test_handle_network_error_success(mock_chat, settings):
+def test_handle_network_error_success(mock_chat, settings, mock_network_error_response):
     """Test successful handling of a network error."""
     # Arrange
     # Mock the LLM and chain
@@ -71,14 +71,7 @@ def test_handle_network_error_success(mock_chat, settings):
     mock_chat.return_value = mock_instance
 
     # Mock the LLM response
-    mock_chain.invoke.return_value = json.dumps({
-        "command_inputs": [
-            {
-                "command": "nmap -p- 10.10.10.40",
-                "timeout_sec": 60
-            }
-        ]
-    })
+    mock_chain.invoke.return_value = mock_network_error_response
 
     # Create a state with a network error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))

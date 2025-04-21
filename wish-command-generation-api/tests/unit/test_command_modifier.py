@@ -29,7 +29,7 @@ def test_modify_command_no_commands(settings):
 
 
 @patch("langchain_openai.ChatOpenAI")
-def test_modify_command_dialog_avoidance(mock_chat, settings):
+def test_modify_command_dialog_avoidance(mock_chat, settings, mock_command_response):
     """Test dialog avoidance modification."""
     # Arrange
     # Mock the LLM and chain
@@ -39,17 +39,11 @@ def test_modify_command_dialog_avoidance(mock_chat, settings):
     mock_chat.return_value = mock_instance
 
     # Mock the LLM responses for dialog avoidance and list files
+    # 直接文字列を返すように設定
+    mock_chain.invoke = MagicMock()
     mock_chain.invoke.side_effect = [
-        # Dialog avoidance response
-        json.dumps({
-            "command": "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; "
-                       "set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
-        }),
-        # List files response (no change)
-        json.dumps({
-            "command": "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; "
-                       "set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
-        })
+        mock_command_response,
+        mock_command_response
     ]
 
     # Create a state with an interactive command
@@ -77,7 +71,7 @@ def test_modify_command_dialog_avoidance(mock_chat, settings):
 
 
 @patch("langchain_openai.ChatOpenAI")
-def test_modify_command_list_files(mock_chat, settings):
+def test_modify_command_list_files(mock_chat, settings, mock_list_files_response):
     """Test list files modification."""
     # Arrange
     # Mock the LLM and chain
@@ -93,10 +87,7 @@ def test_modify_command_list_files(mock_chat, settings):
             "command": "hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40"
         }),
         # List files response
-        json.dumps({
-            "command": "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
-                       "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
-        })
+        mock_list_files_response
     ]
 
     # Create a state with a command using list files
@@ -295,7 +286,24 @@ def test_modify_command_preserve_state(mock_chat, settings):
 
     # Create a state with additional fields
     processed_query = "processed test query"
-    act_result = [{"command": "test command", "exit_class": "SUCCESS", "exit_code": "0", "log_summary": "success"}]
+    
+    # Create a proper CommandResult object
+    from pathlib import Path
+    from wish_models.command_result import CommandResult, CommandState, LogFiles
+    from wish_models.utc_datetime import UtcDatetime
+    
+    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
+    act_result = [
+        CommandResult(
+            num=1,
+            command="test command",
+            state=CommandState.SUCCESS,
+            exit_code=0,
+            log_summary="success",
+            log_files=log_files,
+            created_at=UtcDatetime.now()
+        )
+    ]
 
     state = GraphState(
         query="Start Metasploit",
