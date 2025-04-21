@@ -1,7 +1,6 @@
 """Unit tests for the command modifier node."""
 
-import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from wish_models.settings import Settings
@@ -183,12 +182,13 @@ def test_modify_command_preserve_state(mock_modify, settings):
     """Test that the command modifier preserves other state fields."""
     # Create a state with additional fields
     processed_query = "processed test query"
-    
+
     # Create a proper CommandResult object
     from pathlib import Path
+
     from wish_models.command_result import CommandResult, CommandState, LogFiles
     from wish_models.utc_datetime import UtcDatetime
-    
+
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
         CommandResult(

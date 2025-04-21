@@ -50,7 +50,7 @@ def mock_openai_api(monkeypatch, request):
         mock_response.choices[0].message.content = json.dumps({"command": "mocked command response"})
         mock_response.choices[0].message.model_dump.return_value = {"content": json.dumps({"command": "mocked command response"})}
         mock_response.generations = [[MagicMock()]]
-        
+
         # OpenAIのcreateメソッドをモック
         with patch("openai.resources.chat.completions.Completions.create", return_value=mock_response):
             # LangSmithのトレーシングもモック

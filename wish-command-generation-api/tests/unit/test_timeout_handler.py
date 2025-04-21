@@ -1,8 +1,7 @@
 """Unit tests for the timeout handler node."""
 
-import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from wish_models.command_result import CommandResult, CommandState, LogFiles

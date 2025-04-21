@@ -80,14 +80,14 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
         # Create the output parser
         str_parser = StrOutputParser()
-        
+
         # Process each command
         modified_commands = []
         for command in state.command_candidates:
             # Create the chains for each command to avoid reusing the same chain
             dialog_avoidance_chain = dialog_avoidance_prompt | llm | str_parser
             list_files_chain = list_files_prompt | llm | str_parser
-            
+
             # Apply dialog avoidance
             try:
                 dialog_result = dialog_avoidance_chain.invoke({

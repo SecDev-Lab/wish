@@ -1,7 +1,6 @@
 """Unit tests for the command modifier node with mocks."""
 
-import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from wish_models.settings import Settings
