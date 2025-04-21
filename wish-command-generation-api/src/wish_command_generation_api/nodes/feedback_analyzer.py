@@ -76,7 +76,9 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
             query = state.query if not isinstance(state.query, MagicMock) else ""
             context = state.context if not isinstance(state.context, MagicMock) else {}
             processed_query = state.processed_query if not isinstance(state.processed_query, MagicMock) else None
-            command_candidates = state.command_candidates if not isinstance(state.command_candidates, MagicMock) else None
+            command_candidates = (
+                state.command_candidates if not isinstance(state.command_candidates, MagicMock) else None
+            )
             generated_command = state.generated_command if not isinstance(state.generated_command, MagicMock) else None
             act_result = state.act_result if not isinstance(state.act_result, MagicMock) else None
 

@@ -12,7 +12,7 @@ MOCK_LANGCHAIN_API_KEY = "ls-test-key"
 @pytest.fixture(autouse=True)
 def setup_test_env(request):
     """Set up test environment.
-    
+
     Unit tests: Mock API keys
     Integration tests: Use actual API keys
     """
