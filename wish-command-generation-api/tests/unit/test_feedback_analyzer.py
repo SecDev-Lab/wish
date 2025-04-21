@@ -128,19 +128,15 @@ def test_analyze_feedback_multiple_errors(settings):
     assert result.act_result == act_result
 
 
-def test_analyze_feedback_exception(settings):
-    """Test handling exceptions during feedback analysis."""
+def test_analyze_feedback_exception_propagation(settings):
+    """Test that exceptions are propagated during feedback analysis."""
     # Arrange
     state = MagicMock()
     state.act_result = MagicMock(side_effect=Exception("Test error"))
 
-    # Act
-    with patch("wish_command_generation_api.nodes.feedback_analyzer.logger") as mock_logger:
-        result = feedback_analyzer.analyze_feedback(state, settings)
-
-        # Assert
-        assert result.api_error is True
-        mock_logger.exception.assert_called_once()
+    # Act & Assert
+    with pytest.raises(Exception):
+        feedback_analyzer.analyze_feedback(state, settings)
 
 
 def test_analyze_feedback_preserve_state(settings):
