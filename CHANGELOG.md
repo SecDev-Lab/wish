@@ -9,9 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added timeout processing to command execution:
+  - Added timeout value configuration in `BashBackend.execute_command`
+  - Added automatic process termination when timeout is reached
+  - Added timeout status reporting in command results
+
 ### Changed
 
 ### Fixed
+
+- Fixed command timeout handling:
+  - Implemented proper timeout monitoring in `check_running_commands`
+  - Added elapsed time tracking for running processes
+  - Improved error reporting for timed out commands
+- Fixed validation errors in ActResult conversion:
+  - Added explicit validation for required fields (timeout_sec, exit_class)
+  - Improved error handling with fail-fast approach for missing fields
+  - Enhanced CommandState to ExitClassEnum conversion
 
 ### Removed
 
