@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.6.14] - 2025-04-24
+
+### Added
+
 - Added variable replacement functionality to command execution:
   - Added `_replace_variables` method to `BashBackend` class for replacing variables like `$TARGET_IP` and `$LHOST`
   - Added automatic variable replacement in command execution flow
