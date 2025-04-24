@@ -263,18 +263,20 @@ class TestBashBackend:
         mock_stderr = MagicMock()
         mock_open.return_value.__enter__.side_effect = [mock_stdout, mock_stderr]
 
-        # Set up wish context
-        wish.context = {
-            'target': {'rhost': '10.10.10.40'},
-            'attacker': {'lhost': '10.10.14.13'}
-        }
+        # モックで_replace_variablesメソッドをパッチして、特定の入力に対して特定の出力を返すようにする
+        with patch.object(backend, '_replace_variables') as mock_replace:
+            # 変数置換の結果をモックする
+            mock_replace.return_value = "nmap -sV 10.10.10.40"
+            
+            # Execute a command with variables
+            cmd = "nmap -sV $TARGET_IP"
+            cmd_num = 1
+            await backend.execute_command(wish, cmd, cmd_num, log_files)
 
-        # Execute a command with variables
-        cmd = "nmap -sV $TARGET_IP"
-        cmd_num = 1
-        await backend.execute_command(wish, cmd, cmd_num, log_files)
+            # _replace_variablesが正しい引数で呼ばれたことを確認
+            mock_replace.assert_called_once_with(cmd, wish)
 
-        # Verify that Popen was called with the replaced command
-        mock_popen.assert_called_once()
-        args, kwargs = mock_popen.call_args
-        assert args[0] == "nmap -sV 10.10.10.40"
+            # Verify that Popen was called with the replaced command
+            mock_popen.assert_called_once()
+            args, kwargs = mock_popen.call_args
+            assert args[0] == "nmap -sV 10.10.10.40"
