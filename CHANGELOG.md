@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed missing timeout_sec in analyzed command results:
+  - Added timeout_sec parameter to CommandResult creation in result_combiner.py
+  - Ensured timeout_sec is properly copied from original command result
+  - Prevented "timeout_sec is not set" errors in downstream components
+
 ### Removed
 
 
