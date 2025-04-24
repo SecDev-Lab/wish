@@ -9,12 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added variable replacement functionality to command execution:
+  - Added `_replace_variables` method to `BashBackend` class for replacing variables like `$TARGET_IP` and `$LHOST`
+  - Added automatic variable replacement in command execution flow
+  - Added logging of original and replaced commands for better debugging
+- Added comprehensive JSON response handling:
+  - Added `clean_llm_response` function to properly extract JSON from LLM responses
+  - Added support for handling markdown code blocks in LLM responses
+  - Added regex-based JSON extraction for responses with explanatory text
+
 ### Changed
+
+- Enhanced LLM prompts for better JSON responses:
+  - Updated dialog avoidance prompt with explicit instructions to avoid code blocks
+  - Updated list file replacement prompt with clearer JSON formatting requirements
+  - Improved prompt clarity to prevent non-JSON content in responses
 
 ### Fixed
 
-### Removed
+- Fixed JSON decode errors in command modifier:
+  - Fixed handling of empty responses from LLM
+  - Fixed parsing of responses containing markdown code blocks
+  - Fixed extraction of JSON from responses with explanatory text
+- Fixed variable replacement in commands:
+  - Fixed issue where `$TARGET_IP` and `$LHOST` variables were not being replaced
+  - Fixed command execution to use replaced variables instead of raw commands
 
+### Removed
 
 ## [0.6.13] - 2025-04-21
 
