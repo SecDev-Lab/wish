@@ -28,7 +28,7 @@
 <text text-anchor="middle" x="297.5" y="-122.3" font-family="Times,serif" font-size="14.00">command_generator</text>
 </g>
 <!-- query_processor&#45;&gt;command_generator -->
-<g id="edge5" class="edge">
+<g id="edge3" class="edge">
 <title>query_processor&#45;&gt;command_generator</title>
 <path fill="none" stroke="black" d="M157.15,-162.62C176.61,-157.5 198.09,-151.86 218.23,-146.57"/>
 <polygon fill="black" stroke="black" points="219.22,-149.93 228,-144 217.44,-143.16 219.22,-149.93"/>
@@ -40,7 +40,7 @@
 <text text-anchor="middle" x="90" y="-122.3" font-family="Times,serif" font-size="14.00">timeout_handler</text>
 </g>
 <!-- timeout_handler&#45;&gt;command_generator -->
-<g id="edge2" class="edge">
+<g id="edge4" class="edge">
 <title>timeout_handler&#45;&gt;command_generator</title>
 <path fill="none" stroke="black" d="M157.15,-126C172.6,-126 189.32,-126 205.64,-126"/>
 <polygon fill="black" stroke="black" points="205.73,-129.5 215.73,-126 205.73,-122.5 205.73,-129.5"/>
@@ -52,7 +52,7 @@
 <text text-anchor="middle" x="90" y="-68.3" font-family="Times,serif" font-size="14.00">network_error_handler</text>
 </g>
 <!-- network_error_handler&#45;&gt;command_generator -->
-<g id="edge7" class="edge">
+<g id="edge1" class="edge">
 <title>network_error_handler&#45;&gt;command_generator</title>
 <path fill="none" stroke="black" d="M159.71,-90.06C178.39,-94.96 198.77,-100.32 217.94,-105.36"/>
 <polygon fill="black" stroke="black" points="217.29,-108.8 227.85,-107.96 219.07,-102.03 217.29,-108.8"/>
@@ -64,7 +64,7 @@
 <text text-anchor="middle" x="491" y="-122.3" font-family="Times,serif" font-size="14.00">command_modifier</text>
 </g>
 <!-- command_generator&#45;&gt;command_modifier -->
-<g id="edge1" class="edge">
+<g id="edge2" class="edge">
 <title>command_generator&#45;&gt;command_modifier</title>
 <path fill="none" stroke="black" d="M379.16,-126C387.59,-126 396.18,-126 404.66,-126"/>
 <polygon fill="black" stroke="black" points="404.93,-129.5 414.93,-126 404.93,-122.5 404.93,-129.5"/>
@@ -76,7 +76,7 @@
 <text text-anchor="middle" x="670" y="-122.3" font-family="Times,serif" font-size="14.00">result_formatter</text>
 </g>
 <!-- command_modifier&#45;&gt;result_formatter -->
-<g id="edge3" class="edge">
+<g id="edge7" class="edge">
 <title>command_modifier&#45;&gt;result_formatter</title>
 <path fill="none" stroke="black" d="M567.06,-126C575.5,-126 584.11,-126 592.57,-126"/>
 <polygon fill="black" stroke="black" points="592.79,-129.5 602.79,-126 592.79,-122.5 592.79,-129.5"/>
@@ -88,7 +88,7 @@
 <text text-anchor="middle" x="818.5" y="-122.3" font-family="Times,serif" font-size="14.00">__end__</text>
 </g>
 <!-- result_formatter&#45;&gt;__end__ -->
-<g id="edge4" class="edge">
+<g id="edge5" class="edge">
 <title>result_formatter&#45;&gt;__end__</title>
 <path fill="none" stroke="black" d="M737.39,-126C745.8,-126 754.33,-126 762.54,-126"/>
 <polygon fill="black" stroke="black" points="762.72,-129.5 772.72,-126 762.72,-122.5 762.72,-129.5"/>
