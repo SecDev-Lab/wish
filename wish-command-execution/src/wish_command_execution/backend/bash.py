@@ -32,14 +32,26 @@ class BashBackend(Backend):
         """
         # Create command result
         result = CommandResult.create(cmd_num, command, log_files)
+
+        # Set timeout value (get from CommandInput or use 60 seconds as default)
+        timeout_sec = 60  # Default value
+        if hasattr(wish, 'command_inputs') and wish.command_inputs:
+            for cmd_input in wish.command_inputs:
+                if cmd_input.num == cmd_num and cmd_input.timeout_sec is not None:
+                    timeout_sec = cmd_input.timeout_sec
+                    break
+
+        # Set timeout_sec in CommandResult
+        result.timeout_sec = timeout_sec
+
         wish.command_results.append(result)
 
-        # 変数置換を行う
+        # Replace variables in the command
         replaced_command = self._replace_variables(command, wish)
 
         with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
             try:
-                # 変数置換前後のコマンドをログに出力
+                # Log original and replaced commands if different
                 if command != replaced_command:
                     stdout_file.write(f"# Original command: {command}\n")
                     stdout_file.write(f"# Command after variable replacement: {replaced_command}\n\n")
@@ -53,8 +65,12 @@ class BashBackend(Backend):
                     text=True
                 )
 
-                # Store in running commands dict
+                # Store in running commands dict with timeout information
                 self.running_commands[cmd_num] = (process, result, wish)
+
+                # Associate timeout information with the process
+                process.timeout_sec = timeout_sec
+                process.start_time = time.time()
 
                 # Wait for process completion (non-blocking return for UI)
                 return
@@ -80,46 +96,46 @@ class BashBackend(Backend):
                 self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
     def _replace_variables(self, command: str, wish: Wish) -> str:
-        """コマンド内の変数を置換する
+        """Replace variables in the command.
 
         Args:
-            command: 置換前のコマンド
-            wish: Wishオブジェクト
+            command: The command before variable replacement.
+            wish: The wish object.
 
         Returns:
-            置換後のコマンド
+            The command after variable replacement.
         """
         if not command:
             print("Warning: Empty command provided for variable replacement")
             return command
 
-        # 基本的な変数の置換
+        # Basic variable replacements
         replacements = {}
 
-        # ターゲットIPとLHOSTの取得
+        # Get target IP and LHOST
         try:
-            # wishオブジェクトから情報を取得
+            # Get information from wish object
             if hasattr(wish, 'context') and wish.context:
                 target_info = wish.context.get('target', {})
                 attacker_info = wish.context.get('attacker', {})
 
-                # ターゲットIP
+                # Target IP
                 rhost = target_info.get('rhost', '')
                 if rhost:
                     replacements['$TARGET_IP'] = rhost
 
-                # 攻撃者IP
+                # Attacker IP
                 lhost = attacker_info.get('lhost', '')
                 if lhost:
                     replacements['$LHOST'] = lhost
         except Exception as e:
             print(f"Error extracting variables from wish: {str(e)}")
 
-        # 変数置換の実行
+        # Execute variable replacement
         result = command
         for var, value in replacements.items():
             if var in result:
-                if value:  # 値が存在する場合のみ置換
+                if value:  # Only replace if value exists
                     print(f"Replacing {var} with {value}")
                     result = result.replace(var, value)
                 else:
@@ -144,15 +160,18 @@ class BashBackend(Backend):
 
     async def check_running_commands(self):
         """Check status of running commands and update their status."""
+        current_time = time.time()
+
         for idx, (process, result, wish) in list(self.running_commands.items()):
+            # Check if process has finished
             if process.poll() is not None:  # Process has finished
                 # Mark the command as finished with exit code
                 result.finish(
-                    exit_code=process.returncode
+                    exit_code=process.returncode,
+                    state=CommandState.SUCCESS if process.returncode == 0 else CommandState.OTHERS
                 )
 
                 # Update the command result in the wish object
-                # This is a workaround for Pydantic models that don't allow dynamic attribute assignment
                 for i, cmd_result in enumerate(wish.command_results):
                     if cmd_result.num == result.num:
                         wish.command_results[i] = result
@@ -160,6 +179,37 @@ class BashBackend(Backend):
 
                 # Remove from running commands
                 del self.running_commands[idx]
+
+            # Check for timeout
+            elif hasattr(process, 'timeout_sec') and hasattr(process, 'start_time'):
+                elapsed_time = current_time - process.start_time
+                if elapsed_time > process.timeout_sec:
+                    # Timeout occurred
+                    try:
+                        process.terminate()
+                        time.sleep(0.5)
+                        if process.poll() is None:  # Still running
+                            process.kill()  # Force kill
+                    except Exception:
+                        pass  # Ignore termination errors
+
+                    # Record as timeout
+                    with open(result.log_files.stderr, "a") as stderr_file:
+                        stderr_file.write(f"\nCommand timed out after {process.timeout_sec} seconds\n")
+
+                    result.finish(
+                        exit_code=124,  # Exit code for timeout
+                        state=CommandState.TIMEOUT
+                    )
+
+                    # Update the command result in the wish object
+                    for i, cmd_result in enumerate(wish.command_results):
+                        if cmd_result.num == result.num:
+                            wish.command_results[i] = result
+                            break
+
+                    # Remove from running commands
+                    del self.running_commands[idx]
 
     async def cancel_command(self, wish: Wish, cmd_num: int) -> str:
         """Cancel a running command.
