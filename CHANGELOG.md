@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.6.15] - 2025-04-24
+
+### Added
+
 - Added timeout processing to command execution:
   - Added timeout value configuration in `BashBackend.execute_command`
   - Added automatic process termination when timeout is reached
