@@ -45,7 +45,13 @@ class BashBackend(Backend):
                     stdout_file.write(f"# Command after variable replacement: {replaced_command}\n\n")
 
                 # Start the process (this is still synchronous, but the interface is async)
-                process = subprocess.Popen(replaced_command, stdout=stdout_file, stderr=stderr_file, shell=True, text=True)
+                process = subprocess.Popen(
+                    replaced_command,
+                    stdout=stdout_file,
+                    stderr=stderr_file,
+                    shell=True,
+                    text=True
+                )
 
                 # Store in running commands dict
                 self.running_commands[cmd_num] = (process, result, wish)

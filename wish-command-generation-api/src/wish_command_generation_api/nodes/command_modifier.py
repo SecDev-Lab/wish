@@ -103,7 +103,7 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
 出力は以下の形式の有効なJSONのみを返してください:
 {{ "command": "修正後のコマンド" }}
 
-重要: 
+重要:
 - コードブロック記法（```）は使用しないでください
 - 説明や追加のテキストは含めないでください
 - 出力は必ず有効なJSONオブジェクトである必要があります
@@ -128,7 +128,7 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
 出力は以下の形式の有効なJSONのみを返してください:
 {{ "command": "修正後のコマンド" }}
 
-重要: 
+重要:
 - コードブロック記法（```）は使用しないでください
 - 説明や追加のテキストは含めないでください
 - 出力は必ず有効なJSONオブジェクトである必要があります
@@ -184,7 +184,8 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
                     final_command = list_files_json.get("command", modified_command)
                     logger.info(f"List file replacement applied: {modified_command} -> {final_command}")
                 except json.JSONDecodeError as e:
-                    logger.error(f"JSON decode error in list file replacement: {e}, response: {cleaned_list_files_result}")
+                    logger.error(f"JSON decode error in list file replacement: {e}, response: "
+                                 f"{cleaned_list_files_result}")
                     final_command = modified_command
             except Exception as e:
                 logger.error(f"Error applying list file replacement: {e}", exc_info=True)
