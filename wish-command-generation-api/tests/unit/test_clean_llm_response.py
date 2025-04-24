@@ -1,6 +1,5 @@
 """Unit tests for the clean_llm_response function."""
 
-import pytest
 
 from wish_command_generation_api.nodes.command_modifier import clean_llm_response
 

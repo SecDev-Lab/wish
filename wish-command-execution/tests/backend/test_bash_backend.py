@@ -267,7 +267,7 @@ class TestBashBackend:
         with patch.object(backend, '_replace_variables') as mock_replace:
             # 変数置換の結果をモックする
             mock_replace.return_value = "nmap -sV 10.10.10.40"
-            
+
             # Execute a command with variables
             cmd = "nmap -sV $TARGET_IP"
             cmd_num = 1

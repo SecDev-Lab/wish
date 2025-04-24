@@ -36,14 +36,14 @@ class BashBackend(Backend):
 
         # 変数置換を行う
         replaced_command = self._replace_variables(command, wish)
-        
+
         with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
             try:
                 # 変数置換前後のコマンドをログに出力
                 if command != replaced_command:
                     stdout_file.write(f"# Original command: {command}\n")
                     stdout_file.write(f"# Command after variable replacement: {replaced_command}\n\n")
-                
+
                 # Start the process (this is still synchronous, but the interface is async)
                 process = subprocess.Popen(replaced_command, stdout=stdout_file, stderr=stderr_file, shell=True, text=True)
 
@@ -86,29 +86,29 @@ class BashBackend(Backend):
         if not command:
             print("Warning: Empty command provided for variable replacement")
             return command
-            
+
         # 基本的な変数の置換
         replacements = {}
-        
+
         # ターゲットIPとLHOSTの取得
         try:
             # wishオブジェクトから情報を取得
             if hasattr(wish, 'context') and wish.context:
                 target_info = wish.context.get('target', {})
                 attacker_info = wish.context.get('attacker', {})
-                
+
                 # ターゲットIP
                 rhost = target_info.get('rhost', '')
                 if rhost:
                     replacements['$TARGET_IP'] = rhost
-                
+
                 # 攻撃者IP
                 lhost = attacker_info.get('lhost', '')
                 if lhost:
                     replacements['$LHOST'] = lhost
         except Exception as e:
             print(f"Error extracting variables from wish: {str(e)}")
-        
+
         # 変数置換の実行
         result = command
         for var, value in replacements.items():
@@ -118,7 +118,7 @@ class BashBackend(Backend):
                     result = result.replace(var, value)
                 else:
                     print(f"Warning: Variable {var} found in command but no value available")
-        
+
         return result
 
     def _handle_command_failure(

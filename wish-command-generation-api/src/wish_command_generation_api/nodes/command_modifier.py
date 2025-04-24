@@ -30,30 +30,30 @@ def clean_llm_response(response_text: str) -> str:
     if not response_text:
         logger.error("Empty response from LLM")
         return "{}"
-        
+
     # レスポンスをトリム
     cleaned_text = response_text.strip()
-    
+
     # マークダウンコードブロックを処理
     if cleaned_text.startswith("```") and "```" in cleaned_text[3:]:
         # コードブロックの開始行と終了行を特定
         lines = cleaned_text.split("\n")
         start_idx = 1  # 最初の```の次の行
-        
+
         # 言語指定がある場合（例: ```json）は調整
         if lines[0].startswith("```") and len(lines[0]) > 3:
             start_idx = 1
-            
+
         # 終了行を見つける
         end_idx = len(lines) - 1
         for i in range(start_idx, len(lines)):
             if lines[i].strip() == "```":
                 end_idx = i
                 break
-                
+
         # コードブロックの内容を抽出
         cleaned_text = "\n".join(lines[start_idx:end_idx])
-    
+
     # JSONっぽい部分を抽出
     if not (cleaned_text.startswith("{") and cleaned_text.endswith("}")):
         json_match = re.search(r'\{.*\}', cleaned_text, re.DOTALL)
@@ -63,7 +63,7 @@ def clean_llm_response(response_text: str) -> str:
         else:
             logger.error(f"Could not extract JSON from response: {cleaned_text}")
             return "{}"
-    
+
     return cleaned_text
 
 
@@ -152,10 +152,10 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
                     "command": command,
                     "dialog_avoidance_doc": DIALOG_AVOIDANCE_DOC
                 })
-                
+
                 # LLMの応答をクリーンアップ
                 cleaned_dialog_result = clean_llm_response(dialog_result)
-                
+
                 # JSONとしてパース
                 try:
                     dialog_json = json.loads(cleaned_dialog_result)
@@ -174,10 +174,10 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
                     "command": modified_command,
                     "list_files_doc": LIST_FILES_DOC
                 })
-                
+
                 # LLMの応答をクリーンアップ
                 cleaned_list_files_result = clean_llm_response(list_files_result)
-                
+
                 # JSONとしてパース
                 try:
                     list_files_json = json.loads(cleaned_list_files_result)
