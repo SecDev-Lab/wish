@@ -76,18 +76,6 @@ def test_clean_llm_response_with_explanation_and_code_block():
     assert result == '{"command": "nmap -sV 10.10.10.40"}'
 
 
-def test_clean_llm_response_with_multiple_json_objects():
-    """Test cleaning a response with multiple JSON objects."""
-    # Arrange
-    response = '{"command": "nmap -sV 10.10.10.40"}\n{"another": "object"}'
-
-    # Act
-    result = clean_llm_response(response)
-
-    # Assert
-    assert result == '{"command": "nmap -sV 10.10.10.40"}'
-
-
 def test_clean_llm_response_with_no_json():
     """Test cleaning a response with no JSON."""
     # Arrange

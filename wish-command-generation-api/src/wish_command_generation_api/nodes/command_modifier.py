@@ -106,7 +106,7 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
 重要:
 - コードブロック記法（```）は使用しないでください
 - 説明や追加のテキストは含めないでください
-- 出力は必ず有効なJSONオブジェクトである必要があります
+- 出力は必ず有効な単一のJSONオブジェクトである必要があります
 - JSONオブジェクトのみを出力してください
 """
         )
@@ -131,7 +131,7 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
 重要:
 - コードブロック記法（```）は使用しないでください
 - 説明や追加のテキストは含めないでください
-- 出力は必ず有効なJSONオブジェクトである必要があります
+- 出力は必ず有効な単一のJSONオブジェクトである必要があります
 - JSONオブジェクトのみを出力してください
 """
         )
