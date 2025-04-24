@@ -50,7 +50,8 @@ def combine_results(state: GraphState, settings_obj: Settings) -> GraphState:
         log_summary=state.log_summary or "Error: Unable to generate log summary due to API error",
         state=command_state or CommandState.API_ERROR,
         created_at=state.command_result.created_at,
-        finished_at=state.command_result.finished_at
+        finished_at=state.command_result.finished_at,
+        timeout_sec=state.command_result.timeout_sec
     )
 
     # Set the analyzed command result in the new state
