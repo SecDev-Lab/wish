@@ -65,7 +65,7 @@ class BashBackend(Backend):
 
             # Calculate execution time if not provided
             if exec_time_sec == 0 and result.created_at and result.finished_at:
-                exec_time_sec = (result.finished_at.timestamp() - result.created_at.timestamp())
+                exec_time_sec = (result.finished_at - result.created_at).total_seconds()
 
             # Build trace message
             trace_message = (
