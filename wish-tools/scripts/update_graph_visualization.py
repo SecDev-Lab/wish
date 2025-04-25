@@ -141,7 +141,7 @@ def generate_graph_visualization():
     # モジュールとグラフ設定のマッピング
     module_configs = {
         "tool_step_trace": {
-            "module_path": "rapidpen_tools.tool_step_trace",
+            "module_path": "wish_tools.tool_step_trace",
             "filename": "tool_step_trace_graph.svg",
             "title": "Tool Step Trace Graph"
         }
