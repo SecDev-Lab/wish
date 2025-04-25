@@ -23,6 +23,7 @@ jobs:
           - wish-log-analysis
           - wish-log-analysis-api
           - wish-models
+          - wish-tools
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +56,7 @@ jobs:
           - wish-log-analysis
           - wish-log-analysis-api
           - wish-models
+          - wish-tools
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
