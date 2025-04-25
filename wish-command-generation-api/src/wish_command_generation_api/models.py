@@ -30,6 +30,9 @@ class GraphState(BaseModel):
     context: Dict[str, Any] = Field(default_factory=dict, description="Context for command generation")
     """Context information for command generation, such as current directory, history, etc."""
 
+    run_id: str | None = None
+    """実行ID（StepTraceに使用）"""
+
     # Intermediate result fields - no Annotated for serial execution
     processed_query: str | None = None
     """Processed and normalized user query."""
@@ -67,6 +70,9 @@ class GenerateRequest(BaseModel):
 
     act_result: List[CommandResult] | None = None
     """フィードバック情報（コマンド実行結果）"""
+
+    run_id: str | None = None
+    """実行ID（StepTraceに使用）"""
 
 
 class GenerateResponse(BaseModel):

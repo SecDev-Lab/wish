@@ -8,6 +8,7 @@ from typing import Annotated
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from wish_tools.tool_step_trace import main as step_trace_main
 from wish_models.settings import Settings
 
 from ..constants import DIALOG_AVOIDANCE_DOC, LIST_FILES_DOC
@@ -141,7 +142,17 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
 
         # Process each command
         modified_commands = []
-        for command in state.command_candidates:
+        for i, command in enumerate(state.command_candidates):
+            # Call StepTrace if run_id is provided
+            if state.run_id:
+                try:
+                    step_trace_main(
+                        run_id=state.run_id,
+                        trace_name=f"コマンド修正前_{i+1}",
+                        trace_message=f"# コマンド\n{command}\n\n# タイムアウト [sec]\n30"
+                    )
+                except Exception as e:
+                    logger.error(f"Error calling StepTrace: {e}", exc_info=True)
             # Create the chains for each command to avoid reusing the same chain
             dialog_avoidance_chain = dialog_avoidance_prompt | llm | str_parser
             list_files_chain = list_files_prompt | llm | str_parser
@@ -190,6 +201,17 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
             except Exception as e:
                 logger.error(f"Error applying list file replacement: {e}", exc_info=True)
                 final_command = modified_command
+
+            # Call StepTrace for modified command if run_id is provided
+            if state.run_id:
+                try:
+                    step_trace_main(
+                        run_id=state.run_id,
+                        trace_name=f"コマンド修正後_{i+1}",
+                        trace_message=f"# コマンド\n{final_command}\n\n# タイムアウト [sec]\n30"
+                    )
+                except Exception as e:
+                    logger.error(f"Error calling StepTrace: {e}", exc_info=True)
 
             modified_commands.append(final_command)
 
