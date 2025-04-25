@@ -9,6 +9,7 @@ from typing import Dict, Tuple
 from wish_models import CommandResult, CommandState, Wish
 from wish_models.executable_collection import ExecutableCollection
 from wish_models.system_info import SystemInfo
+from wish_tools.tool_step_trace import main as step_trace
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
@@ -20,6 +21,70 @@ class BashBackend(Backend):
     def __init__(self):
         """Initialize the bash backend."""
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
+
+    def _add_command_start_trace(self, wish: Wish, command: str, timeout_sec: int):
+        """Add step trace for command start.
+
+        Args:
+            wish: The wish object.
+            command: The command to execute.
+            timeout_sec: The timeout in seconds.
+        """
+        try:
+            trace_message = f"# Command\n\n{command}\n\n# Timeout [sec]\n\n{timeout_sec}"
+            step_trace(
+                run_id=wish.id,
+                trace_name="Command Execution Start",
+                trace_message=trace_message
+            )
+        except Exception as e:
+            print(f"Error adding step trace for command start: {str(e)}")
+
+    def _add_step_trace(self, wish: Wish, result: CommandResult, trace_name: str, exec_time_sec: float = 0):
+        """Add step trace for command execution.
+
+        Args:
+            wish: The wish object.
+            result: The command result.
+            trace_name: The name of the trace.
+            exec_time_sec: The execution time in seconds.
+        """
+        try:
+            # Read stdout and stderr if available
+            stdout_content = ""
+            stderr_content = ""
+            try:
+                if result.log_files and result.log_files.stdout and result.log_files.stdout.exists():
+                    with open(result.log_files.stdout, "r") as f:
+                        stdout_content = f.read()
+                if result.log_files and result.log_files.stderr and result.log_files.stderr.exists():
+                    with open(result.log_files.stderr, "r") as f:
+                        stderr_content = f.read()
+            except Exception as e:
+                print(f"Error reading log files: {str(e)}")
+
+            # Calculate execution time if not provided
+            if exec_time_sec == 0 and result.created_at and result.finished_at:
+                exec_time_sec = (result.finished_at.timestamp() - result.created_at.timestamp())
+
+            # Build trace message
+            trace_message = (
+                f"# Command\n\n{result.command}\n\n"
+                f"# Timeout [sec]\n\n{result.timeout_sec}\n\n"
+                f"# Exit Code\n\n{result.exit_code if result.exit_code is not None else 'N/A'}\n\n"
+                f"# Execution Time [sec]\n\n{exec_time_sec:.2f}\n\n"
+                f"# stdout\n\n{stdout_content}\n\n"
+                f"# stderr\n\n{stderr_content}"
+            )
+
+            # Send step trace
+            step_trace(
+                run_id=wish.id,
+                trace_name=trace_name,
+                trace_message=trace_message
+            )
+        except Exception as e:
+            print(f"Error adding step trace: {str(e)}")
 
     async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
         """Execute a command using bash.
@@ -45,6 +110,9 @@ class BashBackend(Backend):
         result.timeout_sec = timeout_sec
 
         wish.command_results.append(result)
+
+        # Add StepTrace for command execution start
+        self._add_command_start_trace(wish, command, timeout_sec)
 
         # Replace variables in the command
         replaced_command = self._replace_variables(command, wish)
@@ -158,6 +226,9 @@ class BashBackend(Backend):
                 wish.command_results[i] = result
                 break
 
+        # Add StepTrace for command execution failure
+        self._add_step_trace(wish, result, "Command Execution Complete", 0)
+
     async def check_running_commands(self):
         """Check status of running commands and update their status."""
         current_time = time.time()
@@ -176,6 +247,9 @@ class BashBackend(Backend):
                     if cmd_result.num == result.num:
                         wish.command_results[i] = result
                         break
+
+                # Add StepTrace for command execution completion
+                self._add_step_trace(wish, result, "Command Execution Complete")
 
                 # Remove from running commands
                 del self.running_commands[idx]
@@ -207,6 +281,9 @@ class BashBackend(Backend):
                         if cmd_result.num == result.num:
                             wish.command_results[i] = result
                             break
+
+                    # Add StepTrace for command timeout
+                    self._add_step_trace(wish, result, "Command Execution Complete", elapsed_time)
 
                     # Remove from running commands
                     del self.running_commands[idx]
@@ -245,6 +322,9 @@ class BashBackend(Backend):
                 if cmd_result.num == result.num:
                     wish.command_results[i] = result
                     break
+
+            # Add StepTrace for command cancellation
+            self._add_step_trace(wish, result, "Command Execution Complete")
 
             del self.running_commands[cmd_num]
 

@@ -57,8 +57,14 @@ class TestBashBackend:
         cmd_num = 1
         await backend.execute_command(wish, cmd, cmd_num, log_files)
 
-        # Verify that Popen was called
-        mock_popen.assert_called_once()
+        # Verify that Popen was called with the expected command
+        mock_popen.assert_any_call(
+            cmd,
+            stdout=mock_stdout,
+            stderr=mock_stderr,
+            shell=True,
+            text=True
+        )
 
         # Verify that the command result was added to the wish
         assert len(wish.command_results) == 1
@@ -277,6 +283,12 @@ class TestBashBackend:
             mock_replace.assert_called_once_with(cmd, wish)
 
             # Verify that Popen was called with the replaced command
-            mock_popen.assert_called_once()
+            mock_popen.assert_any_call(
+                "nmap -sV 10.10.10.40",
+                stdout=mock_stdout,
+                stderr=mock_stderr,
+                shell=True,
+                text=True
+            )
             args, kwargs = mock_popen.call_args
             assert args[0] == "nmap -sV 10.10.10.40"

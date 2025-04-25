@@ -1,0 +1,46 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project]
+name = "wish-tools"
+version = "0.1.0"
+description = "Common tools for wish modules"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.10.6",
+    "langgraph>=0.3.5",
+    "requests>=2.31.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "factory-boy>=3.3.1",
+    "pytest-asyncio>=0.25.2",
+    "pytest>=8.3.4",
+    "ruff>=0.9.8",
+    "graphviz>=0.20.1",
+]
+
+[tool.pdm.build]
+includes = ["src/"]
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "I", # isort
+    "B", # flake8-bugbear
+    "W", # pycodestyle warnings
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = ["--import-mode=importlib"]
+asyncio_default_fixture_loop_scope = "function"

@@ -36,7 +36,8 @@ def generate_command(
         initial_state = GraphState(
             query=request.query,
             context=request.context,
-            act_result=request.act_result
+            act_result=request.act_result,
+            run_id=request.run_id
         )
 
         # Log feedback if present

@@ -34,7 +34,6 @@ classifiers = [
 ]
 license = {file = "../LICENSE"}
 dependencies = [
-    "wish-models>=0.0.1",
     "pydantic>=2.10.6",
     "langgraph>=0.3.5",
     "langsmith>=0.3.11",
@@ -43,6 +42,8 @@ dependencies = [
     "langchain>=0.3.20",
     "langchain-community>=0.1.0",
     "pydantic-settings>=2.8.1",
+    "wish-models",
+    "wish-tools",
 ]
 
 [project.optional-dependencies]
@@ -56,6 +57,7 @@ qdrant = [
 
 [tool.uv.sources]
 wish-models = { path = "../wish-models", editable = true }
+wish-tools = { path = "../wish-tools", editable = true }
 
 [tool.uv]
 dev-dependencies = [

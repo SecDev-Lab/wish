@@ -2987,6 +2987,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "wish-models" },
+    { name = "wish-tools" },
 ]
 
 [package.optional-dependencies]
@@ -3021,6 +3022,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.8.1" },
     { name = "qdrant-client", marker = "extra == 'qdrant'", specifier = ">=1.7.0" },
     { name = "wish-models", editable = "../wish-models" },
+    { name = "wish-tools", editable = "../wish-tools" },
 ]
 provides-extras = ["chroma", "qdrant"]
 
@@ -3051,6 +3053,32 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "factory-boy", specifier = ">=3.3.1" },
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.2" },
+    { name = "ruff", specifier = ">=0.9.8" },
+]
+
+[[package]]
+name = "wish-tools"
+version = "0.1.0"
+source = { editable = "../wish-tools" }
+dependencies = [
+    { name = "langgraph" },
+    { name = "pydantic" },
+    { name = "requests" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "langgraph", specifier = ">=0.3.5" },
+    { name = "pydantic", specifier = ">=2.10.6" },
+    { name = "requests", specifier = ">=2.31.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "factory-boy", specifier = ">=3.3.1" },
+    { name = "graphviz", specifier = ">=0.20.1" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.2" },
     { name = "ruff", specifier = ">=0.9.8" },
