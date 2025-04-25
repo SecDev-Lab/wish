@@ -42,7 +42,7 @@ async def test_step_trace_workflow(mock_post):
     mock_post.assert_called_once_with(
         "http://host.docker.internal:23456/api/addStepTrace",
         json={
-            "run_id": "Run-test-run-id",
+            "run_id": "test-run-id",
             "trace_name": "Test Trace",
             "trace_message_base64": "SGVsbG8sIFdvcmxkIQ=="
         },
