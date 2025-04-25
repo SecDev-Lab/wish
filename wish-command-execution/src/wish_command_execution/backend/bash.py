@@ -18,9 +18,14 @@ from wish_command_execution.system_info import SystemInfoCollector
 class BashBackend(Backend):
     """Backend for executing commands using bash."""
 
-    def __init__(self):
-        """Initialize the bash backend."""
+    def __init__(self, run_id=None):
+        """Initialize the bash backend.
+
+        Args:
+            run_id: Run ID for step tracing.
+        """
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
+        self.run_id = run_id
 
     def _add_command_start_trace(self, wish: Wish, command: str, timeout_sec: int):
         """Add step trace for command start.
@@ -33,7 +38,7 @@ class BashBackend(Backend):
         try:
             trace_message = f"# Command\n\n{command}\n\n# Timeout [sec]\n\n{timeout_sec}"
             step_trace(
-                run_id=wish.id,
+                run_id=self.run_id if self.run_id else wish.id,
                 trace_name="Command Execution Start",
                 trace_message=trace_message
             )
@@ -79,7 +84,7 @@ class BashBackend(Backend):
 
             # Send step trace
             step_trace(
-                run_id=wish.id,
+                run_id=self.run_id if self.run_id else wish.id,
                 trace_name=trace_name,
                 trace_message=trace_message
             )
