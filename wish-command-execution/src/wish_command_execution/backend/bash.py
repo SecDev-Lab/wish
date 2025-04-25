@@ -20,7 +20,7 @@ class BashBackend(Backend):
 
     def __init__(self, run_id=None):
         """Initialize the bash backend.
-        
+
         Args:
             run_id: Run ID for step tracing.
         """
