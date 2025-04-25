@@ -8,8 +8,8 @@ from typing import Annotated
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from wish_tools.tool_step_trace import main as step_trace_main
 from wish_models.settings import Settings
+from wish_tools.tool_step_trace import main as step_trace_main
 
 from ..constants import DIALOG_AVOIDANCE_DOC, LIST_FILES_DOC
 from ..models import GraphState
