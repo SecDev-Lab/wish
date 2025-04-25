@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed run_id prefix issue in wish-tools:
+  - Modified `post_step_trace` function to add "Run-" prefix to run_id when sending API requests
+  - Ensured consistency between implementation and test expectations
+  - Fixed failing tests in both unit and integration test suites
+
 ### Removed
 
 
