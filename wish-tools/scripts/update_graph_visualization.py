@@ -224,7 +224,8 @@ def update_readme(graph_title: str, svg_filename: str):
         content = README_PATH.read_text()
     else:
         content = "# RapidPen Tools\n\n"
-        content += "RapidPen Toolsモジュールは、RapidPenの各モジュールで使用される共通ツールを提供するモジュールです。\n"
+        content += "RapidPen Toolsモジュールは、RapidPenの各モジュールで使用される\n"
+        content += "共通ツールを提供するモジュールです。\n"
 
     # Check if there is a graph visualization section
     graph_section_title = "## ワークフローグラフ"

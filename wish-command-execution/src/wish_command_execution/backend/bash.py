@@ -24,7 +24,7 @@ class BashBackend(Backend):
 
     def _add_command_start_trace(self, wish: Wish, command: str, timeout_sec: int):
         """Add step trace for command start.
-        
+
         Args:
             wish: The wish object.
             command: The command to execute.
@@ -42,7 +42,7 @@ class BashBackend(Backend):
 
     def _add_step_trace(self, wish: Wish, result: CommandResult, trace_name: str, exec_time_sec: float = 0):
         """Add step trace for command execution.
-        
+
         Args:
             wish: The wish object.
             result: The command result.
