@@ -67,7 +67,7 @@ def post_step_trace(state: StepTraceState) -> StepTraceState:
     """
     # POSTするデータを準備
     data = {
-        "run_id": state.run_id,
+        "run_id": f"Run-{state.run_id}",
         "trace_name": state.trace_name,
         "trace_message_base64": state.trace_message_base64
     }
