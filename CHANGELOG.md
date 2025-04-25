@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed error "'UtcDatetime' object has no attribute 'timestamp'" in step trace:
+  - Modified `_add_step_trace` method in `wish-command-execution/backend/bash.py` to use existing `__sub__` method
+  - Used `timedelta.total_seconds()` to calculate execution time instead of direct timestamp access
+  - Improved code robustness by leveraging standard datetime operations
+
 ### Removed
 
 
