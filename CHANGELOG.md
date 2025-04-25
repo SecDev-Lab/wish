@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Fixed run_id prefix issue in wish-tools.
 
 ## [0.6.22] - 2025-04-25
 
