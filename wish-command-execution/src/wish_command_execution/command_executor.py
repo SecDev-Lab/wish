@@ -12,14 +12,16 @@ from wish_command_execution.backend.bash import BashBackend
 class CommandExecutor:
     """Executes commands for a wish."""
 
-    def __init__(self, backend: Optional[Backend] = None, log_dir_creator=None):
+    def __init__(self, backend: Optional[Backend] = None, log_dir_creator=None, run_id=None):
         """Initialize the command executor.
 
         Args:
             backend: The backend to use for command execution.
             log_dir_creator: Function to create log directories.
+            run_id: Run ID for step tracing.
         """
-        self.backend = backend or BashBackend()
+        self.run_id = run_id
+        self.backend = backend or BashBackend(run_id=run_id)
         self.log_dir_creator = log_dir_creator or self._default_log_dir_creator
 
     def _default_log_dir_creator(self, wish_id: str) -> Path:
