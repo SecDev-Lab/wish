@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.6.17] - 2025-04-25
+
+### Added
+
 - Added StepTrace integration to wish-command-execution:
   - Added dependency on wish-tools package
   - Added command execution tracing at key points (start, completion, failure, timeout, cancellation)
