@@ -80,7 +80,7 @@ The system can be configured using environment variables:
 - `VECTOR_STORE_TYPE`: Vector store type to use (default: "chroma", options: "chroma" or "qdrant").
 - `QDRANT_HOST`: Qdrant server host (default: localhost).
 - `QDRANT_PORT`: Qdrant server port (default: 6333).
-- `QDRANT_COLLECTION_NAME`: Qdrant collection name (default: wish).
+- `QDRANT_COLLECTION_HACKTRICKS`: Qdrant collection name (default: hacktricks).
 - `LANGCHAIN_TRACING_V2`: Enable LangChain tracing (default: false).
 - `LANGCHAIN_PROJECT`: LangChain project name (default: wish-command-generation-api).
 
@@ -107,7 +107,7 @@ Qdrant can be used as an alternative vector store backend. To use Qdrant:
    - `VECTOR_STORE_TYPE=qdrant`
    - `QDRANT_HOST=localhost` (or your Qdrant server host)
    - `QDRANT_PORT=6333` (or your Qdrant server port)
-   - `QDRANT_COLLECTION_NAME=wish` (or your collection name)
+   - `QDRANT_COLLECTION_HACKTRICKS=hacktricks` (or your collection name)
 
 ### Dependency Management
 

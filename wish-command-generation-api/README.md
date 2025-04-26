@@ -63,7 +63,7 @@ If you want to use Qdrant as the vector store, set the following environment var
 
 - `QDRANT_HOST`: Qdrant server host (default: localhost)
 - `QDRANT_PORT`: Qdrant server port (default: 6333)
-- `QDRANT_COLLECTION_NAME`: Qdrant collection name (default: wish)
+- `QDRANT_COLLECTION_HACKTRICKS`: Qdrant collection name (default: hacktricsk)
 
 Example:
 
@@ -75,7 +75,7 @@ EMBEDDING_MODEL=text-embedding-3-small
 # Qdrant settings
 QDRANT_HOST=localhost
 QDRANT_PORT=6333
-QDRANT_COLLECTION_NAME=wish
+QDRANT_COLLECTION_HACKTRICKS=hacktricks
 ```
 
 Environment variables are automatically loaded from the `~/.wish/env` file and passed to the SAM local container.
@@ -276,7 +276,7 @@ config = GeneratorConfig(
     vector_store_type="qdrant",
     qdrant_host="localhost",
     qdrant_port=6333,
-    qdrant_collection_name="wish"
+    qdrant_collection_HACKTRICKS="wish"
 )
 
 # Use this config with the generator

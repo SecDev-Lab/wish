@@ -52,7 +52,8 @@ class Settings(BaseSettings):
     # Qdrant settings (optional)
     QDRANT_HOST: str = Field("localhost")
     QDRANT_PORT: int = Field(6333)
-    QDRANT_COLLECTION_NAME: str = Field("wish")
+    QDRANT_COLLECTION_HACKTRICKS: str = Field("hacktricks")
+    QDRANT_COLLECTION_PTT: str = Field("ptt")
 
     # LangSmith settings
     LANGCHAIN_TRACING_V2: bool = Field(True)
