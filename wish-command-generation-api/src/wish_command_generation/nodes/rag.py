@@ -121,7 +121,7 @@ def _retrieve_from_qdrant(state: GraphState, settings_obj: Settings) -> GraphSta
         port=settings_obj.QDRANT_PORT
     )
 
-    collection_name = settings_obj.QDRANT_COLLECTION_NAME
+    collection_name = settings_obj.QDRANT_COLLECTION_HACKTRICKS
 
     # Check if collection exists
     if not client.collection_exists(collection_name):
