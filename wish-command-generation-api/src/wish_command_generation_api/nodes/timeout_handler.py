@@ -140,44 +140,18 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         try:
             response_json = json.loads(result)
 
-            # Extract commands and timeout values
+            # Extract commands
             command_candidates = []
-            timeout_sec = None
-            
             for cmd_input in response_json.get("command_inputs", []):
                 command = cmd_input.get("command", "")
                 if command:
                     command_candidates.append(command)
-                    
-                # Get timeout value from the first command input
-                if timeout_sec is None and "timeout_sec" in cmd_input:
-                    try:
-                        timeout_value = cmd_input.get("timeout_sec")
-                        if timeout_value is not None:
-                            timeout_sec = int(timeout_value)
-                            logger.info(f"Extracted timeout value: {timeout_sec} seconds")
-                    except (ValueError, TypeError) as e:
-                        logger.error(f"Error parsing timeout value: {e}")
 
             if not command_candidates:
                 logger.warning("No valid commands found in LLM response")
                 command_candidates = ["echo 'No valid commands generated'"]
 
-            # If no timeout value was extracted or it's invalid, double the previous timeout or use default
-            if timeout_sec is None:
-                # Try to get timeout from the first command result
-                if state.act_result and len(state.act_result) > 0:
-                    prev_timeout = state.act_result[0].timeout_sec
-                    if prev_timeout is not None:
-                        timeout_sec = prev_timeout * 2  # Double the previous timeout
-                        logger.info(f"Doubling previous timeout to {timeout_sec} seconds")
-                
-                # If still no timeout, use default
-                if timeout_sec is None:
-                    timeout_sec = 120  # Default timeout for retry after timeout error
-                    logger.info(f"Using default timeout of {timeout_sec} seconds")
-
-            logger.info(f"Generated {len(command_candidates)} commands to handle timeout with timeout_sec={timeout_sec}")
+            logger.info(f"Generated {len(command_candidates)} commands to handle timeout")
 
             # Update the state
             return GraphState(
@@ -185,7 +159,6 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 context=state.context,
                 processed_query=state.processed_query,
                 command_candidates=command_candidates,
-                timeout_sec=timeout_sec,
                 generated_command=state.generated_command,
                 is_retry=True,
                 error_type="TIMEOUT",

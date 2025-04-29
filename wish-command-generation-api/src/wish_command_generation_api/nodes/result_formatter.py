@@ -68,11 +68,10 @@ def format_result(state: Annotated[GraphState, "Current state"], settings_obj: S
         explanation = result.content.strip()
         logger.info(f"Generated explanation: {explanation}")
 
-        # Create the generated command object with timeout
+        # Create the generated command object
         generated_command = GeneratedCommand(
             command=command,
-            explanation=explanation,
-            timeout_sec=state.timeout_sec
+            explanation=explanation
         )
 
         # Update the state
