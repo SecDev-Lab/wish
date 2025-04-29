@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed test failures in wish-command-execution:
+  - Added missing `timeout_sec` parameter to `execute_command` method calls in test_bash_backend.py
+  - Added `timeout_sec` parameter to `execute_command` method calls in test_command_executor.py
+  - Updated `test_execute_commands` to use `CommandInput` objects instead of string list
+
 ### Removed
 
 
