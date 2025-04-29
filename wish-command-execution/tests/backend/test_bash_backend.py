@@ -55,7 +55,8 @@ class TestBashBackend:
         # Execute a command
         cmd = "echo 'Test command'"
         cmd_num = 1
-        await backend.execute_command(wish, cmd, cmd_num, log_files)
+        timeout_sec = 60  # デフォルトのタイムアウト値
+        await backend.execute_command(wish, cmd, cmd_num, log_files, timeout_sec)
 
         # Verify that Popen was called with the expected command
         mock_popen.assert_any_call(
@@ -95,7 +96,8 @@ class TestBashBackend:
         # Execute a command
         cmd = "echo 'Test command'"
         cmd_num = 1
-        await backend.execute_command(wish, cmd, cmd_num, log_files)
+        timeout_sec = 60  # デフォルトのタイムアウト値
+        await backend.execute_command(wish, cmd, cmd_num, log_files, timeout_sec)
 
         # Verify that the command result was updated with the error state
         assert wish.command_results[0].state == CommandState.OTHERS
@@ -277,7 +279,8 @@ class TestBashBackend:
             # Execute a command with variables
             cmd = "nmap -sV $TARGET_IP"
             cmd_num = 1
-            await backend.execute_command(wish, cmd, cmd_num, log_files)
+            timeout_sec = 60  # デフォルトのタイムアウト値
+            await backend.execute_command(wish, cmd, cmd_num, log_files, timeout_sec)
 
             # _replace_variablesが正しい引数で呼ばれたことを確認
             mock_replace.assert_called_once_with(cmd, wish)
