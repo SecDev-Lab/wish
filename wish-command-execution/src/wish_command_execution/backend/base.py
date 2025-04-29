@@ -7,7 +7,7 @@ from wish_models.system_info import SystemInfo
 class Backend:
     """Base class for command execution backends."""
 
-    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files, timeout_sec: int) -> None:
         """Execute a command for a wish.
 
         Args:
@@ -15,6 +15,7 @@ class Backend:
             command: The command to execute.
             cmd_num: The command number.
             log_files: The log files to write output to.
+            timeout_sec: The timeout in seconds for this command.
         """
         raise NotImplementedError
 

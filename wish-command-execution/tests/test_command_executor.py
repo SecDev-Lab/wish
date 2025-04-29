@@ -4,10 +4,12 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from wish_models.command_result import CommandInput
 from wish_models.test_factories import WishDoingFactory
 
 from wish_command_execution import CommandExecutor
 from wish_command_execution.backend import Backend
+from wish_command_execution.constants import DEFAULT_COMMAND_TIMEOUT_SEC
 
 
 class MockBackend(Backend):
@@ -54,7 +56,8 @@ class TestCommandExecutor:
         # Execute a command
         cmd = "echo 'Test command'"
         cmd_num = 1
-        await executor.execute_command(wish, cmd, cmd_num)
+        timeout_sec = DEFAULT_COMMAND_TIMEOUT_SEC
+        await executor.execute_command(wish, cmd, cmd_num, timeout_sec)
 
         # Verify that log_dir_creator was called
         log_dir_creator.assert_called_once_with(wish.id)
@@ -79,15 +82,19 @@ class TestCommandExecutor:
         executor.execute_command = AsyncMock()
 
         # Execute multiple commands
-        commands = ["echo 'Command 1'", "echo 'Command 2'", "echo 'Command 3'"]
+        commands = [
+            CommandInput(command="echo 'Command 1'", timeout_sec=DEFAULT_COMMAND_TIMEOUT_SEC),
+            CommandInput(command="echo 'Command 2'", timeout_sec=DEFAULT_COMMAND_TIMEOUT_SEC),
+            CommandInput(command="echo 'Command 3'", timeout_sec=DEFAULT_COMMAND_TIMEOUT_SEC)
+        ]
         await executor.execute_commands(wish, commands)
 
         # Verify that execute_command was called for each command
         assert executor.execute_command.call_count == len(commands)
 
         # Verify that each command was executed with the correct arguments
-        for i, cmd in enumerate(commands, 1):
-            executor.execute_command.assert_any_call(wish, cmd, i)
+        for i, cmd_input in enumerate(commands, 1):
+            executor.execute_command.assert_any_call(wish, cmd_input.command, i, cmd_input.timeout_sec)
 
     @pytest.mark.asyncio
     async def test_check_running_commands(self, executor, backend):
