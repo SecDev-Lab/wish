@@ -15,6 +15,9 @@ class GeneratedCommand(BaseModel):
     explanation: str = Field(description="Explanation of what the command does")
     """Explanation of what the command does and why it was chosen."""
 
+    timeout_sec: int | None = None
+    """コマンド実行のタイムアウト値（秒）"""
+
 
 class GraphState(BaseModel):
     """Class representing the state of LangGraph.
@@ -39,6 +42,10 @@ class GraphState(BaseModel):
 
     command_candidates: List[str] | None = None
     """List of candidate commands generated."""
+
+    # タイムアウト値（秒）
+    timeout_sec: int | None = None
+    """コマンド実行のタイムアウト値（秒）"""
 
     # Final output field
     generated_command: GeneratedCommand | None = None
