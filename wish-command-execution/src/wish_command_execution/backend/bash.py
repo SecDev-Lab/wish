@@ -13,6 +13,12 @@ from wish_tools.tool_step_trace import main as step_trace
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
+from wish_command_execution.constants import DEFAULT_COMMAND_TIMEOUT_SEC
+import logging
+
+# ロギング設定
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class BashBackend(Backend):
@@ -91,7 +97,7 @@ class BashBackend(Backend):
         except Exception as e:
             print(f"Error adding step trace: {str(e)}")
 
-    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files, timeout_sec: int) -> None:
         """Execute a command using bash.
 
         Args:
@@ -99,17 +105,10 @@ class BashBackend(Backend):
             command: The command to execute.
             cmd_num: The command number.
             log_files: The log files to write output to.
+            timeout_sec: The timeout in seconds for this command.
         """
         # Create command result
         result = CommandResult.create(cmd_num, command, log_files)
-
-        # Set timeout value (get from CommandInput or use 60 seconds as default)
-        timeout_sec = 60  # Default value
-        if hasattr(wish, 'command_inputs') and wish.command_inputs:
-            for cmd_input in wish.command_inputs:
-                if cmd_input.num == cmd_num and cmd_input.timeout_sec is not None:
-                    timeout_sec = cmd_input.timeout_sec
-                    break
 
         # Set timeout_sec in CommandResult
         result.timeout_sec = timeout_sec

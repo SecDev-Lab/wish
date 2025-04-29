@@ -15,6 +15,9 @@ class GeneratedCommand(BaseModel):
     explanation: str = Field(description="Explanation of what the command does")
     """Explanation of what the command does and why it was chosen."""
 
+    timeout_sec: int | None = None
+    """Timeout for command execution in seconds."""
+
 
 class GraphState(BaseModel):
     """Class representing the state of LangGraph.

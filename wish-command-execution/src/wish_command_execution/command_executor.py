@@ -1,12 +1,18 @@
 """Command executor for wish-command-execution."""
 
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from wish_models import LogFiles, Wish
-
+from wish_models.command_result import CommandInput
+from wish_command_execution.constants import DEFAULT_COMMAND_TIMEOUT_SEC
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.backend.bash import BashBackend
+import logging
+
+# ロギング設定
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class CommandExecutor:
@@ -30,23 +36,31 @@ class CommandExecutor:
         log_dir.mkdir(parents=True, exist_ok=True)
         return log_dir
 
-    async def execute_commands(self, wish: Wish, commands: list[str]) -> None:
+    async def execute_commands(self, wish: Wish, command_inputs: List[CommandInput]) -> None:
         """Execute a list of commands for a wish.
 
         Args:
             wish: The wish to execute commands for.
-            commands: The list of commands to execute.
+            command_inputs: The list of command inputs to execute.
         """
-        for i, cmd in enumerate(commands, 1):
-            await self.execute_command(wish, cmd, i)
+        for i, cmd_input in enumerate(command_inputs, 1):
+            command = cmd_input.command
+            # CommandInputのtimeout_secがNoneの場合は明示的にデフォルト値を設定
+            timeout_sec = cmd_input.timeout_sec
+            if timeout_sec is None:
+                timeout_sec = DEFAULT_COMMAND_TIMEOUT_SEC
+                logger.warning(f"Command {i} has no timeout specified, using {DEFAULT_COMMAND_TIMEOUT_SEC} seconds")
+            
+            await self.execute_command(wish, command, i, timeout_sec)
 
-    async def execute_command(self, wish: Wish, command: str, cmd_num: int) -> None:
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int, timeout_sec: int) -> None:
         """Execute a single command for a wish.
 
         Args:
             wish: The wish to execute the command for.
             command: The command to execute.
             cmd_num: The command number.
+            timeout_sec: The timeout in seconds for this command.
         """
         # Create log directories and files
         log_dir = self.log_dir_creator(wish.id)
@@ -55,7 +69,7 @@ class CommandExecutor:
         log_files = LogFiles(stdout=stdout_path, stderr=stderr_path)
 
         # Execute the command using the backend
-        await self.backend.execute_command(wish, command, cmd_num, log_files)
+        await self.backend.execute_command(wish, command, cmd_num, log_files, timeout_sec)
 
     async def check_running_commands(self):
         """Check status of running commands and update their status."""
