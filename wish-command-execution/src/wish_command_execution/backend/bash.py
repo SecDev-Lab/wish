@@ -1,5 +1,6 @@
 """Bash backend for command execution."""
 
+import logging
 import os
 import platform
 import subprocess
@@ -13,8 +14,6 @@ from wish_tools.tool_step_trace import main as step_trace
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
-from wish_command_execution.constants import DEFAULT_COMMAND_TIMEOUT_SEC
-import logging
 
 # ロギング設定
 logger = logging.getLogger(__name__)

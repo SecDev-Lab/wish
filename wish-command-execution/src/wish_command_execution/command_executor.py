@@ -1,14 +1,15 @@
 """Command executor for wish-command-execution."""
 
+import logging
 from pathlib import Path
 from typing import List, Optional
 
 from wish_models import LogFiles, Wish
 from wish_models.command_result import CommandInput
-from wish_command_execution.constants import DEFAULT_COMMAND_TIMEOUT_SEC
+
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.backend.bash import BashBackend
-import logging
+from wish_command_execution.constants import DEFAULT_COMMAND_TIMEOUT_SEC
 
 # ロギング設定
 logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ class CommandExecutor:
             if timeout_sec is None:
                 timeout_sec = DEFAULT_COMMAND_TIMEOUT_SEC
                 logger.warning(f"Command {i} has no timeout specified, using {DEFAULT_COMMAND_TIMEOUT_SEC} seconds")
-            
+
             await self.execute_command(wish, command, i, timeout_sec)
 
     async def execute_command(self, wish: Wish, command: str, cmd_num: int, timeout_sec: int) -> None:
