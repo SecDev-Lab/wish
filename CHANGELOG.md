@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Removed
+
+
+## [0.6.26] - 2025-04-29
+
+### Added
+
+### Changed
+
+### Fixed
+
 - Fixed test failures in wish-command-execution:
   - Added missing `timeout_sec` parameter to `execute_command` method calls in test_bash_backend.py
   - Added `timeout_sec` parameter to `execute_command` method calls in test_command_executor.py
