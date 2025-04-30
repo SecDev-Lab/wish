@@ -3,27 +3,42 @@
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
-from wish_models.command_result import CommandResult
+from wish_models.command_result import CommandInput, CommandResult
 
 
 class GeneratedCommand(BaseModel):
     """Class representing a generated shell command."""
 
-    command: str = Field(description="The generated shell command")
-    """The generated shell command string."""
+    command_input: CommandInput
+    """コマンド入力情報（コマンドとタイムアウト値）"""
 
     explanation: str = Field(description="Explanation of what the command does")
     """Explanation of what the command does and why it was chosen."""
 
-    timeout_sec: int | None = None
-    """Timeout for command execution in seconds."""
+    @property
+    def command(self) -> str:
+        """コマンド文字列を取得"""
+        return self.command_input.command
+
+    @property
+    def timeout_sec(self) -> int | None:
+        """タイムアウト値を取得"""
+        return self.command_input.timeout_sec
+
+    @classmethod
+    def from_command_input(cls, command_input: CommandInput, explanation: str) -> "GeneratedCommand":
+        """CommandInputからGeneratedCommandを作成する"""
+        return cls(
+            command_input=command_input,
+            explanation=explanation
+        )
 
 
 class GraphState(BaseModel):
     """Class representing the state of LangGraph.
 
     This class is used to maintain state during LangGraph execution and pass data between nodes.
-    wish-command-generation-api takes a query and context and outputs a generated command.
+    wish-command-generation-api takes a query and context and outputs generated commands.
     """
 
     # Input fields - treated as read-only
@@ -40,12 +55,12 @@ class GraphState(BaseModel):
     processed_query: str | None = None
     """Processed and normalized user query."""
 
-    command_candidates: List[str] | None = None
-    """List of candidate commands generated."""
+    command_candidates: List[CommandInput] | None = None
+    """コマンド候補のリスト。各ノードで処理され、最終的に generated_commands の元になる。"""
 
     # Final output field
-    generated_command: GeneratedCommand | None = None
-    """The final generated command with explanation. This is the output of the graph."""
+    generated_commands: List[GeneratedCommand] | None = None
+    """最終的に選択されたコマンド候補に説明を追加したもの。これがAPIの出力となる。"""
 
     # Error flag
     api_error: bool = False
@@ -81,8 +96,8 @@ class GenerateRequest(BaseModel):
 class GenerateResponse(BaseModel):
     """Response model for the generate endpoint."""
 
-    generated_command: GeneratedCommand
-    """The generated command with explanation."""
+    generated_commands: List[GeneratedCommand]
+    """The generated commands with explanations."""
 
     error: str | None = None
     """Error message if an error occurred during processing."""

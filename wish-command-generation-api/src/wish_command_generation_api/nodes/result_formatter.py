@@ -43,10 +43,9 @@ def format_result(state: Annotated[GraphState, "Current state"], settings_obj: S
     try:
         # Extract query and command candidates
         original_query = state.query
-        command_candidates = state.command_candidates or ["echo 'No command generated'"]
-
-        # Use the first command candidate
-        command = command_candidates[0]
+        if not state.command_candidates:
+            # エラーを発生させる（コマンド候補が必須）
+            raise ValueError("No command candidates available")
 
         # Create the LLM
         model = settings_obj.OPENAI_MODEL or "gpt-4o"
@@ -55,24 +54,33 @@ def format_result(state: Annotated[GraphState, "Current state"], settings_obj: S
         # Create the prompt
         prompt = ChatPromptTemplate.from_template(RESULT_FORMATTER_PROMPT)
 
-        # Create the chain
-        chain = prompt | llm
+        # 各コマンドに説明を追加
+        generated_commands = []
+        for cmd_input in state.command_candidates:
+            command = cmd_input.command
 
-        # Invoke the chain
-        result = chain.invoke({
-            "command": command,
-            "original_query": original_query
-        })
+            # タイムアウト値が設定されていることを確認
+            assert cmd_input.timeout_sec is not None, f"タイムアウト値が設定されていません: {command}"
 
-        # Extract the explanation
-        explanation = result.content.strip()
-        logger.info(f"Generated explanation: {explanation}")
+            # Create the chain
+            chain = prompt | llm
 
-        # Create the generated command object
-        generated_command = GeneratedCommand(
-            command=command,
-            explanation=explanation
-        )
+            # Invoke the chain
+            result = chain.invoke({
+                "command": command,
+                "original_query": original_query
+            })
+
+            # Extract the explanation
+            explanation = result.content.strip()
+            logger.info(f"Generated explanation for command {command}: {explanation}")
+
+            # Create the generated command object
+            generated_command = GeneratedCommand.from_command_input(
+                command_input=cmd_input,
+                explanation=explanation
+            )
+            generated_commands.append(generated_command)
 
         # Update the state
         return GraphState(
@@ -80,23 +88,7 @@ def format_result(state: Annotated[GraphState, "Current state"], settings_obj: S
             context=state.context,
             processed_query=state.processed_query,
             command_candidates=state.command_candidates,
-            generated_command=generated_command
+            generated_commands=generated_commands
         )
     except Exception as e:
-        logger.exception("Error formatting result")
-        # Return the original state with a fallback generated command
-        command = state.command_candidates[0] if state.command_candidates else "echo 'Command generation failed'"
-
-        fallback_command = GeneratedCommand(
-            command=command,
-            explanation=f"Error: Failed to generate explanation due to {str(e)}"
-        )
-
-        return GraphState(
-            query=state.query,
-            context=state.context,
-            processed_query=state.processed_query,
-            command_candidates=state.command_candidates,
-            generated_command=fallback_command,
-            api_error=True
-        )
+        raise RuntimeError("Error formatting result") from e

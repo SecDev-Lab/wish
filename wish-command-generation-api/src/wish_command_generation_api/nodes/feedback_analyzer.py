@@ -30,7 +30,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
             context=state.context,
             processed_query=state.processed_query,
             command_candidates=state.command_candidates,
-            generated_command=state.generated_command,
+            generated_commands=state.generated_commands,
             is_retry=False,
             error_type=None,
             act_result=None
@@ -62,7 +62,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
         context=state.context,
         processed_query=state.processed_query,
         command_candidates=state.command_candidates,
-        generated_command=state.generated_command,
+        generated_commands=state.generated_commands,
         is_retry=True,
         error_type=error_type,
         act_result=state.act_result

@@ -9,11 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added support for multiple command generation:
+  - Added ability to generate and return multiple command suggestions
+  - Added DEFAULT_TIMEOUT_SEC constant (60 seconds) for default command timeout
+  - Added strict validation to ensure all commands have timeout values set
+
 ### Changed
+
+- Refactored command generation system to support multiple commands:
+  - Changed GeneratedCommand class to use CommandInput objects instead of raw strings
+  - Updated GraphState to track multiple command candidates
+  - Modified result_formatter.py to process all command candidates
+  - Improved error handling with explicit exceptions instead of fallback commands
+  - Renamed generate_command to generate_commands throughout the codebase
 
 ### Fixed
 
+- Fixed timeout handling in command generation:
+  - Added proper timeout value validation in multiple components
+  - Ensured consistent timeout handling across the command generation pipeline
+  - Added assertions to fail fast when timeout values are missing
+
 ### Removed
+
+- Removed fallback command generation in error cases:
+  - Removed silent error handling in favor of explicit exceptions
+  - Removed automatic fallback to echo commands in error scenarios
 
 
 ## [0.6.27] - 2025-04-30

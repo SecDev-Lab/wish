@@ -7,9 +7,10 @@ from typing import Annotated
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
-from ..constants import DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC
+from ..constants import DEFAULT_TIMEOUT_SEC, DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC
 from ..models import GraphState
 
 # Configure logging
@@ -125,12 +126,17 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             logger.exception(f"Error invoking LLM chain: {e}")
             # Get the original command from the act_result
             original_command = state.act_result[0].command if state.act_result else "echo 'No command found'"
+            # デフォルトのCommandInputを作成
+            cmd_input = CommandInput(
+                command=original_command,
+                timeout_sec=DEFAULT_TIMEOUT_SEC  # デフォルトのタイムアウト値
+            )
             return GraphState(
                 query=state.query,
                 context=state.context,
                 processed_query=state.processed_query,
-                command_candidates=[original_command],
-                generated_command=state.generated_command,
+                command_candidates=[cmd_input],
+                generated_commands=state.generated_commands,
                 is_retry=True,
                 error_type="TIMEOUT",
                 act_result=state.act_result
@@ -140,16 +146,31 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         try:
             response_json = json.loads(result)
 
-            # Extract commands
+            # Extract commands and create CommandInput objects
             command_candidates = []
+
             for cmd_input in response_json.get("command_inputs", []):
                 command = cmd_input.get("command", "")
+                timeout_sec = cmd_input.get("timeout_sec")
+
+                # タイムアウト値が設定されていることを確認
+                assert timeout_sec is not None, f"タイムアウト値が設定されていません: {command}"
+
                 if command:
-                    command_candidates.append(command)
+                    # CommandInputオブジェクトを作成
+                    command_input = CommandInput(
+                        command=command,
+                        timeout_sec=timeout_sec
+                    )
+                    command_candidates.append(command_input)
 
             if not command_candidates:
                 logger.warning("No valid commands found in LLM response")
-                command_candidates = ["echo 'No valid commands generated'"]
+                # デフォルトのCommandInputを作成
+                command_candidates = [CommandInput(
+                    command="echo 'No valid commands generated'",
+                    timeout_sec=DEFAULT_TIMEOUT_SEC  # デフォルトのタイムアウト値
+                )]
 
             logger.info(f"Generated {len(command_candidates)} commands to handle timeout")
 
@@ -159,7 +180,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 context=state.context,
                 processed_query=state.processed_query,
                 command_candidates=command_candidates,
-                generated_command=state.generated_command,
+                generated_commands=state.generated_commands,
                 is_retry=True,
                 error_type="TIMEOUT",
                 act_result=state.act_result
@@ -171,24 +192,15 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 query=state.query,
                 context=state.context,
                 processed_query=state.processed_query,
-                command_candidates=["echo 'Failed to generate timeout handling command'"],
-                generated_command=state.generated_command,
+                command_candidates=[CommandInput(
+                    command="echo 'Failed to generate timeout handling command'",
+                    timeout_sec=DEFAULT_TIMEOUT_SEC  # デフォルトのタイムアウト値
+                )],
+                generated_commands=state.generated_commands,
                 is_retry=True,
                 error_type="TIMEOUT",
                 act_result=state.act_result,
                 api_error=True
             )
-    except Exception:
-        logger.exception("Error handling timeout")
-        # Return the original state with a fallback command
-        return GraphState(
-            query=state.query,
-            context=state.context,
-            processed_query=state.processed_query,
-            command_candidates=["echo 'Error handling timeout'"],
-            generated_command=state.generated_command,
-            is_retry=True,
-            error_type="TIMEOUT",
-            act_result=state.act_result,
-            api_error=True
-        )
+    except Exception as e:
+        raise RuntimeError("Error handling timeout") from e

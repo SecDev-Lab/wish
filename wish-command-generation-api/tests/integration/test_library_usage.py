@@ -4,7 +4,7 @@ import pytest
 from wish_models.settings import Settings
 
 from wish_command_generation_api.config import GeneratorConfig
-from wish_command_generation_api.core.generator import generate_command
+from wish_command_generation_api.core.generator import generate_commands
 from wish_command_generation_api.models import GenerateRequest
 
 
@@ -21,21 +21,24 @@ def test_end_to_end_generation(settings):
     query = "list all files in the current directory"
     context = {
         "current_directory": "/home/user",
-        "history": ["cd /home/user", "mkdir test"]
+        "history": ["cd /home/user", "mkdir test"],
+        "target": {"rhost": "10.10.10.40"},
+        "attacker": {"lhost": "192.168.1.5"}
     }
 
     # Create request
     request = GenerateRequest(query=query, context=context)
 
     # Run generation
-    response = generate_command(request, settings_obj=settings)
+    response = generate_commands(request, settings_obj=settings)
 
     # Verify results
     assert response is not None
-    assert response.generated_command is not None
-    assert "ls" in response.generated_command.command
-    assert response.generated_command.explanation is not None
-    assert any(term in response.generated_command.explanation.lower() for term in ["file", "list", "directory"])
+    assert response.generated_commands is not None
+    assert len(response.generated_commands) > 0
+    assert "ls" in response.generated_commands[0].command_input.command
+    assert response.generated_commands[0].explanation is not None
+    assert any(term in response.generated_commands[0].explanation.lower() for term in ["file", "list", "directory"])
 
 
 @pytest.mark.integration
@@ -45,7 +48,9 @@ def test_custom_config_integration(settings):
     query = "find all text files in the system"
     context = {
         "current_directory": "/home/user",
-        "history": ["cd /home/user"]
+        "history": ["cd /home/user"],
+        "target": {"rhost": "10.10.10.40"},
+        "attacker": {"lhost": "192.168.1.5"}
     }
 
     # Create custom configuration
@@ -58,15 +63,16 @@ def test_custom_config_integration(settings):
     request = GenerateRequest(query=query, context=context)
 
     # Run generation with custom configuration
-    response = generate_command(request, settings_obj=settings, config=config)
+    response = generate_commands(request, settings_obj=settings, config=config)
 
     # Verify results
     assert response is not None
-    assert response.generated_command is not None
-    assert "find" in response.generated_command.command
-    assert "txt" in response.generated_command.command
-    assert response.generated_command.explanation is not None
-    assert any(term in response.generated_command.explanation.lower() for term in ["find", "text", "file"])
+    assert response.generated_commands is not None
+    assert len(response.generated_commands) > 0
+    assert "find" in response.generated_commands[0].command_input.command
+    assert "txt" in response.generated_commands[0].command_input.command
+    assert response.generated_commands[0].explanation is not None
+    assert any(term in response.generated_commands[0].explanation.lower() for term in ["find", "text", "file"])
 
 
 @pytest.mark.integration
@@ -76,21 +82,28 @@ def test_complex_query_integration(settings):
     query = "find all python files modified in the last 7 days and count them"
     context = {
         "current_directory": "/home/user/projects",
-        "history": ["cd /home/user/projects", "ls"]
+        "history": ["cd /home/user/projects", "ls"],
+        "target": {"rhost": "10.10.10.40"},
+        "attacker": {"lhost": "192.168.1.5"}
     }
 
     # Create request
     request = GenerateRequest(query=query, context=context)
 
     # Run generation
-    response = generate_command(request, settings_obj=settings)
+    response = generate_commands(request, settings_obj=settings)
 
     # Verify results
     assert response is not None
-    assert response.generated_command is not None
-    assert "find" in response.generated_command.command
-    assert ".py" in response.generated_command.command
-    assert any(term in response.generated_command.command for term in ["mtime", "ctime", "atime", "newer"])
-    assert any(term in response.generated_command.command for term in ["wc", "count", "|"])
-    assert response.generated_command.explanation is not None
-    assert any(term in response.generated_command.explanation.lower() for term in ["python", "file", "day", "count"])
+    assert response.generated_commands is not None
+    assert len(response.generated_commands) > 0
+    assert "find" in response.generated_commands[0].command_input.command
+    assert ".py" in response.generated_commands[0].command_input.command
+    assert any(term in response.generated_commands[0].command_input.command
+               for term in ["mtime", "ctime", "atime", "newer"])
+    assert any(term in response.generated_commands[0].command_input.command for term in ["wc", "count", "|"])
+    assert response.generated_commands[0].explanation is not None
+    assert any(
+        term in response.generated_commands[0].explanation.lower()
+        for term in ["python", "file", "day", "count"]
+    )

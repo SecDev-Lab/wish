@@ -3,10 +3,11 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from wish_command_generation_api.config import GeneratorConfig
-from wish_command_generation_api.core.generator import generate_command
+from wish_command_generation_api.core.generator import generate_commands
 from wish_command_generation_api.models import GeneratedCommand, GenerateRequest, GraphState
 
 
@@ -38,7 +39,7 @@ def mock_chat_openai():
         yield mock_instance
 
 
-def test_generate_command_with_mocks(sample_query, sample_context, mock_chat_openai):
+def test_generate_commands_with_mocks(sample_query, sample_context, mock_chat_openai):
     """Test command generation with mocked API calls"""
     # Configure mocks for the chain
     mock_chain = MagicMock()
@@ -52,16 +53,25 @@ def test_generate_command_with_mocks(sample_query, sample_context, mock_chat_ope
         # For result_formatter
     ]
 
+    # Create command input
+    command_input = CommandInput(
+        command="ls -la",
+        timeout_sec=60
+    )
+
+    # Create generated command
+    generated_command = GeneratedCommand(
+        command_input=command_input,
+        explanation="This command lists all files in the current directory, including hidden files."
+    )
+
     # Create a mock graph state for the result
     mock_result = GraphState(
         query=sample_query,
         context=sample_context,
         processed_query="list all files including hidden ones",
-        command_candidates=["ls -la"],
-        generated_command=GeneratedCommand(
-            command="ls -la",
-            explanation="This command lists all files in the current directory, including hidden files."
-        )
+        command_candidates=[command_input],
+        generated_commands=[generated_command]
     )
 
     # Mock the graph
@@ -77,13 +87,14 @@ def test_generate_command_with_mocks(sample_query, sample_context, mock_chat_ope
         settings_obj = Settings()
 
         # Run generation
-        response = generate_command(request, settings_obj=settings_obj)
+        response = generate_commands(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
-        assert response.generated_command is not None
-        assert response.generated_command.command == "ls -la"
-        assert response.generated_command.explanation == (
+        assert response.generated_commands is not None
+        assert len(response.generated_commands) > 0
+        assert response.generated_commands[0].command == "ls -la"
+        assert response.generated_commands[0].explanation == (
             "This command lists all files in the current directory, including hidden files."
         )
         assert response.error is None
@@ -93,7 +104,7 @@ def test_generate_command_with_mocks(sample_query, sample_context, mock_chat_ope
         mock_graph.invoke.assert_called_once()
 
 
-def test_generate_command_with_error(sample_query, sample_context, mock_chat_openai):
+def test_generate_commands_with_error(sample_query, sample_context, mock_chat_openai):
     """Test command generation with error handling"""
     # Mock the graph to raise an exception
     with patch("wish_command_generation_api.core.generator.create_command_generation_graph") as mock_create_graph:
@@ -108,17 +119,18 @@ def test_generate_command_with_error(sample_query, sample_context, mock_chat_ope
         settings_obj = Settings()
 
         # Run generation
-        response = generate_command(request, settings_obj=settings_obj)
+        response = generate_commands(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
-        assert response.generated_command is not None
-        assert response.generated_command.command == "echo 'Command generation failed'"
-        assert "Test error" in response.generated_command.explanation
+        assert response.generated_commands is not None
+        assert len(response.generated_commands) == 1
+        assert response.generated_commands[0].command == "echo 'Command generation failed'"
+        assert "Test error" in response.generated_commands[0].explanation
         assert response.error == "Test error"
 
 
-def test_generate_command_with_custom_config(sample_query, sample_context, mock_chat_openai):
+def test_generate_commands_with_custom_config(sample_query, sample_context, mock_chat_openai):
     """Test command generation with custom configuration"""
     # Configure mock responses
     mock_chain = MagicMock()
@@ -129,16 +141,25 @@ def test_generate_command_with_custom_config(sample_query, sample_context, mock_
         MagicMock(content="This command lists all files with detailed information.")  # For result_formatter
     ]
 
+    # Create command input
+    command_input = CommandInput(
+        command="ls -l",
+        timeout_sec=60
+    )
+
+    # Create generated command
+    generated_command = GeneratedCommand(
+        command_input=command_input,
+        explanation="This command lists all files with detailed information."
+    )
+
     # Create a mock graph state for the result
     mock_result = GraphState(
         query=sample_query,
         context=sample_context,
         processed_query="list all files with details",
-        command_candidates=["ls -l"],
-        generated_command=GeneratedCommand(
-            command="ls -l",
-            explanation="This command lists all files with detailed information."
-        )
+        command_candidates=[command_input],
+        generated_commands=[generated_command]
     )
 
     # Mock the graph
@@ -159,20 +180,21 @@ def test_generate_command_with_custom_config(sample_query, sample_context, mock_
         settings_obj = Settings()
 
         # Run generation
-        response = generate_command(request, settings_obj=settings_obj, config=config)
+        response = generate_commands(request, settings_obj=settings_obj, config=config)
 
         # Verify results
         assert response is not None
-        assert response.generated_command is not None
-        assert response.generated_command.command == "ls -l"
-        assert response.generated_command.explanation == "This command lists all files with detailed information."
+        assert response.generated_commands is not None
+        assert len(response.generated_commands) > 0
+        assert response.generated_commands[0].command == "ls -l"
+        assert response.generated_commands[0].explanation == "This command lists all files with detailed information."
         assert response.error is None
 
         # Verify the graph was created with the custom config
         mock_create_graph.assert_called_once_with(settings_obj=settings_obj, config=config)
 
 
-def test_generate_command_with_default_config(sample_query, sample_context, mock_chat_openai):
+def test_generate_commands_with_default_config(sample_query, sample_context, mock_chat_openai):
     """Test command generation with default configuration"""
     # Configure mock responses
     mock_chain = MagicMock()
@@ -183,16 +205,25 @@ def test_generate_command_with_default_config(sample_query, sample_context, mock
         MagicMock(content="This command lists all files in the current directory.")  # For result_formatter
     ]
 
+    # Create command input
+    command_input = CommandInput(
+        command="ls",
+        timeout_sec=60
+    )
+
+    # Create generated command
+    generated_command = GeneratedCommand(
+        command_input=command_input,
+        explanation="This command lists all files in the current directory."
+    )
+
     # Create a mock graph state for the result
     mock_result = GraphState(
         query=sample_query,
         context=sample_context,
         processed_query="list all files",
-        command_candidates=["ls"],
-        generated_command=GeneratedCommand(
-            command="ls",
-            explanation="This command lists all files in the current directory."
-        )
+        command_candidates=[command_input],
+        generated_commands=[generated_command]
     )
 
     # Mock the graph
@@ -208,13 +239,14 @@ def test_generate_command_with_default_config(sample_query, sample_context, mock
         settings_obj = Settings()
 
         # Run generation
-        response = generate_command(request, settings_obj=settings_obj)
+        response = generate_commands(request, settings_obj=settings_obj)
 
         # Verify results
         assert response is not None
-        assert response.generated_command is not None
-        assert response.generated_command.command == "ls"
-        assert response.generated_command.explanation == "This command lists all files in the current directory."
+        assert response.generated_commands is not None
+        assert len(response.generated_commands) > 0
+        assert response.generated_commands[0].command == "ls"
+        assert response.generated_commands[0].explanation == "This command lists all files in the current directory."
         assert response.error is None
 
         # Verify the graph was created with default config (None)

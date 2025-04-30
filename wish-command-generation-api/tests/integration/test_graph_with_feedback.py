@@ -22,7 +22,11 @@ def test_graph_with_no_feedback(settings):
     # Create the initial state
     initial_state = GraphState(
         query="List all files in the current directory",
-        context={"current_directory": "/home/user"}
+        context={
+            "current_directory": "/home/user",
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        }
     )
 
     # Create the graph
@@ -35,17 +39,22 @@ def test_graph_with_no_feedback(settings):
     # Verify the result contains a generated command
     assert result is not None
 
-    # Get the generated command (handle different result structures)
-    if hasattr(result, "generated_command"):
-        generated_command = result.generated_command
-    elif isinstance(result, dict) and "generated_command" in result:
-        generated_command = result["generated_command"]
+    # Get the generated commands (handle different result structures)
+    if hasattr(result, "generated_commands"):
+        generated_commands = result.generated_commands
+    elif isinstance(result, dict) and "generated_commands" in result:
+        generated_commands = result["generated_commands"]
     else:
         # Try to access as AddableValuesDict
-        generated_command = result.values.get("generated_command")
+        generated_commands = result.values.get("generated_commands")
 
-    assert generated_command is not None
-    assert "ls" in generated_command.command
+    assert generated_commands is not None
+    assert len(generated_commands) > 0
+
+    # Get the first command
+    generated_command = generated_commands[0]
+
+    assert "ls" in generated_command.command_input.command
     assert "file" in generated_command.explanation.lower() or "list" in generated_command.explanation.lower()
 
 
@@ -68,7 +77,11 @@ def test_graph_with_timeout_feedback(settings):
     # Create the initial state with feedback
     initial_state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
-        context={"current_directory": "/home/user"},
+        context={
+            "current_directory": "/home/user",
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
         act_result=act_result
     )
 
@@ -82,17 +95,22 @@ def test_graph_with_timeout_feedback(settings):
     # Verify the result contains a generated command
     assert result is not None
 
-    # Get the generated command (handle different result structures)
-    if hasattr(result, "generated_command"):
-        generated_command = result.generated_command
-    elif isinstance(result, dict) and "generated_command" in result:
-        generated_command = result["generated_command"]
+    # Get the generated commands (handle different result structures)
+    if hasattr(result, "generated_commands"):
+        generated_commands = result.generated_commands
+    elif isinstance(result, dict) and "generated_commands" in result:
+        generated_commands = result["generated_commands"]
     else:
         # Try to access as AddableValuesDict
-        generated_command = result.values.get("generated_command")
+        generated_commands = result.values.get("generated_commands")
 
-    assert generated_command is not None
-    assert any(term in generated_command.command for term in ["scan", "10.10.10.40"])
+    assert generated_commands is not None
+    assert len(generated_commands) > 0
+
+    # Get the first command
+    generated_command = generated_commands[0]
+
+    assert any(term in generated_command.command_input.command for term in ["scan", "10.10.10.40"])
     assert any(term in generated_command.explanation.lower() for term in ["fast", "timeout", "alternative"])
 
 
@@ -115,7 +133,11 @@ def test_graph_with_network_error_feedback(settings):
     # Create the initial state with feedback
     initial_state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
-        context={"current_directory": "/home/user"},
+        context={
+            "current_directory": "/home/user",
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
         act_result=act_result
     )
 
@@ -129,17 +151,22 @@ def test_graph_with_network_error_feedback(settings):
     # Verify the result contains a generated command
     assert result is not None
 
-    # Get the generated command (handle different result structures)
-    if hasattr(result, "generated_command"):
-        generated_command = result.generated_command
-    elif isinstance(result, dict) and "generated_command" in result:
-        generated_command = result["generated_command"]
+    # Get the generated commands (handle different result structures)
+    if hasattr(result, "generated_commands"):
+        generated_commands = result.generated_commands
+    elif isinstance(result, dict) and "generated_commands" in result:
+        generated_commands = result["generated_commands"]
     else:
         # Try to access as AddableValuesDict
-        generated_command = result.values.get("generated_command")
+        generated_commands = result.values.get("generated_commands")
 
-    assert generated_command is not None
-    assert any(term in generated_command.command for term in ["scan", "10.10.10.40"])
+    assert generated_commands is not None
+    assert len(generated_commands) > 0
+
+    # Get the first command
+    generated_command = generated_commands[0]
+
+    assert any(term in generated_command.command_input.command for term in ["scan", "10.10.10.40"])
     # Modify the assertion to check for more general terms related to port scanning
     assert any(term in generated_command.explanation.lower() for term in ["port", "scan", "rustscan"])
 
@@ -163,7 +190,11 @@ def test_graph_with_unknown_error_feedback(settings):
     # Create the initial state with feedback
     initial_state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
-        context={"current_directory": "/home/user"},
+        context={
+            "current_directory": "/home/user",
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
         act_result=act_result
     )
 
@@ -177,15 +208,20 @@ def test_graph_with_unknown_error_feedback(settings):
     # Verify the result contains a generated command
     assert result is not None
 
-    # Get the generated command (handle different result structures)
-    if hasattr(result, "generated_command"):
-        generated_command = result.generated_command
-    elif isinstance(result, dict) and "generated_command" in result:
-        generated_command = result["generated_command"]
+    # Get the generated commands (handle different result structures)
+    if hasattr(result, "generated_commands"):
+        generated_commands = result.generated_commands
+    elif isinstance(result, dict) and "generated_commands" in result:
+        generated_commands = result["generated_commands"]
     else:
         # Try to access as AddableValuesDict
-        generated_command = result.values.get("generated_command")
+        generated_commands = result.values.get("generated_commands")
 
-    assert generated_command is not None
-    assert any(term in generated_command.command for term in ["scan", "10.10.10.40"])
+    assert generated_commands is not None
+    assert len(generated_commands) > 0
+
+    # Get the first command
+    generated_command = generated_commands[0]
+
+    assert any(term in generated_command.command_input.command for term in ["scan", "10.10.10.40"])
     assert "port" in generated_command.explanation.lower()
