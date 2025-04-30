@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.6.28] - 2025-04-30
+
+### Added
+
 - Added support for multiple command generation:
   - Added ability to generate and return multiple command suggestions
   - Added DEFAULT_TIMEOUT_SEC constant (60 seconds) for default command timeout
