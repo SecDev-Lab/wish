@@ -68,6 +68,29 @@ def clean_llm_response(response_text: str) -> str:
     return cleaned_text
 
 
+# 変数置換用のプロンプト
+VARIABLE_REPLACEMENT_PROMPT = """あなたは合法なペネトレーションテストに従事しているAIです。
+
+「コマンド」を受け取り、コマンド内の変数を実際の値に置き換えてください。
+
+# コマンド
+{command}
+
+# 置換ルール
+- $RHOST または $TARGET_IP → {rhost}
+- $LHOST → {lhost}
+
+出力は以下の形式の有効なJSONのみを返してください:
+{{ "command": "置換後のコマンド" }}
+
+重要:
+- コードブロック記法（```）は使用しないでください
+- 説明や追加のテキストは含めないでください
+- 出力は必ず有効な単一のJSONオブジェクトである必要があります
+- JSONオブジェクトのみを出力してください
+"""
+
+
 def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: Settings) -> GraphState:
     """Modify commands to avoid interactive prompts and use allowed list files.
 
@@ -86,6 +109,34 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
         # Create the LLM
         model = settings_obj.OPENAI_MODEL or "gpt-4o"
         llm = ChatOpenAI(model=model, temperature=0.1)
+
+        # コンテキストから RHOST と LHOST を取得
+        rhost = None
+        lhost = None
+
+        # コンテキストから値を取得
+        if state.context:
+            # target情報から RHOST を取得
+            if "target" in state.context and "rhost" in state.context["target"]:
+                rhost = state.context["target"]["rhost"]
+            # wish情報から RHOST を取得
+            elif "wish" in state.context and "context" in state.context["wish"]:
+                wish_context = state.context["wish"]["context"]
+                if "target" in wish_context and "rhost" in wish_context["target"]:
+                    rhost = wish_context["target"]["rhost"]
+
+            # attacker情報から LHOST を取得
+            if "attacker" in state.context and "lhost" in state.context["attacker"]:
+                lhost = state.context["attacker"]["lhost"]
+            # wish情報から LHOST を取得
+            elif "wish" in state.context and "context" in state.context["wish"]:
+                wish_context = state.context["wish"]["context"]
+                if "attacker" in wish_context and "lhost" in wish_context["attacker"]:
+                    lhost = wish_context["attacker"]["lhost"]
+
+        # assert を使って rhost と lhost が None でないことをアサート
+        assert rhost is not None, "変数置換に必要な RHOST の値が見つかりません"
+        assert lhost is not None, "変数置換に必要な LHOST の値が見つかりません"
 
         # Create the prompt for dialog avoidance
         dialog_avoidance_prompt = ChatPromptTemplate.from_template(
@@ -192,14 +243,41 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
                 # JSONとしてパース
                 try:
                     list_files_json = json.loads(cleaned_list_files_result)
-                    final_command = list_files_json.get("command", modified_command)
-                    logger.info(f"List file replacement applied: {modified_command} -> {final_command}")
+                    modified_command = list_files_json.get("command", modified_command)
+                    logger.info(f"List file replacement applied: {modified_command} -> {modified_command}")
                 except json.JSONDecodeError as e:
                     logger.error(f"JSON decode error in list file replacement: {e}, response: "
                                  f"{cleaned_list_files_result}")
-                    final_command = modified_command
+                except Exception as e:
+                    logger.error(f"Error applying list file replacement: {e}", exc_info=True)
             except Exception as e:
                 logger.error(f"Error applying list file replacement: {e}", exc_info=True)
+
+            # 変数置換のチェーンを作成
+            variable_replacement_prompt = ChatPromptTemplate.from_template(VARIABLE_REPLACEMENT_PROMPT)
+            variable_replacement_chain = variable_replacement_prompt | llm | str_parser
+
+            # 変数置換を適用
+            try:
+                variable_result = variable_replacement_chain.invoke({
+                    "command": modified_command,
+                    "rhost": rhost,  # None でないことが保証されている
+                    "lhost": lhost   # None でないことが保証されている
+                })
+
+                # LLMの応答をクリーンアップ
+                cleaned_variable_result = clean_llm_response(variable_result)
+
+                # JSONとしてパース
+                try:
+                    variable_json = json.loads(cleaned_variable_result)
+                    final_command = variable_json.get("command", modified_command)
+                    logger.info(f"Variable replacement applied: {modified_command} -> {final_command}")
+                except json.JSONDecodeError as e:
+                    logger.error(f"JSON decode error in variable replacement: {e}, response: {cleaned_variable_result}")
+                    final_command = modified_command
+            except Exception as e:
+                logger.error(f"Error applying variable replacement: {e}", exc_info=True)
                 final_command = modified_command
 
             # Call StepTrace for modified command if run_id is provided

@@ -117,19 +117,11 @@ class BashBackend(Backend):
         # Add StepTrace for command execution start
         self._add_command_start_trace(wish, command, timeout_sec)
 
-        # Replace variables in the command
-        replaced_command = self._replace_variables(command, wish)
-
         with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
             try:
-                # Log original and replaced commands if different
-                if command != replaced_command:
-                    stdout_file.write(f"# Original command: {command}\n")
-                    stdout_file.write(f"# Command after variable replacement: {replaced_command}\n\n")
-
                 # Start the process (this is still synchronous, but the interface is async)
                 process = subprocess.Popen(
-                    replaced_command,
+                    command,
                     stdout=stdout_file,
                     stderr=stderr_file,
                     shell=True,
@@ -165,54 +157,6 @@ class BashBackend(Backend):
                 error_msg = f"Unexpected error: {str(e)}"
                 stderr_file.write(error_msg)
                 self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
-
-    def _replace_variables(self, command: str, wish: Wish) -> str:
-        """Replace variables in the command.
-
-        Args:
-            command: The command before variable replacement.
-            wish: The wish object.
-
-        Returns:
-            The command after variable replacement.
-        """
-        if not command:
-            print("Warning: Empty command provided for variable replacement")
-            return command
-
-        # Basic variable replacements
-        replacements = {}
-
-        # Get target IP and LHOST
-        try:
-            # Get information from wish object
-            if hasattr(wish, 'context') and wish.context:
-                target_info = wish.context.get('target', {})
-                attacker_info = wish.context.get('attacker', {})
-
-                # Target IP
-                rhost = target_info.get('rhost', '')
-                if rhost:
-                    replacements['$TARGET_IP'] = rhost
-
-                # Attacker IP
-                lhost = attacker_info.get('lhost', '')
-                if lhost:
-                    replacements['$LHOST'] = lhost
-        except Exception as e:
-            print(f"Error extracting variables from wish: {str(e)}")
-
-        # Execute variable replacement
-        result = command
-        for var, value in replacements.items():
-            if var in result:
-                if value:  # Only replace if value exists
-                    print(f"Replacing {var} with {value}")
-                    result = result.replace(var, value)
-                else:
-                    print(f"Warning: Variable {var} found in command but no value available")
-
-        return result
 
     def _handle_command_failure(
         self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState
