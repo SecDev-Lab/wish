@@ -147,7 +147,12 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
             if not command_candidates:
                 logger.warning("No valid commands found in LLM response")
-                command_candidates = [CommandInput(command="echo 'No valid commands generated'", timeout_sec=DEFAULT_TIMEOUT_SEC)]
+                command_candidates = [
+                    CommandInput(
+                        command="echo 'No valid commands generated'",
+                        timeout_sec=DEFAULT_TIMEOUT_SEC
+                    )
+                ]
 
             logger.info(f"Generated {len(command_candidates)} commands to handle network error")
 
@@ -169,7 +174,12 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 query=state.query,
                 context=state.context,
                 processed_query=state.processed_query,
-                command_candidates=[CommandInput(command="echo 'Failed to generate network error handling command'", timeout_sec=DEFAULT_TIMEOUT_SEC)],
+                command_candidates=[
+                    CommandInput(
+                        command="echo 'Failed to generate network error handling command'",
+                        timeout_sec=DEFAULT_TIMEOUT_SEC
+                    )
+                ],
                 generated_commands=state.generated_commands,
                 is_retry=True,
                 error_type="NETWORK_ERROR",
@@ -183,7 +193,12 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             query=state.query,
             context=state.context,
             processed_query=state.processed_query,
-            command_candidates=[CommandInput(command="echo 'Error handling network error'", timeout_sec=DEFAULT_TIMEOUT_SEC)],
+            command_candidates=[
+                CommandInput(
+                    command="echo 'Error handling network error'",
+                    timeout_sec=DEFAULT_TIMEOUT_SEC
+                )
+            ],
             generated_commands=state.generated_commands,
             is_retry=True,
             error_type="NETWORK_ERROR",

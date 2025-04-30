@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from wish_command_generation_api.constants import DEFAULT_TIMEOUT_SEC

@@ -148,14 +148,14 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
             # Extract commands and create CommandInput objects
             command_candidates = []
-            
+
             for cmd_input in response_json.get("command_inputs", []):
                 command = cmd_input.get("command", "")
                 timeout_sec = cmd_input.get("timeout_sec")
-                
+
                 # タイムアウト値が設定されていることを確認
                 assert timeout_sec is not None, f"タイムアウト値が設定されていません: {command}"
-                
+
                 if command:
                     # CommandInputオブジェクトを作成
                     command_input = CommandInput(

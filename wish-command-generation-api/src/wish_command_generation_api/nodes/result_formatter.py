@@ -1,11 +1,10 @@
 """Result formatter node for the command generation graph."""
 
 import logging
-from typing import Annotated, List
+from typing import Annotated
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from ..models import GeneratedCommand, GraphState
@@ -59,7 +58,7 @@ def format_result(state: Annotated[GraphState, "Current state"], settings_obj: S
         generated_commands = []
         for cmd_input in state.command_candidates:
             command = cmd_input.command
-            
+
             # タイムアウト値が設定されていることを確認
             assert cmd_input.timeout_sec is not None, f"タイムアウト値が設定されていません: {command}"
 

@@ -14,17 +14,17 @@ class GeneratedCommand(BaseModel):
 
     explanation: str = Field(description="Explanation of what the command does")
     """Explanation of what the command does and why it was chosen."""
-    
+
     @property
     def command(self) -> str:
         """コマンド文字列を取得"""
         return self.command_input.command
-    
+
     @property
     def timeout_sec(self) -> int | None:
         """タイムアウト値を取得"""
         return self.command_input.timeout_sec
-    
+
     @classmethod
     def from_command_input(cls, command_input: CommandInput, explanation: str) -> "GeneratedCommand":
         """CommandInputからGeneratedCommandを作成する"""

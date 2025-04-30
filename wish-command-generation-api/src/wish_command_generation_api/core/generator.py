@@ -1,7 +1,7 @@
 """Generator module for the command generation API."""
 
 import logging
-from typing import Optional, List
+from typing import Optional
 
 from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
@@ -80,7 +80,7 @@ def generate_commands(
                     logger.warning(f"Command has no timeout specified: {cmd.command}")
                     # エラーを発生させる（タイムアウト値が必須）
                     raise ValueError(f"Command has no timeout specified: {cmd.command}")
-                    
+
             return GenerateResponse(
                 generated_commands=generated_commands
             )

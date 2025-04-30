@@ -8,7 +8,13 @@ from langchain_openai import ChatOpenAI
 from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
-from ..constants import DEFAULT_TIMEOUT_SEC, DIALOG_AVOIDANCE_DOC, DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC, LIST_FILES_DOC
+from ..constants import (
+    DEFAULT_TIMEOUT_SEC,
+    DIALOG_AVOIDANCE_DOC,
+    DIVIDE_AND_CONQUER_DOC,
+    FAST_ALTERNATIVE_DOC,
+    LIST_FILES_DOC,
+)
 from ..models import GraphState
 
 # Configure logging

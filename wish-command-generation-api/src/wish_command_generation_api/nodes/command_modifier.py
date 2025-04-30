@@ -196,11 +196,11 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
         modified_commands = []
         for i, cmd_input in enumerate(state.command_candidates):
             command = cmd_input.command
-            
+
             # タイムアウト値が設定されていることを確認
             assert cmd_input.timeout_sec is not None, f"タイムアウト値が設定されていません: {command}"
             timeout_sec = cmd_input.timeout_sec
-            
+
             # Call StepTrace if run_id is provided
             if state.run_id:
                 try:
@@ -211,7 +211,7 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
                     )
                 except Exception as e:
                     logger.error(f"Error calling StepTrace: {e}", exc_info=True)
-                    
+
             # Create the chains for each command to avoid reusing the same chain
             dialog_avoidance_chain = dialog_avoidance_prompt | llm | str_parser
             list_files_chain = list_files_prompt | llm | str_parser

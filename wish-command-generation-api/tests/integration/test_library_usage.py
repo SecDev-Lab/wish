@@ -96,4 +96,7 @@ def test_complex_query_integration(settings):
     assert any(term in response.generated_commands[0].command for term in ["mtime", "ctime", "atime", "newer"])
     assert any(term in response.generated_commands[0].command for term in ["wc", "count", "|"])
     assert response.generated_commands[0].explanation is not None
-    assert any(term in response.generated_commands[0].explanation.lower() for term in ["python", "file", "day", "count"])
+    assert any(
+        term in response.generated_commands[0].explanation.lower()
+        for term in ["python", "file", "day", "count"]
+    )

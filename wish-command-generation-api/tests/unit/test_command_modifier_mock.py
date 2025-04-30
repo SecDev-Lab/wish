@@ -58,7 +58,12 @@ def test_modify_command_list_files_mock(mock_modifier, settings):
     state = GraphState(
         query="Brute force SMB login",
         context={},
-        command_candidates=[CommandInput(command="hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40", timeout_sec=DEFAULT_TIMEOUT_SEC)]
+        command_candidates=[
+            CommandInput(
+                command="hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40",
+                timeout_sec=DEFAULT_TIMEOUT_SEC
+            )
+        ]
     )
 
     # Mock the modifier to return a modified state
@@ -81,7 +86,8 @@ def test_modify_command_list_files_mock(mock_modifier, settings):
     # Assert
     assert len(result.command_candidates) == 1
     assert "/usr/share/seclists/Usernames/top-usernames-shortlist.txt" in result.command_candidates[0].command
-    assert "/usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt" in result.command_candidates[0].command
+    assert "/usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt" in \
+           result.command_candidates[0].command
 
 
 @patch("wish_command_generation_api.nodes.command_modifier.modify_command")
@@ -128,7 +134,10 @@ def test_modify_command_multiple_commands_mock(mock_modifier, settings):
         context={},
         command_candidates=[
             CommandInput(command="msfconsole", timeout_sec=DEFAULT_TIMEOUT_SEC),
-            CommandInput(command="hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40", timeout_sec=DEFAULT_TIMEOUT_SEC)
+            CommandInput(
+                command="hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40",
+                timeout_sec=DEFAULT_TIMEOUT_SEC
+            )
         ]
     )
 
@@ -157,4 +166,5 @@ def test_modify_command_multiple_commands_mock(mock_modifier, settings):
     assert len(result.command_candidates) == 2
     assert "exit -y" in result.command_candidates[0].command
     assert "/usr/share/seclists/Usernames/top-usernames-shortlist.txt" in result.command_candidates[1].command
-    assert "/usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt" in result.command_candidates[1].command
+    assert "/usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt" in \
+           result.command_candidates[1].command
