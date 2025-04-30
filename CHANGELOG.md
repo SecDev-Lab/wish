@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.6.27] - 2025-04-30
+
+### Added
+
 - Added LLM-based variable replacement to command_modifier.py:
   - Added variable replacement prompt for $RHOST, $TARGET_IP, and $LHOST variables
   - Added robust context extraction for target and attacker information
