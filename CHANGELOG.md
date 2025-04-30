@@ -9,26 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added LLM-based variable replacement to command_modifier.py:
-  - Added variable replacement prompt for $RHOST, $TARGET_IP, and $LHOST variables
-  - Added robust context extraction for target and attacker information
-  - Added strict validation with assertions to fail fast when required values are missing
+- Added support for multiple command generation:
+  - Added ability to generate and return multiple command suggestions
+  - Added DEFAULT_TIMEOUT_SEC constant (60 seconds) for default command timeout
+  - Added strict validation to ensure all commands have timeout values set
 
 ### Changed
 
-- Refactored variable replacement logic:
-  - Moved variable replacement from bash.py to command_modifier.py
-  - Enhanced RapidPen/rapidpen-act/app.py to include target and attacker information in context
-  - Improved error handling with explicit assertions for required environment variables
+- Refactored command generation system to support multiple commands:
+  - Changed GeneratedCommand class to use CommandInput objects instead of raw strings
+  - Updated GraphState to track multiple command candidates
+  - Modified result_formatter.py to process all command candidates
+  - Improved error handling with explicit exceptions instead of fallback commands
+  - Renamed generate_command to generate_commands throughout the codebase
 
 ### Fixed
 
+- Fixed timeout handling in command generation:
+  - Added proper timeout value validation in multiple components
+  - Ensured consistent timeout handling across the command generation pipeline
+  - Added assertions to fail fast when timeout values are missing
+
 ### Removed
 
-- Removed _replace_variables method from bash.py:
-  - Removed direct variable replacement in command execution
-  - Removed related tests in test_bash_backend.py
-  - Consolidated variable replacement in command generation phase for better separation of concerns
+- Removed fallback command generation in error cases:
+  - Removed silent error handling in favor of explicit exceptions
+  - Removed automatic fallback to echo commands in error scenarios
 
 
 ## [0.6.27] - 2025-04-30
