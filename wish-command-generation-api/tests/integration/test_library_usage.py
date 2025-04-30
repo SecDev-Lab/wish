@@ -99,7 +99,8 @@ def test_complex_query_integration(settings):
     assert len(response.generated_commands) > 0
     assert "find" in response.generated_commands[0].command_input.command
     assert ".py" in response.generated_commands[0].command_input.command
-    assert any(term in response.generated_commands[0].command_input.command for term in ["mtime", "ctime", "atime", "newer"])
+    assert any(term in response.generated_commands[0].command_input.command
+               for term in ["mtime", "ctime", "atime", "newer"])
     assert any(term in response.generated_commands[0].command_input.command for term in ["wc", "count", "|"])
     assert response.generated_commands[0].explanation is not None
     assert any(
