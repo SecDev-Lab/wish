@@ -31,6 +31,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Consolidated variable replacement in command generation phase for better separation of concerns
 
 
+## [0.6.27] - 2025-04-30
+
+### Added
+
+- Added LLM-based variable replacement to command_modifier.py:
+  - Added variable replacement prompt for $RHOST, $TARGET_IP, and $LHOST variables
+  - Added robust context extraction for target and attacker information
+  - Added strict validation with assertions to fail fast when required values are missing
+
+### Changed
+
+- Refactored variable replacement logic:
+  - Moved variable replacement from bash.py to command_modifier.py
+  - Enhanced RapidPen/rapidpen-act/app.py to include target and attacker information in context
+  - Improved error handling with explicit assertions for required environment variables
+
+### Fixed
+
+### Removed
+
+- Removed _replace_variables method from bash.py:
+  - Removed direct variable replacement in command execution
+  - Removed related tests in test_bash_backend.py
+  - Consolidated variable replacement in command generation phase for better separation of concerns
+
+
 ## [0.6.26] - 2025-04-29
 
 ### Added
