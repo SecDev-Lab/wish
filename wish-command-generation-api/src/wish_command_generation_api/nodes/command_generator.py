@@ -9,7 +9,6 @@ from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from ..constants import (
-    DEFAULT_TIMEOUT_SEC,
     DIALOG_AVOIDANCE_DOC,
     DIVIDE_AND_CONQUER_DOC,
     FAST_ALTERNATIVE_DOC,
@@ -117,7 +116,8 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
         logger.info(f"Generated command: {command}")
 
         # Generate a list of command candidates (in this case, just one)
-        command_candidates = [CommandInput(command=command, timeout_sec=DEFAULT_TIMEOUT_SEC)]
+        # タイムアウト値は GraphState.initial_timeout_sec から取得
+        command_candidates = [CommandInput(command=command, timeout_sec=state.initial_timeout_sec)]
 
         # Update the state
         return GraphState(

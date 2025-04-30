@@ -38,7 +38,8 @@ def generate_commands(
             query=request.query,
             context=request.context,
             act_result=request.act_result,
-            run_id=request.run_id
+            run_id=request.run_id,
+            initial_timeout_sec=request.initial_timeout_sec
         )
 
         # Log feedback if present
@@ -72,54 +73,17 @@ def generate_commands(
             if hasattr(result.result_formatter, "generated_commands"):
                 generated_commands = result.result_formatter.generated_commands
 
-        # If result was found
-        if generated_commands is not None:
-            # 各コマンドのタイムアウト値が設定されていることを確認
-            for cmd in generated_commands:
-                if cmd.timeout_sec is None:
-                    logger.warning(f"Command has no timeout specified: {cmd.command}")
-                    # エラーを発生させる（タイムアウト値が必須）
-                    raise ValueError(f"Command has no timeout specified: {cmd.command}")
+        assert generated_commands is not None, "No generated commands found in the result"
 
-            return GenerateResponse(
-                generated_commands=generated_commands
-            )
-
-        # Fallback: If result was not found
-        logger.error("Could not find generated_commands in any expected location")
-
-        # Create a fallback command input
-        cmd_input = CommandInput(
-            command="echo 'Command generation failed'",
-            timeout_sec=60  # デフォルトのタイムアウト値
-        )
-
-        # Create a fallback generated command
-        fallback_command = GeneratedCommand.from_command_input(
-            command_input=cmd_input,
-            explanation="Error: Failed to generate command due to API error"
-        )
+        # 各コマンドのタイムアウト値が設定されていることを確認
+        for cmd in generated_commands:
+            if cmd.timeout_sec is None:
+                logger.warning(f"Command has no timeout specified: {cmd.command}")
+                # エラーを発生させる（タイムアウト値が必須）
+                raise ValueError(f"Command has no timeout specified: {cmd.command}")
 
         return GenerateResponse(
-            generated_commands=[fallback_command],
-            error="Failed to generate command"
+            generated_commands=generated_commands
         )
     except Exception as e:
-        logger.exception("Error generating commands")
-
-        # Create a fallback command input
-        cmd_input = CommandInput(
-            command="echo 'Command generation failed'",
-            timeout_sec=60  # デフォルトのタイムアウト値
-        )
-
-        # Create a fallback generated command
-        fallback_command = GeneratedCommand.from_command_input(
-            command_input=cmd_input,
-            explanation=f"Error: {str(e)}"
-        )
-
-        return GenerateResponse(
-            generated_commands=[fallback_command],
-            error=str(e)
-        )
+        raise RuntimeError("Error generating commands") from e

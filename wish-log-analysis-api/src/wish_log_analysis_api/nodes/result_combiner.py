@@ -41,6 +41,9 @@ def combine_results(state: GraphState, settings_obj: Settings) -> GraphState:
     if state.api_error and command_state != CommandState.API_ERROR:
         command_state = CommandState.API_ERROR
 
+    # タイムアウト値を取得（元のコマンド結果から）
+    timeout_sec = state.command_result.timeout_sec
+
     # Create the analyzed command result
     analyzed_command_result = CommandResult(
         num=state.command_result.num,
@@ -51,7 +54,7 @@ def combine_results(state: GraphState, settings_obj: Settings) -> GraphState:
         state=command_state or CommandState.API_ERROR,
         created_at=state.command_result.created_at,
         finished_at=state.command_result.finished_at,
-        timeout_sec=state.command_result.timeout_sec
+        timeout_sec=timeout_sec
     )
 
     # Set the analyzed command result in the new state
