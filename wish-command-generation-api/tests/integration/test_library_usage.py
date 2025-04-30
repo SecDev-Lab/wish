@@ -21,7 +21,9 @@ def test_end_to_end_generation(settings):
     query = "list all files in the current directory"
     context = {
         "current_directory": "/home/user",
-        "history": ["cd /home/user", "mkdir test"]
+        "history": ["cd /home/user", "mkdir test"],
+        "target": {"rhost": "10.10.10.40"},
+        "attacker": {"lhost": "192.168.1.5"}
     }
 
     # Create request
@@ -34,7 +36,7 @@ def test_end_to_end_generation(settings):
     assert response is not None
     assert response.generated_commands is not None
     assert len(response.generated_commands) > 0
-    assert "ls" in response.generated_commands[0].command
+    assert "ls" in response.generated_commands[0].command_input.command
     assert response.generated_commands[0].explanation is not None
     assert any(term in response.generated_commands[0].explanation.lower() for term in ["file", "list", "directory"])
 
@@ -46,7 +48,9 @@ def test_custom_config_integration(settings):
     query = "find all text files in the system"
     context = {
         "current_directory": "/home/user",
-        "history": ["cd /home/user"]
+        "history": ["cd /home/user"],
+        "target": {"rhost": "10.10.10.40"},
+        "attacker": {"lhost": "192.168.1.5"}
     }
 
     # Create custom configuration
@@ -65,8 +69,8 @@ def test_custom_config_integration(settings):
     assert response is not None
     assert response.generated_commands is not None
     assert len(response.generated_commands) > 0
-    assert "find" in response.generated_commands[0].command
-    assert "txt" in response.generated_commands[0].command
+    assert "find" in response.generated_commands[0].command_input.command
+    assert "txt" in response.generated_commands[0].command_input.command
     assert response.generated_commands[0].explanation is not None
     assert any(term in response.generated_commands[0].explanation.lower() for term in ["find", "text", "file"])
 
@@ -78,7 +82,9 @@ def test_complex_query_integration(settings):
     query = "find all python files modified in the last 7 days and count them"
     context = {
         "current_directory": "/home/user/projects",
-        "history": ["cd /home/user/projects", "ls"]
+        "history": ["cd /home/user/projects", "ls"],
+        "target": {"rhost": "10.10.10.40"},
+        "attacker": {"lhost": "192.168.1.5"}
     }
 
     # Create request
@@ -91,10 +97,10 @@ def test_complex_query_integration(settings):
     assert response is not None
     assert response.generated_commands is not None
     assert len(response.generated_commands) > 0
-    assert "find" in response.generated_commands[0].command
-    assert ".py" in response.generated_commands[0].command
-    assert any(term in response.generated_commands[0].command for term in ["mtime", "ctime", "atime", "newer"])
-    assert any(term in response.generated_commands[0].command for term in ["wc", "count", "|"])
+    assert "find" in response.generated_commands[0].command_input.command
+    assert ".py" in response.generated_commands[0].command_input.command
+    assert any(term in response.generated_commands[0].command_input.command for term in ["mtime", "ctime", "atime", "newer"])
+    assert any(term in response.generated_commands[0].command_input.command for term in ["wc", "count", "|"])
     assert response.generated_commands[0].explanation is not None
     assert any(
         term in response.generated_commands[0].explanation.lower()

@@ -43,7 +43,9 @@ def sample_context():
     """Create a sample context for testing"""
     return {
         "current_directory": "/home/user",
-        "history": ["cd /home/user", "mkdir test"]
+        "history": ["cd /home/user", "mkdir test"],
+        "target": {"rhost": "10.10.10.40"},
+        "attacker": {"lhost": "192.168.1.5"}
     }
 
 
@@ -182,7 +184,7 @@ class TestLambdaHandler:
                     body = json.loads(response["body"])
                     assert "generated_commands" in body
                     assert len(body["generated_commands"]) > 0
-                    assert body["generated_commands"][0]["command"] == "ls -la"
+                    assert body["generated_commands"][0]["command_input"]["command"] == "ls -la"
                     assert body["generated_commands"][0]["explanation"] == (
                         "This command lists all files in the current directory, including hidden files."
                     )

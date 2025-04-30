@@ -21,7 +21,12 @@ def sample_state():
     """Create a sample graph state for testing."""
     return GraphState(
         query="list all files in the current directory",
-        context={"current_directory": "/home/user", "history": ["cd /home/user", "mkdir test"]},
+        context={
+            "current_directory": "/home/user",
+            "history": ["cd /home/user", "mkdir test"],
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
     )
 
 
@@ -99,17 +104,13 @@ def test_generate_command_exception(sample_state, settings):
     mock_llm = MagicMock()
     mock_llm.invoke.side_effect = Exception("Test error")
 
-    # Act
+    # Act & Assert
     with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
-        with patch("wish_command_generation_api.nodes.command_generator.logger") as mock_logger:
-            result = command_generator.generate_command(sample_state, settings)
+        with pytest.raises(RuntimeError) as excinfo:
+            command_generator.generate_command(sample_state, settings)
 
-    # Assert
-    assert len(result.command_candidates) == 1
-    assert result.command_candidates[0].command == "echo 'Command generation failed'"
-    assert result.command_candidates[0].timeout_sec == DEFAULT_TIMEOUT_SEC
-    assert result.api_error is True
-    mock_logger.exception.assert_called_once()
+        # 例外のメッセージを確認
+        assert "Error generating command" in str(excinfo.value)
 
 
 def test_generate_command_preserve_state(sample_state, settings):
@@ -134,7 +135,12 @@ def test_generate_command_preserve_state(sample_state, settings):
 
     # Assert
     assert result.query == "list all files in the current directory"
-    assert result.context == {"current_directory": "/home/user", "history": ["cd /home/user", "mkdir test"]}
+    assert result.context == {
+        "current_directory": "/home/user",
+        "history": ["cd /home/user", "mkdir test"],
+        "target": {"rhost": "10.10.10.40"},
+        "attacker": {"lhost": "192.168.1.5"}
+    }
     assert result.processed_query == "list all files including hidden ones"
     assert len(result.command_candidates) == 1
     assert result.command_candidates[0].command == "ls -la"

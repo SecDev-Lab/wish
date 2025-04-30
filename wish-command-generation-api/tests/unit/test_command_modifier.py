@@ -243,7 +243,11 @@ def test_modify_command_preserve_state(mock_modify, settings):
 
     state = GraphState(
         query="Start Metasploit",
-        context={"current_directory": "/home/user"},
+        context={
+            "current_directory": "/home/user",
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
         processed_query=processed_query,
         command_candidates=[CommandInput(command="msfconsole", timeout_sec=DEFAULT_TIMEOUT_SEC)],
         act_result=act_result,
@@ -254,7 +258,11 @@ def test_modify_command_preserve_state(mock_modify, settings):
     # Mock the modifier to return a modified state
     expected_result = GraphState(
         query="Start Metasploit",
-        context={"current_directory": "/home/user"},
+        context={
+            "current_directory": "/home/user",
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
         processed_query=processed_query,
         command_candidates=[CommandInput(command="msfconsole -q -x \"exit -y\"", timeout_sec=DEFAULT_TIMEOUT_SEC)],
         act_result=act_result,
@@ -268,7 +276,11 @@ def test_modify_command_preserve_state(mock_modify, settings):
 
     # Assert
     assert result.query == "Start Metasploit"
-    assert result.context == {"current_directory": "/home/user"}
+    assert result.context == {
+        "current_directory": "/home/user",
+        "target": {"rhost": "10.10.10.40"},
+        "attacker": {"lhost": "192.168.1.5"}
+    }
     assert result.processed_query == processed_query
     assert "exit -y" in result.command_candidates[0].command
     assert result.act_result == act_result
