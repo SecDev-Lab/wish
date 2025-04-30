@@ -9,7 +9,6 @@ from wish_models.command_result import CommandInput
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.backend.bash import BashBackend
-from wish_command_execution.constants import DEFAULT_COMMAND_TIMEOUT_SEC
 
 # ロギング設定
 logger = logging.getLogger(__name__)
@@ -46,12 +45,8 @@ class CommandExecutor:
         """
         for i, cmd_input in enumerate(command_inputs, 1):
             command = cmd_input.command
-            # CommandInputのtimeout_secがNoneの場合は明示的にデフォルト値を設定
+            # タイムアウト値を取得
             timeout_sec = cmd_input.timeout_sec
-            if timeout_sec is None:
-                timeout_sec = DEFAULT_COMMAND_TIMEOUT_SEC
-                logger.warning(f"Command {i} has no timeout specified, using {DEFAULT_COMMAND_TIMEOUT_SEC} seconds")
-
             await self.execute_command(wish, command, i, timeout_sec)
 
     async def execute_command(self, wish: Wish, command: str, cmd_num: int, timeout_sec: int) -> None:

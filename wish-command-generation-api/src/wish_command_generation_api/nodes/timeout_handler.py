@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
-from ..constants import DEFAULT_TIMEOUT_SEC, DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC
+from ..constants import DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC
 from ..models import GraphState
 
 # Configure logging
@@ -62,7 +62,7 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
 2. 「フィードバック」から、前に使用したコマンドを確認します。
 3. 前に使用したコマンドに「高速な代替コマンド案」があれば、それを使ったコマンドを出力して終了してください。
 4. さもなければ、前に使用したコマンドに「分割統治案」があれば、それを使ったコマンドを出力して終了してください。
-5. さもなければ、タイムアウトを倍増し、前に使用したコマンドと同じコマンドを出力してください。
+5. さもなければ、タイムアウトを前回のタイムアウト値の2倍に設定し、前に使用したコマンドと同じコマンドを出力してください。
 
 # タスク
 {query}
@@ -110,37 +110,20 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         else:
             context_str = "No context available"
 
-        try:
-            # Create the chain
-            chain = prompt | llm | StrOutputParser()
+        # Create the chain
+        chain = prompt | llm | StrOutputParser()
 
-            # Invoke the chain
-            result = chain.invoke({
-                "query": state.query,
-                "feedback": feedback_str,
-                "context": context_str,
-                "fast_alternative_doc": FAST_ALTERNATIVE_DOC,
-                "divide_and_conquer_doc": DIVIDE_AND_CONQUER_DOC
-            })
-        except Exception as e:
-            logger.exception(f"Error invoking LLM chain: {e}")
-            # Get the original command from the act_result
-            original_command = state.act_result[0].command if state.act_result else "echo 'No command found'"
-            # デフォルトのCommandInputを作成
-            cmd_input = CommandInput(
-                command=original_command,
-                timeout_sec=DEFAULT_TIMEOUT_SEC  # デフォルトのタイムアウト値
-            )
-            return GraphState(
-                query=state.query,
-                context=state.context,
-                processed_query=state.processed_query,
-                command_candidates=[cmd_input],
-                generated_commands=state.generated_commands,
-                is_retry=True,
-                error_type="TIMEOUT",
-                act_result=state.act_result
-            )
+        # Invoke the chain
+        result = chain.invoke({
+            "query": state.query,
+            "feedback": feedback_str,
+            "context": context_str,
+            "fast_alternative_doc": FAST_ALTERNATIVE_DOC,
+            "divide_and_conquer_doc": DIVIDE_AND_CONQUER_DOC
+        })
+        
+        # LLMの応答をログ出力
+        logger.info(f"LLM response: {result}")
 
         # Parse the result
         try:
@@ -166,11 +149,8 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
             if not command_candidates:
                 logger.warning("No valid commands found in LLM response")
-                # デフォルトのCommandInputを作成
-                command_candidates = [CommandInput(
-                    command="echo 'No valid commands generated'",
-                    timeout_sec=DEFAULT_TIMEOUT_SEC  # デフォルトのタイムアウト値
-                )]
+                # フォールバック処理を行わずに例外をスロー
+                raise ValueError("No valid commands found in LLM response")
 
             logger.info(f"Generated {len(command_candidates)} commands to handle timeout")
 
@@ -187,20 +167,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             )
         except json.JSONDecodeError:
             logger.error(f"Failed to parse LLM response as JSON: {result}")
-            # Return the original state with a fallback command
-            return GraphState(
-                query=state.query,
-                context=state.context,
-                processed_query=state.processed_query,
-                command_candidates=[CommandInput(
-                    command="echo 'Failed to generate timeout handling command'",
-                    timeout_sec=DEFAULT_TIMEOUT_SEC  # デフォルトのタイムアウト値
-                )],
-                generated_commands=state.generated_commands,
-                is_retry=True,
-                error_type="TIMEOUT",
-                act_result=state.act_result,
-                api_error=True
-            )
+            # フォールバック処理を行わずに例外をスロー
+            raise json.JSONDecodeError(f"Failed to parse LLM response as JSON", result, 0)
     except Exception as e:
         raise RuntimeError("Error handling timeout") from e

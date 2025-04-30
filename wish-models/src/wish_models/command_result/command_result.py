@@ -21,10 +21,8 @@ class CommandResult(BaseModel):
     state: CommandState
     """Status of the command."""
 
-    timeout_sec: int | None = None
-    """Timeout for command execution in seconds.
-
-    For wish, it's always None."""
+    timeout_sec: int
+    """Timeout for command execution in seconds."""
 
     exit_code: int | None = None
     """Exit code of the command.
