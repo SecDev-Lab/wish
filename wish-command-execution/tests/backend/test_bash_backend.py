@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wish_models import CommandState, LogFiles, Wish
+from wish_models import CommandState, LogFiles
 from wish_models.test_factories import WishDoingFactory
 
 from wish_command_execution.backend import BashBackend
