@@ -5,9 +5,10 @@ from typing import Annotated
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
-from ..constants import DIALOG_AVOIDANCE_DOC, DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC, LIST_FILES_DOC
+from ..constants import DEFAULT_TIMEOUT_SEC, DIALOG_AVOIDANCE_DOC, DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC, LIST_FILES_DOC
 from ..models import GraphState
 
 # Configure logging
@@ -110,7 +111,7 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
         logger.info(f"Generated command: {command}")
 
         # Generate a list of command candidates (in this case, just one)
-        command_candidates = [command]
+        command_candidates = [CommandInput(command=command, timeout_sec=DEFAULT_TIMEOUT_SEC)]
 
         # Update the state
         return GraphState(
@@ -122,16 +123,5 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             error_type=state.error_type,
             act_result=state.act_result
         )
-    except Exception:
-        logger.exception("Error generating command")
-        # Return the original state with a fallback command
-        return GraphState(
-            query=state.query,
-            context=state.context,
-            processed_query=state.processed_query,
-            command_candidates=["echo 'Command generation failed'"],
-            api_error=True,
-            is_retry=state.is_retry,
-            error_type=state.error_type,
-            act_result=state.act_result
-        )
+    except Exception as e:
+        raise RuntimeError("Error generating command") from e

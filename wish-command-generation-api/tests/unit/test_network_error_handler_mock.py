@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from wish_models.command_result import CommandResult, CommandState, LogFiles
+from wish_models.command_result import CommandInput, CommandResult, CommandState, LogFiles
 from wish_models.settings import Settings
 from wish_models.utc_datetime import UtcDatetime
 
@@ -50,7 +50,10 @@ def test_handle_network_error_success_mock(mock_handler, settings):
         act_result=act_result,
         error_type="NETWORK_ERROR",
         is_retry=True,
-        command_candidates=["nmap -p- 10.10.10.40"]
+        command_candidates=[CommandInput(
+            command="nmap -p- 10.10.10.40",
+            timeout_sec=60
+        )]
     )
     mock_handler.return_value = expected_result
 
@@ -58,7 +61,8 @@ def test_handle_network_error_success_mock(mock_handler, settings):
     result = network_error_handler.handle_network_error(state, settings)
 
     # Assert
-    assert result.command_candidates == ["nmap -p- 10.10.10.40"]
+    assert len(result.command_candidates) == 1
+    assert result.command_candidates[0].command == "nmap -p- 10.10.10.40"
     assert result.is_retry is True
     assert result.error_type == "NETWORK_ERROR"
     assert result.act_result == act_result

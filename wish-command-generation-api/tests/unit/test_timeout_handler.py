@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from wish_models.command_result import CommandResult, CommandState, LogFiles
+from wish_models.command_result import CommandInput, CommandResult, CommandState, LogFiles
 from wish_models.settings import Settings
 from wish_models.utc_datetime import UtcDatetime
 
@@ -90,7 +90,10 @@ def test_handle_timeout_success(mock_handler, settings, mock_timeout_response):
         act_result=act_result,
         error_type="TIMEOUT",
         is_retry=True,
-        command_candidates=["rustscan -a 10.10.10.40"]
+        command_candidates=[CommandInput(
+            command="rustscan -a 10.10.10.40",
+            timeout_sec=60
+        )]
     )
     mock_handler.return_value = expected_result
 
@@ -98,7 +101,8 @@ def test_handle_timeout_success(mock_handler, settings, mock_timeout_response):
     result = timeout_handler.handle_timeout(state, settings)
 
     # Assert
-    assert result.command_candidates == ["rustscan -a 10.10.10.40"]
+    assert len(result.command_candidates) == 1
+    assert result.command_candidates[0].command == "rustscan -a 10.10.10.40"
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
     assert result.act_result == act_result
@@ -136,8 +140,8 @@ def test_handle_timeout_multiple_commands(mock_handler, settings, mock_timeout_m
         error_type="TIMEOUT",
         is_retry=True,
         command_candidates=[
-            "nmap -p1-32768 10.10.10.40",
-            "nmap -p32769-65535 10.10.10.40"
+            CommandInput(command="nmap -p1-32768 10.10.10.40", timeout_sec=60),
+            CommandInput(command="nmap -p32769-65535 10.10.10.40", timeout_sec=60)
         ]
     )
     mock_handler.return_value = expected_result
@@ -147,8 +151,8 @@ def test_handle_timeout_multiple_commands(mock_handler, settings, mock_timeout_m
 
     # Assert
     assert len(result.command_candidates) == 2
-    assert "nmap -p1-32768 10.10.10.40" in result.command_candidates
-    assert "nmap -p32769-65535 10.10.10.40" in result.command_candidates
+    assert result.command_candidates[0].command == "nmap -p1-32768 10.10.10.40"
+    assert result.command_candidates[1].command == "nmap -p32769-65535 10.10.10.40"
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
 
@@ -184,7 +188,10 @@ def test_handle_timeout_json_error(mock_handler, settings):
         act_result=act_result,
         error_type="TIMEOUT",
         is_retry=True,
-        command_candidates=["echo 'Failed to generate timeout handling command'"],
+        command_candidates=[CommandInput(
+            command="echo 'Failed to generate timeout handling command'",
+            timeout_sec=60
+        )],
         api_error=True
     )
     mock_handler.return_value = expected_result
@@ -193,7 +200,7 @@ def test_handle_timeout_json_error(mock_handler, settings):
     result = timeout_handler.handle_timeout(state, settings)
 
     # Assert
-    assert "Failed to generate" in result.command_candidates[0]
+    assert "Failed to generate" in result.command_candidates[0].command
     assert result.api_error is True
 
 
@@ -228,7 +235,10 @@ def test_handle_timeout_exception(mock_handler, settings):
         act_result=act_result,
         error_type="TIMEOUT",
         is_retry=True,
-        command_candidates=["echo 'Error handling timeout'"],
+        command_candidates=[CommandInput(
+            command="echo 'Error handling timeout'",
+            timeout_sec=60
+        )],
         api_error=True
     )
     mock_handler.return_value = expected_result
@@ -237,7 +247,7 @@ def test_handle_timeout_exception(mock_handler, settings):
     result = timeout_handler.handle_timeout(state, settings)
 
     # Assert
-    assert "Error handling timeout" in result.command_candidates[0]
+    assert "Error handling timeout" in result.command_candidates[0].command
     assert result.api_error is True
 
 
@@ -276,7 +286,10 @@ def test_handle_timeout_preserve_state(mock_handler, settings):
         act_result=act_result,
         error_type="TIMEOUT",
         is_retry=True,
-        command_candidates=["rustscan -a 10.10.10.40"]
+        command_candidates=[CommandInput(
+            command="rustscan -a 10.10.10.40",
+            timeout_sec=60
+        )]
     )
     mock_handler.return_value = expected_result
 

@@ -51,16 +51,17 @@ def test_lambda_handler_with_feedback(settings):
     assert response["headers"]["Content-Type"] == "application/json"
 
     body = json.loads(response["body"])
-    assert "generated_command" in body
-    assert "command" in body["generated_command"]
-    assert "explanation" in body["generated_command"]
+    assert "generated_commands" in body
+    assert len(body["generated_commands"]) > 0
+    assert "command" in body["generated_commands"][0]
+    assert "explanation" in body["generated_commands"][0]
 
     # Verify the command contains relevant terms (not exact match since LLM output varies)
-    command = body["generated_command"]["command"]
+    command = body["generated_commands"][0]["command"]
     assert any(term in command for term in ["scan", "10.10.10.40"])
 
     # Verify the explanation mentions port scanning
-    explanation = body["generated_command"]["explanation"]
+    explanation = body["generated_commands"][0]["explanation"]
     assert any(term in explanation.lower() for term in ["port", "scan"])
 
 
@@ -101,16 +102,17 @@ def test_lambda_handler_with_network_error_feedback(settings):
     assert response["headers"]["Content-Type"] == "application/json"
 
     body = json.loads(response["body"])
-    assert "generated_command" in body
-    assert "command" in body["generated_command"]
-    assert "explanation" in body["generated_command"]
+    assert "generated_commands" in body
+    assert len(body["generated_commands"]) > 0
+    assert "command" in body["generated_commands"][0]
+    assert "explanation" in body["generated_commands"][0]
 
     # Verify the command contains relevant terms (not exact match since LLM output varies)
-    command = body["generated_command"]["command"]
+    command = body["generated_commands"][0]["command"]
     assert any(term in command for term in ["scan", "10.10.10.40"])
 
     # Verify the explanation mentions network or connection issues
-    explanation = body["generated_command"]["explanation"]
+    explanation = body["generated_commands"][0]["explanation"]
     assert any(term in explanation.lower() for term in ["port", "scan", "network", "connection"])
 
 
@@ -163,16 +165,17 @@ def test_lambda_handler_with_multiple_feedback(settings):
     assert response["headers"]["Content-Type"] == "application/json"
 
     body = json.loads(response["body"])
-    assert "generated_command" in body
-    assert "command" in body["generated_command"]
-    assert "explanation" in body["generated_command"]
+    assert "generated_commands" in body
+    assert len(body["generated_commands"]) > 0
+    assert "command" in body["generated_commands"][0]
+    assert "explanation" in body["generated_commands"][0]
 
     # Verify the command contains relevant terms (not exact match since LLM output varies)
-    command = body["generated_command"]["command"]
+    command = body["generated_commands"][0]["command"]
     assert any(term in command for term in ["scan", "10.10.10.40"])
 
     # Verify the explanation mentions port scanning or port range
-    explanation = body["generated_command"]["explanation"]
+    explanation = body["generated_commands"][0]["explanation"]
     assert any(term in explanation.lower() for term in ["port", "scan", "range"])
 
 

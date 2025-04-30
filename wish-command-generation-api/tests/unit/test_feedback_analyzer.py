@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from wish_models.command_result import CommandResult, CommandState, LogFiles
+from wish_models.command_result import CommandInput, CommandResult, CommandState, LogFiles
 from wish_models.settings import Settings
 from wish_models.utc_datetime import UtcDatetime
 
@@ -146,7 +146,10 @@ def test_analyze_feedback_preserve_state(settings):
     """Test that the analyzer preserves other state fields."""
     # Arrange
     processed_query = "processed test query"
-    command_candidates = ["ls -la", "find . -name '*.py'"]
+    command_candidates = [
+        CommandInput(command="ls -la", timeout_sec=60),
+        CommandInput(command="find . -name '*.py'", timeout_sec=60)
+    ]
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
     act_result = [
         CommandResult(

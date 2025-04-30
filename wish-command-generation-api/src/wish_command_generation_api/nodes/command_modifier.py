@@ -8,6 +8,7 @@ from typing import Annotated
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 from wish_tools.tool_step_trace import main as step_trace_main
 
@@ -193,17 +194,24 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
 
         # Process each command
         modified_commands = []
-        for i, command in enumerate(state.command_candidates):
+        for i, cmd_input in enumerate(state.command_candidates):
+            command = cmd_input.command
+            
+            # タイムアウト値が設定されていることを確認
+            assert cmd_input.timeout_sec is not None, f"タイムアウト値が設定されていません: {command}"
+            timeout_sec = cmd_input.timeout_sec
+            
             # Call StepTrace if run_id is provided
             if state.run_id:
                 try:
                     step_trace_main(
                         run_id=state.run_id,
                         trace_name=f"コマンド修正前_{i+1}",
-                        trace_message=f"# コマンド\n{command}\n\n# タイムアウト [sec]\n30"
+                        trace_message=f"# コマンド\n{command}\n\n# タイムアウト [sec]\n{timeout_sec}"
                     )
                 except Exception as e:
                     logger.error(f"Error calling StepTrace: {e}", exc_info=True)
+                    
             # Create the chains for each command to avoid reusing the same chain
             dialog_avoidance_chain = dialog_avoidance_prompt | llm | str_parser
             list_files_chain = list_files_prompt | llm | str_parser
@@ -286,12 +294,16 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
                     step_trace_main(
                         run_id=state.run_id,
                         trace_name=f"コマンド修正後_{i+1}",
-                        trace_message=f"# コマンド\n{final_command}\n\n# タイムアウト [sec]\n30"
+                        trace_message=f"# コマンド\n{final_command}\n\n# タイムアウト [sec]\n{timeout_sec}"
                     )
                 except Exception as e:
                     logger.error(f"Error calling StepTrace: {e}", exc_info=True)
 
-            modified_commands.append(final_command)
+            # 修正後のコマンドとタイムアウト値をCommandInputオブジェクトとして保持
+            modified_commands.append(CommandInput(
+                command=final_command,
+                timeout_sec=timeout_sec
+            ))
 
         # Update the state
         return GraphState(
@@ -299,7 +311,7 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
             context=state.context,
             processed_query=state.processed_query,
             command_candidates=modified_commands,
-            generated_command=state.generated_command,
+            generated_commands=state.generated_commands,
             is_retry=state.is_retry,
             error_type=state.error_type,
             act_result=state.act_result
@@ -312,7 +324,7 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
             context=state.context,
             processed_query=state.processed_query,
             command_candidates=state.command_candidates,
-            generated_command=None,
+            generated_commands=None,
             api_error=True,
             error_message=f"Command modification failed: {str(e)}",
             is_retry=state.is_retry,

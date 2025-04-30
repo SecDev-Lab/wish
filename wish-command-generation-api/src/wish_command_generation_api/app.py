@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 from wish_models.settings import Settings, get_default_env_path
 
-from .core.generator import generate_command
+from .core.generator import generate_commands
 from .models import GenerateRequest
 
 # Configure logging
@@ -35,8 +35,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         body = json.loads(event.get("body", "{}"))
         request = GenerateRequest.model_validate(body)
 
-        # Generate the command
-        response = generate_command(request, settings_obj=settings)
+        # Generate the commands
+        response = generate_commands(request, settings_obj=settings)
 
         # Check if there was an error during generation
         if response.error is not None:
