@@ -51,9 +51,6 @@ class GraphState(BaseModel):
     run_id: str | None = None
     """実行ID（StepTraceに使用）"""
 
-    initial_timeout_sec: int = Field(description="Initial timeout value in seconds")
-    """初期タイムアウト値（秒）。RapidPen/rapidpen-act から渡される。"""
-
     # Intermediate result fields - no Annotated for serial execution
     processed_query: str | None = None
     """Processed and normalized user query."""
@@ -94,9 +91,6 @@ class GenerateRequest(BaseModel):
 
     run_id: str | None = None
     """実行ID（StepTraceに使用）"""
-
-    initial_timeout_sec: int = Field(description="Initial timeout value in seconds")
-    """初期タイムアウト値（秒）。RapidPen/rapidpen-act から渡される。"""
 
 
 class GenerateResponse(BaseModel):

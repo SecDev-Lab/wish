@@ -38,8 +38,7 @@ def generate_commands(
             query=request.query,
             context=request.context,
             act_result=request.act_result,
-            run_id=request.run_id,
-            initial_timeout_sec=request.initial_timeout_sec
+            run_id=request.run_id
         )
 
         # Log feedback if present

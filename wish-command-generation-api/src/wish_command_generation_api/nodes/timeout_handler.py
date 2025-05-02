@@ -60,9 +60,9 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
 
 1. 「タスク」を理解し、「参考ドキュメント」から関連情報を探します。
 2. 「フィードバック」から、前に使用したコマンドを確認します。
-3. 前に使用したコマンドに「高速な代替コマンド案」があれば、それを使ったコマンドを出力して終了してください。
-4. さもなければ、前に使用したコマンドに「分割統治案」があれば、それを使ったコマンドを出力して終了してください。
-5. さもなければ、タイムアウトを前回のタイムアウト値の2倍に設定し、前に使用したコマンドと同じコマンドを出力してください。
+3. 前に使用したコマンドに「高速な代替コマンド案」があれば、それを使ったコマンドを出力し、strategyを"fast_alternative"に設定してください。
+4. さもなければ、前に使用したコマンドに「分割統治案」があれば、それを使ったコマンドを出力し、strategyを"divide_and_conquer"に設定してください。
+5. さもなければ、前に使用したコマンドと同じコマンドを出力し、strategyを"same_command"に設定してください。タイムアウト値はLLMを利用せずに調整します。
 
 # タスク
 {query}
@@ -83,15 +83,15 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
 {{ "command_inputs": [
   {{
      "command": "コマンド1",
-     "timeout_sec": タイムアウト秒数（数値）
+     "strategy": "fast_alternative|divide_and_conquer|same_command"
   }},
   {{
      "command": "コマンド2",
-     "timeout_sec": タイムアウト秒数（数値）
+     "strategy": "fast_alternative|divide_and_conquer|same_command"
   }}
 ]}}
 
-JSONのみを出力してください。説明や追加のテキストは含めないでください。
+JSONのみを出力してください。説明や追加のテキストは含めないでください。タイムアウト値は出力しないでください。
 """
         )
 
@@ -129,16 +129,29 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         try:
             response_json = json.loads(result)
 
-            # Extract commands and create CommandInput objects
+            # Extract commands and create CommandInput objects with timeout_sec based on strategy
             command_candidates = []
 
             for cmd_input in response_json.get("command_inputs", []):
                 command = cmd_input.get("command", "")
-                timeout_sec = cmd_input.get("timeout_sec")
-
-                # タイムアウト値が設定されていることを確認
-                assert timeout_sec is not None, f"タイムアウト値が設定されていません: {command}"
-
+                strategy = cmd_input.get("strategy", "")
+                
+                # 初期タイムアウト値を取得（存在しない場合は例外を発生）
+                try:
+                    initial_timeout_sec = state.context["initial_timeout_sec"]
+                except KeyError:
+                    raise ValueError("初期タイムアウト値（initial_timeout_sec）が設定されていません")
+                
+                # 戦略に基づいてタイムアウト値を決定
+                if strategy == "same_command":
+                    # 同じコマンドを再実行する場合のみタイムアウト値を2倍に
+                    timeout_sec = initial_timeout_sec * 2
+                    logger.info(f"Same command strategy: increasing timeout to {timeout_sec} seconds")
+                else:
+                    # 高速な代替コマンドや分割統治戦略の場合は元のタイムアウト値を使用
+                    timeout_sec = initial_timeout_sec
+                    logger.info(f"Using strategy '{strategy}': keeping original timeout of {timeout_sec} seconds")
+                
                 if command:
                     # CommandInputオブジェクトを作成
                     command_input = CommandInput(

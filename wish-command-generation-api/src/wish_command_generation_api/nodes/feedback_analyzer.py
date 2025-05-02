@@ -33,8 +33,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
             generated_commands=state.generated_commands,
             is_retry=False,
             error_type=None,
-            act_result=None,
-            initial_timeout_sec=state.initial_timeout_sec
+            act_result=None
         )
 
     # Analyze feedback to determine error type
@@ -66,6 +65,5 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
         generated_commands=state.generated_commands,
         is_retry=True,
         error_type=error_type,
-        act_result=state.act_result,
-        initial_timeout_sec=state.initial_timeout_sec
+        act_result=state.act_result
     )
