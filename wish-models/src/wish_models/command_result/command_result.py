@@ -49,13 +49,14 @@ class CommandResult(BaseModel):
     It's None before the command is finished."""
 
     @classmethod
-    def create(cls, num: int, command: str, log_files: LogFiles) -> "CommandResult":
+    def create(cls, num: int, command: str, log_files: LogFiles, timeout_sec: int) -> "CommandResult":
         return cls(
             num=num,
             command=command,
             state=CommandState.DOING,
             log_files=log_files,
             created_at=UtcDatetime.now(),
+            timeout_sec=timeout_sec,
         )
 
     @classmethod

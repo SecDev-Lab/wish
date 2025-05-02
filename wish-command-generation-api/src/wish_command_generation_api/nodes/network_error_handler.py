@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
-from ..constants import DEFAULT_TIMEOUT_SEC, DIALOG_AVOIDANCE_DOC
+from ..constants import DIALOG_AVOIDANCE_DOC
 from ..models import GraphState
 
 # Configure logging
@@ -126,7 +126,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 query=state.query,
                 context=state.context,
                 processed_query=state.processed_query,
-                command_candidates=[CommandInput(command=original_command, timeout_sec=DEFAULT_TIMEOUT_SEC)],
+                command_candidates=[CommandInput(command=original_command, timeout_sec=state.initial_timeout_sec)],
                 generated_commands=state.generated_commands,
                 is_retry=True,
                 error_type="NETWORK_ERROR",
@@ -141,7 +141,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             command_candidates: List[CommandInput] = []
             for cmd_input in response_json.get("command_inputs", []):
                 command = cmd_input.get("command", "")
-                timeout_sec = cmd_input.get("timeout_sec", DEFAULT_TIMEOUT_SEC)
+                timeout_sec = cmd_input.get("timeout_sec", state.initial_timeout_sec)
                 if command:
                     command_candidates.append(CommandInput(command=command, timeout_sec=timeout_sec))
 
@@ -150,7 +150,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 command_candidates = [
                     CommandInput(
                         command="echo 'No valid commands generated'",
-                        timeout_sec=DEFAULT_TIMEOUT_SEC
+                        timeout_sec=state.initial_timeout_sec
                     )
                 ]
 
@@ -177,7 +177,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 command_candidates=[
                     CommandInput(
                         command="echo 'Failed to generate network error handling command'",
-                        timeout_sec=DEFAULT_TIMEOUT_SEC
+                        timeout_sec=state.initial_timeout_sec
                     )
                 ],
                 generated_commands=state.generated_commands,
@@ -196,7 +196,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             command_candidates=[
                 CommandInput(
                     command="echo 'Error handling network error'",
-                    timeout_sec=DEFAULT_TIMEOUT_SEC
+                    timeout_sec=state.initial_timeout_sec
                 )
             ],
             generated_commands=state.generated_commands,

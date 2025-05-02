@@ -127,7 +127,8 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             command_candidates=command_candidates,
             is_retry=state.is_retry,
             error_type=state.error_type,
-            act_result=state.act_result
+            act_result=state.act_result,
+            initial_timeout_sec=state.initial_timeout_sec
         )
     except Exception as e:
         raise RuntimeError("Error generating command") from e

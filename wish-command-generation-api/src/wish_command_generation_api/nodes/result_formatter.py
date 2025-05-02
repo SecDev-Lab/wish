@@ -88,7 +88,8 @@ def format_result(state: Annotated[GraphState, "Current state"], settings_obj: S
             context=state.context,
             processed_query=state.processed_query,
             command_candidates=state.command_candidates,
-            generated_commands=generated_commands
+            generated_commands=generated_commands,
+            initial_timeout_sec=state.initial_timeout_sec
         )
     except Exception as e:
         raise RuntimeError("Error formatting result") from e

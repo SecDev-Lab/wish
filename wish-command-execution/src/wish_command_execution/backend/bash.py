@@ -107,10 +107,7 @@ class BashBackend(Backend):
             timeout_sec: The timeout in seconds for this command.
         """
         # Create command result
-        result = CommandResult.create(cmd_num, command, log_files)
-
-        # Set timeout_sec in CommandResult
-        result.timeout_sec = timeout_sec
+        result = CommandResult.create(cmd_num, command, log_files, timeout_sec)
 
         wish.command_results.append(result)
 
