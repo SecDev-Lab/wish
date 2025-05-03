@@ -314,8 +314,7 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
             generated_commands=state.generated_commands,
             is_retry=state.is_retry,
             error_type=state.error_type,
-            act_result=state.act_result,
-            initial_timeout_sec=state.initial_timeout_sec
+            act_result=state.act_result
         )
     except Exception as e:
         logger.error(f"Error modifying commands: {str(e)}", exc_info=True)
@@ -330,6 +329,5 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
             error_message=f"Command modification failed: {str(e)}",
             is_retry=state.is_retry,
             error_type=state.error_type,
-            act_result=state.act_result,
-            initial_timeout_sec=state.initial_timeout_sec
+            act_result=state.act_result
         )

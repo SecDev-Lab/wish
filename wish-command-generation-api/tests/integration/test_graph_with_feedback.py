@@ -25,7 +25,8 @@ def test_graph_with_no_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 1  # Add initial timeout value
         }
     )
 
@@ -80,7 +81,8 @@ def test_graph_with_timeout_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 1  # Add initial timeout value
         },
         act_result=act_result
     )
@@ -136,7 +138,8 @@ def test_graph_with_network_error_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 1  # Add initial timeout value
         },
         act_result=act_result
     )
@@ -193,7 +196,8 @@ def test_graph_with_unknown_error_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 1  # Add initial timeout value
         },
         act_result=act_result
     )

@@ -77,8 +77,7 @@ def process_query(state: Annotated[GraphState, "Current state"], settings_obj: S
         return GraphState(
             query=state.query,
             context=state.context,
-            processed_query=processed_query,
-            initial_timeout_sec=state.initial_timeout_sec
+            processed_query=processed_query
         )
     except Exception:
         logger.exception("Error processing query")
@@ -87,6 +86,5 @@ def process_query(state: Annotated[GraphState, "Current state"], settings_obj: S
             query=state.query,
             context=state.context,
             processed_query=state.query,  # Fallback to original query
-            api_error=True,
-            initial_timeout_sec=state.initial_timeout_sec
+            api_error=True
         )

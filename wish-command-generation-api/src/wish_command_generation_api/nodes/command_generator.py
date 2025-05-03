@@ -65,6 +65,10 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
     Returns:
         Updated graph state with command candidates.
     """
+    assert state.is_retry is False, "is_retry should be False in command generation"
+    assert "initial_timeout_sec" in state.context and state.context["initial_timeout_sec"] is not None, "initial_timeout_sec should be set in context"
+    initial_timeout_sec = state.context["initial_timeout_sec"]
+
     try:
         # Extract query and context
         original_query = state.query
@@ -115,9 +119,7 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
 
         logger.info(f"Generated command: {command}")
 
-        # Generate a list of command candidates (in this case, just one)
-        # タイムアウト値は GraphState.initial_timeout_sec から取得
-        command_candidates = [CommandInput(command=command, timeout_sec=state.initial_timeout_sec)]
+        command_candidates = [CommandInput(command=command, timeout_sec=initial_timeout_sec)]
 
         # Update the state
         return GraphState(
@@ -127,8 +129,7 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             command_candidates=command_candidates,
             is_retry=state.is_retry,
             error_type=state.error_type,
-            act_result=state.act_result,
-            initial_timeout_sec=state.initial_timeout_sec
+            act_result=state.act_result
         )
     except Exception as e:
         raise RuntimeError("Error generating command") from e

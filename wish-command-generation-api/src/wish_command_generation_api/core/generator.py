@@ -38,7 +38,8 @@ def generate_commands(
             query=request.query,
             context=request.context,
             act_result=request.act_result,
-            run_id=request.run_id
+            run_id=request.run_id,
+            is_retry=request.act_result is not None  # Set is_retry to True if act_result is provided
         )
 
         # Log feedback if present
