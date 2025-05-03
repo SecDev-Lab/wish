@@ -119,19 +119,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 "dialog_avoidance_doc": DIALOG_AVOIDANCE_DOC
             })
         except Exception as e:
-            logger.exception(f"Error invoking LLM chain: {e}")
-            # Get the original command from the act_result
-            original_command = state.act_result[0].command if state.act_result else "echo 'No command found'"
-            return GraphState(
-                query=state.query,
-                context=state.context,
-                processed_query=state.processed_query,
-                command_candidates=[CommandInput(command=original_command, timeout_sec=state.initial_timeout_sec)],
-                generated_commands=state.generated_commands,
-                is_retry=True,
-                error_type="NETWORK_ERROR",
-                act_result=state.act_result
-            )
+            raise RuntimeError(f"Error invoking LLM chain: {e}") from e
 
         # Parse the result
         try:
@@ -141,18 +129,12 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             command_candidates: List[CommandInput] = []
             for cmd_input in response_json.get("command_inputs", []):
                 command = cmd_input.get("command", "")
-                timeout_sec = cmd_input.get("timeout_sec", state.initial_timeout_sec)
+                timeout_sec = cmd_input.get("timeout_sec", state.context.get("initial_timeout_sec", 1))
                 if command:
                     command_candidates.append(CommandInput(command=command, timeout_sec=timeout_sec))
 
             if not command_candidates:
-                logger.warning("No valid commands found in LLM response")
-                command_candidates = [
-                    CommandInput(
-                        command="echo 'No valid commands generated'",
-                        timeout_sec=state.initial_timeout_sec
-                    )
-                ]
+                raise RuntimeError(f"No valid commands found in LLM response: {response_json}")
 
             logger.info(f"Generated {len(command_candidates)} commands to handle network error")
 
@@ -167,41 +149,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 error_type="NETWORK_ERROR",
                 act_result=state.act_result
             )
-        except json.JSONDecodeError:
-            logger.error(f"Failed to parse LLM response as JSON: {result}")
-            # Return the original state with a fallback command
-            return GraphState(
-                query=state.query,
-                context=state.context,
-                processed_query=state.processed_query,
-                command_candidates=[
-                    CommandInput(
-                        command="echo 'Failed to generate network error handling command'",
-                        timeout_sec=state.initial_timeout_sec
-                    )
-                ],
-                generated_commands=state.generated_commands,
-                is_retry=True,
-                error_type="NETWORK_ERROR",
-                act_result=state.act_result,
-                api_error=True
-            )
-    except Exception:
-        logger.exception("Error handling network error")
-        # Return the original state with a fallback command
-        return GraphState(
-            query=state.query,
-            context=state.context,
-            processed_query=state.processed_query,
-            command_candidates=[
-                CommandInput(
-                    command="echo 'Error handling network error'",
-                    timeout_sec=state.initial_timeout_sec
-                )
-            ],
-            generated_commands=state.generated_commands,
-            is_retry=True,
-            error_type="NETWORK_ERROR",
-            act_result=state.act_result,
-            api_error=True
-        )
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"Failed to parse LLM response as JSON: {result}") from e
+    except Exception as e:
+        raise RuntimeError("Error handling network error") from e
