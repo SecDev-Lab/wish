@@ -29,7 +29,7 @@ def handle_network_error(state: Annotated[GraphState, "Current state"], settings
     """
     try:
         # If no act_result or not a network error, return the original state
-        if not state.act_result or state.error_type != "NETWORK_ERROR":
+        if not state.failed_command_results or state.error_type != "NETWORK_ERROR":
             logger.info("No network error to handle")
             return state
 
@@ -94,8 +94,8 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
         # Format the feedback as JSON string
         feedback_str = (
-            json.dumps([result.model_dump() for result in state.act_result], ensure_ascii=False)
-            if state.act_result else "[]"
+            json.dumps([result.model_dump() for result in state.failed_command_results], ensure_ascii=False)
+            if state.failed_command_results else "[]"
         )
 
         # Format the context
@@ -147,7 +147,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 generated_commands=state.generated_commands,
                 is_retry=True,
                 error_type="NETWORK_ERROR",
-                act_result=state.act_result
+                failed_command_results=state.failed_command_results
             )
         except json.JSONDecodeError as e:
             raise RuntimeError(f"Failed to parse LLM response as JSON: {result}") from e

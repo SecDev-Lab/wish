@@ -67,7 +67,7 @@ class GraphState(BaseModel):
     """Flag indicating whether an API error occurred during processing."""
 
     # Feedback fields
-    act_result: List[CommandResult] | None = None
+    failed_command_results: List[CommandResult] | None = None
     """フィードバック情報（コマンド実行結果）"""
 
     is_retry: bool = False
@@ -86,7 +86,7 @@ class GenerateRequest(BaseModel):
     context: Dict[str, Any] = Field(default_factory=dict, description="Context for command generation")
     """Context information for command generation, such as current directory, history, etc."""
 
-    act_result: List[CommandResult] | None = None
+    failed_command_results: List[CommandResult] | None = None
     """フィードバック情報（コマンド実行結果）"""
 
     run_id: str | None = None

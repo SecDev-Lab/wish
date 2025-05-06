@@ -23,7 +23,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
         Updated graph state with error type.
     """
     # If no act_result, this is the first execution
-    if not state.act_result:
+    if not state.failed_command_results:
         logger.info("No feedback provided, this is the first execution")
         return GraphState(
             query=state.query,
@@ -33,7 +33,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
             generated_commands=state.generated_commands,
             is_retry=False,
             error_type=None,
-            act_result=None
+            failed_command_results=None
         )
 
     # Analyze feedback to determine error type
@@ -42,7 +42,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
     has_network_error = False
 
     # First pass: check for all error types
-    for result in state.act_result:
+    for result in state.failed_command_results:
         if result.state == CommandState.TIMEOUT:
             has_timeout = True
             logger.info(f"Detected TIMEOUT error in command: {result.command}")
@@ -65,5 +65,5 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
         generated_commands=state.generated_commands,
         is_retry=True,
         error_type=error_type,
-        act_result=state.act_result
+        failed_command_results=state.failed_command_results
     )

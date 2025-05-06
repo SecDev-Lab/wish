@@ -37,15 +37,15 @@ def generate_commands(
         initial_state = GraphState(
             query=request.query,
             context=request.context,
-            act_result=request.act_result,
+            failed_command_results=request.failed_command_results,
             run_id=request.run_id,
-            is_retry=request.act_result is not None  # Set is_retry to True if act_result is provided
+            is_retry=request.failed_command_results is not None  # Set is_retry to True if act_result is provided
         )
 
         # Log feedback if present
-        if request.act_result:
-            logger.info(f"Received feedback with {len(request.act_result)} results")
-            for i, result in enumerate(request.act_result):
+        if request.failed_command_results:
+            logger.info(f"Received feedback with {len(request.failed_command_results)} results")
+            for i, result in enumerate(request.failed_command_results):
                 logger.info(f"Feedback {i+1}: Command '{result.command}' - State: {result.state}")
 
         # Run the graph with static name
