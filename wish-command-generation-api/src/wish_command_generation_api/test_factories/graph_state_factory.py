@@ -5,6 +5,8 @@ from factory.faker import Faker
 from wish_models.command_result import CommandInput, CommandResult
 from wish_models.test_factories.command_input_factory import CommandInputFactory
 from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
+from wish_models.test_factories.command_result_network_error_factory import CommandResultNetworkErrorFactory
+from wish_models.test_factories.command_result_timeout_factory import CommandResultTimeoutFactory
 
 from wish_command_generation_api.models import GraphState, GeneratedCommand
 
@@ -69,3 +71,51 @@ class GraphStateFactory(factory.Factory):
     def create_with_feedback(cls, query: str, failed_commands: list[CommandResult]) -> GraphState:
         """Create a GraphState with a specific query and failed command results."""
         return cls(query=query, failed_command_results=failed_commands)
+
+    @classmethod
+    def create_with_timeout_error(cls, query: str, command: str, timeout_sec: int = 60, context: dict = None) -> GraphState:
+        """タイムアウトエラー状態のGraphStateを作成する
+
+        Args:
+            query: ユーザークエリ
+            command: タイムアウトしたコマンド
+            timeout_sec: タイムアウト値（秒）
+            context: コンテキスト情報（省略可）
+
+        Returns:
+            GraphState: タイムアウトエラー状態のGraphState
+        """
+        timeout_result = CommandResultTimeoutFactory.create_with_command(command, timeout_sec)
+        return cls(
+            query=query,
+            context=context or {},
+            failed_command_results=[timeout_result],
+            error_type="TIMEOUT",
+            is_retry=True
+        )
+        
+    @classmethod
+    def create_with_network_error(cls, query: str, command: str, timeout_sec: int = 60, 
+                                 log_summary: str = None, context: dict = None) -> GraphState:
+        """ネットワークエラー状態のGraphStateを作成する
+
+        Args:
+            query: ユーザークエリ
+            command: ネットワークエラーが発生したコマンド
+            timeout_sec: タイムアウト値（秒）
+            log_summary: エラーログの要約（省略可）
+            context: コンテキスト情報（省略可）
+
+        Returns:
+            GraphState: ネットワークエラー状態のGraphState
+        """
+        network_error_result = CommandResultNetworkErrorFactory.create_with_command(
+            command, timeout_sec, log_summary
+        )
+        return cls(
+            query=query,
+            context=context or {},
+            failed_command_results=[network_error_result],
+            error_type="NETWORK_ERROR",
+            is_retry=True
+        )

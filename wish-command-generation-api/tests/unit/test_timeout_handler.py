@@ -6,6 +6,7 @@ import pytest
 from wish_models.command_result import CommandState
 from wish_models.test_factories.command_input_factory import CommandInputFactory
 from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
+from wish_models.test_factories.command_result_timeout_factory import CommandResultTimeoutFactory
 from wish_models.test_factories.settings_factory import SettingsFactory
 
 from wish_command_generation_api.nodes import timeout_handler
@@ -21,38 +22,13 @@ def settings():
 @pytest.fixture
 def mock_timeout_response():
     """Create a mock response for timeout handling."""
-    return """
-    {
-        "command_inputs": [
-            {
-                "command": "rustscan -a 10.10.10.40",
-                "strategy": "fast_alternative",
-                "timeout_sec": 60
-            }
-        ]
-    }
-    """
+    return "rustscan -a 10.10.10.40"
 
 
 @pytest.fixture
 def mock_timeout_multiple_response():
     """Create a mock response for timeout handling with multiple commands."""
-    return """
-    {
-        "command_inputs": [
-            {
-                "command": "nmap -p1-32768 10.10.10.40",
-                "strategy": "divide_and_conquer",
-                "timeout_sec": 60
-            },
-            {
-                "command": "nmap -p32769-65535 10.10.10.40",
-                "strategy": "divide_and_conquer",
-                "timeout_sec": 60
-            }
-        ]
-    }
-    """
+    return "nmap -p1-32768 10.10.10.40"
 
 
 def test_handle_timeout_no_error(settings):
@@ -76,12 +52,8 @@ def test_handle_timeout_not_timeout(settings):
         exit_code=1,
         log_summary="network error",
     )
-    state = GraphStateFactory(
-        query="test query",
-        context={},
-        failed_command_results=[network_error_result],
-        error_type="NETWORK_ERROR"
-    )
+    state = GraphStateFactory.create_with_error("test query", "NETWORK_ERROR")
+    state.failed_command_results = [network_error_result]
 
     # Act
     result = timeout_handler.handle_timeout(state, settings)
@@ -94,34 +66,23 @@ def test_handle_timeout_not_timeout(settings):
 def test_handle_timeout_success(mock_handler, settings, mock_timeout_response):
     """Test successful handling of a timeout error."""
     # Create a state with a timeout error
-    timeout_result = CommandResultSuccessFactory(
-        command="nmap -p- 10.10.10.40",
-        state=CommandState.TIMEOUT,
-        exit_code=1,
-        log_summary="timeout",
-    )
-    state = GraphStateFactory(
+    state = GraphStateFactory.create_with_timeout_error(
         query="test_handle_timeout_success",
-        context={},
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True
+        command="nmap -p- 10.10.10.40"
     )
 
     # Mock the handler to return a modified state
-    expected_result = GraphStateFactory(
+    command_candidates = [
+        CommandInputFactory(
+            command="rustscan -a 10.10.10.40",
+            timeout_sec=60
+        )
+    ]
+    expected_result = GraphStateFactory.create_with_timeout_error(
         query="test_handle_timeout_success",
-        context={},
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True,
-        command_candidates=[
-            CommandInputFactory(
-                command="rustscan -a 10.10.10.40",
-                timeout_sec=60
-            )
-        ]
+        command="nmap -p- 10.10.10.40"
     )
+    expected_result.command_candidates = command_candidates
     mock_handler.return_value = expected_result
 
     # Act
@@ -132,39 +93,33 @@ def test_handle_timeout_success(mock_handler, settings, mock_timeout_response):
     assert result.command_candidates[0].command == "rustscan -a 10.10.10.40"
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
-    assert result.failed_command_results == [timeout_result]
+    assert len(result.failed_command_results) == 1
+    assert result.failed_command_results[0].command == "nmap -p- 10.10.10.40"
+    assert result.failed_command_results[0].state == CommandState.TIMEOUT
 
 
 @patch("wish_command_generation_api.nodes.timeout_handler.handle_timeout")
 def test_handle_timeout_multiple_commands(mock_handler, settings, mock_timeout_multiple_response):
     """Test handling timeout with multiple command outputs."""
     # Create a state with a timeout error
-    timeout_result = CommandResultSuccessFactory(
-        command="nmap -p- 10.10.10.40",
-        state=CommandState.TIMEOUT,
-        exit_code=1,
-        log_summary="timeout",
-    )
-    state = GraphStateFactory(
+    context = {"test_handle_timeout_multiple_commands": True}
+    state = GraphStateFactory.create_with_timeout_error(
         query="test_handle_timeout_multiple_commands",
-        context={"test_handle_timeout_multiple_commands": True},
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True
+        command="nmap -p- 10.10.10.40",
+        context=context
     )
 
     # Mock the handler to return a modified state
-    expected_result = GraphStateFactory(
+    command_candidates = [
+        CommandInputFactory(command="nmap -p1-32768 10.10.10.40", timeout_sec=60),
+        CommandInputFactory(command="nmap -p32769-65535 10.10.10.40", timeout_sec=60)
+    ]
+    expected_result = GraphStateFactory.create_with_timeout_error(
         query="test_handle_timeout_multiple_commands",
-        context={"test_handle_timeout_multiple_commands": True},
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True,
-        command_candidates=[
-            CommandInputFactory(command="nmap -p1-32768 10.10.10.40", timeout_sec=60),
-            CommandInputFactory(command="nmap -p32769-65535 10.10.10.40", timeout_sec=60)
-        ]
+        command="nmap -p- 10.10.10.40",
+        context=context
     )
+    expected_result.command_candidates = command_candidates
     mock_handler.return_value = expected_result
 
     # Act
@@ -182,35 +137,27 @@ def test_handle_timeout_multiple_commands(mock_handler, settings, mock_timeout_m
 def test_handle_timeout_json_error(mock_handler, settings):
     """Test handling timeout when the LLM returns invalid JSON."""
     # Create a state with a timeout error
-    timeout_result = CommandResultSuccessFactory(
-        command="nmap -p- 10.10.10.40",
-        state=CommandState.TIMEOUT,
-        exit_code=1,
-        log_summary="timeout",
-    )
-    state = GraphStateFactory(
+    context = {"test_handle_timeout_json_error": True}
+    state = GraphStateFactory.create_with_timeout_error(
         query="test_handle_timeout_json_error",
-        context={"test_handle_timeout_json_error": True},
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True
+        command="nmap -p- 10.10.10.40",
+        context=context
     )
 
     # Mock the handler to return a modified state
-    expected_result = GraphStateFactory(
+    command_candidates = [
+        CommandInputFactory(
+            command="echo 'Failed to generate timeout handling command'",
+            timeout_sec=60
+        )
+    ]
+    expected_result = GraphStateFactory.create_with_timeout_error(
         query="test_handle_timeout_json_error",
-        context={"test_handle_timeout_json_error": True},
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True,
-        command_candidates=[
-            CommandInputFactory(
-                command="echo 'Failed to generate timeout handling command'",
-                timeout_sec=60
-            )
-        ],
-        api_error=True
+        command="nmap -p- 10.10.10.40",
+        context=context
     )
+    expected_result.command_candidates = command_candidates
+    expected_result.api_error = True
     mock_handler.return_value = expected_result
 
     # Act
@@ -225,35 +172,24 @@ def test_handle_timeout_json_error(mock_handler, settings):
 def test_handle_timeout_exception(mock_handler, settings):
     """Test handling exceptions during timeout handling."""
     # Create a state with a timeout error
-    timeout_result = CommandResultSuccessFactory(
-        command="nmap -p- 10.10.10.40",
-        state=CommandState.TIMEOUT,
-        exit_code=1,
-        log_summary="timeout",
-    )
-    state = GraphStateFactory(
+    state = GraphStateFactory.create_with_timeout_error(
         query="Conduct a full port scan on IP 10.10.10.40",
-        context={},
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True
+        command="nmap -p- 10.10.10.40"
     )
 
     # Mock the handler to return a modified state
-    expected_result = GraphStateFactory(
+    command_candidates = [
+        CommandInputFactory(
+            command="echo 'Error handling timeout'",
+            timeout_sec=60
+        )
+    ]
+    expected_result = GraphStateFactory.create_with_timeout_error(
         query="Conduct a full port scan on IP 10.10.10.40",
-        context={},
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True,
-        command_candidates=[
-            CommandInputFactory(
-                command="echo 'Error handling timeout'",
-                timeout_sec=60
-            )
-        ],
-        api_error=True
+        command="nmap -p- 10.10.10.40"
     )
+    expected_result.command_candidates = command_candidates
+    expected_result.api_error = True
     mock_handler.return_value = expected_result
 
     # Act
@@ -269,37 +205,29 @@ def test_handle_timeout_preserve_state(mock_handler, settings):
     """Test that the timeout handler preserves other state fields."""
     # Create a state with a timeout error and additional fields
     processed_query = "processed test query"
-    timeout_result = CommandResultSuccessFactory(
-        command="nmap -p- 10.10.10.40",
-        state=CommandState.TIMEOUT,
-        exit_code=1,
-        log_summary="timeout",
-    )
-
-    state = GraphStateFactory(
+    context = {"current_directory": "/home/user"}
+    
+    state = GraphStateFactory.create_with_timeout_error(
         query="test_handle_timeout_preserve_state",
-        context={"current_directory": "/home/user"},
-        processed_query=processed_query,
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True
+        command="nmap -p- 10.10.10.40",
+        context=context
     )
+    state.processed_query = processed_query
 
     # Mock the handler to return a modified state
-    expected_result = GraphStateFactory(
+    command_candidates = [
+        CommandInputFactory(
+            command="rustscan -a 10.10.10.40",
+            timeout_sec=60
+        )
+    ]
+    expected_result = GraphStateFactory.create_with_timeout_error(
         query="test_handle_timeout_preserve_state",
-        context={"current_directory": "/home/user"},
-        processed_query=processed_query,
-        failed_command_results=[timeout_result],
-        error_type="TIMEOUT",
-        is_retry=True,
-        command_candidates=[
-            CommandInputFactory(
-                command="rustscan -a 10.10.10.40",
-                timeout_sec=60
-            )
-        ]
+        command="nmap -p- 10.10.10.40",
+        context=context
     )
+    expected_result.processed_query = processed_query
+    expected_result.command_candidates = command_candidates
     mock_handler.return_value = expected_result
 
     # Act
@@ -311,4 +239,6 @@ def test_handle_timeout_preserve_state(mock_handler, settings):
     assert result.processed_query == processed_query
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
-    assert result.failed_command_results == [timeout_result]
+    assert len(result.failed_command_results) == 1
+    assert result.failed_command_results[0].command == "nmap -p- 10.10.10.40"
+    assert result.failed_command_results[0].state == CommandState.TIMEOUT

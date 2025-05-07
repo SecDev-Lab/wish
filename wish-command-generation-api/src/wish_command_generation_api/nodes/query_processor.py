@@ -70,7 +70,7 @@ def process_query(state: Annotated[GraphState, "Current state"], settings_obj: S
         })
 
         # Extract the processed query
-        processed_query = result.content.strip()
+        processed_query = result.strip()
         logger.info(f"Processed query: {processed_query}")
 
         # Update the state

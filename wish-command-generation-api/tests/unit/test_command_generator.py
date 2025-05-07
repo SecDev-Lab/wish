@@ -35,10 +35,8 @@ def sample_state():
 def test_generate_command_success(sample_state, settings):
     """Test successful command generation."""
     # Arrange
-    mock_content = MagicMock()
-    mock_content.content = "ls -la"
     mock_llm = MagicMock()
-    mock_llm.invoke.return_value = mock_content
+    mock_llm.invoke.return_value = "ls -la"
 
     # Act
     with patch.object(command_generator, "ChatOpenAI", return_value=mock_llm):
@@ -59,10 +57,8 @@ def test_generate_command_success(sample_state, settings):
 def test_generate_command_with_docs(sample_state, settings):
     """Test that documents are included in the prompt."""
     # Arrange
-    mock_content = MagicMock()
-    mock_content.content = "ls -la"
     mock_llm = MagicMock()
-    mock_llm.invoke.return_value = mock_content
+    mock_llm.invoke.return_value = "ls -la"
 
     # Act
     with patch.object(command_generator, "ChatOpenAI", return_value=mock_llm):
@@ -82,10 +78,8 @@ def test_generate_command_with_docs(sample_state, settings):
 def test_generate_command_markdown_code_block(sample_state, settings):
     """Test command generation with markdown code block formatting."""
     # Arrange
-    mock_content = MagicMock()
-    mock_content.content = "```bash\nls -la\n```"
     mock_llm = MagicMock()
-    mock_llm.invoke.return_value = mock_content
+    mock_llm.invoke.return_value = "```bash\nls -la\n```"
 
     # Act
     with patch.object(command_generator, "ChatOpenAI", return_value=mock_llm):
@@ -103,25 +97,28 @@ def test_generate_command_markdown_code_block(sample_state, settings):
 def test_generate_command_exception(sample_state, settings):
     """Test command generation with exception handling."""
     # Arrange
+    mock_chain = MagicMock()
+    mock_chain.invoke.side_effect = Exception("Test error")
     mock_llm = MagicMock()
-    mock_llm.invoke.side_effect = Exception("Test error")
+    mock_prompt = MagicMock()
+    mock_prompt.__or__.return_value = mock_chain
 
     # Act & Assert
-    with patch("langchain_openai.ChatOpenAI", return_value=mock_llm):
-        with pytest.raises(RuntimeError) as excinfo:
-            command_generator.generate_command(sample_state, settings)
-
-        # 例外のメッセージを確認
-        assert "Error generating command" in str(excinfo.value)
+    with patch.object(command_generator, "ChatOpenAI", return_value=mock_llm):
+        with patch.object(command_generator, "ChatPromptTemplate") as mock_template:
+            mock_template.from_template.return_value = mock_prompt
+            with pytest.raises(RuntimeError) as excinfo:
+                command_generator.generate_command(sample_state, settings)
+        
+    # 例外のメッセージを確認
+    assert "Error generating command" in str(excinfo.value)
 
 
 def test_generate_command_preserve_state(settings):
     """Test that the generator preserves other state fields."""
     # Arrange
-    mock_content = MagicMock()
-    mock_content.content = "ls -la"
     mock_llm = MagicMock()
-    mock_llm.invoke.return_value = mock_content
+    mock_llm.invoke.return_value = "ls -la"
 
     # Create state with additional fields
     sample_state = GraphStateFactory(

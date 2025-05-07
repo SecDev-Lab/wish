@@ -132,35 +132,32 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         except Exception as e:
             raise RuntimeError(f"Error invoking LLM chain: {e}") from e
 
-        # Parse the result
-        try:
-            response_json = json.loads(result)
+        # Use the result directly as a command
+        command = result.strip()
+        command = strip_markdown_code_block(command)
+        
+        # Default timeout value (same as the original timeout)
+        timeout_sec = 60
+        if state.failed_command_results and len(state.failed_command_results) > 0:
+            original_timeout = state.failed_command_results[0].timeout_sec
+            if original_timeout:
+                timeout_sec = original_timeout
 
-            # Extract commands
-            command_candidates: List[CommandInput] = []
-            for cmd_input in response_json.get("command_inputs", []):
-                command = cmd_input["command"]
-                timeout_sec = cmd_input["timeout_sec"]
-                if command:
-                    command_candidates.append(CommandInput(command=command, timeout_sec=timeout_sec))
+        # Create command input
+        command_candidates = [CommandInput(command=command, timeout_sec=timeout_sec)]
+        
+        logger.info(f"Generated command to handle network error: {command}")
 
-            if not command_candidates:
-                raise RuntimeError(f"No valid commands found in LLM response: {response_json}")
-
-            logger.info(f"Generated {len(command_candidates)} commands to handle network error")
-
-            # Update the state
-            return GraphState(
-                query=state.query,
-                context=state.context,
-                processed_query=state.processed_query,
-                command_candidates=command_candidates,
-                generated_commands=state.generated_commands,
-                is_retry=True,
-                error_type="NETWORK_ERROR",
-                failed_command_results=state.failed_command_results
-            )
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Failed to parse LLM response as JSON: {result}") from e
+        # Update the state
+        return GraphState(
+            query=state.query,
+            context=state.context,
+            processed_query=state.processed_query,
+            command_candidates=command_candidates,
+            generated_commands=state.generated_commands,
+            is_retry=True,
+            error_type="NETWORK_ERROR",
+            failed_command_results=state.failed_command_results
+        )
     except Exception as e:
         raise RuntimeError("Error handling network error") from e
