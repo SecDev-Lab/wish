@@ -105,7 +105,7 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
         })
 
         # Extract the generated command and remove Markdown code block formatting if present
-        command = result.content.strip()
+        command = result.strip()
 
         # Remove Markdown code block formatting if present
         command = strip_markdown_code_block(command)

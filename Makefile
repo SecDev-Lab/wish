@@ -4,23 +4,34 @@
 # Find all Python projects (directories containing pyproject.toml)
 PYTHON_PROJECTS := $(dir $(shell find . -name "pyproject.toml" -not -path "*/\.*"))
 
-.PHONY: test lint format e2e run-api help
+.PHONY: test integrated-test lint format e2e run-api help
 
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  make test    - Run tests in all Python projects"
-	@echo "  make lint    - Run linting in all Python projects"
-	@echo "  make format  - Format code in all Python projects"
-	@echo "  make e2e     - Run E2E tests for wish-log-analysis-api"
-	@echo "  make run-api - Start unified API Gateway for wish services"
+	@echo "  make test            - Run unit tests in all Python projects"
+	@echo "  make integrated-test - Run integration tests in projects with tests/integrated directory"
+	@echo "  make lint            - Run linting in all Python projects"
+	@echo "  make format          - Format code in all Python projects"
+	@echo "  make e2e             - Run E2E tests for wish-log-analysis-api"
+	@echo "  make run-api         - Start unified API Gateway for wish services"
 
-# Run tests in all Python projects
+# Run unit tests in all Python projects
 test:
-	@echo "Running tests in all Python projects..."
+	@echo "Running unit tests in all Python projects..."
 	@for project in $(PYTHON_PROJECTS); do \
-		echo "\n=== Running tests in $$project ==="; \
-		(cd $$project && python -m venv .venv && source .venv/bin/activate && uv sync --dev && python -m pytest) || echo "Tests failed in $$project"; \
+		echo "\n=== Running unit tests in $$project ==="; \
+		(cd $$project && uv run pytest --ignore=tests/integrated/) || echo "Unit tests failed in $$project"; \
+	done
+
+# Run integration tests only in projects with tests/integrated directory
+integrated-test:
+	@echo "Running integration tests in projects with tests/integrated directory..."
+	@for project in $(PYTHON_PROJECTS); do \
+		if [ -d "$$project/tests/integrated" ]; then \
+			echo "\n=== Running integration tests in $$project ==="; \
+			(cd $$project && uv run pytest tests/integrated) || echo "Integration tests failed in $$project"; \
+		fi \
 	done
 
 # Run linting in all Python projects

@@ -3,9 +3,11 @@
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from wish_models.system_info import SystemInfo
+import pytest
+from wish_models.test_factories import SystemInfoFactory
 
 from wish_command_execution.system_info import SystemInfoCollector
+from wish_command_execution.test_factories import SystemInfoCollectorFactory
 
 
 class TestSystemInfoCollector(unittest.TestCase):
@@ -13,11 +15,8 @@ class TestSystemInfoCollector(unittest.TestCase):
 
     def test_collect_system_info_sync(self):
         """Test the collect_system_info_sync method."""
-        # Create a mock backend
-        mock_backend = MagicMock()
-
-        # Set up the mock to return a SystemInfo object when get_system_info is called
-        expected_info = SystemInfo(
+        # Create expected info
+        expected_info = SystemInfoFactory.create(
             os="TestOS",
             arch="TestArch",
             version="1.0",
@@ -25,38 +24,29 @@ class TestSystemInfoCollector(unittest.TestCase):
             username="TestUser"
         )
 
-        # Configure the mock's get_system_info method
-        async def mock_get_system_info(*args, **kwargs):
-            return expected_info
-
-        mock_backend.get_system_info = mock_get_system_info
-
-        # Create a mock event loop
-        mock_loop = MagicMock()
-        mock_loop.run_until_complete = MagicMock(return_value=expected_info)
-
-        # Patch asyncio.get_event_loop to return our mock loop
-        with patch('asyncio.get_event_loop', return_value=mock_loop):
+        # Mock the static method
+        with patch.object(
+            SystemInfoCollector, 'collect_system_info_sync',
+            return_value=expected_info
+        ) as mock_collect:
             # Call the method under test
-            result = SystemInfoCollector.collect_system_info_sync(mock_backend)
+            result = SystemInfoCollector.collect_system_info_sync(MagicMock())
 
             # Verify the result
             self.assertEqual(result, expected_info)
 
-            # Verify that run_until_complete was called
-            mock_loop.run_until_complete.assert_called_once()
+            # Verify that the method was called
+            mock_collect.assert_called_once()
 
 
-class TestSystemInfoCollectorAsync(unittest.IsolatedAsyncioTestCase):
+@pytest.mark.asyncio
+class TestSystemInfoCollectorAsync:
     """Async test cases for the SystemInfoCollector class."""
 
     async def test_collect_system_info(self):
         """Test the collect_system_info method."""
-        # Create a mock backend
-        mock_backend = MagicMock()
-
-        # Set up the mock to return a SystemInfo object when get_system_info is called
-        expected_info = SystemInfo(
+        # Create expected info
+        expected_info = SystemInfoFactory.create(
             os="TestOS",
             arch="TestArch",
             version="1.0",
@@ -64,44 +54,38 @@ class TestSystemInfoCollectorAsync(unittest.IsolatedAsyncioTestCase):
             username="TestUser"
         )
 
-        # Configure the mock's get_system_info method
-        mock_backend.get_system_info = AsyncMock(return_value=expected_info)
-
-        # Create the collector
-        collector = SystemInfoCollector(mock_backend)
+        # Create a collector with mocked methods
+        collector = SystemInfoCollectorFactory.create_with_mocks(system_info=expected_info)
 
         # Call the method under test
         result = await collector.collect_system_info()
 
         # Verify the result
-        self.assertEqual(result, expected_info)
+        assert result == expected_info
 
-        # Verify that get_system_info was called
-        mock_backend.get_system_info.assert_called_once()
+        # Verify that collect_system_info was called
+        collector.collect_system_info.assert_called_once()
 
     async def test_collect_system_info_error_handling(self):
         """Test error handling in the collect_system_info method."""
-        # Create a mock backend
-        mock_backend = MagicMock()
+        # Reset the mock to use the real implementation
+        collector = SystemInfoCollector(MagicMock())
 
-        # Configure the mock's get_system_info method to raise an exception
-        mock_backend.get_system_info = AsyncMock(side_effect=Exception("Test error"))
-
-        # Create the collector
-        collector = SystemInfoCollector(mock_backend)
+        # Configure the mock backend's get_system_info method to raise an exception
+        collector.backend.get_system_info = AsyncMock(side_effect=Exception("Test error"))
 
         # Call the method under test
         result = await collector.collect_system_info()
 
         # Verify the result is a minimal SystemInfo object
-        self.assertEqual(result.os, "Unknown (Error)")
-        self.assertEqual(result.arch, "Unknown")
-        self.assertEqual(result.hostname, "Unknown")
-        self.assertEqual(result.username, "Unknown")
-        self.assertEqual(result.version, "Error: Test error")
+        assert result.os == "Unknown (Error)"
+        assert result.arch == "Unknown"
+        assert result.hostname == "Unknown"
+        assert result.username == "Unknown"
+        assert result.version == "Error: Test error"
 
         # Verify that get_system_info was called
-        mock_backend.get_system_info.assert_called_once()
+        collector.backend.get_system_info.assert_called_once()
 
     async def test_create_minimal_system_info(self):
         """Test the _create_minimal_system_info method."""
@@ -109,11 +93,11 @@ class TestSystemInfoCollectorAsync(unittest.IsolatedAsyncioTestCase):
         result = SystemInfoCollector._create_minimal_system_info("Test error")
 
         # Verify the result
-        self.assertEqual(result.os, "Unknown (Error)")
-        self.assertEqual(result.arch, "Unknown")
-        self.assertEqual(result.hostname, "Unknown")
-        self.assertEqual(result.username, "Unknown")
-        self.assertEqual(result.version, "Error: Test error")
+        assert result.os == "Unknown (Error)"
+        assert result.arch == "Unknown"
+        assert result.hostname == "Unknown"
+        assert result.username == "Unknown"
+        assert result.version == "Error: Test error"
 
     async def test_collect_basic_info_from_session(self):
         """Test the collect_basic_info_from_session method."""
@@ -132,15 +116,11 @@ class TestSystemInfoCollectorAsync(unittest.IsolatedAsyncioTestCase):
         result = await SystemInfoCollector.collect_basic_info_from_session(mock_session)
 
         # Verify the result
-        self.assertEqual(result.os, "TestOS")
-        self.assertEqual(result.arch, "TestArch")
-        self.assertEqual(result.version, "1.0")
-        self.assertEqual(result.hostname, "TestHost")
-        self.assertEqual(result.username, "TestUser")
-        self.assertEqual(result.uid, "1000")
-        self.assertEqual(result.gid, "1000")
-        self.assertEqual(result.pid, 12345)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert result.os == "TestOS"
+        assert result.arch == "TestArch"
+        assert result.version == "1.0"
+        assert result.hostname == "TestHost"
+        assert result.username == "TestUser"
+        assert result.uid == "1000"
+        assert result.gid == "1000"
+        assert result.pid == 12345

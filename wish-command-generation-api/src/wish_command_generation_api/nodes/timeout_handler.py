@@ -138,51 +138,32 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         # マークダウン形式のコードブロック表記を削除
         result = strip_markdown_code_block(result)
 
-        # Parse the result
-        try:
-            response_json = json.loads(result)
+        # Use the result directly as a command
+        command = result.strip()
+        command = strip_markdown_code_block(command)
 
-            # Extract commands and create CommandInput objects with timeout_sec based on strategy
-            command_candidates = []
+        # Default timeout value (double the original timeout)
+        timeout_sec = 60
+        if state.failed_command_results and len(state.failed_command_results) > 0:
+            original_timeout = state.failed_command_results[0].timeout_sec
+            if original_timeout:
+                timeout_sec = original_timeout * 2
 
-            for cmd_input in response_json.get("command_inputs", []):
-                command = cmd_input["command"]
-                strategy = cmd_input["strategy"]
-                timeout_sec = int(cmd_input["timeout_sec"])
+        # Create command input
+        command_candidates = [CommandInput(command=command, timeout_sec=timeout_sec)]
 
-                if strategy == "same_command":
-                    # タイムアウト値を元の値に設定
-                    timeout_sec *= 2
+        logger.info(f"Generated command to handle timeout: {command}")
 
-                if command:
-                    # CommandInputオブジェクトを作成
-                    command_input = CommandInput(
-                        command=command,
-                        timeout_sec=timeout_sec
-                    )
-                    command_candidates.append(command_input)
-
-            if not command_candidates:
-                logger.warning("No valid commands found in LLM response")
-                # フォールバック処理を行わずに例外をスロー
-                raise ValueError("No valid commands found in LLM response")
-
-            logger.info(f"Generated {len(command_candidates)} commands to handle timeout")
-
-            # Update the state
-            return GraphState(
-                query=state.query,
-                context=state.context,
-                processed_query=state.processed_query,
-                command_candidates=command_candidates,
-                generated_commands=state.generated_commands,
-                is_retry=True,
-                error_type="TIMEOUT",
-                failed_command_results=state.failed_command_results
-            )
-        except json.JSONDecodeError as err:
-            logger.error(f"Failed to parse LLM response as JSON: {result}")
-            # フォールバック処理を行わずに例外をスロー
-            raise json.JSONDecodeError("Failed to parse LLM response as JSON", result, 0) from err
+        # Update the state
+        return GraphState(
+            query=state.query,
+            context=state.context,
+            processed_query=state.processed_query,
+            command_candidates=command_candidates,
+            generated_commands=state.generated_commands,
+            is_retry=True,
+            error_type="TIMEOUT",
+            failed_command_results=state.failed_command_results
+        )
     except Exception as e:
         raise RuntimeError("Error handling timeout") from e

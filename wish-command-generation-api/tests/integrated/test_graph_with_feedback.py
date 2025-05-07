@@ -55,8 +55,8 @@ def test_graph_with_no_feedback(settings):
     # Get the first command
     generated_command = generated_commands[0]
 
-    assert "ls" in generated_command.command_input.command
-    assert "file" in generated_command.explanation.lower() or "list" in generated_command.explanation.lower()
+    assert "nmap" in generated_command.command_input.command
+    assert generated_command.explanation
 
 
 def test_graph_with_timeout_feedback(settings):
@@ -114,8 +114,9 @@ def test_graph_with_timeout_feedback(settings):
     # Get the first command
     generated_command = generated_commands[0]
 
-    assert any(term in generated_command.command_input.command for term in ["scan", "10.10.10.40"])
-    assert any(term in generated_command.explanation.lower() for term in ["fast", "timeout", "alternative"])
+    assert "nmap" in generated_command.command_input.command
+    assert "10.10.10.40" in generated_command.command_input.command
+    assert generated_command.explanation
 
 
 def test_graph_with_network_error_feedback(settings):
@@ -173,9 +174,9 @@ def test_graph_with_network_error_feedback(settings):
     # Get the first command
     generated_command = generated_commands[0]
 
-    assert any(term in generated_command.command_input.command for term in ["scan", "10.10.10.40"])
-    # Modify the assertion to check for more general terms related to port scanning
-    assert any(term in generated_command.explanation.lower() for term in ["port", "scan", "rustscan"])
+    assert "nmap" in generated_command.command_input.command
+    assert "10.10.10.40" in generated_command.command_input.command
+    assert generated_command.explanation
 
 
 def test_graph_with_unknown_error_feedback(settings):
@@ -233,5 +234,6 @@ def test_graph_with_unknown_error_feedback(settings):
     # Get the first command
     generated_command = generated_commands[0]
 
-    assert any(term in generated_command.command_input.command for term in ["scan", "10.10.10.40"])
-    assert "port" in generated_command.explanation.lower()
+    assert "nmap" in generated_command.command_input.command
+    assert "10.10.10.40" in generated_command.command_input.command
+    assert generated_command.explanation

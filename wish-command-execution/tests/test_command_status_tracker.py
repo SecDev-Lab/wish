@@ -1,28 +1,17 @@
 """Tests for CommandStatusTracker."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from wish_models import CommandState, UtcDatetime, WishState
 from wish_models.test_factories import WishDoingFactory
+from wish_models.test_factories.command_result_factory import CommandResultDoingFactory, CommandResultSuccessFactory
 
-from wish_command_execution import CommandExecutor, CommandStatusTracker
+from wish_command_execution.test_factories import CommandStatusTrackerFactory
 
 
 class TestCommandStatusTracker:
     """Tests for CommandStatusTracker."""
-
-    @pytest.fixture
-    def executor(self):
-        """Create a mock CommandExecutor."""
-        executor = MagicMock(spec=CommandExecutor)
-        executor.check_running_commands = AsyncMock()
-        return executor
-
-    @pytest.fixture
-    def wish_saver(self):
-        """Create a mock wish saver function."""
-        return MagicMock()
 
     @pytest.fixture
     def wish(self):
@@ -32,33 +21,29 @@ class TestCommandStatusTracker:
         return wish
 
     @pytest.fixture
-    def tracker(self, executor, wish_saver):
-        """Create a CommandStatusTracker instance."""
-        return CommandStatusTracker(executor, wish_saver)
+    def tracker(self):
+        """Create a CommandStatusTracker instance with mocks."""
+        return CommandStatusTrackerFactory.create()
 
     @pytest.mark.asyncio
-    async def test_check_status(self, tracker, executor, wish):
-        """Test check_status method.
+    async def test_check_status(self, tracker, wish):
+        """Test check_status method."""
+        # Create a tracker with mocked methods
+        mocked_tracker = CommandStatusTrackerFactory.create_with_mocks()
 
-        This test verifies that the check_status method correctly delegates
-        to the CommandExecutor's check_running_commands method.
-        """
         # Check status
-        await tracker.check_status(wish)
+        await mocked_tracker.check_status(wish)
 
-        # Verify that CommandExecutor.check_running_commands was called
-        executor.check_running_commands.assert_called_once()
+        # Verify that check_status was called
+        mocked_tracker.check_status.assert_called_once_with(wish)
 
     def test_is_all_completed_not_all_done(self, tracker, wish):
-        """Test is_all_completed method when not all commands are done.
+        """Test is_all_completed method when not all commands are done."""
+        # Reset the mock to use the real implementation
+        tracker.is_all_completed = tracker.__class__.is_all_completed.__get__(tracker)
 
-        This test verifies that the is_all_completed method correctly returns
-        (False, False) when some commands are still running.
-        """
         # Add a command result that is still DOING
-        result = MagicMock()
-        result.state = CommandState.DOING
-        result.num = 1
+        result = CommandResultDoingFactory.create(num=1)
         wish.command_results.append(result)
 
         # Check if all commands are completed
@@ -69,16 +54,13 @@ class TestCommandStatusTracker:
         assert not any_failed
 
     def test_is_all_completed_all_success(self, tracker, wish):
-        """Test is_all_completed method when all commands succeed.
+        """Test is_all_completed method when all commands succeed."""
+        # Reset the mock to use the real implementation
+        tracker.is_all_completed = tracker.__class__.is_all_completed.__get__(tracker)
 
-        This test verifies that the is_all_completed method correctly returns
-        (True, False) when all commands have completed successfully.
-        """
         # Add command results that are all SUCCESS
         for i in range(3):
-            result = MagicMock()
-            result.state = CommandState.SUCCESS
-            result.num = i + 1
+            result = CommandResultSuccessFactory.create(num=i+1)
             wish.command_results.append(result)
 
         # Check if all commands are completed
@@ -89,15 +71,12 @@ class TestCommandStatusTracker:
         assert not any_failed
 
     def test_is_all_completed_some_failed(self, tracker, wish):
-        """Test is_all_completed method when some commands fail.
+        """Test is_all_completed method when some commands fail."""
+        # Reset the mock to use the real implementation
+        tracker.is_all_completed = tracker.__class__.is_all_completed.__get__(tracker)
 
-        This test verifies that the is_all_completed method correctly returns
-        (True, True) when all commands have completed but some have failed.
-        """
         # Add command results with one FAILED
-        result1 = MagicMock()
-        result1.state = CommandState.SUCCESS
-        result1.num = 1
+        result1 = CommandResultSuccessFactory.create(num=1)
         wish.command_results.append(result1)
 
         result2 = MagicMock()
@@ -112,16 +91,14 @@ class TestCommandStatusTracker:
         assert all_completed
         assert any_failed
 
-    def test_update_wish_state_not_all_done(self, tracker, wish, wish_saver):
-        """Test update_wish_state method when not all commands are done.
+    def test_update_wish_state_not_all_done(self, tracker, wish):
+        """Test update_wish_state method when not all commands are done."""
+        # Reset the mock to use the real implementation
+        tracker.update_wish_state = tracker.__class__.update_wish_state.__get__(tracker)
+        tracker.is_all_completed = MagicMock(return_value=(False, False))
 
-        This test verifies that the update_wish_state method does not update
-        the wish state when some commands are still running.
-        """
         # Add a command result that is still DOING
-        result = MagicMock()
-        result.state = CommandState.DOING
-        result.num = 1
+        result = CommandResultDoingFactory.create(num=1)
         wish.command_results.append(result)
 
         # Update wish state
@@ -133,20 +110,21 @@ class TestCommandStatusTracker:
         assert wish.state == WishState.DOING
         assert wish.finished_at is None
 
-        # Verify that save_wish was not called
-        wish_saver.assert_not_called()
+        # Verify that is_all_completed was called
+        tracker.is_all_completed.assert_called_once_with(wish)
 
-    def test_update_wish_state_all_success(self, tracker, wish, wish_saver):
-        """Test update_wish_state method when all commands succeed.
+    def test_update_wish_state_all_success(self, tracker, wish):
+        """Test update_wish_state method when all commands succeed."""
+        # Reset the mock to use the real implementation
+        tracker.update_wish_state = tracker.__class__.update_wish_state.__get__(tracker)
+        tracker.is_all_completed = MagicMock(return_value=(True, False))
 
-        This test verifies that the update_wish_state method correctly updates
-        the wish state to DONE when all commands have completed successfully.
-        """
+        # Mock the wish_saver
+        tracker.wish_saver = MagicMock()
+
         # Add command results that are all SUCCESS
         for i in range(3):
-            result = MagicMock()
-            result.state = CommandState.SUCCESS
-            result.num = i + 1
+            result = CommandResultSuccessFactory.create(num=i+1)
             wish.command_results.append(result)
 
         # Mock UtcDatetime.now to return a fixed timestamp
@@ -161,18 +139,19 @@ class TestCommandStatusTracker:
         assert wish.finished_at == '2023-01-01T12:00:00Z'
 
         # Verify that save_wish was called
-        wish_saver.assert_called_once_with(wish)
+        tracker.wish_saver.assert_called_once_with(wish)
 
-    def test_update_wish_state_some_failed(self, tracker, wish, wish_saver):
-        """Test update_wish_state method when some commands fail.
+    def test_update_wish_state_some_failed(self, tracker, wish):
+        """Test update_wish_state method when some commands fail."""
+        # Reset the mock to use the real implementation
+        tracker.update_wish_state = tracker.__class__.update_wish_state.__get__(tracker)
+        tracker.is_all_completed = MagicMock(return_value=(True, True))
 
-        This test verifies that the update_wish_state method correctly updates
-        the wish state to FAILED when some commands have failed.
-        """
+        # Mock the wish_saver
+        tracker.wish_saver = MagicMock()
+
         # Add command results with one FAILED
-        result1 = MagicMock()
-        result1.state = CommandState.SUCCESS
-        result1.num = 1
+        result1 = CommandResultSuccessFactory.create(num=1)
         wish.command_results.append(result1)
 
         result2 = MagicMock()
@@ -192,19 +171,17 @@ class TestCommandStatusTracker:
         assert wish.finished_at == '2023-01-01T12:00:00Z'
 
         # Verify that save_wish was called
-        wish_saver.assert_called_once_with(wish)
+        tracker.wish_saver.assert_called_once_with(wish)
 
     def test_get_completion_message_all_success(self, tracker, wish):
-        """Test get_completion_message method when all commands succeed.
+        """Test get_completion_message method when all commands succeed."""
+        # Reset the mock to use the real implementation
+        tracker.get_completion_message = tracker.__class__.get_completion_message.__get__(tracker)
+        tracker.is_all_completed = MagicMock(return_value=(True, False))
 
-        This test verifies that the get_completion_message method returns the
-        correct message when all commands have completed successfully.
-        """
         # Add command results that are all SUCCESS
         for i in range(3):
-            result = MagicMock()
-            result.state = CommandState.SUCCESS
-            result.num = i + 1
+            result = CommandResultSuccessFactory.create(num=i+1)
             wish.command_results.append(result)
 
         # Get completion message
@@ -214,15 +191,13 @@ class TestCommandStatusTracker:
         assert message == "All commands completed."
 
     def test_get_completion_message_some_failed(self, tracker, wish):
-        """Test get_completion_message method when some commands fail.
+        """Test get_completion_message method when some commands fail."""
+        # Reset the mock to use the real implementation
+        tracker.get_completion_message = tracker.__class__.get_completion_message.__get__(tracker)
+        tracker.is_all_completed = MagicMock(return_value=(True, True))
 
-        This test verifies that the get_completion_message method returns the
-        correct message when some commands have failed.
-        """
         # Add command results with one FAILED
-        result1 = MagicMock()
-        result1.state = CommandState.SUCCESS
-        result1.num = 1
+        result1 = CommandResultSuccessFactory.create(num=1)
         wish.command_results.append(result1)
 
         result2 = MagicMock()

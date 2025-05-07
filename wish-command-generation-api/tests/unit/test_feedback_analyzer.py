@@ -1,27 +1,27 @@
 """Unit tests for the feedback analyzer node."""
 
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from wish_models.command_result import CommandInput, CommandResult, CommandState, LogFiles
-from wish_models.settings import Settings
-from wish_models.utc_datetime import UtcDatetime
+from wish_models.command_result import CommandState
+from wish_models.test_factories.command_input_factory import CommandInputFactory
+from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
+from wish_models.test_factories.settings_factory import SettingsFactory
 
-from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import feedback_analyzer
+from wish_command_generation_api.test_factories.graph_state_factory import GraphStateFactory
 
 
 @pytest.fixture
 def settings():
     """Create a settings object for testing."""
-    return Settings()
+    return SettingsFactory()
 
 
 def test_analyze_feedback_no_feedback(settings):
     """Test analyzing feedback when no feedback is provided."""
     # Arrange
-    state = GraphState(query="test query", context={})
+    state = GraphStateFactory(query="test query", context={})
 
     # Act
     result = feedback_analyzer.analyze_feedback(state, settings)
@@ -35,20 +35,13 @@ def test_analyze_feedback_no_feedback(settings):
 def test_analyze_feedback_timeout(settings):
     """Test analyzing feedback with a TIMEOUT error."""
     # Arrange
-    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
-        CommandResult(
-            num=1,
-            command="test command",
-            state=CommandState.TIMEOUT,
-            exit_code=1,
-            log_summary="timeout",
-            log_files=log_files,
-            created_at=UtcDatetime.now(),
-            timeout_sec=60
-        )
-    ]
-    state = GraphState(query="test query", context={}, failed_command_results=act_result)
+    timeout_result = CommandResultSuccessFactory(
+        command="test command",
+        state=CommandState.TIMEOUT,
+        exit_code=1,
+        log_summary="timeout",
+    )
+    state = GraphStateFactory.create_with_feedback("test query", [timeout_result])
 
     # Act
     result = feedback_analyzer.analyze_feedback(state, settings)
@@ -56,26 +49,19 @@ def test_analyze_feedback_timeout(settings):
     # Assert
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
-    assert result.failed_command_results == act_result
+    assert result.failed_command_results == [timeout_result]
 
 
 def test_analyze_feedback_network_error(settings):
     """Test analyzing feedback with a NETWORK_ERROR."""
     # Arrange
-    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
-        CommandResult(
-            num=1,
-            command="test command",
-            state=CommandState.NETWORK_ERROR,
-            exit_code=1,
-            log_summary="network error",
-            log_files=log_files,
-            created_at=UtcDatetime.now(),
-            timeout_sec=60
-        )
-    ]
-    state = GraphState(query="test query", context={}, failed_command_results=act_result)
+    network_error_result = CommandResultSuccessFactory(
+        command="test command",
+        state=CommandState.NETWORK_ERROR,
+        exit_code=1,
+        log_summary="network error",
+    )
+    state = GraphStateFactory.create_with_feedback("test query", [network_error_result])
 
     # Act
     result = feedback_analyzer.analyze_feedback(state, settings)
@@ -83,46 +69,36 @@ def test_analyze_feedback_network_error(settings):
     # Assert
     assert result.is_retry is True
     assert result.error_type == "NETWORK_ERROR"
-    assert result.failed_command_results == act_result
+    assert result.failed_command_results == [network_error_result]
 
 
 def test_analyze_feedback_multiple_errors(settings):
     """Test analyzing feedback with multiple errors, should prioritize TIMEOUT."""
     # Arrange
-    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
-        CommandResult(
-            num=1,
-            command="command1",
-            state=CommandState.SUCCESS,
-            exit_code=0,
-            log_summary="success",
-            log_files=log_files,
-            created_at=UtcDatetime.now(),
-            timeout_sec=60
-        ),
-        CommandResult(
-            num=2,
-            command="command2",
-            state=CommandState.NETWORK_ERROR,
-            exit_code=1,
-            log_summary="network error",
-            log_files=log_files,
-            created_at=UtcDatetime.now(),
-            timeout_sec=60
-        ),
-        CommandResult(
-            num=3,
-            command="command3",
-            state=CommandState.TIMEOUT,
-            exit_code=1,
-            log_summary="timeout",
-            log_files=log_files,
-            created_at=UtcDatetime.now(),
-            timeout_sec=60
-        )
-    ]
-    state = GraphState(query="test query", context={}, failed_command_results=act_result)
+    success_result = CommandResultSuccessFactory(
+        num=1,
+        command="command1",
+        state=CommandState.SUCCESS,
+        exit_code=0,
+        log_summary="success",
+    )
+    network_error_result = CommandResultSuccessFactory(
+        num=2,
+        command="command2",
+        state=CommandState.NETWORK_ERROR,
+        exit_code=1,
+        log_summary="network error",
+    )
+    timeout_result = CommandResultSuccessFactory(
+        num=3,
+        command="command3",
+        state=CommandState.TIMEOUT,
+        exit_code=1,
+        log_summary="timeout",
+    )
+
+    act_results = [success_result, network_error_result, timeout_result]
+    state = GraphStateFactory.create_with_feedback("test query", act_results)
 
     # Act
     result = feedback_analyzer.analyze_feedback(state, settings)
@@ -130,7 +106,7 @@ def test_analyze_feedback_multiple_errors(settings):
     # Assert
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"  # TIMEOUT should be prioritized
-    assert result.failed_command_results == act_result
+    assert result.failed_command_results == act_results
 
 
 def test_analyze_feedback_exception_propagation(settings):
@@ -152,29 +128,22 @@ def test_analyze_feedback_preserve_state(settings):
     # Arrange
     processed_query = "processed test query"
     command_candidates = [
-        CommandInput(command="ls -la", timeout_sec=60),
-        CommandInput(command="find . -name '*.py'", timeout_sec=60)
+        CommandInputFactory(command="ls -la", timeout_sec=60),
+        CommandInputFactory(command="find . -name '*.py'", timeout_sec=60)
     ]
-    log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
-        CommandResult(
-            num=1,
-            command="test command",
-            state=CommandState.TIMEOUT,
-            exit_code=1,
-            log_summary="timeout",
-            log_files=log_files,
-            created_at=UtcDatetime.now(),
-            timeout_sec=60
-        )
-    ]
+    timeout_result = CommandResultSuccessFactory(
+        command="test command",
+        state=CommandState.TIMEOUT,
+        exit_code=1,
+        log_summary="timeout",
+    )
 
-    state = GraphState(
+    state = GraphStateFactory(
         query="test query",
         context={"current_directory": "/home/user"},
         processed_query=processed_query,
         command_candidates=command_candidates,
-        failed_command_results=act_result
+        failed_command_results=[timeout_result]
     )
 
     # Act
@@ -187,4 +156,4 @@ def test_analyze_feedback_preserve_state(settings):
     assert result.command_candidates == command_candidates
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
-    assert result.failed_command_results == act_result
+    assert result.failed_command_results == [timeout_result]

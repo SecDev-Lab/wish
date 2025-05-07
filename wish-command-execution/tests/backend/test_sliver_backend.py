@@ -5,9 +5,10 @@ import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from wish_models import CommandResult, CommandState, Wish
+from wish_models import CommandResult, CommandState
+from wish_models.test_factories import LogFilesFactory, WishDoingFactory
 
-from wish_command_execution.backend.sliver import SliverBackend
+from wish_command_execution.test_factories import SliverBackendFactory
 
 
 @pytest.fixture
@@ -52,35 +53,29 @@ def mock_config_file():
 @pytest.fixture
 def sliver_backend(mock_config_file):
     """Create a SliverBackend instance for testing."""
-    return SliverBackend("test-session-id", mock_config_file)
+    return SliverBackendFactory.create(
+        session_id="test-session-id",
+        client_config_path=mock_config_file
+    )
 
 
 @pytest.fixture
 def wish():
     """Create a Wish instance for testing."""
-    return Wish.create("Test wish")
+    wish = WishDoingFactory.create()
+    wish.command_results = []  # Clear any existing command results
+    return wish
 
 
 @pytest.fixture
-def log_files():
-    """Create temporary log files for testing."""
-    from pathlib import Path
-
-    from wish_models.command_result import LogFiles
-
-    with tempfile.NamedTemporaryFile(delete=False) as stdout_file, \
-         tempfile.NamedTemporaryFile(delete=False) as stderr_file:
-        stdout_path = stdout_file.name
-        stderr_path = stderr_file.name
-
-    # Create a proper LogFiles instance
-    log_files = LogFiles(stdout=Path(stdout_path), stderr=Path(stderr_path))
-
-    yield log_files
-
-    # Clean up
-    os.unlink(stdout_path)
-    os.unlink(stderr_path)
+def log_files(tmp_path):
+    """Create log files for testing."""
+    stdout_path = tmp_path / "stdout.log"
+    stderr_path = tmp_path / "stderr.log"
+    return LogFilesFactory.create(
+        stdout=str(stdout_path),
+        stderr=str(stderr_path)
+    )
 
 
 @pytest.mark.asyncio
@@ -92,7 +87,7 @@ async def test_execute_command(sliver_backend, wish, log_files, mock_sliver_clie
         f.write("Test output")
 
     # Execute a command
-    timeout_sec = 60  # デフォルトのタイムアウト値
+    timeout_sec = 60
     await sliver_backend.execute_command(wish, "whoami", 1, log_files, timeout_sec)
 
     # Check that the command result was added to the wish
@@ -111,7 +106,7 @@ async def test_execute_command(sliver_backend, wish, log_files, mock_sliver_clie
 async def test_cancel_command(sliver_backend, wish, log_files):
     """Test cancelling a command."""
     # Add a command result to the wish
-    timeout_sec = 60  # デフォルトのタイムアウト値
+    timeout_sec = 60
     result = CommandResult.create(1, "whoami", log_files, timeout_sec)
     wish.command_results.append(result)
 
@@ -137,8 +132,11 @@ async def test_check_running_commands(sliver_backend):
 @pytest.mark.asyncio
 async def test_connect_with_dead_session(mock_config_file):
     """Test _connect when the session is dead."""
-    # Create a SliverBackend instance
-    backend = SliverBackend("test-session-id", mock_config_file)
+    # Create a SliverBackend instance with mocked components
+    backend = SliverBackendFactory.create(
+        session_id="test-session-id",
+        client_config_path=mock_config_file
+    )
 
     # Mock SliverClientConfig.parse_config_file to return a mock config
     mock_config = MagicMock()
