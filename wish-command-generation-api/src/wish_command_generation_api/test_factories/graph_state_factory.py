@@ -48,7 +48,7 @@ class GraphStateFactory(factory.Factory):
     @classmethod
     def create_with_generated_commands(cls, query: str, commands: list[tuple[str, str]]) -> GraphState:
         """Create a GraphState with a specific query and generated commands.
-        
+
         Args:
             query: The user query
             commands: List of tuples (command, explanation)
@@ -72,7 +72,9 @@ class GraphStateFactory(factory.Factory):
         return cls(query=query, failed_command_results=failed_commands)
 
     @classmethod
-    def create_with_timeout_error(cls, query: str, command: str, timeout_sec: int = 60, context: dict = None) -> GraphState:
+    def create_with_timeout_error(
+        cls, query: str, command: str, timeout_sec: int = 60, context: dict = None
+    ) -> GraphState:
         """タイムアウトエラー状態のGraphStateを作成する
 
         Args:
@@ -94,8 +96,10 @@ class GraphStateFactory(factory.Factory):
         )
 
     @classmethod
-    def create_with_network_error(cls, query: str, command: str, timeout_sec: int = 60,
-                                 log_summary: str = None, context: dict = None) -> GraphState:
+    def create_with_network_error(
+        cls, query: str, command: str, timeout_sec: int = 60,
+        log_summary: str = None, context: dict = None
+    ) -> GraphState:
         """ネットワークエラー状態のGraphStateを作成する
 
         Args:

@@ -20,7 +20,7 @@ class GenerateResponseFactory(factory.Factory):
     @classmethod
     def create_with_commands(cls, commands: list[tuple[str, str]]) -> GenerateResponse:
         """Create a GenerateResponse with specific commands.
-        
+
         Args:
             commands: List of tuples (command, explanation)
         """

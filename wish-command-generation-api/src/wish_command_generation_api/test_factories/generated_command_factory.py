@@ -19,7 +19,7 @@ class GeneratedCommandFactory(factory.Factory):
     @classmethod
     def create_with_command(cls, command: str, explanation: str | None = None) -> GeneratedCommand:
         """Create a GeneratedCommand with a specific command and explanation.
-        
+
         Args:
             command: The command string
             explanation: Optional explanation, will use a random one if not provided
@@ -32,7 +32,7 @@ class GeneratedCommandFactory(factory.Factory):
     @classmethod
     def create_with_timeout(cls, command: str, timeout_sec: int, explanation: str | None = None) -> GeneratedCommand:
         """Create a GeneratedCommand with a specific command, timeout and explanation.
-        
+
         Args:
             command: The command string
             timeout_sec: The timeout in seconds

