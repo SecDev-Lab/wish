@@ -139,8 +139,8 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             # Extract commands
             command_candidates: List[CommandInput] = []
             for cmd_input in response_json.get("command_inputs", []):
-                command = cmd_input.get("command", "")
-                timeout_sec = cmd_input.get("timeout_sec", state.context.get("initial_timeout_sec", 1))
+                command = cmd_input["command"]
+                timeout_sec = cmd_input["timeout_sec"]
                 if command:
                     command_candidates.append(CommandInput(command=command, timeout_sec=timeout_sec))
 
