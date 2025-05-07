@@ -25,7 +25,8 @@ def test_command_generation_with_basic_query(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
         }
     )
 
@@ -66,7 +67,8 @@ def test_command_generation_with_network_error_feedback(settings):
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log")),
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -76,7 +78,8 @@ def test_command_generation_with_network_error_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
         },
         act_result=act_result
     )
@@ -118,7 +121,8 @@ def test_command_generation_with_timeout_feedback(settings):
             exit_code=1,
             log_summary="timeout",
             log_files=LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log")),
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -128,7 +132,8 @@ def test_command_generation_with_timeout_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
         },
         act_result=act_result
     )
@@ -167,7 +172,8 @@ def test_command_generation_with_interactive_command(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
         }
     )
 

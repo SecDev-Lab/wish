@@ -22,7 +22,8 @@ def sample_context():
     """Create a sample context for testing"""
     return {
         "current_directory": "/home/user",
-        "history": ["cd /home/user", "mkdir test"]
+        "history": ["cd /home/user", "mkdir test"],
+        "initial_timeout_sec": 60
     }
 
 

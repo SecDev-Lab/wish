@@ -26,7 +26,7 @@ def test_graph_with_no_feedback(settings):
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
             "attacker": {"lhost": "192.168.1.5"},
-            "initial_timeout_sec": 1  # Add initial timeout value
+            "initial_timeout_sec": 60  # Add initial timeout value
         }
     )
 
@@ -71,7 +71,8 @@ def test_graph_with_timeout_feedback(settings):
                 exit_code=1,
                 log_summary="timeout",
                 log_files=log_files,
-                created_at=UtcDatetime.now()
+                created_at=UtcDatetime.now(),
+                timeout_sec=60
             )
     ]
 
@@ -82,7 +83,7 @@ def test_graph_with_timeout_feedback(settings):
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
             "attacker": {"lhost": "192.168.1.5"},
-            "initial_timeout_sec": 1  # Add initial timeout value
+            "initial_timeout_sec": 60  # Add initial timeout value
         },
         act_result=act_result
     )
@@ -128,7 +129,8 @@ def test_graph_with_network_error_feedback(settings):
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -139,7 +141,7 @@ def test_graph_with_network_error_feedback(settings):
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
             "attacker": {"lhost": "192.168.1.5"},
-            "initial_timeout_sec": 1  # Add initial timeout value
+            "initial_timeout_sec": 60  # Add initial timeout value
         },
         act_result=act_result
     )
@@ -186,7 +188,8 @@ def test_graph_with_unknown_error_feedback(settings):
             exit_code=1,
             log_summary="Unknown error",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -197,7 +200,7 @@ def test_graph_with_unknown_error_feedback(settings):
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
             "attacker": {"lhost": "192.168.1.5"},
-            "initial_timeout_sec": 1  # Add initial timeout value
+            "initial_timeout_sec": 60  # Add initial timeout value
         },
         act_result=act_result
     )

@@ -23,7 +23,8 @@ def test_end_to_end_generation(settings):
         "current_directory": "/home/user",
         "history": ["cd /home/user", "mkdir test"],
         "target": {"rhost": "10.10.10.40"},
-        "attacker": {"lhost": "192.168.1.5"}
+        "attacker": {"lhost": "192.168.1.5"},
+        "initial_timeout_sec": 60
     }
 
     # Create request
@@ -50,7 +51,8 @@ def test_custom_config_integration(settings):
         "current_directory": "/home/user",
         "history": ["cd /home/user"],
         "target": {"rhost": "10.10.10.40"},
-        "attacker": {"lhost": "192.168.1.5"}
+        "attacker": {"lhost": "192.168.1.5"},
+        "initial_timeout_sec": 60
     }
 
     # Create custom configuration
@@ -84,7 +86,8 @@ def test_complex_query_integration(settings):
         "current_directory": "/home/user/projects",
         "history": ["cd /home/user/projects", "ls"],
         "target": {"rhost": "10.10.10.40"},
-        "attacker": {"lhost": "192.168.1.5"}
+        "attacker": {"lhost": "192.168.1.5"},
+        "initial_timeout_sec": 60
     }
 
     # Create request

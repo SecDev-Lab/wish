@@ -24,7 +24,8 @@ def sample_state():
             "current_directory": "/home/user",
             "history": ["cd /home/user", "mkdir test"],
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
         },
     )
 
@@ -138,7 +139,8 @@ def test_generate_command_preserve_state(sample_state, settings):
         "current_directory": "/home/user",
         "history": ["cd /home/user", "mkdir test"],
         "target": {"rhost": "10.10.10.40"},
-        "attacker": {"lhost": "192.168.1.5"}
+        "attacker": {"lhost": "192.168.1.5"},
+        "initial_timeout_sec": 60
     }
     assert result.processed_query == "list all files including hidden ones"
     assert len(result.command_candidates) == 1
