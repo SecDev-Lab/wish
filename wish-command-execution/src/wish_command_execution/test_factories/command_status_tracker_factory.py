@@ -1,7 +1,8 @@
 """Factory for creating CommandStatusTracker instances for testing."""
 
-import factory
 from unittest.mock import AsyncMock, MagicMock
+
+import factory
 
 from wish_command_execution.command_status_tracker import CommandStatusTracker
 from wish_command_execution.test_factories.command_executor_factory import CommandExecutorFactory
@@ -29,11 +30,11 @@ class CommandStatusTrackerFactory(factory.Factory):
         """
         tracker = cls.create(**kwargs)
         tracker.all_completed = all_completed
-        
+
         # Mock methods
         tracker.check_status = AsyncMock()
         tracker.is_all_completed = MagicMock(return_value=(all_completed, False))
         tracker.update_wish_state = MagicMock(return_value=all_completed)
         tracker.get_completion_message = MagicMock(return_value="All commands completed.")
-        
+
         return tracker

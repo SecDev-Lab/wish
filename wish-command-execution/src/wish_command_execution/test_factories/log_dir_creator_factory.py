@@ -27,7 +27,7 @@ class LogDirCreatorFactory:
                 Path: The path to the log directory.
             """
             return Path(f"{base_path}/{wish_id}")
-        
+
         return log_dir_creator
 
     @staticmethod

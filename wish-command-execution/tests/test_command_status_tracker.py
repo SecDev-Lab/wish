@@ -1,6 +1,6 @@
 """Tests for CommandStatusTracker."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from wish_models import CommandState, UtcDatetime, WishState
@@ -30,7 +30,7 @@ class TestCommandStatusTracker:
         """Test check_status method."""
         # Create a tracker with mocked methods
         mocked_tracker = CommandStatusTrackerFactory.create_with_mocks()
-        
+
         # Check status
         await mocked_tracker.check_status(wish)
 
@@ -41,7 +41,7 @@ class TestCommandStatusTracker:
         """Test is_all_completed method when not all commands are done."""
         # Reset the mock to use the real implementation
         tracker.is_all_completed = tracker.__class__.is_all_completed.__get__(tracker)
-        
+
         # Add a command result that is still DOING
         result = CommandResultDoingFactory.create(num=1)
         wish.command_results.append(result)
@@ -57,7 +57,7 @@ class TestCommandStatusTracker:
         """Test is_all_completed method when all commands succeed."""
         # Reset the mock to use the real implementation
         tracker.is_all_completed = tracker.__class__.is_all_completed.__get__(tracker)
-        
+
         # Add command results that are all SUCCESS
         for i in range(3):
             result = CommandResultSuccessFactory.create(num=i+1)
@@ -74,7 +74,7 @@ class TestCommandStatusTracker:
         """Test is_all_completed method when some commands fail."""
         # Reset the mock to use the real implementation
         tracker.is_all_completed = tracker.__class__.is_all_completed.__get__(tracker)
-        
+
         # Add command results with one FAILED
         result1 = CommandResultSuccessFactory.create(num=1)
         wish.command_results.append(result1)
@@ -96,7 +96,7 @@ class TestCommandStatusTracker:
         # Reset the mock to use the real implementation
         tracker.update_wish_state = tracker.__class__.update_wish_state.__get__(tracker)
         tracker.is_all_completed = MagicMock(return_value=(False, False))
-        
+
         # Add a command result that is still DOING
         result = CommandResultDoingFactory.create(num=1)
         wish.command_results.append(result)
@@ -118,10 +118,10 @@ class TestCommandStatusTracker:
         # Reset the mock to use the real implementation
         tracker.update_wish_state = tracker.__class__.update_wish_state.__get__(tracker)
         tracker.is_all_completed = MagicMock(return_value=(True, False))
-        
+
         # Mock the wish_saver
         tracker.wish_saver = MagicMock()
-        
+
         # Add command results that are all SUCCESS
         for i in range(3):
             result = CommandResultSuccessFactory.create(num=i+1)
@@ -146,10 +146,10 @@ class TestCommandStatusTracker:
         # Reset the mock to use the real implementation
         tracker.update_wish_state = tracker.__class__.update_wish_state.__get__(tracker)
         tracker.is_all_completed = MagicMock(return_value=(True, True))
-        
+
         # Mock the wish_saver
         tracker.wish_saver = MagicMock()
-        
+
         # Add command results with one FAILED
         result1 = CommandResultSuccessFactory.create(num=1)
         wish.command_results.append(result1)
@@ -178,7 +178,7 @@ class TestCommandStatusTracker:
         # Reset the mock to use the real implementation
         tracker.get_completion_message = tracker.__class__.get_completion_message.__get__(tracker)
         tracker.is_all_completed = MagicMock(return_value=(True, False))
-        
+
         # Add command results that are all SUCCESS
         for i in range(3):
             result = CommandResultSuccessFactory.create(num=i+1)
@@ -195,7 +195,7 @@ class TestCommandStatusTracker:
         # Reset the mock to use the real implementation
         tracker.get_completion_message = tracker.__class__.get_completion_message.__get__(tracker)
         tracker.is_all_completed = MagicMock(return_value=(True, True))
-        
+
         # Add command results with one FAILED
         result1 = CommandResultSuccessFactory.create(num=1)
         wish.command_results.append(result1)

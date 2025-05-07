@@ -35,7 +35,7 @@ def test_modify_command_dialog_avoidance(mock_modify, settings, mock_command_res
     # Create a state with an interactive command
     command_input = CommandInputFactory(command="msfconsole", timeout_sec=60)
     state = GraphStateFactory.create_with_command_candidates(
-        "Start a Metasploit handler", 
+        "Start a Metasploit handler",
         ["msfconsole"]
     )
 

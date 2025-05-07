@@ -141,7 +141,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         # Use the result directly as a command
         command = result.strip()
         command = strip_markdown_code_block(command)
-        
+
         # Default timeout value (double the original timeout)
         timeout_sec = 60
         if state.failed_command_results and len(state.failed_command_results) > 0:
@@ -151,7 +151,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
         # Create command input
         command_candidates = [CommandInput(command=command, timeout_sec=timeout_sec)]
-        
+
         logger.info(f"Generated command to handle timeout: {command}")
 
         # Update the state

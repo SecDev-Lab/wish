@@ -1,7 +1,8 @@
 """Factory for creating SliverBackend instances for testing."""
 
-import factory
 from unittest.mock import AsyncMock, MagicMock
+
+import factory
 
 from wish_command_execution.backend.sliver import SliverBackend
 
@@ -26,11 +27,11 @@ class SliverBackendFactory(factory.Factory):
             SliverBackend: A configured SliverBackend instance with mocks.
         """
         backend = cls.create(**kwargs)
-        
+
         # Create mock client
         mock_client = MagicMock()
         mock_client.connect = AsyncMock()
-        
+
         # Create mock interactive session
         mock_session = MagicMock()
         mock_session.os = "Linux"
@@ -43,12 +44,12 @@ class SliverBackendFactory(factory.Factory):
         mock_session.pid = 12345
         mock_session.execute = AsyncMock()
         mock_session.is_dead = False
-        
+
         # Configure client to return session
         mock_client.interact_session = AsyncMock(return_value=mock_session)
-        
+
         # Set mocks on backend
         backend.client = mock_client
         backend.interactive_session = mock_session
-        
+
         return backend

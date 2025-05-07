@@ -4,7 +4,6 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from wish_models.system_info import SystemInfo
 from wish_models.test_factories import SystemInfoFactory
 
 from wish_command_execution.system_info import SystemInfoCollector
@@ -71,7 +70,7 @@ class TestSystemInfoCollectorAsync:
         """Test error handling in the collect_system_info method."""
         # Reset the mock to use the real implementation
         collector = SystemInfoCollector(MagicMock())
-        
+
         # Configure the mock backend's get_system_info method to raise an exception
         collector.backend.get_system_info = AsyncMock(side_effect=Exception("Test error"))
 

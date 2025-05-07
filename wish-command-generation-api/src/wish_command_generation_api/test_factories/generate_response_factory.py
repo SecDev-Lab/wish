@@ -1,6 +1,7 @@
 """Factory for GenerateResponse model."""
 
 import factory
+
 from wish_command_generation_api.models import GenerateResponse
 from wish_command_generation_api.test_factories.generated_command_factory import GeneratedCommandFactory
 

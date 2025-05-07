@@ -96,7 +96,7 @@ def test_analyze_feedback_multiple_errors(settings):
         exit_code=1,
         log_summary="timeout",
     )
-    
+
     act_results = [success_result, network_error_result, timeout_result]
     state = GraphStateFactory.create_with_feedback("test query", act_results)
 

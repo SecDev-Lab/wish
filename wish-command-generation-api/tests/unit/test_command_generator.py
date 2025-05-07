@@ -3,10 +3,8 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wish_models.settings import Settings
 from wish_models.test_factories.settings_factory import SettingsFactory
 
-from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import command_generator
 from wish_command_generation_api.test_factories.graph_state_factory import GraphStateFactory
 
@@ -109,7 +107,7 @@ def test_generate_command_exception(sample_state, settings):
             mock_template.from_template.return_value = mock_prompt
             with pytest.raises(RuntimeError) as excinfo:
                 command_generator.generate_command(sample_state, settings)
-        
+
     # 例外のメッセージを確認
     assert "Error generating command" in str(excinfo.value)
 

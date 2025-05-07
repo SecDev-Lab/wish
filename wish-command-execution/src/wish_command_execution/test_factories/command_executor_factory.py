@@ -1,7 +1,8 @@
 """Factory for creating CommandExecutor instances for testing."""
 
+from unittest.mock import AsyncMock
+
 import factory
-from unittest.mock import AsyncMock, MagicMock
 
 from wish_command_execution.command_executor import CommandExecutor
 from wish_command_execution.test_factories.bash_backend_factory import BashBackendFactory
@@ -29,10 +30,10 @@ class CommandExecutorFactory(factory.Factory):
             CommandExecutor: A configured CommandExecutor instance with mocks.
         """
         executor = cls.create(**kwargs)
-        
+
         # Mock methods
         executor.execute_command = AsyncMock()
         executor.check_running_commands = AsyncMock()
         executor.cancel_command = AsyncMock(return_value="Command cancelled")
-        
+
         return executor

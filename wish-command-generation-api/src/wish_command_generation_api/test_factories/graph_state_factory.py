@@ -2,13 +2,12 @@
 
 import factory
 from factory.faker import Faker
-from wish_models.command_result import CommandInput, CommandResult
+from wish_models.command_result import CommandResult
 from wish_models.test_factories.command_input_factory import CommandInputFactory
-from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
 from wish_models.test_factories.command_result_network_error_factory import CommandResultNetworkErrorFactory
 from wish_models.test_factories.command_result_timeout_factory import CommandResultTimeoutFactory
 
-from wish_command_generation_api.models import GraphState, GeneratedCommand
+from wish_command_generation_api.models import GeneratedCommand, GraphState
 
 
 class GraphStateFactory(factory.Factory):
@@ -93,9 +92,9 @@ class GraphStateFactory(factory.Factory):
             error_type="TIMEOUT",
             is_retry=True
         )
-        
+
     @classmethod
-    def create_with_network_error(cls, query: str, command: str, timeout_sec: int = 60, 
+    def create_with_network_error(cls, query: str, command: str, timeout_sec: int = 60,
                                  log_summary: str = None, context: dict = None) -> GraphState:
         """ネットワークエラー状態のGraphStateを作成する
 

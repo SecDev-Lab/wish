@@ -1,12 +1,12 @@
 """Tests for CommandExecutor."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 from wish_models.command_result import CommandInput
-from wish_models.test_factories import WishDoingFactory, LogFilesFactory
+from wish_models.test_factories import WishDoingFactory
 
-from wish_command_execution.test_factories import CommandExecutorFactory, LogDirCreatorFactory
+from wish_command_execution.test_factories import CommandExecutorFactory
 
 
 class TestCommandExecutor:

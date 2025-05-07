@@ -56,12 +56,12 @@ def mock_openai_api(monkeypatch, request):
                 }
             ]
         })
-        
+
         # model_dump()の戻り値を設定
         mock_model_dump = MagicMock()
         mock_model_dump.get.return_value = None  # error属性を持たないように設定
         mock_response.model_dump.return_value = mock_model_dump
-        
+
         # choices[0].message.model_dump()の戻り値を設定
         mock_message_model_dump = MagicMock()
         mock_message_model_dump.get.return_value = json.dumps({
@@ -84,7 +84,7 @@ def mock_openai_api(monkeypatch, request):
                 ]
             })
         }
-        
+
         # generationsの設定
         mock_generation = MagicMock()
         mock_generation.text = json.dumps({

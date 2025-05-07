@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from wish_models import CommandResult, CommandState
-from wish_models.test_factories import WishDoingFactory, LogFilesFactory
+from wish_models.test_factories import LogFilesFactory, WishDoingFactory
 
 from wish_command_execution.test_factories import SliverBackendFactory
 

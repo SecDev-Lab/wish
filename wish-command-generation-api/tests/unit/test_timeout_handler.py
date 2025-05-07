@@ -6,7 +6,6 @@ import pytest
 from wish_models.command_result import CommandState
 from wish_models.test_factories.command_input_factory import CommandInputFactory
 from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
-from wish_models.test_factories.command_result_timeout_factory import CommandResultTimeoutFactory
 from wish_models.test_factories.settings_factory import SettingsFactory
 
 from wish_command_generation_api.nodes import timeout_handler
@@ -206,7 +205,7 @@ def test_handle_timeout_preserve_state(mock_handler, settings):
     # Create a state with a timeout error and additional fields
     processed_query = "processed test query"
     context = {"current_directory": "/home/user"}
-    
+
     state = GraphStateFactory.create_with_timeout_error(
         query="test_handle_timeout_preserve_state",
         command="nmap -p- 10.10.10.40",
