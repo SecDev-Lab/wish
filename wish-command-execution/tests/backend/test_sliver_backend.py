@@ -92,7 +92,8 @@ async def test_execute_command(sliver_backend, wish, log_files, mock_sliver_clie
         f.write("Test output")
 
     # Execute a command
-    await sliver_backend.execute_command(wish, "whoami", 1, log_files)
+    timeout_sec = 60  # デフォルトのタイムアウト値
+    await sliver_backend.execute_command(wish, "whoami", 1, log_files, timeout_sec)
 
     # Check that the command result was added to the wish
     assert len(wish.command_results) == 1
@@ -110,7 +111,8 @@ async def test_execute_command(sliver_backend, wish, log_files, mock_sliver_clie
 async def test_cancel_command(sliver_backend, wish, log_files):
     """Test cancelling a command."""
     # Add a command result to the wish
-    result = CommandResult.create(1, "whoami", log_files)
+    timeout_sec = 60  # デフォルトのタイムアウト値
+    result = CommandResult.create(1, "whoami", log_files, timeout_sec)
     wish.command_results.append(result)
 
     # Cancel the command

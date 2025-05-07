@@ -52,7 +52,7 @@ class SliverBackend(Backend):
             print(error_msg, file=sys.stderr)
             sys.exit(1)
 
-    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files) -> None:
+    async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files, timeout_sec: int) -> None:
         """Execute a command through Sliver C2.
 
         Args:
@@ -60,9 +60,10 @@ class SliverBackend(Backend):
             command: The command to execute.
             cmd_num: The command number.
             log_files: The log files to write output to.
+            timeout_sec: The timeout in seconds for this command.
         """
         # Create command result
-        result = CommandResult.create(cmd_num, command, log_files)
+        result = CommandResult.create(cmd_num, command, log_files, timeout_sec)
         wish.command_results.append(result)
 
         try:
