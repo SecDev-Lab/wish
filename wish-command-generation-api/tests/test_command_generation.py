@@ -5,9 +5,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from wish_models.settings import Settings
+from wish_models.system_info import SystemInfo
 
+from wish_command_generation.models import GraphState
 from wish_command_generation.nodes.command_generation import generate_commands
-from wish_command_generation.test_factories.state_factory import GraphStateFactory
+from wish_command_generation.test_factories.state_factory import GraphStateFactory, WishFactory
 
 
 class TestCommandGeneration:
@@ -16,9 +18,13 @@ class TestCommandGeneration:
     def test_generate_commands_success(self):
         """Test that generate_commands correctly generates commands when the API call succeeds."""
         # Arrange
-        state = GraphStateFactory.create_with_context(
-            "Conduct a full port scan on IP 10.10.10.123.",
-            ["nmap is a network scanning tool", "rustscan is a fast port scanner"]
+        wish = WishFactory.create_with_specific_wish("Conduct a full port scan on IP 10.10.10.123.")
+        state = GraphState(
+            wish=wish,
+            context={
+                "docs": ["nmap is a network scanning tool", "rustscan is a fast port scanner"],
+                "initial_timeout_sec": 60
+            }
         )
 
         # Set up the expected response
@@ -74,11 +80,18 @@ class TestCommandGeneration:
     def test_generate_commands_with_system_info(self):
         """Test that generate_commands correctly uses system information."""
         # Arrange
-        state = GraphStateFactory.create_with_system_info(
-            "List all hidden files in the current directory.",
-            system_os="Windows",
-            system_arch="AMD64",
-            system_version="10.0.19044"
+        wish = WishFactory.create_with_specific_wish("List all hidden files in the current directory.")
+        system_info = SystemInfo(
+            os="Windows",
+            arch="AMD64",
+            version="10.0.19044",
+            hostname="test-host",
+            username="test-user",
+        )
+        state = GraphState(
+            wish=wish,
+            context={"initial_timeout_sec": 60},
+            system_info=system_info
         )
 
         # Set up the expected response
@@ -144,7 +157,11 @@ class TestCommandGeneration:
     def test_generate_commands_api_error(self):
         """Test that generate_commands raises CommandGenerationError for API errors."""
         # Arrange
-        state = GraphStateFactory.create_with_specific_wish("Conduct a full port scan on IP 10.10.10.123.")
+        wish = WishFactory.create_with_specific_wish("Conduct a full port scan on IP 10.10.10.123.")
+        state = GraphState(
+            wish=wish,
+            context={"initial_timeout_sec": 60}
+        )
 
         # Create a mock for the chain
         mock_chain = MagicMock()
@@ -187,7 +204,11 @@ class TestCommandGeneration:
     def test_generate_commands_invalid_json(self):
         """Test that generate_commands raises CommandGenerationError for invalid JSON responses."""
         # Arrange
-        state = GraphStateFactory.create_with_specific_wish("Conduct a full port scan on IP 10.10.10.123.")
+        wish = WishFactory.create_with_specific_wish("Conduct a full port scan on IP 10.10.10.123.")
+        state = GraphState(
+            wish=wish,
+            context={"initial_timeout_sec": 60}
+        )
 
         # Create a mock for the chain
         mock_chain = MagicMock()

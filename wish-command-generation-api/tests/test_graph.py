@@ -118,7 +118,10 @@ class TestGraph:
         context_state = GraphState(
             wish=wish,
             query="nmap port scan techniques",
-            context=["nmap is a network scanning tool", "rustscan is a fast port scanner"],
+            context={
+                "docs": ["nmap is a network scanning tool", "rustscan is a fast port scanner"],
+                "initial_timeout_sec": 60
+            },
             system_info=system_info
         )
         mock_retrieve_documents.return_value = context_state
@@ -126,7 +129,10 @@ class TestGraph:
         command_state = GraphState(
             wish=wish,
             query="nmap port scan techniques",
-            context=["nmap is a network scanning tool", "rustscan is a fast port scanner"],
+            context={
+                "docs": ["nmap is a network scanning tool", "rustscan is a fast port scanner"],
+                "initial_timeout_sec": 60
+            },
             command_inputs=[
                 CommandInput(command="rustscan -a 10.10.10.123", timeout_sec=60)
             ],

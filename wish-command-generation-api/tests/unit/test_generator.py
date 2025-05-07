@@ -119,16 +119,9 @@ def test_generate_commands_with_error(sample_query, sample_context, mock_chat_op
         # Create settings object
         settings_obj = Settings()
 
-        # Run generation
-        response = generate_commands(request, settings_obj=settings_obj)
-
-        # Verify results
-        assert response is not None
-        assert response.generated_commands is not None
-        assert len(response.generated_commands) == 1
-        assert response.generated_commands[0].command == "echo 'Command generation failed'"
-        assert "Test error" in response.generated_commands[0].explanation
-        assert response.error == "Test error"
+        # Expect RuntimeError to be raised
+        with pytest.raises(RuntimeError, match="Error generating commands"):
+            generate_commands(request, settings_obj=settings_obj)
 
 
 def test_generate_commands_with_custom_config(sample_query, sample_context, mock_chat_openai):

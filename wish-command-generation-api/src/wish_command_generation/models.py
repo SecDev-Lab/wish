@@ -1,6 +1,6 @@
 """Models for the command generation graph."""
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 from wish_models.command_result import CommandInput
@@ -18,8 +18,8 @@ class GraphState(BaseModel):
     wish: Wish
     """The Wish object to be processed. The Wish.wish field contains the natural language command request."""
 
-    context: list[str] | None = None
-    """List of reference documents retrieved from RAG. Used to improve command generation accuracy."""
+    context: Dict[str, Any] = Field(default_factory=dict, description="Context for command generation")
+    """Context information for command generation, such as current directory, history, etc."""
 
     query: str | None = None
     """Query for RAG search. Used to search for relevant documents in the RAG system."""
