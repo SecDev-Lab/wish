@@ -67,7 +67,7 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
 2. 「フィードバック」から、前に使用したコマンドを確認します。
 3. 前に使用したコマンドに「高速な代替コマンド案」があれば、それを使ったコマンドを出力し、strategyを"fast_alternative"に設定してください。
 4. さもなければ、前に使用したコマンドに「分割統治案」があれば、それを使ったコマンドを出力し、strategyを"divide_and_conquer"に設定してください。
-5. さもなければ、前に使用したコマンドと同じコマンドを出力し、strategyを"same_command"に設定してください。タイムアウト値はLLMを利用せずに調整します。
+5. さもなければ、前に使用したコマンドと同じコマンドを出力し、strategyを"same_command"に設定してください。タイムアウト値は「フィードバック」のものをそのまま出力してください。後ほどLLMを利用せずに調整します。
 
 # タスク
 {query}
@@ -88,15 +88,17 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
 {{ "command_inputs": [
   {{
      "command": "コマンド1",
-     "strategy": "fast_alternative|divide_and_conquer|same_command"
+     "strategy": "fast_alternative|divide_and_conquer|same_command",
+     "timeout_sec": タイムアウト秒数（数値）
   }},
   {{
      "command": "コマンド2",
-     "strategy": "fast_alternative|divide_and_conquer|same_command"
+     "strategy": "fast_alternative|divide_and_conquer|same_command",
+     "timeout_sec": タイムアウト秒数（数値）
   }}
 ]}}
 
-JSONのみを出力してください。説明や追加のテキストは含めないでください。タイムアウト値は出力しないでください。
+JSONのみを出力してください。説明や追加のテキストは含めないでください。
 """
         )
 
@@ -141,24 +143,13 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             command_candidates = []
 
             for cmd_input in response_json.get("command_inputs", []):
-                command = cmd_input.get("command", "")
-                strategy = cmd_input.get("strategy", "")
-                
-                # 初期タイムアウト値を取得（存在しない場合は例外を発生）
-                try:
-                    initial_timeout_sec = state.context["initial_timeout_sec"]
-                except KeyError:
-                    raise ValueError("初期タイムアウト値（initial_timeout_sec）が設定されていません")
-                
-                # 戦略に基づいてタイムアウト値を決定
+                command = cmd_input["command"]
+                strategy = cmd_input["strategy"]
+                timeout_sec = int(cmd_input["timeout_sec"])
+
                 if strategy == "same_command":
-                    # 同じコマンドを再実行する場合のみタイムアウト値を2倍に
-                    timeout_sec = initial_timeout_sec * 2
-                    logger.info(f"Same command strategy: increasing timeout to {timeout_sec} seconds")
-                else:
-                    # 高速な代替コマンドや分割統治戦略の場合は元のタイムアウト値を使用
-                    timeout_sec = initial_timeout_sec
-                    logger.info(f"Using strategy '{strategy}': keeping original timeout of {timeout_sec} seconds")
+                    # タイムアウト値を元の値に設定
+                    timeout_sec *= 2
                 
                 if command:
                     # CommandInputオブジェクトを作成
