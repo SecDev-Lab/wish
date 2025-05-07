@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI
 from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
+from ..utils import strip_markdown_code_block
 from ..constants import (
     DIALOG_AVOIDANCE_DOC,
     DIVIDE_AND_CONQUER_DOC,
@@ -106,16 +107,7 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
         command = result.content.strip()
 
         # Remove Markdown code block formatting if present
-        if command.startswith("```"):
-            # Extract the command from the code block
-            lines = command.split("\n")
-            # Remove the first line (```bash or similar)
-            lines = lines[1:]
-            # Remove the last line if it's a closing ```
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            # Join the remaining lines
-            command = "\n".join(lines).strip()
+        command = strip_markdown_code_block(command)
 
         logger.info(f"Generated command: {command}")
 

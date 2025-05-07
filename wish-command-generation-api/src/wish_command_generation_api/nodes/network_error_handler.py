@@ -11,6 +11,7 @@ from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from ..constants import DIALOG_AVOIDANCE_DOC
+from ..utils import strip_markdown_code_block
 from ..models import GraphState
 
 # Configure logging
@@ -33,9 +34,13 @@ def handle_network_error(state: Annotated[GraphState, "Current state"], settings
             logger.info("No network error to handle")
             return state
 
-        # Create the LLM
+        # Create the LLM with model_kwargs to force JSON output
         model = settings_obj.OPENAI_MODEL or "gpt-4o"
-        llm = ChatOpenAI(model=model, temperature=0.2)
+        llm = ChatOpenAI(
+            model=model,
+            temperature=0.2,
+            model_kwargs={"response_format": {"type": "json_object"}}  # JSONレスポンスを強制
+        )
 
         # Create the prompt
         prompt = ChatPromptTemplate.from_template(
@@ -118,6 +123,12 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 "context": context_str,
                 "dialog_avoidance_doc": DIALOG_AVOIDANCE_DOC
             })
+            
+            # LLMの応答をログ出力
+            logger.info(f"LLM response: {result}")
+            
+            # マークダウン形式のコードブロック表記を削除
+            result = strip_markdown_code_block(result)
         except Exception as e:
             raise RuntimeError(f"Error invoking LLM chain: {e}") from e
 
