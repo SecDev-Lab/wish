@@ -4,21 +4,23 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from wish_models.settings import Settings
+from wish_models.test_factories.settings_factory import SettingsFactory
 
 from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import command_generator
+from wish_command_generation_api.test_factories.graph_state_factory import GraphStateFactory
 
 
 @pytest.fixture
 def settings():
     """Create a settings object for testing."""
-    return Settings()
+    return SettingsFactory()
 
 
 @pytest.fixture
 def sample_state():
     """Create a sample graph state for testing."""
-    return GraphState(
+    return GraphStateFactory(
         query="list all files in the current directory",
         context={
             "current_directory": "/home/user",
@@ -113,7 +115,7 @@ def test_generate_command_exception(sample_state, settings):
         assert "Error generating command" in str(excinfo.value)
 
 
-def test_generate_command_preserve_state(sample_state, settings):
+def test_generate_command_preserve_state(settings):
     """Test that the generator preserves other state fields."""
     # Arrange
     mock_content = MagicMock()
@@ -121,10 +123,20 @@ def test_generate_command_preserve_state(sample_state, settings):
     mock_llm = MagicMock()
     mock_llm.invoke.return_value = mock_content
 
-    # Add additional fields to the state
-    sample_state.processed_query = "list all files including hidden ones"
-    sample_state.is_retry = False
-    sample_state.error_type = "TEST_ERROR"
+    # Create state with additional fields
+    sample_state = GraphStateFactory(
+        query="list all files in the current directory",
+        context={
+            "current_directory": "/home/user",
+            "history": ["cd /home/user", "mkdir test"],
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
+        },
+        processed_query="list all files including hidden ones",
+        is_retry=False,
+        error_type="TEST_ERROR"
+    )
 
     # Act
     with patch.object(command_generator, "ChatOpenAI", return_value=mock_llm):
