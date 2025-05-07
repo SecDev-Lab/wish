@@ -12,7 +12,7 @@ def strip_markdown_code_block(text: str) -> str:
     """
     if not text.startswith("```"):
         return text
-        
+
     # Extract the content from the code block
     lines = text.split("\n")
     # Remove the first line (```json or similar)

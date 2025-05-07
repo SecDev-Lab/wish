@@ -9,7 +9,7 @@ from wish_models.system_info import SystemInfo
 
 from wish_command_generation.models import GraphState
 from wish_command_generation.nodes.command_generation import generate_commands
-from wish_command_generation.test_factories.state_factory import GraphStateFactory, WishFactory
+from wish_command_generation.test_factories.state_factory import WishFactory
 
 
 class TestCommandGeneration:

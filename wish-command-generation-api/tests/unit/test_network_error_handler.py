@@ -103,16 +103,16 @@ def test_handle_network_error_success(settings, mock_network_error_response):
     with patch.object(network_error_handler, "ChatOpenAI") as mock_llm_class:
         mock_llm = MagicMock()
         mock_llm_class.return_value = mock_llm
-        
+
         # StrOutputParserをモック
         with patch.object(network_error_handler, "StrOutputParser") as mock_parser_class:
             mock_parser = MagicMock()
             mock_parser_class.return_value = mock_parser
-            
+
             # チェーンの結果をモック
             mock_chain = MagicMock()
             mock_chain.invoke.return_value = mock_network_error_response
-            
+
             # チェーン作成をモック
             mock_prompt = MagicMock()
             with patch.object(network_error_handler, "ChatPromptTemplate") as mock_prompt_template:
@@ -120,7 +120,7 @@ def test_handle_network_error_success(settings, mock_network_error_response):
                 mock_prompt.__or__.return_value = mock_llm
                 mock_llm.__or__.return_value = mock_parser
                 mock_parser.invoke = mock_chain.invoke
-                
+
                 # Act
                 result = network_error_handler.handle_network_error(state, settings)
 

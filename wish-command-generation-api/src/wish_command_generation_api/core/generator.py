@@ -3,12 +3,11 @@
 import logging
 from typing import Optional
 
-from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from ..config import GeneratorConfig
 from ..graph import create_command_generation_graph
-from ..models import GeneratedCommand, GenerateRequest, GenerateResponse, GraphState
+from ..models import GenerateRequest, GenerateResponse, GraphState
 
 # Configure logging
 logger = logging.getLogger()

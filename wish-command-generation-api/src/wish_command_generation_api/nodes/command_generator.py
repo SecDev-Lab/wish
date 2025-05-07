@@ -8,7 +8,6 @@ from langchain_openai import ChatOpenAI
 from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
-from ..utils import strip_markdown_code_block
 from ..constants import (
     DIALOG_AVOIDANCE_DOC,
     DIVIDE_AND_CONQUER_DOC,
@@ -16,6 +15,7 @@ from ..constants import (
     LIST_FILES_DOC,
 )
 from ..models import GraphState
+from ..utils import strip_markdown_code_block
 
 # Configure logging
 logger = logging.getLogger()

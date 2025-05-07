@@ -11,8 +11,8 @@ from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from ..constants import DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC
-from ..utils import strip_markdown_code_block
 from ..models import GraphState
+from ..utils import strip_markdown_code_block
 
 # Configure logging
 logger = logging.getLogger()
@@ -128,7 +128,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
             "fast_alternative_doc": FAST_ALTERNATIVE_DOC,
             "divide_and_conquer_doc": DIVIDE_AND_CONQUER_DOC
         })
-        
+
         # LLMの応答をログ出力
         logger.info(f"LLM response: {result}")
 
@@ -150,7 +150,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 if strategy == "same_command":
                     # タイムアウト値を元の値に設定
                     timeout_sec *= 2
-                
+
                 if command:
                     # CommandInputオブジェクトを作成
                     command_input = CommandInput(
@@ -180,6 +180,6 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         except json.JSONDecodeError:
             logger.error(f"Failed to parse LLM response as JSON: {result}")
             # フォールバック処理を行わずに例外をスロー
-            raise json.JSONDecodeError(f"Failed to parse LLM response as JSON", result, 0)
+            raise json.JSONDecodeError("Failed to parse LLM response as JSON", result, 0)
     except Exception as e:
         raise RuntimeError("Error handling timeout") from e

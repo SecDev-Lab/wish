@@ -11,8 +11,8 @@ from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from ..constants import DIALOG_AVOIDANCE_DOC
-from ..utils import strip_markdown_code_block
 from ..models import GraphState
+from ..utils import strip_markdown_code_block
 
 # Configure logging
 logger = logging.getLogger()
@@ -123,10 +123,10 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 "context": context_str,
                 "dialog_avoidance_doc": DIALOG_AVOIDANCE_DOC
             })
-            
+
             # LLMの応答をログ出力
             logger.info(f"LLM response: {result}")
-            
+
             # マークダウン形式のコードブロック表記を削除
             result = strip_markdown_code_block(result)
         except Exception as e:

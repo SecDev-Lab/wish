@@ -171,7 +171,7 @@ def generate_commands(state: GraphState, settings_obj) -> GraphState:
         response_json = json.loads(response)
 
         # Convert to CommandInput objects
-        command_inputs = []            
+        command_inputs = []
         for cmd in response_json.get("command_inputs", []):
             command_inputs.append(
                 CommandInput(

@@ -1,13 +1,14 @@
 """Integration tests for library usage."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from wish_models.settings import Settings
 from wish_models.command_result import CommandInput
+from wish_models.settings import Settings
 
 from wish_command_generation_api.config import GeneratorConfig
 from wish_command_generation_api.core.generator import generate_commands
-from wish_command_generation_api.models import GenerateRequest, GenerateResponse, GeneratedCommand
+from wish_command_generation_api.models import GeneratedCommand, GenerateRequest
 
 
 @pytest.fixture
