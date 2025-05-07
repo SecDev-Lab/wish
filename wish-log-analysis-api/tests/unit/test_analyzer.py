@@ -45,7 +45,8 @@ def sample_command_result(sample_log_files):
         exit_code=0,
         log_files=sample_log_files,
         created_at=UtcDatetime.now(),
-        finished_at=UtcDatetime.now()
+        finished_at=UtcDatetime.now(),
+        timeout_sec=60
     )
 
 
@@ -92,16 +93,17 @@ def test_analyze_command_result_with_mocks(sample_command_result, mock_chat_open
         command_result=sample_command_result,
         log_summary="This is a mock summary of the command output",
         command_state=CommandState.SUCCESS,
-        analyzed_command_result=CommandResult(
-            num=sample_command_result.num,
-            command=sample_command_result.command,
-            state=CommandState.SUCCESS,
-            exit_code=sample_command_result.exit_code,
-            log_summary="This is a mock summary of the command output",
-            log_files=sample_command_result.log_files,
-            created_at=sample_command_result.created_at,
-            finished_at=sample_command_result.finished_at
-        )
+            analyzed_command_result=CommandResult(
+                num=sample_command_result.num,
+                command=sample_command_result.command,
+                state=CommandState.SUCCESS,
+                exit_code=sample_command_result.exit_code,
+                log_summary="This is a mock summary of the command output",
+                log_files=sample_command_result.log_files,
+                created_at=sample_command_result.created_at,
+                finished_at=sample_command_result.finished_at,
+                timeout_sec=sample_command_result.timeout_sec
+            )
     )
 
     # Mock the graph
@@ -177,7 +179,8 @@ def test_analyze_command_result_with_custom_config(sample_command_result, mock_c
             log_summary="This is a mock summary with custom config",
             log_files=sample_command_result.log_files,
             created_at=sample_command_result.created_at,
-            finished_at=sample_command_result.finished_at
+            finished_at=sample_command_result.finished_at,
+            timeout_sec=sample_command_result.timeout_sec
         )
     )
 
@@ -235,7 +238,8 @@ def test_analyze_command_result_with_default_config(sample_command_result, mock_
             log_summary="This is a mock summary with default config",
             log_files=sample_command_result.log_files,
             created_at=sample_command_result.created_at,
-            finished_at=sample_command_result.finished_at
+            finished_at=sample_command_result.finished_at,
+            timeout_sec=sample_command_result.timeout_sec
         )
     )
 

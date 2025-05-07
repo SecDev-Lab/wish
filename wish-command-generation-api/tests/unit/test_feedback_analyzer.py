@@ -29,7 +29,7 @@ def test_analyze_feedback_no_feedback(settings):
     # Assert
     assert result.is_retry is False
     assert result.error_type is None
-    assert result.act_result is None
+    assert result.failed_command_results is None
 
 
 def test_analyze_feedback_timeout(settings):
@@ -48,7 +48,7 @@ def test_analyze_feedback_timeout(settings):
             timeout_sec=60
         )
     ]
-    state = GraphState(query="test query", context={}, act_result=act_result)
+    state = GraphState(query="test query", context={}, failed_command_results=act_result)
 
     # Act
     result = feedback_analyzer.analyze_feedback(state, settings)
@@ -56,7 +56,7 @@ def test_analyze_feedback_timeout(settings):
     # Assert
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
-    assert result.act_result == act_result
+    assert result.failed_command_results == act_result
 
 
 def test_analyze_feedback_network_error(settings):
@@ -75,7 +75,7 @@ def test_analyze_feedback_network_error(settings):
             timeout_sec=60
         )
     ]
-    state = GraphState(query="test query", context={}, act_result=act_result)
+    state = GraphState(query="test query", context={}, failed_command_results=act_result)
 
     # Act
     result = feedback_analyzer.analyze_feedback(state, settings)
@@ -83,7 +83,7 @@ def test_analyze_feedback_network_error(settings):
     # Assert
     assert result.is_retry is True
     assert result.error_type == "NETWORK_ERROR"
-    assert result.act_result == act_result
+    assert result.failed_command_results == act_result
 
 
 def test_analyze_feedback_multiple_errors(settings):
@@ -122,7 +122,7 @@ def test_analyze_feedback_multiple_errors(settings):
             timeout_sec=60
         )
     ]
-    state = GraphState(query="test query", context={}, act_result=act_result)
+    state = GraphState(query="test query", context={}, failed_command_results=act_result)
 
     # Act
     result = feedback_analyzer.analyze_feedback(state, settings)
@@ -130,14 +130,14 @@ def test_analyze_feedback_multiple_errors(settings):
     # Assert
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"  # TIMEOUT should be prioritized
-    assert result.act_result == act_result
+    assert result.failed_command_results == act_result
 
 
 def test_analyze_feedback_exception_propagation(settings):
     """Test that exceptions are propagated during feedback analysis."""
     # Arrange
     state = MagicMock()
-    state.act_result = MagicMock(side_effect=Exception("Test error"))
+    state.failed_command_results = MagicMock(side_effect=Exception("Test error"))
 
     # Act & Assert
     with pytest.raises(Exception) as excinfo:
@@ -174,7 +174,7 @@ def test_analyze_feedback_preserve_state(settings):
         context={"current_directory": "/home/user"},
         processed_query=processed_query,
         command_candidates=command_candidates,
-        act_result=act_result
+        failed_command_results=act_result
     )
 
     # Act
@@ -187,4 +187,4 @@ def test_analyze_feedback_preserve_state(settings):
     assert result.command_candidates == command_candidates
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
-    assert result.act_result == act_result
+    assert result.failed_command_results == act_result
