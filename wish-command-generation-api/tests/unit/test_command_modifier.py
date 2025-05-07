@@ -6,7 +6,6 @@ import pytest
 from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
-from wish_command_generation_api.constants import DEFAULT_TIMEOUT_SEC
 from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import command_modifier
 
@@ -36,7 +35,7 @@ def test_modify_command_dialog_avoidance(mock_modify, settings, mock_command_res
     state = GraphState(
         query="Start a Metasploit handler",
         context={},
-        command_candidates=[CommandInput(command="msfconsole", timeout_sec=DEFAULT_TIMEOUT_SEC)]
+        command_candidates=[CommandInput(command="msfconsole", timeout_sec=60)]
     )
 
     # Mock the modifier to return a modified state
@@ -47,7 +46,7 @@ def test_modify_command_dialog_avoidance(mock_modify, settings, mock_command_res
             CommandInput(
                 command="msfconsole -q -x \"use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; "
                 "set LHOST 10.10.10.1; set LPORT 4444; run; exit -y\"",
-                timeout_sec=DEFAULT_TIMEOUT_SEC
+                timeout_sec=60
             )
         ]
     )
@@ -71,7 +70,7 @@ def test_modify_command_list_files(mock_modify, settings, mock_list_files_respon
         command_candidates=[
             CommandInput(
                 command="hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40",
-                timeout_sec=DEFAULT_TIMEOUT_SEC
+                timeout_sec=60
             )
         ]
     )
@@ -84,7 +83,7 @@ def test_modify_command_list_files(mock_modify, settings, mock_list_files_respon
             CommandInput(
                 command="hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
                 "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40",
-                timeout_sec=DEFAULT_TIMEOUT_SEC
+                timeout_sec=60
             )
         ]
     )
@@ -107,7 +106,7 @@ def test_modify_command_both_modifications(mock_modify, settings):
     state = GraphState(
         query="Download user list from SMB share",
         context={},
-        command_candidates=[CommandInput(command="smbclient -N //10.10.10.40/share", timeout_sec=DEFAULT_TIMEOUT_SEC)]
+        command_candidates=[CommandInput(command="smbclient -N //10.10.10.40/share", timeout_sec=60)]
     )
 
     # Mock the modifier to return a modified state
@@ -118,7 +117,7 @@ def test_modify_command_both_modifications(mock_modify, settings):
             CommandInput(
                 command="smbclient -N //10.10.10.40/share -c 'get "
                        "/usr/share/seclists/Usernames/top-usernames-shortlist.txt'",
-                timeout_sec=DEFAULT_TIMEOUT_SEC
+                timeout_sec=60
             )
         ]
     )
@@ -140,7 +139,7 @@ def test_modify_command_json_error(mock_modify, settings):
     state = GraphState(
         query="test_modify_command_json_error",
         context={},
-        command_candidates=[CommandInput(command="msfconsole", timeout_sec=DEFAULT_TIMEOUT_SEC)]
+        command_candidates=[CommandInput(command="msfconsole", timeout_sec=60)]
     )
 
     # Act
@@ -159,7 +158,7 @@ def test_modify_command_exception(mock_modify, settings):
     state = GraphState(
         query="test_modify_command_exception",
         context={},
-        command_candidates=[CommandInput(command="msfconsole", timeout_sec=DEFAULT_TIMEOUT_SEC)]
+        command_candidates=[CommandInput(command="msfconsole", timeout_sec=60)]
     )
 
     # Act
@@ -179,10 +178,10 @@ def test_modify_command_multiple_commands(mock_modify, settings):
         query="Run multiple commands",
         context={},
         command_candidates=[
-            CommandInput(command="msfconsole", timeout_sec=DEFAULT_TIMEOUT_SEC),
+            CommandInput(command="msfconsole", timeout_sec=60),
             CommandInput(
                 command="hydra -L user_list.txt -P pass_list.txt smb://10.10.10.40",
-                timeout_sec=DEFAULT_TIMEOUT_SEC
+                timeout_sec=60
             )
         ]
     )
@@ -194,12 +193,12 @@ def test_modify_command_multiple_commands(mock_modify, settings):
         command_candidates=[
             CommandInput(
                 command="msfconsole -q -x \"use exploit/multi/handler; exit -y\"",
-                timeout_sec=DEFAULT_TIMEOUT_SEC
+                timeout_sec=60
             ),
             CommandInput(
                 command="hydra -L /usr/share/seclists/Usernames/top-usernames-shortlist.txt "
                 "-P /usr/share/seclists/Passwords/xato-net-10-million-passwords-1000.txt smb://10.10.10.40",
-                timeout_sec=DEFAULT_TIMEOUT_SEC
+                timeout_sec=60
             )
         ]
     )
@@ -249,7 +248,7 @@ def test_modify_command_preserve_state(mock_modify, settings):
             "attacker": {"lhost": "192.168.1.5"}
         },
         processed_query=processed_query,
-        command_candidates=[CommandInput(command="msfconsole", timeout_sec=DEFAULT_TIMEOUT_SEC)],
+        command_candidates=[CommandInput(command="msfconsole", timeout_sec=60)],
         act_result=act_result,
         is_retry=True,
         error_type="TIMEOUT"
@@ -264,7 +263,7 @@ def test_modify_command_preserve_state(mock_modify, settings):
             "attacker": {"lhost": "192.168.1.5"}
         },
         processed_query=processed_query,
-        command_candidates=[CommandInput(command="msfconsole -q -x \"exit -y\"", timeout_sec=DEFAULT_TIMEOUT_SEC)],
+        command_candidates=[CommandInput(command="msfconsole -q -x \"exit -y\"", timeout_sec=60)],
         act_result=act_result,
         is_retry=True,
         error_type="TIMEOUT"

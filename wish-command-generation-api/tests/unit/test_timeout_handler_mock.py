@@ -32,7 +32,8 @@ def test_handle_timeout_success_mock(mock_handler, settings):
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
@@ -82,7 +83,8 @@ def test_handle_timeout_multiple_commands_mock(mock_handler, settings):
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(

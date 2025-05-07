@@ -42,7 +42,8 @@ def test_handle_timeout_not_timeout(settings):
             exit_code=1,
             log_summary="network error",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
@@ -72,7 +73,8 @@ def test_handle_timeout_success(mock_handler, settings, mock_timeout_response):
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
@@ -121,7 +123,8 @@ def test_handle_timeout_multiple_commands(mock_handler, settings, mock_timeout_m
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
@@ -170,7 +173,8 @@ def test_handle_timeout_json_error(mock_handler, settings):
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
@@ -217,7 +221,8 @@ def test_handle_timeout_exception(mock_handler, settings):
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(

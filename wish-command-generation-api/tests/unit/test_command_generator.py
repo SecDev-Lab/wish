@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from wish_models.settings import Settings
 
-from wish_command_generation_api.constants import DEFAULT_TIMEOUT_SEC
 from wish_command_generation_api.models import GraphState
 from wish_command_generation_api.nodes import command_generator
 
@@ -48,7 +47,7 @@ def test_generate_command_success(sample_state, settings):
     # Assert
     assert len(result.command_candidates) == 1
     assert result.command_candidates[0].command == "ls -la"
-    assert result.command_candidates[0].timeout_sec == DEFAULT_TIMEOUT_SEC
+    assert result.command_candidates[0].timeout_sec == 60
     assert mock_llm.invoke.call_count == 1
     # Verify that the template was called with the correct arguments
     mock_template.from_template.assert_called_once()
@@ -72,7 +71,7 @@ def test_generate_command_with_docs(sample_state, settings):
     # Assert
     assert len(result.command_candidates) == 1
     assert result.command_candidates[0].command == "ls -la"
-    assert result.command_candidates[0].timeout_sec == DEFAULT_TIMEOUT_SEC
+    assert result.command_candidates[0].timeout_sec == 60
     # Check that the from_template method was called with the correct template
     mock_template.from_template.assert_called_once_with(command_generator.COMMAND_GENERATOR_PROMPT)
 
@@ -95,7 +94,7 @@ def test_generate_command_markdown_code_block(sample_state, settings):
     # Assert
     assert len(result.command_candidates) == 1
     assert result.command_candidates[0].command == "ls -la"
-    assert result.command_candidates[0].timeout_sec == DEFAULT_TIMEOUT_SEC
+    assert result.command_candidates[0].timeout_sec == 60
 
 
 def test_generate_command_exception(sample_state, settings):
@@ -144,6 +143,6 @@ def test_generate_command_preserve_state(sample_state, settings):
     assert result.processed_query == "list all files including hidden ones"
     assert len(result.command_candidates) == 1
     assert result.command_candidates[0].command == "ls -la"
-    assert result.command_candidates[0].timeout_sec == DEFAULT_TIMEOUT_SEC
+    assert result.command_candidates[0].timeout_sec == 60
     assert result.is_retry is True
     assert result.error_type == "TEST_ERROR"
