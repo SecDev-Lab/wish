@@ -54,10 +54,11 @@ class TestCommandResult:
         command = "echo hello"
         log_files = LogFilesFactory.create()
         now = UtcDatetime.now()
+        timeout_sec = 60
 
         # Act
         with patch("wish_models.utc_datetime.UtcDatetime.now", return_value=now):
-            result = CommandResult.create(num=num, command=command, log_files=log_files)
+            result = CommandResult.create(num=num, command=command, log_files=log_files, timeout_sec=timeout_sec)
 
         # Assert
         assert result.num == num
@@ -65,7 +66,7 @@ class TestCommandResult:
         assert result.state == CommandState.DOING
         assert result.log_files == log_files
         assert result.created_at == now
-        assert result.timeout_sec is None
+        assert result.timeout_sec == timeout_sec
         assert result.exit_code is None
         assert result.log_summary is None
         assert result.finished_at is None
