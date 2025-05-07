@@ -44,7 +44,8 @@ def test_analyze_feedback_timeout(settings):
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(query="test query", context={}, act_result=act_result)
@@ -70,7 +71,8 @@ def test_analyze_feedback_network_error(settings):
             exit_code=1,
             log_summary="network error",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(query="test query", context={}, act_result=act_result)
@@ -96,7 +98,8 @@ def test_analyze_feedback_multiple_errors(settings):
             exit_code=0,
             log_summary="success",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         ),
         CommandResult(
             num=2,
@@ -105,7 +108,8 @@ def test_analyze_feedback_multiple_errors(settings):
             exit_code=1,
             log_summary="network error",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         ),
         CommandResult(
             num=3,
@@ -114,7 +118,8 @@ def test_analyze_feedback_multiple_errors(settings):
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(query="test query", context={}, act_result=act_result)
@@ -159,7 +164,8 @@ def test_analyze_feedback_preserve_state(settings):
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 

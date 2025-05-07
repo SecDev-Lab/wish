@@ -34,7 +34,7 @@ def test_handle_network_error_not_network_error(settings):
     """Test handling network error when the error is not a network error."""
     # Arrange
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="test command",
@@ -42,13 +42,14 @@ def test_handle_network_error_not_network_error(settings):
             exit_code=1,
             log_summary="timeout",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
         query="test query",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="TIMEOUT"
     )
 
@@ -67,7 +68,7 @@ def test_handle_network_error_success(mock_handler, settings, mock_network_error
     """Test successful handling of a network error."""
     # Create a state with a network error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="nmap -p- 10.10.10.40",
@@ -75,13 +76,14 @@ def test_handle_network_error_success(mock_handler, settings, mock_network_error
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
         query="test_handle_network_error_success",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
@@ -94,7 +96,7 @@ def test_handle_network_error_success(mock_handler, settings, mock_network_error
     assert result.command_candidates[0].command == "nmap -p- 10.10.10.40"
     assert result.is_retry is True
     assert result.error_type == "NETWORK_ERROR"
-    assert result.act_result == act_result
+    assert result.failed_command_results == failed_command_results
     assert mock_handler.called
 
 
@@ -103,7 +105,7 @@ def test_handle_network_error_with_dialog_avoidance_doc(mock_handler, settings):
     """Test that dialog avoidance document is included in the prompt."""
     # Create a state with a network error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="smbclient -N //10.10.10.40/Users --option='client min protocol'=LANMAN1",
@@ -111,13 +113,14 @@ def test_handle_network_error_with_dialog_avoidance_doc(mock_handler, settings):
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
         query="List files in SMB share",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
@@ -126,7 +129,7 @@ def test_handle_network_error_with_dialog_avoidance_doc(mock_handler, settings):
     expected_result = GraphState(
         query="List files in SMB share",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True,
         command_candidates=[CommandInput(
@@ -149,7 +152,7 @@ def test_handle_network_error_alternative_command(mock_handler, settings):
     """Test handling network error with an alternative command."""
     # Create a state with a network error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="nmap -p- 10.10.10.40",
@@ -157,13 +160,14 @@ def test_handle_network_error_alternative_command(mock_handler, settings):
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
         query="test_handle_network_error_alternative_command",
         context={"test_handle_network_error_alternative_command": True},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
@@ -172,7 +176,7 @@ def test_handle_network_error_alternative_command(mock_handler, settings):
     expected_result = GraphState(
         query="test_handle_network_error_alternative_command",
         context={"test_handle_network_error_alternative_command": True},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True,
         command_candidates=[CommandInput(
@@ -197,7 +201,7 @@ def test_handle_network_error_json_error(mock_handler, settings):
     """Test handling network error when the LLM returns invalid JSON."""
     # Create a state with a network error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="nmap -p- 10.10.10.40",
@@ -205,13 +209,14 @@ def test_handle_network_error_json_error(mock_handler, settings):
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
         query="test_handle_network_error_json_error",
         context={"test_handle_network_error_json_error": True},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
@@ -220,7 +225,7 @@ def test_handle_network_error_json_error(mock_handler, settings):
     expected_result = GraphState(
         query="test_handle_network_error_json_error",
         context={"test_handle_network_error_json_error": True},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True,
         command_candidates=[CommandInput(
@@ -244,7 +249,7 @@ def test_handle_network_error_exception(mock_handler, settings):
     """Test handling exceptions during network error handling."""
     # Create a state with a network error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="nmap -p- 10.10.10.40",
@@ -252,13 +257,14 @@ def test_handle_network_error_exception(mock_handler, settings):
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
@@ -267,7 +273,7 @@ def test_handle_network_error_exception(mock_handler, settings):
     expected_result = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True,
         command_candidates=[CommandInput(
@@ -292,7 +298,7 @@ def test_handle_network_error_preserve_state(mock_handler, settings):
     # Create a state with a network error and additional fields
     processed_query = "processed test query"
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="nmap -p- 10.10.10.40",
@@ -300,7 +306,8 @@ def test_handle_network_error_preserve_state(mock_handler, settings):
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -308,7 +315,7 @@ def test_handle_network_error_preserve_state(mock_handler, settings):
         query="test_handle_network_error_preserve_state",
         context={"current_directory": "/home/user"},
         processed_query=processed_query,
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True
     )
@@ -318,7 +325,7 @@ def test_handle_network_error_preserve_state(mock_handler, settings):
         query="test_handle_network_error_preserve_state",
         context={"current_directory": "/home/user"},
         processed_query=processed_query,
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="NETWORK_ERROR",
         is_retry=True,
         command_candidates=[CommandInput(
@@ -337,4 +344,4 @@ def test_handle_network_error_preserve_state(mock_handler, settings):
     assert result.processed_query == processed_query
     assert result.is_retry is True
     assert result.error_type == "NETWORK_ERROR"
-    assert result.act_result == act_result
+    assert result.failed_command_results == failed_command_results

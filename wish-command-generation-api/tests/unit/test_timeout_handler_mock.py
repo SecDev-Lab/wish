@@ -24,7 +24,7 @@ def test_handle_timeout_success_mock(mock_handler, settings):
     # Arrange
     # Create a state with a timeout error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="nmap -p- 10.10.10.40",
@@ -39,7 +39,7 @@ def test_handle_timeout_success_mock(mock_handler, settings):
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="TIMEOUT",
         is_retry=True
     )
@@ -48,7 +48,7 @@ def test_handle_timeout_success_mock(mock_handler, settings):
     expected_result = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="TIMEOUT",
         is_retry=True,
         command_candidates=[CommandInput(
@@ -66,7 +66,7 @@ def test_handle_timeout_success_mock(mock_handler, settings):
     assert result.command_candidates[0].command == "rustscan -a 10.10.10.40"
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
-    assert result.act_result == act_result
+    assert result.failed_command_results == failed_command_results
 
 
 @patch("wish_command_generation_api.nodes.timeout_handler.handle_timeout")
@@ -75,7 +75,7 @@ def test_handle_timeout_multiple_commands_mock(mock_handler, settings):
     # Arrange
     # Create a state with a timeout error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="nmap -p- 10.10.10.40",
@@ -90,7 +90,7 @@ def test_handle_timeout_multiple_commands_mock(mock_handler, settings):
     state = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="TIMEOUT",
         is_retry=True
     )
@@ -99,7 +99,7 @@ def test_handle_timeout_multiple_commands_mock(mock_handler, settings):
     expected_result = GraphState(
         query="Conduct a full port scan on IP 10.10.10.40",
         context={},
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         error_type="TIMEOUT",
         is_retry=True,
         command_candidates=[
@@ -118,4 +118,4 @@ def test_handle_timeout_multiple_commands_mock(mock_handler, settings):
     assert result.command_candidates[1].command == "nmap -p32769-65535 10.10.10.40"
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
-    assert result.act_result == act_result
+    assert result.failed_command_results == failed_command_results
