@@ -123,7 +123,7 @@ def test_generate_command_preserve_state(sample_state, settings):
 
     # Add additional fields to the state
     sample_state.processed_query = "list all files including hidden ones"
-    sample_state.is_retry = True
+    sample_state.is_retry = False
     sample_state.error_type = "TEST_ERROR"
 
     # Act
@@ -146,5 +146,5 @@ def test_generate_command_preserve_state(sample_state, settings):
     assert len(result.command_candidates) == 1
     assert result.command_candidates[0].command == "ls -la"
     assert result.command_candidates[0].timeout_sec == 60
-    assert result.is_retry is True
+    assert result.is_retry is False
     assert result.error_type == "TEST_ERROR"

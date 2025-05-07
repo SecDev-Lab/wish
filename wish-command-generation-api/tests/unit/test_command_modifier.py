@@ -228,7 +228,7 @@ def test_modify_command_preserve_state(mock_modify, settings):
     from wish_models.utc_datetime import UtcDatetime
 
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
-    act_result = [
+    failed_command_results = [
         CommandResult(
             num=1,
             command="test command",
@@ -236,7 +236,8 @@ def test_modify_command_preserve_state(mock_modify, settings):
             exit_code=0,
             log_summary="success",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -249,7 +250,7 @@ def test_modify_command_preserve_state(mock_modify, settings):
         },
         processed_query=processed_query,
         command_candidates=[CommandInput(command="msfconsole", timeout_sec=60)],
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         is_retry=True,
         error_type="TIMEOUT"
     )
@@ -264,7 +265,7 @@ def test_modify_command_preserve_state(mock_modify, settings):
         },
         processed_query=processed_query,
         command_candidates=[CommandInput(command="msfconsole -q -x \"exit -y\"", timeout_sec=60)],
-        act_result=act_result,
+        failed_command_results=failed_command_results,
         is_retry=True,
         error_type="TIMEOUT"
     )
@@ -282,6 +283,6 @@ def test_modify_command_preserve_state(mock_modify, settings):
     }
     assert result.processed_query == processed_query
     assert "exit -y" in result.command_candidates[0].command
-    assert result.act_result == act_result
+    assert result.failed_command_results == failed_command_results
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"

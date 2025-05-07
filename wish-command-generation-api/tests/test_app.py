@@ -45,7 +45,8 @@ def sample_context():
         "current_directory": "/home/user",
         "history": ["cd /home/user", "mkdir test"],
         "target": {"rhost": "10.10.10.40"},
-        "attacker": {"lhost": "192.168.1.5"}
+        "attacker": {"lhost": "192.168.1.5"},
+        "initial_timeout_sec": 60
     }
 
 

@@ -1,7 +1,7 @@
 """Unit tests for the network error handler node."""
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from wish_models.command_result import CommandInput, CommandResult, CommandState, LogFiles
@@ -16,6 +16,21 @@ from wish_command_generation_api.nodes import network_error_handler
 def settings():
     """Create a settings object for testing."""
     return Settings()
+
+
+@pytest.fixture
+def mock_network_error_response():
+    """Create a mock response for network error handling."""
+    return """
+    {
+        "command_inputs": [
+            {
+                "command": "nmap -p- 10.10.10.40",
+                "timeout_sec": 60
+            }
+        ]
+    }
+    """
 
 
 def test_handle_network_error_no_error(settings):
@@ -60,11 +75,7 @@ def test_handle_network_error_not_network_error(settings):
     assert result == state  # Should return the original state unchanged
 
 
-@patch(
-    "wish_command_generation_api.nodes.network_error_handler.handle_network_error",
-    wraps=network_error_handler.handle_network_error
-)
-def test_handle_network_error_success(mock_handler, settings, mock_network_error_response):
+def test_handle_network_error_success(settings, mock_network_error_response):
     """Test successful handling of a network error."""
     # Create a state with a network error
     log_files = LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log"))
@@ -88,8 +99,30 @@ def test_handle_network_error_success(mock_handler, settings, mock_network_error
         is_retry=True
     )
 
-    # Act
-    result = network_error_handler.handle_network_error(state, settings)
+    # モックを使用してLLMの呼び出しをバイパス
+    with patch.object(network_error_handler, "ChatOpenAI") as mock_llm_class:
+        mock_llm = MagicMock()
+        mock_llm_class.return_value = mock_llm
+        
+        # StrOutputParserをモック
+        with patch.object(network_error_handler, "StrOutputParser") as mock_parser_class:
+            mock_parser = MagicMock()
+            mock_parser_class.return_value = mock_parser
+            
+            # チェーンの結果をモック
+            mock_chain = MagicMock()
+            mock_chain.invoke.return_value = mock_network_error_response
+            
+            # チェーン作成をモック
+            mock_prompt = MagicMock()
+            with patch.object(network_error_handler, "ChatPromptTemplate") as mock_prompt_template:
+                mock_prompt_template.from_template.return_value = mock_prompt
+                mock_prompt.__or__.return_value = mock_llm
+                mock_llm.__or__.return_value = mock_parser
+                mock_parser.invoke = mock_chain.invoke
+                
+                # Act
+                result = network_error_handler.handle_network_error(state, settings)
 
     # Assert
     assert len(result.command_candidates) == 1
@@ -97,7 +130,6 @@ def test_handle_network_error_success(mock_handler, settings, mock_network_error
     assert result.is_retry is True
     assert result.error_type == "NETWORK_ERROR"
     assert result.failed_command_results == failed_command_results
-    assert mock_handler.called
 
 
 @patch("wish_command_generation_api.nodes.network_error_handler.handle_network_error")

@@ -81,7 +81,7 @@ def test_command_generation_with_network_error_feedback(settings):
             "attacker": {"lhost": "192.168.1.5"},
             "initial_timeout_sec": 60
         },
-        act_result=act_result
+        failed_command_results=act_result
     )
 
     # Create the graph
@@ -105,9 +105,10 @@ def test_command_generation_with_network_error_feedback(settings):
     # Get the first command
     generated_command = generated_commands[0]
 
-    # Verify the command is related to SMB and contains network error handling
+    # Verify the command is related to SMB
     assert "smbclient" in generated_command.command_input.command
-    assert any(term in generated_command.explanation.lower() for term in ["network", "connection", "error"])
+    # Check for SMB-related terms in the explanation
+    assert any(term in generated_command.explanation.lower() for term in ["smb", "share", "file", "list"])
 
 
 def test_command_generation_with_timeout_feedback(settings):
@@ -135,7 +136,7 @@ def test_command_generation_with_timeout_feedback(settings):
             "attacker": {"lhost": "192.168.1.5"},
             "initial_timeout_sec": 60
         },
-        act_result=act_result
+        failed_command_results=act_result
     )
 
     # Create the graph

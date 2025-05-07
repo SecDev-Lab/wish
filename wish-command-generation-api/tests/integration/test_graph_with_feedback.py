@@ -85,7 +85,8 @@ def test_graph_with_timeout_feedback(settings):
             "attacker": {"lhost": "192.168.1.5"},
             "initial_timeout_sec": 60  # Add initial timeout value
         },
-        act_result=act_result
+        failed_command_results=act_result,
+        is_retry=False  # Set is_retry to False for unknown errors
     )
 
     # Create the graph
@@ -143,7 +144,8 @@ def test_graph_with_network_error_feedback(settings):
             "attacker": {"lhost": "192.168.1.5"},
             "initial_timeout_sec": 60  # Add initial timeout value
         },
-        act_result=act_result
+        failed_command_results=act_result,
+        is_retry=False  # Set is_retry to False for unknown errors
     )
 
     # Create the graph
@@ -202,7 +204,8 @@ def test_graph_with_unknown_error_feedback(settings):
             "attacker": {"lhost": "192.168.1.5"},
             "initial_timeout_sec": 60  # Add initial timeout value
         },
-        act_result=act_result
+        failed_command_results=act_result,
+        is_retry=False  # Set is_retry to False for unknown errors
     )
 
     # Create the graph

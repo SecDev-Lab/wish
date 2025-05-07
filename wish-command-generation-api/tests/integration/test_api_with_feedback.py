@@ -44,7 +44,7 @@ def test_lambda_handler_with_feedback(settings):
                 "attacker": {"lhost": "192.168.1.5"},
                 "initial_timeout_sec": 60
             },
-            "act_result": act_result
+            "failed_command_results": act_result
         })
     }
 
@@ -101,7 +101,7 @@ def test_lambda_handler_with_network_error_feedback(settings):
                 "attacker": {"lhost": "192.168.1.5"},
                 "initial_timeout_sec": 60
             },
-            "act_result": act_result
+            "failed_command_results": act_result
         })
     }
 
@@ -171,7 +171,7 @@ def test_lambda_handler_with_multiple_feedback(settings):
                 "attacker": {"lhost": "192.168.1.5"},
                 "initial_timeout_sec": 60
             },
-            "act_result": act_result
+            "failed_command_results": act_result
         })
     }
 

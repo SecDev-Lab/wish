@@ -1,7 +1,7 @@
 """Unit tests for the timeout handler node."""
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from wish_models.command_result import CommandInput, CommandResult, CommandState, LogFiles
@@ -16,6 +16,43 @@ from wish_command_generation_api.nodes import timeout_handler
 def settings():
     """Create a settings object for testing."""
     return Settings()
+
+
+@pytest.fixture
+def mock_timeout_response():
+    """Create a mock response for timeout handling."""
+    return """
+    {
+        "command_inputs": [
+            {
+                "command": "rustscan -a 10.10.10.40",
+                "strategy": "fast_alternative",
+                "timeout_sec": 60
+            }
+        ]
+    }
+    """
+
+
+@pytest.fixture
+def mock_timeout_multiple_response():
+    """Create a mock response for timeout handling with multiple commands."""
+    return """
+    {
+        "command_inputs": [
+            {
+                "command": "nmap -p1-32768 10.10.10.40",
+                "strategy": "divide_and_conquer",
+                "timeout_sec": 60
+            },
+            {
+                "command": "nmap -p32769-65535 10.10.10.40",
+                "strategy": "divide_and_conquer",
+                "timeout_sec": 60
+            }
+        ]
+    }
+    """
 
 
 def test_handle_timeout_no_error(settings):
