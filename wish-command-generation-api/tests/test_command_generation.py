@@ -26,7 +26,7 @@ class TestCommandGeneration:
             "command_inputs": [
                 {
                     "command": "rustscan -a 10.10.10.123",
-                    "timeout_sec": None
+                    "timeout_sec": 60
                 }
             ]
         }
@@ -66,7 +66,7 @@ class TestCommandGeneration:
         # Assert
         assert len(result.command_inputs) == 1
         assert result.command_inputs[0].command == "rustscan -a 10.10.10.123"
-        assert result.command_inputs[0].timeout_sec is None
+        assert result.command_inputs[0].timeout_sec == 60
         assert result.wish == state.wish
         assert result.context == state.context
         assert result.query == state.query
@@ -86,7 +86,7 @@ class TestCommandGeneration:
             "command_inputs": [
                 {
                     "command": "dir /a:h",
-                    "timeout_sec": None
+                    "timeout_sec": 60
                 }
             ]
         }
@@ -126,7 +126,7 @@ class TestCommandGeneration:
         # Assert
         assert len(result.command_inputs) == 1
         assert result.command_inputs[0].command == "dir /a:h"
-        assert result.command_inputs[0].timeout_sec is None
+        assert result.command_inputs[0].timeout_sec == 60
 
         # Verify the mock was called with the correct system info arguments
         mock_chain.invoke.assert_called_once()
