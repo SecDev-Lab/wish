@@ -29,7 +29,7 @@ def handle_network_error(state: Annotated[GraphState, "Current state"], settings
         Updated graph state with retry commands.
     """
     try:
-        # If no act_result or not a network error, return the original state
+        # If no failed_command_results or not a network error, return the original state
         if not state.failed_command_results or state.error_type != "NETWORK_ERROR":
             logger.info("No network error to handle")
             return state
