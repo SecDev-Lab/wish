@@ -23,7 +23,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
         Updated graph state with error type.
     """
     # If no act_result, this is the first execution
-    if not state.act_result:
+    if not state.failed_command_results:
         logger.info("No feedback provided, this is the first execution")
         return GraphState(
             query=state.query,
@@ -33,28 +33,39 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
             generated_commands=state.generated_commands,
             is_retry=False,
             error_type=None,
-            act_result=None
+            failed_command_results=None
         )
 
     # Analyze feedback to determine error type
     error_type = None
     has_timeout = False
     has_network_error = False
+    has_other_error = False
 
     # First pass: check for all error types
-    for result in state.act_result:
+    for result in state.failed_command_results:
         if result.state == CommandState.TIMEOUT:
             has_timeout = True
             logger.info(f"Detected TIMEOUT error in command: {result.command}")
         elif result.state == CommandState.NETWORK_ERROR:
             has_network_error = True
             logger.info(f"Detected NETWORK_ERROR in command: {result.command}")
+        elif result.state == CommandState.OTHERS:
+            has_other_error = True
+            logger.info(f"Detected OTHER error in command: {result.command}")
 
     # Prioritize TIMEOUT over NETWORK_ERROR
     if has_timeout:
         error_type = "TIMEOUT"
+        is_retry = True
     elif has_network_error:
         error_type = "NETWORK_ERROR"
+        is_retry = True
+    elif has_other_error:
+        error_type = "OTHERS"
+        is_retry = False  # Don't retry for unknown errors
+    else:
+        is_retry = False
 
     # Update the state
     return GraphState(
@@ -63,7 +74,7 @@ def analyze_feedback(state: Annotated[GraphState, "Current state"], settings_obj
         processed_query=state.processed_query,
         command_candidates=state.command_candidates,
         generated_commands=state.generated_commands,
-        is_retry=True,
+        is_retry=is_retry,
         error_type=error_type,
-        act_result=state.act_result
+        failed_command_results=state.failed_command_results
     )

@@ -25,7 +25,8 @@ def test_graph_with_no_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60  # Add initial timeout value
         }
     )
 
@@ -70,7 +71,8 @@ def test_graph_with_timeout_feedback(settings):
                 exit_code=1,
                 log_summary="timeout",
                 log_files=log_files,
-                created_at=UtcDatetime.now()
+                created_at=UtcDatetime.now(),
+                timeout_sec=60
             )
     ]
 
@@ -80,9 +82,11 @@ def test_graph_with_timeout_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60  # Add initial timeout value
         },
-        act_result=act_result
+        failed_command_results=act_result,
+        is_retry=False  # Set is_retry to False for unknown errors
     )
 
     # Create the graph
@@ -126,7 +130,8 @@ def test_graph_with_network_error_feedback(settings):
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -136,9 +141,11 @@ def test_graph_with_network_error_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60  # Add initial timeout value
         },
-        act_result=act_result
+        failed_command_results=act_result,
+        is_retry=False  # Set is_retry to False for unknown errors
     )
 
     # Create the graph
@@ -183,7 +190,8 @@ def test_graph_with_unknown_error_feedback(settings):
             exit_code=1,
             log_summary="Unknown error",
             log_files=log_files,
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -193,9 +201,11 @@ def test_graph_with_unknown_error_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60  # Add initial timeout value
         },
-        act_result=act_result
+        failed_command_results=act_result,
+        is_retry=False  # Set is_retry to False for unknown errors
     )
 
     # Create the graph

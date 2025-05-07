@@ -30,7 +30,7 @@ class TestGraph:
             # Mock the graph.invoke method
             mock_result = {
                 "command_inputs": [
-                    CommandInput(command="rustscan -a 10.10.10.123", timeout_sec=None)
+                    CommandInput(command="rustscan -a 10.10.10.123", timeout_sec=60)
                 ]
             }
             mock_graph.invoke.return_value = mock_result
@@ -43,7 +43,7 @@ class TestGraph:
             mock_graph.invoke.assert_called_once_with({"wish": wish}, {"run_name": "ActL1-Command-Generation"})
             assert len(result) == 1
             assert result[0].command == "rustscan -a 10.10.10.123"
-            assert result[0].timeout_sec is None
+            assert result[0].timeout_sec == 60
 
     def test_command_generator_with_system_info(self):
         """Test that CommandGenerator correctly passes system information."""
@@ -67,7 +67,7 @@ class TestGraph:
             # Mock the graph.invoke method
             mock_result = {
                 "command_inputs": [
-                    CommandInput(command="ls -la | grep '^\\.'", timeout_sec=None)
+                    CommandInput(command="ls -la | grep '^\\.'", timeout_sec=60)
                 ]
             }
             mock_graph.invoke.return_value = mock_result
@@ -89,7 +89,7 @@ class TestGraph:
 
             assert len(result) == 1
             assert result[0].command == "ls -la | grep '^\\.'", "Should generate macOS-specific command"
-            assert result[0].timeout_sec is None
+            assert result[0].timeout_sec == 60
 
     @patch("wish_command_generation.nodes.rag.generate_query")
     @patch("wish_command_generation.nodes.rag.retrieve_documents")
@@ -118,7 +118,10 @@ class TestGraph:
         context_state = GraphState(
             wish=wish,
             query="nmap port scan techniques",
-            context=["nmap is a network scanning tool", "rustscan is a fast port scanner"],
+            context={
+                "docs": ["nmap is a network scanning tool", "rustscan is a fast port scanner"],
+                "initial_timeout_sec": 60
+            },
             system_info=system_info
         )
         mock_retrieve_documents.return_value = context_state
@@ -126,9 +129,12 @@ class TestGraph:
         command_state = GraphState(
             wish=wish,
             query="nmap port scan techniques",
-            context=["nmap is a network scanning tool", "rustscan is a fast port scanner"],
+            context={
+                "docs": ["nmap is a network scanning tool", "rustscan is a fast port scanner"],
+                "initial_timeout_sec": 60
+            },
             command_inputs=[
-                CommandInput(command="rustscan -a 10.10.10.123", timeout_sec=None)
+                CommandInput(command="rustscan -a 10.10.10.123", timeout_sec=60)
             ],
             system_info=system_info
         )
@@ -150,7 +156,7 @@ class TestGraph:
 
         assert len(result["command_inputs"]) == 1
         assert result["command_inputs"][0].command == "rustscan -a 10.10.10.123"
-        assert result["command_inputs"][0].timeout_sec is None
+        assert result["command_inputs"][0].timeout_sec == 60
         assert result["wish"] == wish
         assert result["query"] == "nmap port scan techniques"
         assert len(result["context"]) == 2

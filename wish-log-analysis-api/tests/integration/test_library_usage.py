@@ -65,7 +65,8 @@ def test_end_to_end_analysis(mock_chat_openai, mock_str_output_parser):
             exit_code=0,
             log_files=log_files,
             created_at=UtcDatetime.now(),
-            finished_at=UtcDatetime.now()
+            finished_at=UtcDatetime.now(),
+            timeout_sec=60
         )
 
         # Configure mock responses
@@ -89,7 +90,8 @@ def test_end_to_end_analysis(mock_chat_openai, mock_str_output_parser):
                 log_summary="Command executed successfully. Output shows test message.",
                 log_files=command_result.log_files,
                 created_at=command_result.created_at,
-                finished_at=command_result.finished_at
+                finished_at=command_result.finished_at,
+                timeout_sec=command_result.timeout_sec
             )
         )
 
@@ -143,7 +145,8 @@ def test_custom_config_integration(mock_chat_openai, mock_str_output_parser):
             exit_code=127,
             log_files=log_files,
             created_at=UtcDatetime.now(),
-            finished_at=UtcDatetime.now()
+            finished_at=UtcDatetime.now(),
+            timeout_sec=60
         )
 
         # Configure mock responses
@@ -167,7 +170,8 @@ def test_custom_config_integration(mock_chat_openai, mock_str_output_parser):
                 log_summary="Command 'unknown_command' not found in the system.",
                 log_files=command_result.log_files,
                 created_at=command_result.created_at,
-                finished_at=command_result.finished_at
+                finished_at=command_result.finished_at,
+                timeout_sec=command_result.timeout_sec
             )
         )
 

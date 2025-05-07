@@ -113,7 +113,8 @@ class LogAnalysisClient:
                 log_summary=output.summary,
                 state=command_state,
                 created_at=command_result.created_at,
-                finished_at=command_result.finished_at
+                finished_at=command_result.finished_at,
+                timeout_sec=command_result.timeout_sec
             )
 
             return analyzed_result
@@ -132,7 +133,8 @@ class LogAnalysisClient:
                 log_summary=f"Error analyzing command: {str(e)}",
                 state=CommandState.API_ERROR,
                 created_at=command_result.created_at,
-                finished_at=command_result.finished_at
+                finished_at=command_result.finished_at,
+                timeout_sec=command_result.timeout_sec
             )
 
             return error_result
@@ -183,6 +185,7 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
                 exit_code=body.get("exit_code", 0),
                 log_files={"stdout": body.get("output", ""), "stderr": ""},
                 created_at=body.get("created_at", None),
+                timeout_sec=body.get("timeout_sec", 60),
             )
         else:
             # For direct invocation
@@ -193,6 +196,7 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Dict
                 exit_code=event.get("exit_code", 0),
                 log_files={"stdout": event.get("output", ""), "stderr": ""},
                 created_at=event.get("created_at", None),
+                timeout_sec=event.get("timeout_sec", 60),
             )
 
         # Execute analysis

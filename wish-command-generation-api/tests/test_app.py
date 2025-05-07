@@ -45,7 +45,8 @@ def sample_context():
         "current_directory": "/home/user",
         "history": ["cd /home/user", "mkdir test"],
         "target": {"rhost": "10.10.10.40"},
-        "attacker": {"lhost": "192.168.1.5"}
+        "attacker": {"lhost": "192.168.1.5"},
+        "initial_timeout_sec": 60
     }
 
 
@@ -133,14 +134,9 @@ class TestGenerateCommands:
             # Create settings object
             settings_obj = Settings()
 
-            response = generate_commands(request, settings_obj=settings_obj)
-
-            # Verify the response
-            assert response.generated_commands is not None
-            assert len(response.generated_commands) == 1
-            assert response.generated_commands[0].command == "echo 'Command generation failed'"
-            assert "Test error" in response.generated_commands[0].explanation
-            assert response.error == "Test error"
+            # Expect RuntimeError to be raised
+            with pytest.raises(RuntimeError, match="Error generating commands"):
+                generate_commands(request, settings_obj=settings_obj)
 
 
 class TestLambdaHandler:

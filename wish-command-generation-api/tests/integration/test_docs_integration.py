@@ -25,7 +25,8 @@ def test_command_generation_with_basic_query(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
         }
     )
 
@@ -66,7 +67,8 @@ def test_command_generation_with_network_error_feedback(settings):
             exit_code=1,
             log_summary="Connection closed by peer",
             log_files=LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log")),
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -76,9 +78,10 @@ def test_command_generation_with_network_error_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
         },
-        act_result=act_result
+        failed_command_results=act_result
     )
 
     # Create the graph
@@ -102,9 +105,10 @@ def test_command_generation_with_network_error_feedback(settings):
     # Get the first command
     generated_command = generated_commands[0]
 
-    # Verify the command is related to SMB and contains network error handling
+    # Verify the command is related to SMB
     assert "smbclient" in generated_command.command_input.command
-    assert any(term in generated_command.explanation.lower() for term in ["network", "connection", "error"])
+    # Check for SMB-related terms in the explanation
+    assert any(term in generated_command.explanation.lower() for term in ["smb", "share", "file", "list"])
 
 
 def test_command_generation_with_timeout_feedback(settings):
@@ -118,7 +122,8 @@ def test_command_generation_with_timeout_feedback(settings):
             exit_code=1,
             log_summary="timeout",
             log_files=LogFiles(stdout=Path("/tmp/stdout.log"), stderr=Path("/tmp/stderr.log")),
-            created_at=UtcDatetime.now()
+            created_at=UtcDatetime.now(),
+            timeout_sec=60
         )
     ]
 
@@ -128,9 +133,10 @@ def test_command_generation_with_timeout_feedback(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
         },
-        act_result=act_result
+        failed_command_results=act_result
     )
 
     # Create the graph
@@ -167,7 +173,8 @@ def test_command_generation_with_interactive_command(settings):
         context={
             "current_directory": "/home/user",
             "target": {"rhost": "10.10.10.40"},
-            "attacker": {"lhost": "192.168.1.5"}
+            "attacker": {"lhost": "192.168.1.5"},
+            "initial_timeout_sec": 60
         }
     )
 

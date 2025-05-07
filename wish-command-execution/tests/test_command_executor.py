@@ -9,7 +9,6 @@ from wish_models.test_factories import WishDoingFactory
 
 from wish_command_execution import CommandExecutor
 from wish_command_execution.backend import Backend
-from wish_command_execution.constants import DEFAULT_COMMAND_TIMEOUT_SEC
 
 
 class MockBackend(Backend):
@@ -56,7 +55,7 @@ class TestCommandExecutor:
         # Execute a command
         cmd = "echo 'Test command'"
         cmd_num = 1
-        timeout_sec = DEFAULT_COMMAND_TIMEOUT_SEC
+        timeout_sec = 60
         await executor.execute_command(wish, cmd, cmd_num, timeout_sec)
 
         # Verify that log_dir_creator was called
@@ -83,9 +82,9 @@ class TestCommandExecutor:
 
         # Execute multiple commands
         commands = [
-            CommandInput(command="echo 'Command 1'", timeout_sec=DEFAULT_COMMAND_TIMEOUT_SEC),
-            CommandInput(command="echo 'Command 2'", timeout_sec=DEFAULT_COMMAND_TIMEOUT_SEC),
-            CommandInput(command="echo 'Command 3'", timeout_sec=DEFAULT_COMMAND_TIMEOUT_SEC)
+            CommandInput(command="echo 'Command 1'", timeout_sec=60),
+            CommandInput(command="echo 'Command 2'", timeout_sec=60),
+            CommandInput(command="echo 'Command 3'", timeout_sec=60)
         ]
         await executor.execute_commands(wish, commands)
 

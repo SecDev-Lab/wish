@@ -140,6 +140,7 @@ def test_analyze_result():
         log_files={"stdout": "file1.txt\nfile2.txt", "stderr": ""},
         exit_code=0,
         log_summary=None,
+        timeout_sec=60,
     )
 
     # Create the expected response
@@ -148,6 +149,7 @@ def test_analyze_result():
         log_files={"stdout": "file1.txt\nfile2.txt", "stderr": ""},
         exit_code=0,
         log_summary="Listed files: file1.txt, file2.txt",
+        timeout_sec=60,
     )
 
     # Mock the API response

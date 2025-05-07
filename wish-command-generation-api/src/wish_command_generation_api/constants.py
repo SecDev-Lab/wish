@@ -33,6 +33,3 @@ if not LIST_FILES_DOC:
 DIVIDE_AND_CONQUER_DOC = _read_doc_file("divide_and_conquer.md")
 if not DIVIDE_AND_CONQUER_DOC:
     DIVIDE_AND_CONQUER_DOC = "ERROR: divide_and_conquer.md file not found"
-
-# デフォルトのタイムアウト秒数
-DEFAULT_TIMEOUT_SEC = 60

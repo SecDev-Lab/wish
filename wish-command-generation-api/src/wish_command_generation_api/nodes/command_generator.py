@@ -9,13 +9,13 @@ from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from ..constants import (
-    DEFAULT_TIMEOUT_SEC,
     DIALOG_AVOIDANCE_DOC,
     DIVIDE_AND_CONQUER_DOC,
     FAST_ALTERNATIVE_DOC,
     LIST_FILES_DOC,
 )
 from ..models import GraphState
+from ..utils import strip_markdown_code_block
 
 # Configure logging
 logger = logging.getLogger()
@@ -66,6 +66,11 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
     Returns:
         Updated graph state with command candidates.
     """
+    assert state.is_retry is False, "is_retry should be False in command generation"
+    assert "initial_timeout_sec" in state.context, "initial_timeout_sec should be set in context"
+    assert state.context["initial_timeout_sec"] is not None, "initial_timeout_sec should not be None"
+    initial_timeout_sec = state.context["initial_timeout_sec"]
+
     try:
         # Extract query and context
         original_query = state.query
@@ -103,21 +108,11 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
         command = result.content.strip()
 
         # Remove Markdown code block formatting if present
-        if command.startswith("```"):
-            # Extract the command from the code block
-            lines = command.split("\n")
-            # Remove the first line (```bash or similar)
-            lines = lines[1:]
-            # Remove the last line if it's a closing ```
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            # Join the remaining lines
-            command = "\n".join(lines).strip()
+        command = strip_markdown_code_block(command)
 
         logger.info(f"Generated command: {command}")
 
-        # Generate a list of command candidates (in this case, just one)
-        command_candidates = [CommandInput(command=command, timeout_sec=DEFAULT_TIMEOUT_SEC)]
+        command_candidates = [CommandInput(command=command, timeout_sec=initial_timeout_sec)]
 
         # Update the state
         return GraphState(
@@ -127,7 +122,7 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
             command_candidates=command_candidates,
             is_retry=state.is_retry,
             error_type=state.error_type,
-            act_result=state.act_result
+            failed_command_results=state.failed_command_results
         )
     except Exception as e:
         raise RuntimeError("Error generating command") from e

@@ -186,7 +186,8 @@ class TestSliverBackend:
         mock_interactive_session.execute.return_value = cmd_result
 
         # Call the method
-        await sliver_backend.execute_command(mock_wish, "ls -la", 1, mock_log_files)
+        timeout_sec = 60  # デフォルトのタイムアウト値
+        await sliver_backend.execute_command(mock_wish, "ls -la", 1, mock_log_files, timeout_sec)
 
         # Verify that execute was called with the correct arguments
         # The command is now split into command name and arguments

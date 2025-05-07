@@ -12,7 +12,7 @@ class CommandResultSuccessFactory(factory.Factory):
     num = factory.Faker("random_int", min=1)
     command = factory.Faker("sentence")
     state = CommandState.SUCCESS
-    timeout_sec = None
+    timeout_sec = 60
     exit_code = 0
     log_summary = factory.Faker("sentence")
     log_files = factory.SubFactory(LogFilesFactory)
@@ -27,6 +27,6 @@ class CommandResultDoingFactory(factory.Factory):
     num = factory.Faker("random_int", min=1)
     command = factory.Faker("sentence")
     state = CommandState.DOING
-    timeout_sec = None
+    timeout_sec = 60
     log_files = factory.SubFactory(LogFilesFactory)
     created_at = factory.SubFactory(UtcDatetimeFactory)

@@ -3,12 +3,11 @@
 import logging
 from typing import Optional
 
-from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
 from ..config import GeneratorConfig
 from ..graph import create_command_generation_graph
-from ..models import GeneratedCommand, GenerateRequest, GenerateResponse, GraphState
+from ..models import GenerateRequest, GenerateResponse, GraphState
 
 # Configure logging
 logger = logging.getLogger()
@@ -37,14 +36,15 @@ def generate_commands(
         initial_state = GraphState(
             query=request.query,
             context=request.context,
-            act_result=request.act_result,
-            run_id=request.run_id
+            failed_command_results=request.failed_command_results,
+            run_id=request.run_id,
+            is_retry=request.failed_command_results is not None  # Set is_retry to True if act_result is provided
         )
 
         # Log feedback if present
-        if request.act_result:
-            logger.info(f"Received feedback with {len(request.act_result)} results")
-            for i, result in enumerate(request.act_result):
+        if request.failed_command_results:
+            logger.info(f"Received feedback with {len(request.failed_command_results)} results")
+            for i, result in enumerate(request.failed_command_results):
                 logger.info(f"Feedback {i+1}: Command '{result.command}' - State: {result.state}")
 
         # Run the graph with static name
@@ -72,54 +72,17 @@ def generate_commands(
             if hasattr(result.result_formatter, "generated_commands"):
                 generated_commands = result.result_formatter.generated_commands
 
-        # If result was found
-        if generated_commands is not None:
-            # 各コマンドのタイムアウト値が設定されていることを確認
-            for cmd in generated_commands:
-                if cmd.timeout_sec is None:
-                    logger.warning(f"Command has no timeout specified: {cmd.command}")
-                    # エラーを発生させる（タイムアウト値が必須）
-                    raise ValueError(f"Command has no timeout specified: {cmd.command}")
+        assert generated_commands is not None, "No generated commands found in the result"
 
-            return GenerateResponse(
-                generated_commands=generated_commands
-            )
-
-        # Fallback: If result was not found
-        logger.error("Could not find generated_commands in any expected location")
-
-        # Create a fallback command input
-        cmd_input = CommandInput(
-            command="echo 'Command generation failed'",
-            timeout_sec=60  # デフォルトのタイムアウト値
-        )
-
-        # Create a fallback generated command
-        fallback_command = GeneratedCommand.from_command_input(
-            command_input=cmd_input,
-            explanation="Error: Failed to generate command due to API error"
-        )
+        # 各コマンドのタイムアウト値が設定されていることを確認
+        for cmd in generated_commands:
+            if cmd.timeout_sec is None:
+                logger.warning(f"Command has no timeout specified: {cmd.command}")
+                # エラーを発生させる（タイムアウト値が必須）
+                raise ValueError(f"Command has no timeout specified: {cmd.command}")
 
         return GenerateResponse(
-            generated_commands=[fallback_command],
-            error="Failed to generate command"
+            generated_commands=generated_commands
         )
     except Exception as e:
-        logger.exception("Error generating commands")
-
-        # Create a fallback command input
-        cmd_input = CommandInput(
-            command="echo 'Command generation failed'",
-            timeout_sec=60  # デフォルトのタイムアウト値
-        )
-
-        # Create a fallback generated command
-        fallback_command = GeneratedCommand.from_command_input(
-            command_input=cmd_input,
-            explanation=f"Error: {str(e)}"
-        )
-
-        return GenerateResponse(
-            generated_commands=[fallback_command],
-            error=str(e)
-        )
+        raise RuntimeError("Error generating commands") from e

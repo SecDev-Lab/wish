@@ -36,12 +36,12 @@ class CommandInputFactory(factory.Factory):
         model = CommandInput
 
     command = Faker("sentence")
-    timeout_sec = None
+    timeout_sec = 60
 
     @classmethod
     def create_with_specific_command(cls, command: str) -> CommandInput:
         """Create a CommandInput with a specific command."""
-        return CommandInput(command=command, timeout_sec=None)
+        return CommandInput(command=command, timeout_sec=60)
 
 
 class GraphStateFactory(factory.Factory):
@@ -51,7 +51,9 @@ class GraphStateFactory(factory.Factory):
         model = GraphState
 
     wish = factory.SubFactory(WishFactory)
-    context = factory.List([])
+    context = factory.Dict({
+        "initial_timeout_sec": 60
+    })
     query = None
     command_inputs = factory.List([])
 
@@ -59,26 +61,36 @@ class GraphStateFactory(factory.Factory):
     def create_with_specific_wish(cls, wish_text: str) -> GraphState:
         """Create a GraphState with a specific wish text."""
         wish = WishFactory.create_with_specific_wish(wish_text)
-        return GraphState(wish=wish)
+        # Create a context dictionary with initial_timeout_sec
+        context = {"initial_timeout_sec": 60}
+        return GraphState(wish=wish, context=context)
 
     @classmethod
-    def create_with_context(cls, wish_text: str, context: list[str]) -> GraphState:
+    def create_with_context(cls, wish_text: str, context_docs: list[str]) -> GraphState:
         """Create a GraphState with a specific wish text and context."""
         wish = WishFactory.create_with_specific_wish(wish_text)
+        context = {
+            "docs": context_docs,
+            "initial_timeout_sec": 60
+        }
         return GraphState(wish=wish, context=context)
 
     @classmethod
     def create_with_query(cls, wish_text: str, query: str) -> GraphState:
         """Create a GraphState with a specific wish text and query."""
         wish = WishFactory.create_with_specific_wish(wish_text)
-        return GraphState(wish=wish, query=query)
+        # Create a context dictionary with initial_timeout_sec
+        context = {"initial_timeout_sec": 60}
+        return GraphState(wish=wish, query=query, context=context)
 
     @classmethod
     def create_with_command_inputs(cls, wish_text: str, commands: list[str]) -> GraphState:
         """Create a GraphState with a specific wish text and command inputs."""
         wish = WishFactory.create_with_specific_wish(wish_text)
         command_inputs = [CommandInputFactory.create_with_specific_command(cmd) for cmd in commands]
-        return GraphState(wish=wish, command_inputs=command_inputs)
+        # Create a context dictionary with initial_timeout_sec
+        context = {"initial_timeout_sec": 60}
+        return GraphState(wish=wish, command_inputs=command_inputs, context=context)
 
     @classmethod
     def create_with_system_info(cls, wish_text: str, system_os: str = "Linux",
@@ -92,4 +104,6 @@ class GraphStateFactory(factory.Factory):
             hostname="test-host",
             username="test-user",
         )
-        return GraphState(wish=wish, system_info=system_info)
+        # Create a context dictionary with initial_timeout_sec
+        context = {"initial_timeout_sec": 60}
+        return GraphState(wish=wish, system_info=system_info, context=context)

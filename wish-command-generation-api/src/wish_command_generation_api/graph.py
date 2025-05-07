@@ -1,5 +1,6 @@
 """Main graph definition for the command generation system."""
 
+import logging
 from typing import Optional
 
 from langgraph.graph import END, START, StateGraph
@@ -16,6 +17,10 @@ from .nodes import (
     result_formatter,
     timeout_handler,
 )
+
+# Configure logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def create_command_generation_graph(
@@ -70,13 +75,18 @@ def create_command_generation_graph(
     # Define conditional routing based on feedback analysis
     def route_by_feedback(state: GraphState) -> str:
         """Route to appropriate node based on feedback analysis."""
+        logger.info(f"Routing with is_retry={state.is_retry}, error_type={state.error_type}")
         if not state.is_retry:
+            logger.info("Routing to query_processor (first execution)")
             return "query_processor"  # First execution
         elif state.error_type == "TIMEOUT":
+            logger.info("Routing to timeout_handler")
             return "timeout_handler"
         elif state.error_type == "NETWORK_ERROR":
+            logger.info("Routing to network_error_handler")
             return "network_error_handler"
         else:
+            logger.info("Routing to query_processor (default path)")
             return "query_processor"  # Default path
 
     # Add edges with conditional routing
@@ -95,8 +105,8 @@ def create_command_generation_graph(
     graph.add_edge("query_processor", "command_generator")
 
     # Add edges for error handling flows
-    graph.add_edge("timeout_handler", "command_generator")
-    graph.add_edge("network_error_handler", "command_generator")
+    graph.add_edge("timeout_handler", "command_modifier")
+    graph.add_edge("network_error_handler", "command_modifier")
 
     # Add edges for command modification and result formatting
     graph.add_edge("command_generator", "command_modifier")

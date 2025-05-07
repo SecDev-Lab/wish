@@ -98,7 +98,7 @@ def retrieve_documents(state: GraphState, settings_obj: Settings) -> GraphState:
 def _return_empty_context(state: GraphState) -> GraphState:
     """Return state with empty context"""
     state_dict = state.model_dump()
-    state_dict["context"] = []
+    state_dict["context"] = {}
     return GraphState(**state_dict)
 
 
@@ -146,7 +146,10 @@ def _retrieve_from_qdrant(state: GraphState, settings_obj: Settings) -> GraphSta
 
     # Update state
     state_dict = state.model_dump()
-    state_dict["context"] = unique_documents
+    state_dict["context"] = {
+        "docs": unique_documents,
+        "initial_timeout_sec": 60
+    }
 
     return GraphState(**state_dict)
 
@@ -241,6 +244,8 @@ def _retrieve_from_chroma(state: GraphState, settings_obj: Settings) -> GraphSta
 
     # Update state
     state_dict = state.model_dump()
-    state_dict["context"] = unique_documents
+    state_dict["context"] = {
+        "docs": unique_documents,
+    }
 
     return GraphState(**state_dict)

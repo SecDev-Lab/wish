@@ -29,7 +29,8 @@ def test_lambda_handler_with_feedback(settings):
                 "stdout": "/tmp/stdout.log",
                 "stderr": "/tmp/stderr.log"
             },
-            "created_at": "2025-04-21T04:16:38Z"
+            "created_at": "2025-04-21T04:16:38Z",
+            "timeout_sec": 60
         }
     ]
 
@@ -40,9 +41,10 @@ def test_lambda_handler_with_feedback(settings):
             "context": {
                 "current_directory": "/home/user",
                 "target": {"rhost": "10.10.10.40"},
-                "attacker": {"lhost": "192.168.1.5"}
+                "attacker": {"lhost": "192.168.1.5"},
+                "initial_timeout_sec": 60
             },
-            "act_result": act_result
+            "failed_command_results": act_result
         })
     }
 
@@ -84,7 +86,8 @@ def test_lambda_handler_with_network_error_feedback(settings):
                 "stdout": "/tmp/stdout.log",
                 "stderr": "/tmp/stderr.log"
             },
-            "created_at": "2025-04-21T04:16:38Z"
+            "created_at": "2025-04-21T04:16:38Z",
+            "timeout_sec": 60
         }
     ]
 
@@ -95,9 +98,10 @@ def test_lambda_handler_with_network_error_feedback(settings):
             "context": {
                 "current_directory": "/home/user",
                 "target": {"rhost": "10.10.10.40"},
-                "attacker": {"lhost": "192.168.1.5"}
+                "attacker": {"lhost": "192.168.1.5"},
+                "initial_timeout_sec": 60
             },
-            "act_result": act_result
+            "failed_command_results": act_result
         })
     }
 
@@ -139,7 +143,8 @@ def test_lambda_handler_with_multiple_feedback(settings):
                 "stdout": "/tmp/stdout.log",
                 "stderr": "/tmp/stderr.log"
             },
-            "created_at": "2025-04-21T04:16:38Z"
+            "created_at": "2025-04-21T04:16:38Z",
+            "timeout_sec": 60
         },
         {
             "num": 2,
@@ -151,7 +156,8 @@ def test_lambda_handler_with_multiple_feedback(settings):
                 "stdout": "/tmp/stdout.log",
                 "stderr": "/tmp/stderr.log"
             },
-            "created_at": "2025-04-21T04:16:38Z"
+            "created_at": "2025-04-21T04:16:38Z",
+            "timeout_sec": 60
         }
     ]
 
@@ -162,9 +168,10 @@ def test_lambda_handler_with_multiple_feedback(settings):
             "context": {
                 "current_directory": "/home/user",
                 "target": {"rhost": "10.10.10.40"},
-                "attacker": {"lhost": "192.168.1.5"}
+                "attacker": {"lhost": "192.168.1.5"},
+                "initial_timeout_sec": 60
             },
-            "act_result": act_result
+            "failed_command_results": act_result
         })
     }
 

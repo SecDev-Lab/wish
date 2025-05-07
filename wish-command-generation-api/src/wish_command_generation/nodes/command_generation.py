@@ -151,6 +151,11 @@ def generate_commands(state: GraphState, settings_obj) -> GraphState:
     # Generate the commands
     state_dict = state.model_dump()
 
+    # Get initial_timeout_sec from context, default to 60 if not present
+    assert hasattr(state, 'context') and isinstance(state.context, dict), "context not found or not a dict"
+    assert "initial_timeout_sec" in state.context, "initial_timeout_sec not found in context"
+    initial_timeout_sec = state.context["initial_timeout_sec"]
+
     try:
         response = chain.invoke({
             "task": task,
@@ -172,7 +177,7 @@ def generate_commands(state: GraphState, settings_obj) -> GraphState:
             command_inputs.append(
                 CommandInput(
                     command=cmd.get("command", ""),
-                    timeout_sec=None,
+                    timeout_sec=initial_timeout_sec,
                 )
             )
 
@@ -185,16 +190,6 @@ def generate_commands(state: GraphState, settings_obj) -> GraphState:
         error_message = f"Command generation failed: Invalid JSON format: {str(e)}"
         api_response = response if 'response' in locals() else 'No response'
         logging.error(f"JSON parse error: {str(e)}, Response: {api_response}")
-
-        # Set error in state
-        state_dict["command_inputs"] = [
-            CommandInput(
-                command=f"Error generating commands: Failed to parse JSON: {str(e)}",
-                timeout_sec=None,
-            )
-        ]
-        state_dict["error"] = error_message
-
         # Raise custom exception with structured data
         raise CommandGenerationError(f"{error_message}. Response: {api_response}", api_response) from e
 
@@ -202,17 +197,6 @@ def generate_commands(state: GraphState, settings_obj) -> GraphState:
         # Other errors
         error_message = f"Command generation failed: {str(e)}"
         api_response = response if 'response' in locals() else None
-        logging.error(f"Error generating commands: {str(e)}")
-
-        # Set error in state
-        state_dict["command_inputs"] = [
-            CommandInput(
-                command=f"Error generating commands: {str(e)}",
-                timeout_sec=None,
-            )
-        ]
-        state_dict["error"] = error_message
-
         # Raise custom exception with structured data
         if api_response:
             raise CommandGenerationError(error_message, api_response) from e

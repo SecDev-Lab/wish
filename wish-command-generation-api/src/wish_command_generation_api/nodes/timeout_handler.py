@@ -10,8 +10,9 @@ from langchain_openai import ChatOpenAI
 from wish_models.command_result import CommandInput
 from wish_models.settings import Settings
 
-from ..constants import DEFAULT_TIMEOUT_SEC, DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC
+from ..constants import DIVIDE_AND_CONQUER_DOC, FAST_ALTERNATIVE_DOC
 from ..models import GraphState
+from ..utils import strip_markdown_code_block
 
 # Configure logging
 logger = logging.getLogger()
@@ -29,13 +30,17 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
     """
     try:
         # If no act_result or not a timeout error, return the original state
-        if not state.act_result or state.error_type != "TIMEOUT":
+        if not state.failed_command_results or state.error_type != "TIMEOUT":
             logger.info("No timeout error to handle")
             return state
 
-        # Create the LLM
+        # Create the LLM with model_kwargs to force JSON output
         model = settings_obj.OPENAI_MODEL or "gpt-4o"
-        llm = ChatOpenAI(model=model, temperature=0.2)
+        llm = ChatOpenAI(
+            model=model,
+            temperature=0.2,
+            model_kwargs={"response_format": {"type": "json_object"}}  # JSONレスポンスを強制
+        )
 
         # Create the prompt
         prompt = ChatPromptTemplate.from_template(
@@ -60,9 +65,12 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
 
 1. 「タスク」を理解し、「参考ドキュメント」から関連情報を探します。
 2. 「フィードバック」から、前に使用したコマンドを確認します。
-3. 前に使用したコマンドに「高速な代替コマンド案」があれば、それを使ったコマンドを出力して終了してください。
-4. さもなければ、前に使用したコマンドに「分割統治案」があれば、それを使ったコマンドを出力して終了してください。
-5. さもなければ、タイムアウトを倍増し、前に使用したコマンドと同じコマンドを出力してください。
+3. 前に使用したコマンドに「高速な代替コマンド案」があれば、それを使ったコマンドを出力し、
+   strategyを"fast_alternative"に設定してください。
+4. さもなければ、前に使用したコマンドに「分割統治案」があれば、それを使ったコマンドを出力し、
+   strategyを"divide_and_conquer"に設定してください。
+5. さもなければ、前に使用したコマンドと同じコマンドを出力し、strategyを"same_command"に設定してください。
+   タイムアウト値は「フィードバック」のものをそのまま出力してください。後ほどLLMを利用せずに調整します。
 
 # タスク
 {query}
@@ -83,10 +91,12 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
 {{ "command_inputs": [
   {{
      "command": "コマンド1",
+     "strategy": "fast_alternative|divide_and_conquer|same_command",
      "timeout_sec": タイムアウト秒数（数値）
   }},
   {{
      "command": "コマンド2",
+     "strategy": "fast_alternative|divide_and_conquer|same_command",
      "timeout_sec": タイムアウト秒数（数値）
   }}
 ]}}
@@ -97,8 +107,8 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
         # Format the feedback as JSON string
         feedback_str = (
-            json.dumps([result.model_dump() for result in state.act_result], ensure_ascii=False)
-            if state.act_result else "[]"
+            json.dumps([result.model_dump() for result in state.failed_command_results], ensure_ascii=False)
+            if state.failed_command_results else "[]"
         )
 
         # Format the context
@@ -110,51 +120,39 @@ JSONのみを出力してください。説明や追加のテキストは含め�
         else:
             context_str = "No context available"
 
-        try:
-            # Create the chain
-            chain = prompt | llm | StrOutputParser()
+        # Create the chain
+        chain = prompt | llm | StrOutputParser()
 
-            # Invoke the chain
-            result = chain.invoke({
-                "query": state.query,
-                "feedback": feedback_str,
-                "context": context_str,
-                "fast_alternative_doc": FAST_ALTERNATIVE_DOC,
-                "divide_and_conquer_doc": DIVIDE_AND_CONQUER_DOC
-            })
-        except Exception as e:
-            logger.exception(f"Error invoking LLM chain: {e}")
-            # Get the original command from the act_result
-            original_command = state.act_result[0].command if state.act_result else "echo 'No command found'"
-            # デフォルトのCommandInputを作成
-            cmd_input = CommandInput(
-                command=original_command,
-                timeout_sec=DEFAULT_TIMEOUT_SEC  # デフォルトのタイムアウト値
-            )
-            return GraphState(
-                query=state.query,
-                context=state.context,
-                processed_query=state.processed_query,
-                command_candidates=[cmd_input],
-                generated_commands=state.generated_commands,
-                is_retry=True,
-                error_type="TIMEOUT",
-                act_result=state.act_result
-            )
+        # Invoke the chain
+        result = chain.invoke({
+            "query": state.query,
+            "feedback": feedback_str,
+            "context": context_str,
+            "fast_alternative_doc": FAST_ALTERNATIVE_DOC,
+            "divide_and_conquer_doc": DIVIDE_AND_CONQUER_DOC
+        })
+
+        # LLMの応答をログ出力
+        logger.info(f"LLM response: {result}")
+
+        # マークダウン形式のコードブロック表記を削除
+        result = strip_markdown_code_block(result)
 
         # Parse the result
         try:
             response_json = json.loads(result)
 
-            # Extract commands and create CommandInput objects
+            # Extract commands and create CommandInput objects with timeout_sec based on strategy
             command_candidates = []
 
             for cmd_input in response_json.get("command_inputs", []):
-                command = cmd_input.get("command", "")
-                timeout_sec = cmd_input.get("timeout_sec")
+                command = cmd_input["command"]
+                strategy = cmd_input["strategy"]
+                timeout_sec = int(cmd_input["timeout_sec"])
 
-                # タイムアウト値が設定されていることを確認
-                assert timeout_sec is not None, f"タイムアウト値が設定されていません: {command}"
+                if strategy == "same_command":
+                    # タイムアウト値を元の値に設定
+                    timeout_sec *= 2
 
                 if command:
                     # CommandInputオブジェクトを作成
@@ -166,11 +164,8 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
             if not command_candidates:
                 logger.warning("No valid commands found in LLM response")
-                # デフォルトのCommandInputを作成
-                command_candidates = [CommandInput(
-                    command="echo 'No valid commands generated'",
-                    timeout_sec=DEFAULT_TIMEOUT_SEC  # デフォルトのタイムアウト値
-                )]
+                # フォールバック処理を行わずに例外をスロー
+                raise ValueError("No valid commands found in LLM response")
 
             logger.info(f"Generated {len(command_candidates)} commands to handle timeout")
 
@@ -183,24 +178,11 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 generated_commands=state.generated_commands,
                 is_retry=True,
                 error_type="TIMEOUT",
-                act_result=state.act_result
+                failed_command_results=state.failed_command_results
             )
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as err:
             logger.error(f"Failed to parse LLM response as JSON: {result}")
-            # Return the original state with a fallback command
-            return GraphState(
-                query=state.query,
-                context=state.context,
-                processed_query=state.processed_query,
-                command_candidates=[CommandInput(
-                    command="echo 'Failed to generate timeout handling command'",
-                    timeout_sec=DEFAULT_TIMEOUT_SEC  # デフォルトのタイムアウト値
-                )],
-                generated_commands=state.generated_commands,
-                is_retry=True,
-                error_type="TIMEOUT",
-                act_result=state.act_result,
-                api_error=True
-            )
+            # フォールバック処理を行わずに例外をスロー
+            raise json.JSONDecodeError("Failed to parse LLM response as JSON", result, 0) from err
     except Exception as e:
         raise RuntimeError("Error handling timeout") from e

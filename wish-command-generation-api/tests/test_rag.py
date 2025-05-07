@@ -61,7 +61,7 @@ class TestRag:
         result = retrieve_documents(state, settings_obj)
 
         # Assert
-        assert result.context == []
+        assert result.context == {}
         assert result.wish == state.wish
         assert result.query == state.query
         assert result.command_inputs == state.command_inputs
@@ -86,7 +86,7 @@ class TestRag:
                 result = retrieve_documents(state, settings_obj)
 
         # Assert
-        assert result.context == []
+        assert result.context == {}
         assert result.wish == state.wish
         assert result.query == state.query
         assert result.command_inputs == state.command_inputs
@@ -139,8 +139,9 @@ class TestRag:
                                     result = retrieve_documents(state, settings_obj)
 
         # Assert
-        assert len(result.context) == 1  # After removing duplicates
-        assert "Full document content" in result.context
+        assert "docs" in result.context
+        assert len(result.context["docs"]) == 1  # After removing duplicates
+        assert "Full document content" in result.context["docs"]
         assert result.wish == state.wish
         assert result.query == state.query
         assert result.command_inputs == state.command_inputs
@@ -166,7 +167,7 @@ class TestRag:
                     result = retrieve_documents(state, settings_obj)
 
         # Assert
-        assert result.context == []
+        assert result.context == {}
         assert result.wish == state.wish
         assert result.query == state.query
         assert result.command_inputs == state.command_inputs
@@ -189,7 +190,7 @@ class TestRag:
                 result = retrieve_documents(state, settings_obj)
 
         # Assert
-        assert result.context == []
+        assert result.context == {}
         assert result.wish == state.wish
         assert result.query == state.query
         assert result.command_inputs == state.command_inputs

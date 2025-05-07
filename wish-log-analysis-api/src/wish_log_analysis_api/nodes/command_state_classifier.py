@@ -26,6 +26,8 @@ Follow these specific steps:
    - OTHERS: When an error not listed above occurs
 4. Output the selected error code and end.
 
+Note that OTHERS should only be used when the error does not fit any of the above categories.
+
 # command
 {command}
 
