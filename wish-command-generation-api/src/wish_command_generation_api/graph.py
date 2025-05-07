@@ -8,10 +8,6 @@ from wish_models.settings import Settings
 
 from .config import GeneratorConfig
 from .models import GraphState
-
-# Configure logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 from .nodes import (
     command_generator,
     command_modifier,
@@ -21,6 +17,10 @@ from .nodes import (
     result_formatter,
     timeout_handler,
 )
+
+# Configure logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def create_command_generation_graph(

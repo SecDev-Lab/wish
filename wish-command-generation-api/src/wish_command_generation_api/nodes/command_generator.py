@@ -67,7 +67,8 @@ def generate_command(state: Annotated[GraphState, "Current state"], settings_obj
         Updated graph state with command candidates.
     """
     assert state.is_retry is False, "is_retry should be False in command generation"
-    assert "initial_timeout_sec" in state.context and state.context["initial_timeout_sec"] is not None, "initial_timeout_sec should be set in context"
+    assert "initial_timeout_sec" in state.context, "initial_timeout_sec should be set in context"
+    assert state.context["initial_timeout_sec"] is not None, "initial_timeout_sec should not be None"
     initial_timeout_sec = state.context["initial_timeout_sec"]
 
     try:

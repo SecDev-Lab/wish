@@ -65,9 +65,12 @@ def handle_timeout(state: Annotated[GraphState, "Current state"], settings_obj: 
 
 1. 「タスク」を理解し、「参考ドキュメント」から関連情報を探します。
 2. 「フィードバック」から、前に使用したコマンドを確認します。
-3. 前に使用したコマンドに「高速な代替コマンド案」があれば、それを使ったコマンドを出力し、strategyを"fast_alternative"に設定してください。
-4. さもなければ、前に使用したコマンドに「分割統治案」があれば、それを使ったコマンドを出力し、strategyを"divide_and_conquer"に設定してください。
-5. さもなければ、前に使用したコマンドと同じコマンドを出力し、strategyを"same_command"に設定してください。タイムアウト値は「フィードバック」のものをそのまま出力してください。後ほどLLMを利用せずに調整します。
+3. 前に使用したコマンドに「高速な代替コマンド案」があれば、それを使ったコマンドを出力し、
+   strategyを"fast_alternative"に設定してください。
+4. さもなければ、前に使用したコマンドに「分割統治案」があれば、それを使ったコマンドを出力し、
+   strategyを"divide_and_conquer"に設定してください。
+5. さもなければ、前に使用したコマンドと同じコマンドを出力し、strategyを"same_command"に設定してください。
+   タイムアウト値は「フィードバック」のものをそのまま出力してください。後ほどLLMを利用せずに調整します。
 
 # タスク
 {query}
@@ -177,9 +180,9 @@ JSONのみを出力してください。説明や追加のテキストは含め�
                 error_type="TIMEOUT",
                 failed_command_results=state.failed_command_results
             )
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as err:
             logger.error(f"Failed to parse LLM response as JSON: {result}")
             # フォールバック処理を行わずに例外をスロー
-            raise json.JSONDecodeError("Failed to parse LLM response as JSON", result, 0)
+            raise json.JSONDecodeError("Failed to parse LLM response as JSON", result, 0) from err
     except Exception as e:
         raise RuntimeError("Error handling timeout") from e

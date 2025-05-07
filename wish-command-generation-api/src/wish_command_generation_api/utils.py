@@ -3,10 +3,10 @@
 def strip_markdown_code_block(text: str) -> str:
     """
     マークダウン形式のコードブロック表記を削除する
-    
+
     Args:
         text: 処理対象のテキスト
-        
+
     Returns:
         コードブロック表記が削除されたテキスト
     """

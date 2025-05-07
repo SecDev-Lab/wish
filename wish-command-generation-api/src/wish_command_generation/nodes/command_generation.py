@@ -152,7 +152,8 @@ def generate_commands(state: GraphState, settings_obj) -> GraphState:
     state_dict = state.model_dump()
 
     # Get initial_timeout_sec from context, default to 60 if not present
-    assert hasattr(state, 'context') and isinstance(state.context, dict) and "initial_timeout_sec" in state.context, "initial_timeout_sec not found in context"
+    assert hasattr(state, 'context') and isinstance(state.context, dict), "context not found or not a dict"
+    assert "initial_timeout_sec" in state.context, "initial_timeout_sec not found in context"
     initial_timeout_sec = state.context["initial_timeout_sec"]
 
     try:
