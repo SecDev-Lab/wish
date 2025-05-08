@@ -82,10 +82,10 @@ class CommandExecutor:
             A message indicating the result of the cancellation.
         """
         return await self.backend.cancel_command(wish, cmd_num)
-        
+
     async def finish_command(self, wish: Wish, cmd_num: int, exit_code: int, state: CommandState = None):
         """Finish a command and send trace.
-        
+
         Args:
             wish: The wish to finish the command for.
             cmd_num: The command number.
@@ -98,7 +98,7 @@ class CommandExecutor:
             if cmd_result.num == cmd_num:
                 result = cmd_result
                 break
-        
+
         if result:
             # Use BashBackend's finish_with_trace method if available
             if hasattr(self.backend, 'finish_with_trace'):

@@ -43,9 +43,12 @@ class Backend:
         """
         raise NotImplementedError
 
-    async def finish_with_trace(self, wish: Wish, result: CommandResult, exit_code: int, state: CommandState = None, trace_name: str = "Command Execution Complete", exec_time_sec: float = 0):
+    async def finish_with_trace(
+        self, wish: Wish, result: CommandResult, exit_code: int, state: CommandState = None,
+        trace_name: str = "Command Execution Complete", exec_time_sec: float = 0
+    ):
         """Finish command execution and send trace.
-        
+
         Args:
             wish: The wish object.
             result: The command result.

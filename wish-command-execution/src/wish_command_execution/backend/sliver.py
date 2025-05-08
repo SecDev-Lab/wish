@@ -7,10 +7,10 @@ from sliver import SliverClient, SliverClientConfig
 from wish_models import CommandResult, CommandState, Wish
 from wish_models.executable_collection import ExecutableCollection
 from wish_models.system_info import SystemInfo
+from wish_tools.tool_step_trace import main as step_trace
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
-from wish_tools.tool_step_trace import main as step_trace
 
 # ロギング設定
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ class SliverBackend(Backend):
 
                 # Update command result
                 exit_code = cmd_result.Status if cmd_result.Status is not None else 0
-                
+
                 # Mark the command as finished with exit code and add step trace
                 await self.finish_with_trace(
                     wish=wish,
@@ -184,9 +184,12 @@ class SliverBackend(Backend):
         except Exception as e:
             print(f"Error adding step trace: {str(e)}")
 
-    async def finish_with_trace(self, wish: Wish, result: CommandResult, exit_code: int, state: CommandState = None, trace_name: str = "Command Execution Complete", exec_time_sec: float = 0):
+    async def finish_with_trace(
+        self, wish: Wish, result: CommandResult, exit_code: int, state: CommandState = None,
+        trace_name: str = "Command Execution Complete", exec_time_sec: float = 0
+    ):
         """Finish command execution and send trace.
-        
+
         Args:
             wish: The wish object.
             result: The command result.
@@ -197,7 +200,7 @@ class SliverBackend(Backend):
         """
         # Finish the command
         result.finish(exit_code=exit_code, state=state)
-        
+
         # Send trace
         await self._add_step_trace(wish, result, trace_name, exec_time_sec)
 
@@ -220,7 +223,7 @@ class SliverBackend(Backend):
             trace_name="Command Execution Complete",
             exec_time_sec=0
         )
-        
+
         # Update the command result in the wish object
         for i, cmd_result in enumerate(wish.command_results):
             if cmd_result.num == result.num:

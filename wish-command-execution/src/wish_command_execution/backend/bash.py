@@ -99,9 +99,12 @@ class BashBackend(Backend):
         except Exception as e:
             print(f"Error adding step trace: {str(e)}")
 
-    async def finish_with_trace(self, wish: Wish, result: CommandResult, exit_code: int, state: CommandState = None, trace_name: str = "Command Execution Complete", exec_time_sec: float = 0):
+    async def finish_with_trace(
+        self, wish: Wish, result: CommandResult, exit_code: int, state: CommandState = None,
+        trace_name: str = "Command Execution Complete", exec_time_sec: float = 0
+    ):
         """Finish command execution and send trace.
-        
+
         Args:
             wish: The wish object.
             result: The command result.
@@ -112,7 +115,7 @@ class BashBackend(Backend):
         """
         # Finish the command
         result.finish(exit_code=exit_code, state=state)
-        
+
         # Send trace
         await self._add_step_trace(wish, result, trace_name, exec_time_sec)
 
@@ -187,7 +190,7 @@ class BashBackend(Backend):
             trace_name="Command Execution Complete",
             exec_time_sec=0
         )
-        
+
         # Update the command result in the wish object
         # This is a workaround for Pydantic models that don't allow dynamic attribute assignment
         for i, cmd_result in enumerate(wish.command_results):
