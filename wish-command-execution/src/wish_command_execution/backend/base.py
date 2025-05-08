@@ -1,6 +1,6 @@
 """Base backend interface for command execution."""
 
-from wish_models import Wish
+from wish_models import CommandResult, CommandState, Wish
 from wish_models.system_info import SystemInfo
 
 
@@ -40,5 +40,18 @@ class Backend:
 
         Returns:
             SystemInfo: Collected system information
+        """
+        raise NotImplementedError
+
+    async def finish_with_trace(self, wish: Wish, result: CommandResult, exit_code: int, state: CommandState = None, trace_name: str = "Command Execution Complete", exec_time_sec: float = 0):
+        """Finish command execution and send trace.
+        
+        Args:
+            wish: The wish object.
+            result: The command result.
+            exit_code: The exit code of the command.
+            state: The state of the command.
+            trace_name: The name of the trace.
+            exec_time_sec: The execution time in seconds.
         """
         raise NotImplementedError
