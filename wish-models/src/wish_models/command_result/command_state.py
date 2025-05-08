@@ -7,6 +7,11 @@ class CommandState(str, Enum):
     DOING = "DOING"
     """The command is being executed."""
 
+    SUCCESS_INITIAL_ACCESS = "SUCCESS_INITIAL_ACCESS"
+    """The command succeeded with initial access to the target system.
+    
+    Examples include establishing a Meterpreter session or getting a shell."""
+
     SUCCESS = "SUCCESS"
     """The command succeeded, with meaningful insights."""
 

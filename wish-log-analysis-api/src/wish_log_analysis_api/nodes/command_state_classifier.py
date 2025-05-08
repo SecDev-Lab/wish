@@ -12,19 +12,57 @@ from ..models import GraphState
 
 # Define the prompt template
 COMMAND_STATE_CLASSIFIER_PROMPT = """
-As a system operations analyst, your role is to analyze command outputs and report the results.
-Follow these specific steps:
+As a security operations analyst, your task is to determine if a command output indicates successful initial access to a target system.
+
+# MOST IMPORTANT RULE: Check for Initial Access Success REGARDLESS of exit_code
+
+Even if the command timed out (exit_code 124) or had any other error, FIRST check if there are ANY signs of successful initial access in the output.
+
+# FIRST PRIORITY: Check for Initial Access Success
+
+Before any other analysis, check if the command output indicates successful initial access to the target system.
+Output "SUCCESS_INITIAL_ACCESS" if ANY of the following indicators are present:
+
+## 1. Meterpreter or shell session establishment (HIGHEST PRIORITY)
+- ANY line containing "Meterpreter session" AND "opened" (This is the strongest indicator)
+- ANY line containing "Session" AND "created"
+- ANY line containing "Command shell session" AND "opened"
+- ANY line containing "WIN" surrounded by special characters (like =-=-=WIN=-=-=)
+- "Successful connection established"
+- "Successfully opened reverse shell"
+
+## 2. Successful remote command execution proving access
+- Evidence of successful `whoami` execution on target
+- Evidence of successful `id` execution on target
+- Evidence of successful `hostname` execution on target
+- Evidence of successful `ipconfig`/`ifconfig` execution on target
+- Evidence of successful `ls`/`dir` execution on target
+
+## 3. Explicit access confirmation
+- "Access gained to target system"
+- "Successfully compromised target"
+- "Initial foothold established"
+- "Initial access achieved"
+- "Successfully exploited vulnerability"
+
+# IMPORTANT: The exit_code does NOT override initial access indicators
+If ANY of the above indicators are found, output "SUCCESS_INITIAL_ACCESS" regardless of the exit_code.
+This includes cases where the command timed out (exit_code 124) but still managed to establish a session.
+
+# SECOND PRIORITY: Standard Command State Analysis
+
+Only if NONE of the above initial access indicators are found, proceed with standard command state analysis:
 
 1. If the `exit_code` is "0", output "SUCCESS" and end.
 2. Otherwise, check the command output from `stdout` and `stderr`. Then choose the most appropriate
-   error code from the following:
+   code from the following:
    - TIMEOUT: When command execution times out or when the output indicates a timeout occurred.
      Look for indicators such as:
      * Messages containing phrases like "timeout", "timed out", "Read timeout expired"
      * Messages containing "connection timeout" or similar connection-related timeout phrases
      * Log entries indicating that a command was terminated due to exceeding time limits
      * Warning messages about waiting too long for command completion
-     * `exit_code` is "-1" (reserved for timeout)
+     * `exit_code` is "124" or "-1" (reserved for timeout)
    - COMMAND_NOT_FOUND: When the command is not found on the local machine
    - FILE_NOT_FOUND: When a local file referenced in the command is not found (excluding remote files like smb)
    - REMOTE_OPERATION_FAILED: When an operation on a remote machine (e.g., file reference, command execution) fails
@@ -33,8 +71,7 @@ Follow these specific steps:
 
 3. Output the selected error code and end.
 
-Note that OTHERS should only be used when the error does not fit any of the above categories
-and there are no success indicators in the output.
+Remember: SUCCESS_INITIAL_ACCESS takes precedence over all other states, including SUCCESS and TIMEOUT.
 
 # command
 {command}
@@ -99,7 +136,9 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
         ).strip()
 
         # Convert the classification string to CommandState
-        if classification_str == "SUCCESS":
+        if classification_str == "SUCCESS_INITIAL_ACCESS":
+            command_state = CommandState.SUCCESS_INITIAL_ACCESS
+        elif classification_str == "SUCCESS":
             command_state = CommandState.SUCCESS
         elif classification_str == "COMMAND_NOT_FOUND":
             command_state = CommandState.COMMAND_NOT_FOUND
