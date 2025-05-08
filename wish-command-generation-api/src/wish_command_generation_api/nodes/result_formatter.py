@@ -72,7 +72,7 @@ def format_result(state: Annotated[GraphState, "Current state"], settings_obj: S
             })
 
             # Extract the explanation
-            explanation = result.content.strip()
+            explanation = result.strip() if isinstance(result, str) else result.content.strip()
             logger.info(f"Generated explanation for command {command}: {explanation}")
 
             # Create the generated command object
