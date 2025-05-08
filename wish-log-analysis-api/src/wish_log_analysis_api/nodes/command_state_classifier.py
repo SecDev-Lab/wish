@@ -12,11 +12,13 @@ from ..models import GraphState
 
 # Define the prompt template
 COMMAND_STATE_CLASSIFIER_PROMPT = """
-As a security operations analyst, your task is to determine if a command output indicates successful initial access to a target system.
+As a security operations analyst, your task is to determine if a command output indicates successful initial access to
+target system.
 
 # MOST IMPORTANT RULE: Check for Initial Access Success REGARDLESS of exit_code
 
-Even if the command timed out (exit_code 124) or had any other error, FIRST check if there are ANY signs of successful initial access in the output.
+Even if the command timed out (exit_code 124) or had any other error, FIRST check if there are ANY signs of successful
+initial access in the output.
 
 # FIRST PRIORITY: Check for Initial Access Success
 

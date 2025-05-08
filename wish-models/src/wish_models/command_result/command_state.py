@@ -9,7 +9,7 @@ class CommandState(str, Enum):
 
     SUCCESS_INITIAL_ACCESS = "SUCCESS_INITIAL_ACCESS"
     """The command succeeded with initial access to the target system.
-    
+
     Examples include establishing a Meterpreter session or getting a shell."""
 
     SUCCESS = "SUCCESS"
