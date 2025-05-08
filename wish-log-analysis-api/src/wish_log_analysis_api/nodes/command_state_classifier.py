@@ -22,6 +22,7 @@ Follow these specific steps:
      * Messages containing "connection timeout" or similar connection-related timeout phrases
      * Log entries indicating that a command was terminated due to exceeding time limits
      * Warning messages about waiting too long for command completion
+     * `exit_code` is "-1" (reserved for timeout)
    - COMMAND_NOT_FOUND: When the command is not found on the local machine
    - FILE_NOT_FOUND: When a local file referenced in the command is not found (excluding remote files like smb)
    - REMOTE_OPERATION_FAILED: When an operation on a remote machine (e.g., file reference, command execution) fails
