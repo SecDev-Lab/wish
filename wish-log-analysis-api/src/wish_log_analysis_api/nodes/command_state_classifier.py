@@ -12,13 +12,24 @@ from ..models import GraphState
 
 # Define the prompt template
 COMMAND_STATE_CLASSIFIER_PROMPT = """
-As a security operations analyst, your task is to determine if a command output indicates successful initial access to
-target system.
+As a security operations analyst, your task is to determine if a command output indicates successful initial access to a target system.
+
+# PRIORITY ORDER FOR CLASSIFICATION:
+
+1. FIRST: Check for Initial Access Success
+   - If ANY initial access indicators are found, output "SUCCESS_INITIAL_ACCESS" regardless of exit_code
+   - This takes absolute precedence over all other classifications
+
+2. SECOND: Check for Normal Success
+   - Only if NO initial access indicators were found AND exit_code is "0", output "SUCCESS"
+   - Even if exit_code is 0, do not output "SUCCESS" if there are initial access indicators (use "SUCCESS_INITIAL_ACCESS" instead)
+
+3. THIRD: Check for Specific Error Types
+   - Only if neither of the above conditions are met
 
 # MOST IMPORTANT RULE: Check for Initial Access Success REGARDLESS of exit_code
 
-Even if the command timed out (exit_code 124) or had any other error, FIRST check if there are ANY signs of successful
-initial access in the output.
+Even if the command timed out (exit_code 124) or had any other error, FIRST check if there are ANY signs of successful initial access in the output.
 
 # FIRST PRIORITY: Check for Initial Access Success
 
@@ -56,6 +67,10 @@ This includes cases where the command timed out (exit_code 124) but still manage
 Only if NONE of the above initial access indicators are found, proceed with standard command state analysis:
 
 1. If the `exit_code` is "0", output "SUCCESS" and end.
+   - This includes successful port scans that found open ports
+   - This includes successful reconnaissance commands
+   - This includes ANY command that completed normally with exit_code 0
+
 2. Otherwise, check the command output from `stdout` and `stderr`. Then choose the most appropriate
    code from the following:
    - TIMEOUT: When command execution times out or when the output indicates a timeout occurred.
@@ -73,7 +88,7 @@ Only if NONE of the above initial access indicators are found, proceed with stan
 
 3. Output the selected error code and end.
 
-Remember: SUCCESS_INITIAL_ACCESS takes precedence over all other states, including SUCCESS and TIMEOUT.
+Remember: SUCCESS_INITIAL_ACCESS takes precedence over all other states, including SUCCESS and TIMEOUT. OTHERS is the last resort.
 
 # command
 {command}
