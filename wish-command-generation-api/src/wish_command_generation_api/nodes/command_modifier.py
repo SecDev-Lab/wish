@@ -284,6 +284,47 @@ def modify_command(state: Annotated[GraphState, "Current state"], settings_obj: 
                 except json.JSONDecodeError as e:
                     logger.error(f"JSON decode error in variable replacement: {e}, response: {cleaned_variable_result}")
                     final_command = modified_command
+
+                # msfconsoleコマンドの検出と修正
+                if "msfconsole" in final_command:
+                    # "use exploit/"が含まれているかチェック（エクスプロイトを使用しているかの判断）
+                    is_exploit_used = "use exploit/" in final_command
+
+                    # LHOSTが設定されているかチェック
+                    has_lhost_setting = "set LHOST" in final_command
+
+                    # エクスプロイトが使用されていて、LHOSTが設定されていない場合
+                    if is_exploit_used and not has_lhost_setting:
+                        logger.info(f"Detected msfconsole exploit command without LHOST setting: {final_command}")
+
+                        # コマンドの構造を解析
+                        command_parts = final_command.split(";")
+                        modified_parts = []
+                        lhost_added = False
+
+                        for part in command_parts:
+                            part = part.strip()
+                            # RHOSTSの設定の後にLHOST設定を追加
+                            if "set RHOSTS" in part or "set RHOST" in part:
+                                modified_parts.append(part)
+                                modified_parts.append(f"set LHOST {lhost}")
+                                lhost_added = True
+                            # runまたはexploitコマンドの直前にLHOST設定を追加（まだ追加されていなければ）
+                            elif (part.startswith("run") or part == "run" or part == "exploit") and not lhost_added:
+                                modified_parts.append(f"set LHOST {lhost}")
+                                modified_parts.append(part)
+                                lhost_added = True
+                            else:
+                                modified_parts.append(part)
+
+                        # まだLHOST設定が追加されていなければ、最後のコマンドの前に追加
+                        if not lhost_added and modified_parts:
+                            # 最後のコマンド（通常はexit）の前に挿入
+                            modified_parts.insert(len(modified_parts) - 1, f"set LHOST {lhost}")
+
+                        # 修正したコマンドを再構築
+                        final_command = "; ".join(modified_parts)
+                        logger.info(f"Added LHOST setting: {final_command}")
             except Exception as e:
                 logger.error(f"Error applying variable replacement: {e}", exc_info=True)
                 final_command = modified_command

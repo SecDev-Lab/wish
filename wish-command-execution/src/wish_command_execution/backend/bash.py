@@ -32,7 +32,7 @@ class BashBackend(Backend):
         self.running_commands: Dict[int, Tuple[subprocess.Popen, CommandResult, Wish]] = {}
         self.run_id = run_id
 
-    def _add_command_start_trace(self, wish: Wish, command: str, timeout_sec: int):
+    async def _add_command_start_trace(self, wish: Wish, command: str, timeout_sec: int):
         """Add step trace for command start.
 
         Args:
@@ -50,7 +50,7 @@ class BashBackend(Backend):
         except Exception as e:
             print(f"Error adding step trace for command start: {str(e)}")
 
-    def _add_step_trace(self, wish: Wish, result: CommandResult, trace_name: str, exec_time_sec: float = 0):
+    async def _add_step_trace(self, wish: Wish, result: CommandResult, trace_name: str, exec_time_sec: float = 0):
         """Add step trace for command execution.
 
         Args:
@@ -77,15 +77,18 @@ class BashBackend(Backend):
             if exec_time_sec == 0 and result.created_at and result.finished_at:
                 exec_time_sec = (result.finished_at - result.created_at).total_seconds()
 
-            # Build trace message
+            # Build trace message with the requested format
             trace_message = (
-                f"# Command\n\n{result.command}\n\n"
-                f"# Timeout [sec]\n\n{result.timeout_sec}\n\n"
-                f"# Exit Code\n\n{result.exit_code if result.exit_code is not None else 'N/A'}\n\n"
-                f"# Execution Time [sec]\n\n{exec_time_sec:.2f}\n\n"
-                f"# stdout\n\n{stdout_content}\n\n"
-                f"# stderr\n\n{stderr_content}"
+                f"# コマンド\n{result.command}\n\n"
+                f"# タイムアウト [sec]\n{result.timeout_sec}\n\n"
+                f"# 終了コード\n{result.exit_code if result.exit_code is not None else 'N/A'}\n\n"
+                f"# 実行時間 [sec]\n{exec_time_sec:.2f}\n\n"
+                f"# stdout\n{stdout_content}\n\n"
+                f"# stderr\n{stderr_content}"
             )
+
+            # デバッグログにも同じ内容を出力
+            logger.debug(trace_message)
 
             # Send step trace
             step_trace(
@@ -95,6 +98,26 @@ class BashBackend(Backend):
             )
         except Exception as e:
             print(f"Error adding step trace: {str(e)}")
+
+    async def finish_with_trace(
+        self, wish: Wish, result: CommandResult, exit_code: int, state: CommandState = None,
+        trace_name: str = "Command Execution Complete", exec_time_sec: float = 0
+    ):
+        """Finish command execution and send trace.
+
+        Args:
+            wish: The wish object.
+            result: The command result.
+            exit_code: The exit code of the command.
+            state: The state of the command.
+            trace_name: The name of the trace.
+            exec_time_sec: The execution time in seconds.
+        """
+        # Finish the command
+        result.finish(exit_code=exit_code, state=state)
+
+        # Send trace
+        await self._add_step_trace(wish, result, trace_name, exec_time_sec)
 
     async def execute_command(self, wish: Wish, command: str, cmd_num: int, log_files, timeout_sec: int) -> None:
         """Execute a command using bash.
@@ -112,7 +135,7 @@ class BashBackend(Backend):
         wish.command_results.append(result)
 
         # Add StepTrace for command execution start
-        self._add_command_start_trace(wish, command, timeout_sec)
+        await self._add_command_start_trace(wish, command, timeout_sec)
 
         with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
             try:
@@ -138,40 +161,42 @@ class BashBackend(Backend):
             except subprocess.SubprocessError as e:
                 error_msg = f"Subprocess error: {str(e)}"
                 stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
+                await self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
             except PermissionError:
                 error_msg = f"Permission error: No execution permission for command '{command}'"
                 stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 126, CommandState.OTHERS)
+                await self._handle_command_failure(result, wish, 126, CommandState.OTHERS)
 
             except FileNotFoundError:
                 error_msg = f"Command not found: '{command}'"
                 stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 127, CommandState.COMMAND_NOT_FOUND)
+                await self._handle_command_failure(result, wish, 127, CommandState.COMMAND_NOT_FOUND)
 
             except Exception as e:
                 error_msg = f"Unexpected error: {str(e)}"
                 stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
+                await self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
-    def _handle_command_failure(
+    async def _handle_command_failure(
         self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState
     ):
         """Common command failure handling."""
-        result.finish(
+        await self.finish_with_trace(
+            wish=wish,
+            result=result,
             exit_code=exit_code,
-            state=state
+            state=state,
+            trace_name="Command Execution Complete",
+            exec_time_sec=0
         )
+
         # Update the command result in the wish object
         # This is a workaround for Pydantic models that don't allow dynamic attribute assignment
         for i, cmd_result in enumerate(wish.command_results):
             if cmd_result.num == result.num:
                 wish.command_results[i] = result
                 break
-
-        # Add StepTrace for command execution failure
-        self._add_step_trace(wish, result, "Command Execution Complete", 0)
 
     async def check_running_commands(self):
         """Check status of running commands and update their status."""
@@ -180,10 +205,13 @@ class BashBackend(Backend):
         for idx, (process, result, wish) in list(self.running_commands.items()):
             # Check if process has finished
             if process.poll() is not None:  # Process has finished
-                # Mark the command as finished with exit code
-                result.finish(
+                # Mark the command as finished with exit code and add step trace
+                await self.finish_with_trace(
+                    wish=wish,
+                    result=result,
                     exit_code=process.returncode,
-                    state=CommandState.SUCCESS if process.returncode == 0 else CommandState.OTHERS
+                    state=CommandState.SUCCESS if process.returncode == 0 else CommandState.OTHERS,
+                    trace_name="Command Execution Complete"
                 )
 
                 # Update the command result in the wish object
@@ -191,9 +219,6 @@ class BashBackend(Backend):
                     if cmd_result.num == result.num:
                         wish.command_results[i] = result
                         break
-
-                # Add StepTrace for command execution completion
-                self._add_step_trace(wish, result, "Command Execution Complete")
 
                 # Remove from running commands
                 del self.running_commands[idx]
@@ -215,9 +240,14 @@ class BashBackend(Backend):
                     with open(result.log_files.stderr, "a") as stderr_file:
                         stderr_file.write(f"\nCommand timed out after {process.timeout_sec} seconds\n")
 
-                    result.finish(
+                    # Mark as timeout and add step trace
+                    await self.finish_with_trace(
+                        wish=wish,
+                        result=result,
                         exit_code=124,  # Exit code for timeout
-                        state=CommandState.TIMEOUT
+                        state=CommandState.TIMEOUT,
+                        trace_name="Command Execution Complete",
+                        exec_time_sec=elapsed_time
                     )
 
                     # Update the command result in the wish object
@@ -225,9 +255,6 @@ class BashBackend(Backend):
                         if cmd_result.num == result.num:
                             wish.command_results[i] = result
                             break
-
-                    # Add StepTrace for command timeout
-                    self._add_step_trace(wish, result, "Command Execution Complete", elapsed_time)
 
                     # Remove from running commands
                     del self.running_commands[idx]
@@ -254,10 +281,13 @@ class BashBackend(Backend):
             except Exception:
                 pass  # Ignore errors in termination
 
-            # Mark the command as cancelled
-            result.finish(
+            # Mark the command as cancelled and add step trace
+            await self.finish_with_trace(
+                wish=wish,
+                result=result,
                 exit_code=-1,  # Use -1 for cancelled commands
-                state=CommandState.USER_CANCELLED
+                state=CommandState.USER_CANCELLED,
+                trace_name="Command Execution Complete"
             )
 
             # Update the command result in the wish object
@@ -266,9 +296,6 @@ class BashBackend(Backend):
                 if cmd_result.num == result.num:
                     wish.command_results[i] = result
                     break
-
-            # Add StepTrace for command cancellation
-            self._add_step_trace(wish, result, "Command Execution Complete")
 
             del self.running_commands[cmd_num]
 

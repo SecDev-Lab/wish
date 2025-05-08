@@ -16,17 +16,25 @@ As a system operations analyst, your role is to analyze command outputs and repo
 Follow these specific steps:
 
 1. If the `exit_code` is "0", output "SUCCESS" and end.
-2. Otherwise, check the command output from `stdout` and `stderr`.
-3. Choose the appropriate error code from the following:
+2. Otherwise, check the command output from `stdout` and `stderr`. Then choose the most appropriate
+   error code from the following:
+   - TIMEOUT: When command execution times out or when the output indicates a timeout occurred.
+     Look for indicators such as:
+     * Messages containing phrases like "timeout", "timed out", "Read timeout expired"
+     * Messages containing "connection timeout" or similar connection-related timeout phrases
+     * Log entries indicating that a command was terminated due to exceeding time limits
+     * Warning messages about waiting too long for command completion
+     * `exit_code` is "-1" (reserved for timeout)
    - COMMAND_NOT_FOUND: When the command is not found on the local machine
    - FILE_NOT_FOUND: When a local file referenced in the command is not found (excluding remote files like smb)
    - REMOTE_OPERATION_FAILED: When an operation on a remote machine (e.g., file reference, command execution) fails
-   - TIMEOUT: When command execution times out
    - NETWORK_ERROR: When a network error occurs
    - OTHERS: When an error not listed above occurs
-4. Output the selected error code and end.
 
-Note that OTHERS should only be used when the error does not fit any of the above categories.
+3. Output the selected error code and end.
+
+Note that OTHERS should only be used when the error does not fit any of the above categories
+and there are no success indicators in the output.
 
 # command
 {command}

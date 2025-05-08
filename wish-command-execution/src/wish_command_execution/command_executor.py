@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
-from wish_models import LogFiles, Wish
+from wish_models import CommandState, LogFiles, Wish
 from wish_models.command_result import CommandInput
 
 from wish_command_execution.backend.base import Backend
@@ -82,3 +82,33 @@ class CommandExecutor:
             A message indicating the result of the cancellation.
         """
         return await self.backend.cancel_command(wish, cmd_num)
+
+    async def finish_command(self, wish: Wish, cmd_num: int, exit_code: int, state: CommandState = None):
+        """Finish a command and send trace.
+
+        Args:
+            wish: The wish to finish the command for.
+            cmd_num: The command number.
+            exit_code: The exit code of the command.
+            state: The state of the command.
+        """
+        # Find the command result
+        result = None
+        for cmd_result in wish.command_results:
+            if cmd_result.num == cmd_num:
+                result = cmd_result
+                break
+
+        if result:
+            # Use BashBackend's finish_with_trace method if available
+            if hasattr(self.backend, 'finish_with_trace'):
+                await self.backend.finish_with_trace(
+                    wish=wish,
+                    result=result,
+                    exit_code=exit_code,
+                    state=state,
+                    trace_name="Command Execution Complete"
+                )
+            else:
+                # Fallback to just finishing the command
+                result.finish(exit_code=exit_code, state=state)

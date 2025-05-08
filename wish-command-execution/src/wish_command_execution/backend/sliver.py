@@ -1,15 +1,20 @@
 """Sliver C2 backend for command execution."""
 
+import logging
 import sys
 
 from sliver import SliverClient, SliverClientConfig
 from wish_models import CommandResult, CommandState, Wish
 from wish_models.executable_collection import ExecutableCollection
 from wish_models.system_info import SystemInfo
+from wish_tools.tool_step_trace import main as step_trace
 
 from wish_command_execution.backend.base import Backend
 from wish_command_execution.system_info import SystemInfoCollector
 
+# ロギング設定
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class SliverBackend(Backend):
     """Backend for executing commands using Sliver C2."""
@@ -100,7 +105,15 @@ class SliverBackend(Backend):
 
                 # Update command result
                 exit_code = cmd_result.Status if cmd_result.Status is not None else 0
-                result.finish(exit_code=exit_code)
+
+                # Mark the command as finished with exit code and add step trace
+                await self.finish_with_trace(
+                    wish=wish,
+                    result=result,
+                    exit_code=exit_code,
+                    state=CommandState.SUCCESS if exit_code == 0 else CommandState.OTHERS,
+                    trace_name="Command Execution Complete"
+                )
 
                 # Update the command result in the wish object
                 for i, cmd_result in enumerate(wish.command_results):
@@ -113,16 +126,85 @@ class SliverBackend(Backend):
                 with open(log_files.stderr, "w") as stderr_file:
                     error_msg = f"Sliver execution error: {str(e)}"
                     stderr_file.write(error_msg)
-                self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
+                await self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
         except Exception as e:
             # Handle errors in the main thread
             with open(log_files.stderr, "w") as stderr_file:
                 error_msg = f"Sliver execution error: {str(e)}"
                 stderr_file.write(error_msg)
-            self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
+            await self._handle_command_failure(result, wish, 1, CommandState.OTHERS)
 
-    def _handle_command_failure(
+    async def _add_step_trace(self, wish: Wish, result: CommandResult, trace_name: str, exec_time_sec: float = 0):
+        """Add step trace for command execution.
+
+        Args:
+            wish: The wish object.
+            result: The command result.
+            trace_name: The name of the trace.
+            exec_time_sec: The execution time in seconds.
+        """
+        try:
+            # Read stdout and stderr if available
+            stdout_content = ""
+            stderr_content = ""
+            try:
+                if result.log_files and result.log_files.stdout and result.log_files.stdout.exists():
+                    with open(result.log_files.stdout, "r") as f:
+                        stdout_content = f.read()
+                if result.log_files and result.log_files.stderr and result.log_files.stderr.exists():
+                    with open(result.log_files.stderr, "r") as f:
+                        stderr_content = f.read()
+            except Exception as e:
+                print(f"Error reading log files: {str(e)}")
+
+            # Calculate execution time if not provided
+            if exec_time_sec == 0 and result.created_at and result.finished_at:
+                exec_time_sec = (result.finished_at - result.created_at).total_seconds()
+
+            # Build trace message with the requested format
+            trace_message = (
+                f"# コマンド\n{result.command}\n\n"
+                f"# タイムアウト [sec]\n{result.timeout_sec}\n\n"
+                f"# 終了コード\n{result.exit_code if result.exit_code is not None else 'N/A'}\n\n"
+                f"# 実行時間 [sec]\n{exec_time_sec:.2f}\n\n"
+                f"# stdout\n{stdout_content}\n\n"
+                f"# stderr\n{stderr_content}"
+            )
+
+            # デバッグログにも同じ内容を出力
+            logger.debug(trace_message)
+
+            # Send step trace
+            step_trace(
+                run_id=getattr(self, 'run_id', None) or wish.id,
+                trace_name=trace_name,
+                trace_message=trace_message
+            )
+        except Exception as e:
+            print(f"Error adding step trace: {str(e)}")
+
+    async def finish_with_trace(
+        self, wish: Wish, result: CommandResult, exit_code: int, state: CommandState = None,
+        trace_name: str = "Command Execution Complete", exec_time_sec: float = 0
+    ):
+        """Finish command execution and send trace.
+
+        Args:
+            wish: The wish object.
+            result: The command result.
+            exit_code: The exit code of the command.
+            state: The state of the command.
+            trace_name: The name of the trace.
+            exec_time_sec: The execution time in seconds.
+        """
+        # Finish the command
+        result.finish(exit_code=exit_code, state=state)
+
+        # Send trace
+        await self._add_step_trace(wish, result, trace_name, exec_time_sec)
+
+    async def _handle_command_failure(
         self, result: CommandResult, wish: Wish, exit_code: int, state: CommandState
     ):
         """Handle command failure.
@@ -133,10 +215,15 @@ class SliverBackend(Backend):
             exit_code: The exit code to set.
             state: The command state to set.
         """
-        result.finish(
+        await self.finish_with_trace(
+            wish=wish,
+            result=result,
             exit_code=exit_code,
-            state=state
+            state=state,
+            trace_name="Command Execution Complete",
+            exec_time_sec=0
         )
+
         # Update the command result in the wish object
         for i, cmd_result in enumerate(wish.command_results):
             if cmd_result.num == result.num:
@@ -170,10 +257,13 @@ class SliverBackend(Backend):
             # In the new async design, we don't have futures to cancel
             # We can only mark the command as cancelled in the result
 
-            # Mark the command as cancelled
-            result.finish(
+            # Mark the command as cancelled and add step trace
+            await self.finish_with_trace(
+                wish=wish,
+                result=result,
                 exit_code=-1,  # Use -1 for cancelled commands
-                state=CommandState.USER_CANCELLED
+                state=CommandState.USER_CANCELLED,
+                trace_name="Command Execution Complete"
             )
 
             # Update the command result in the wish object
