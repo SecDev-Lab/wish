@@ -88,7 +88,10 @@ Only if NONE of the above initial access indicators are found, proceed with stan
 
 3. Output the selected error code and end.
 
-Remember: SUCCESS_INITIAL_ACCESS takes precedence over all other states, including SUCCESS and TIMEOUT. OTHERS is the last resort.
+# NOTE
+
+- SUCCESS_INITIAL_ACCESS takes precedence over all other states, including SUCCESS and TIMEOUT. OTHERS is the last resort.
+- Output only the classification string, without any extra characters.
 
 # command
 {command}
@@ -167,8 +170,10 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
             command_state = CommandState.TIMEOUT
         elif classification_str == "NETWORK_ERROR":
             command_state = CommandState.NETWORK_ERROR
-        else:
+        elif classification_str == "OTHERS":
             command_state = CommandState.OTHERS
+        else:
+            raise ValueError(f"Unknown command state classification: {classification_str}")
 
         # Set the command state in the new state
         new_state.command_state = command_state
