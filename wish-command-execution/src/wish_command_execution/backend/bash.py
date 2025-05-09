@@ -128,6 +128,10 @@ class BashBackend(Backend):
             cmd_num: The command number.
             log_files: The log files to write output to.
             timeout_sec: The timeout in seconds for this command.
+            
+        Note:
+            Commands are executed in the working directory /app/{run_id}/ to isolate
+            command execution from the application source code.
         """
         # Create command result
         result = CommandResult.create(cmd_num, command, log_files, timeout_sec)
@@ -139,13 +143,21 @@ class BashBackend(Backend):
 
         with open(log_files.stdout, "w") as stdout_file, open(log_files.stderr, "w") as stderr_file:
             try:
+                # 作業ディレクトリを設定
+                cwd = f"/app/{self.run_id or wish.id}/"
+                
+                # ディレクトリが存在することを確認
+                import os
+                os.makedirs(cwd, exist_ok=True)
+                
                 # Start the process (this is still synchronous, but the interface is async)
                 process = subprocess.Popen(
                     command,
                     stdout=stdout_file,
                     stderr=stderr_file,
                     shell=True,
-                    text=True
+                    text=True,
+                    cwd=cwd  # 作業ディレクトリを指定
                 )
 
                 # Store in running commands dict with timeout information

@@ -36,7 +36,8 @@ class TestBashBackend:
     @pytest.mark.asyncio
     @patch("subprocess.Popen")
     @patch("builtins.open")
-    async def test_execute_command(self, mock_open, mock_popen, backend, wish, log_files):
+    @patch("os.makedirs")
+    async def test_execute_command(self, mock_makedirs, mock_open, mock_popen, backend, wish, log_files):
         """Test execute_command method.
 
         This test verifies that the execute_command method correctly executes
@@ -57,13 +58,20 @@ class TestBashBackend:
         timeout_sec = 60
         await backend.execute_command(wish, cmd, cmd_num, log_files, timeout_sec)
 
-        # Verify that Popen was called with the expected command
+        # Expected working directory
+        expected_cwd = f"/app/{backend.run_id or wish.id}/"
+        
+        # Verify that os.makedirs was called to ensure the directory exists
+        mock_makedirs.assert_called_once_with(expected_cwd, exist_ok=True)
+        
+        # Verify that Popen was called with the expected command and cwd
         mock_popen.assert_any_call(
             cmd,
             stdout=mock_stdout,
             stderr=mock_stderr,
             shell=True,
-            text=True
+            text=True,
+            cwd=expected_cwd
         )
 
         # Verify that the command result was added to the wish
@@ -78,7 +86,8 @@ class TestBashBackend:
     @pytest.mark.asyncio
     @patch("subprocess.Popen")
     @patch("builtins.open")
-    async def test_execute_command_subprocess_error(self, mock_open, mock_popen, backend, wish, log_files):
+    @patch("os.makedirs")
+    async def test_execute_command_subprocess_error(self, mock_makedirs, mock_open, mock_popen, backend, wish, log_files):
         """Test execute_command method with subprocess error."""
         # Set up the mock Popen to raise a subprocess error
         mock_popen.side_effect = subprocess.SubprocessError("Mock error")
@@ -93,6 +102,12 @@ class TestBashBackend:
         cmd_num = 1
         timeout_sec = 60
         await backend.execute_command(wish, cmd, cmd_num, log_files, timeout_sec)
+        
+        # Expected working directory
+        expected_cwd = f"/app/{backend.run_id or wish.id}/"
+        
+        # Verify that os.makedirs was called to ensure the directory exists
+        mock_makedirs.assert_called_once_with(expected_cwd, exist_ok=True)
 
         # Verify that the command result was added to the wish
         assert len(wish.command_results) == 1
@@ -177,7 +192,8 @@ class TestBashBackend:
     @pytest.mark.asyncio
     @patch("subprocess.Popen")
     @patch("builtins.open")
-    async def test_execute_command_without_variable_replacement(self, mock_open, mock_popen, backend, wish, log_files):
+    @patch("os.makedirs")
+    async def test_execute_command_without_variable_replacement(self, mock_makedirs, mock_open, mock_popen, backend, wish, log_files):
         """Test execute_command method without variable replacement."""
         # Set up the mock Popen
         mock_process = MagicMock()
@@ -194,13 +210,21 @@ class TestBashBackend:
         timeout_sec = 60
         await backend.execute_command(wish, cmd, cmd_num, log_files, timeout_sec)
 
-        # Verify that Popen was called with the original command
+        # Expected working directory
+        expected_cwd = f"/app/{backend.run_id or wish.id}/"
+        
+        # Verify that os.makedirs was called to ensure the directory exists
+        mock_makedirs.assert_called_once_with(expected_cwd, exist_ok=True)
+        
+        # Verify that Popen was called with the original command and correct cwd
         mock_popen.assert_any_call(
             cmd,
             stdout=mock_stdout,
             stderr=mock_stderr,
             shell=True,
-            text=True
+            text=True,
+            cwd=expected_cwd
         )
         args, kwargs = mock_popen.call_args
         assert args[0] == cmd
+        assert kwargs['cwd'] == expected_cwd
