@@ -12,7 +12,8 @@ from ..models import GraphState
 
 # Define the prompt template
 COMMAND_STATE_CLASSIFIER_PROMPT = """
-As a security operations analyst, your task is to determine if a command output indicates successful initial access to a target system.
+As a security operations analyst, your task is to determine if a command output indicates successful
+initial access to a target system.
 
 # PRIORITY ORDER FOR CLASSIFICATION:
 
@@ -22,14 +23,16 @@ As a security operations analyst, your task is to determine if a command output 
 
 2. SECOND: Check for Normal Success
    - Only if NO initial access indicators were found AND exit_code is "0", output "SUCCESS"
-   - Even if exit_code is 0, do not output "SUCCESS" if there are initial access indicators (use "SUCCESS_INITIAL_ACCESS" instead)
+   - Even if exit_code is 0, do not output "SUCCESS" if there are initial access indicators
+     (use "SUCCESS_INITIAL_ACCESS" instead)
 
 3. THIRD: Check for Specific Error Types
    - Only if neither of the above conditions are met
 
 # MOST IMPORTANT RULE: Check for Initial Access Success REGARDLESS of exit_code
 
-Even if the command timed out (exit_code 124) or had any other error, FIRST check if there are ANY signs of successful initial access in the output.
+Even if the command timed out (exit_code 124) or had any other error, FIRST check if there are ANY signs
+of successful initial access in the output.
 
 # FIRST PRIORITY: Check for Initial Access Success
 
@@ -90,7 +93,8 @@ Only if NONE of the above initial access indicators are found, proceed with stan
 
 # NOTE
 
-- SUCCESS_INITIAL_ACCESS takes precedence over all other states, including SUCCESS and TIMEOUT. OTHERS is the last resort.
+- SUCCESS_INITIAL_ACCESS takes precedence over all other states, including SUCCESS and TIMEOUT.
+  OTHERS is the last resort.
 - Output only the classification string, without any extra characters.
 
 # command
