@@ -2,7 +2,7 @@
 
 import os
 
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from wish_models.command_result.command_state import CommandState
@@ -18,12 +18,12 @@ initial access to a target system.
 # PRIORITY ORDER FOR CLASSIFICATION:
 
 1. FIRST: Check for Initial Access Success
-   - If ANY initial access indicators are found, output "SUCCESS_INITIAL_ACCESS" regardless of exit_code
+   - If ANY initial access indicators are found, classify as "SUCCESS_INITIAL_ACCESS" regardless of exit_code
    - This takes absolute precedence over all other classifications
 
 2. SECOND: Check for Normal Success
-   - Only if NO initial access indicators were found AND exit_code is "0", output "SUCCESS"
-   - Even if exit_code is 0, do not output "SUCCESS" if there are initial access indicators
+   - Only if NO initial access indicators were found AND exit_code is "0", classify as "SUCCESS"
+   - Even if exit_code is 0, do not classify as "SUCCESS" if there are initial access indicators
      (use "SUCCESS_INITIAL_ACCESS" instead)
 
 3. THIRD: Check for Specific Error Types
@@ -37,7 +37,7 @@ of successful initial access in the output.
 # FIRST PRIORITY: Check for Initial Access Success
 
 Before any other analysis, check if the command output indicates successful initial access to the target system.
-Output "SUCCESS_INITIAL_ACCESS" if ANY of the following indicators are present:
+Classify as "SUCCESS_INITIAL_ACCESS" if ANY of the following indicators are present:
 
 ## 1. Meterpreter or shell session establishment (HIGHEST PRIORITY)
 - ANY line containing "Meterpreter session" AND "opened" (This is the strongest indicator)
@@ -62,14 +62,14 @@ Output "SUCCESS_INITIAL_ACCESS" if ANY of the following indicators are present:
 - "Successfully exploited vulnerability"
 
 # IMPORTANT: The exit_code does NOT override initial access indicators
-If ANY of the above indicators are found, output "SUCCESS_INITIAL_ACCESS" regardless of the exit_code.
+If ANY of the above indicators are found, classify as "SUCCESS_INITIAL_ACCESS" regardless of the exit_code.
 This includes cases where the command timed out (exit_code 124) but still managed to establish a session.
 
 # SECOND PRIORITY: Standard Command State Analysis
 
 Only if NONE of the above initial access indicators are found, proceed with standard command state analysis:
 
-1. If the `exit_code` is "0", output "SUCCESS" and end.
+1. If the `exit_code` is "0", classify as "SUCCESS" and end.
    - This includes successful port scans that found open ports
    - This includes successful reconnaissance commands
    - This includes ANY command that completed normally with exit_code 0
@@ -89,13 +89,29 @@ Only if NONE of the above initial access indicators are found, proceed with stan
    - NETWORK_ERROR: When a network error occurs
    - OTHERS: When an error not listed above occurs
 
-3. Output the selected error code and end.
+3. Classify with the selected error code and end.
 
 # NOTE
 
 - SUCCESS_INITIAL_ACCESS takes precedence over all other states, including SUCCESS and TIMEOUT.
   OTHERS is the last resort.
-- Output only the classification string, without any extra characters.
+
+# OUTPUT FORMAT
+
+You must output your response in JSON format with the following structure:
+{{
+  "command_state": "STATE_HERE",
+  "reason": "Detailed explanation of why this state was chosen"
+}}
+
+Where STATE_HERE is one of: SUCCESS_INITIAL_ACCESS, SUCCESS, COMMAND_NOT_FOUND, FILE_NOT_FOUND, 
+REMOTE_OPERATION_FAILED, TIMEOUT, NETWORK_ERROR, or OTHERS.
+
+Example output:
+{{
+  "command_state": "SUCCESS",
+  "reason": "The command executed successfully with exit code 0 and produced expected output."
+}}
 
 # command
 {command}
@@ -120,6 +136,10 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
     Returns:
         Updated graph state with command state.
     """
+    import json
+    import logging
+    from wish_tools.tool_step_trace import main as step_trace
+
     # Create a new state object to avoid modifying the original
     # Only set the fields this node is responsible for
     new_state = GraphState(
@@ -127,6 +147,7 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
         log_summary=state.log_summary,
         analyzed_command_result=state.analyzed_command_result,
         api_error=state.api_error,
+        run_id=state.run_id,
     )
 
     # Get the command and exit code from the state
@@ -148,47 +169,82 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
     prompt = PromptTemplate.from_template(COMMAND_STATE_CLASSIFIER_PROMPT)
 
     # Initialize the OpenAI model
-    model = ChatOpenAI(model=settings_obj.OPENAI_MODEL, api_key=settings_obj.OPENAI_API_KEY, use_responses_api=True)
+    model = ChatOpenAI(
+        model=settings_obj.OPENAI_MODEL, 
+        api_key=settings_obj.OPENAI_API_KEY, 
+        use_responses_api=True,
+        model_kwargs={"response_format": {"type": "json_object"}}
+    )
 
     # Create the chain
-    chain = prompt | model | StrOutputParser()
+    chain = prompt | model | JsonOutputParser()
 
     # Generate the classification
     try:
-        classification_str = chain.invoke(
+        classification_data = chain.invoke(
             {"command": command, "exit_code": exit_code, "stdout": stdout, "stderr": stderr}
-        ).strip()
+        )
 
-        # Convert the classification string to CommandState
-        if classification_str == "SUCCESS_INITIAL_ACCESS":
-            command_state = CommandState.SUCCESS_INITIAL_ACCESS
-        elif classification_str == "SUCCESS":
-            command_state = CommandState.SUCCESS
-        elif classification_str == "COMMAND_NOT_FOUND":
-            command_state = CommandState.COMMAND_NOT_FOUND
-        elif classification_str == "FILE_NOT_FOUND":
-            command_state = CommandState.FILE_NOT_FOUND
-        elif classification_str == "REMOTE_OPERATION_FAILED":
-            command_state = CommandState.REMOTE_OPERATION_FAILED
-        elif classification_str == "TIMEOUT":
-            command_state = CommandState.TIMEOUT
-        elif classification_str == "NETWORK_ERROR":
-            command_state = CommandState.NETWORK_ERROR
-        elif classification_str == "OTHERS":
-            command_state = CommandState.OTHERS
-        else:
-            raise ValueError(f"Unknown command state classification: {classification_str}")
+        # Process the JSON response (already parsed by JsonOutputParser)
+        try:
+            command_state_str = classification_data.get("command_state")
+            reason = classification_data.get("reason", "No reason provided")
+            
+            # Log the classification result and reason
+            logging.info(f"Command state classification: {command_state_str}")
+            logging.info(f"Reason: {reason}")
+            
+            # Send to StepTrace if run_id is available
+            if state.run_id:
+                trace_message = json.dumps({
+                    "command_state": command_state_str,
+                    "reason": reason
+                }, ensure_ascii=False)
+                
+                try:
+                    step_trace(
+                        run_id=state.run_id,
+                        trace_name="command_state_classification",
+                        trace_message=trace_message
+                    )
+                    logging.info(f"StepTrace sent for run_id: {state.run_id}")
+                except Exception as trace_error:
+                    logging.error(f"Error sending StepTrace: {str(trace_error)}")
+            
+            # Convert the classification string to CommandState
+            if command_state_str == "SUCCESS_INITIAL_ACCESS":
+                command_state = CommandState.SUCCESS_INITIAL_ACCESS
+            elif command_state_str == "SUCCESS":
+                command_state = CommandState.SUCCESS
+            elif command_state_str == "COMMAND_NOT_FOUND":
+                command_state = CommandState.COMMAND_NOT_FOUND
+            elif command_state_str == "FILE_NOT_FOUND":
+                command_state = CommandState.FILE_NOT_FOUND
+            elif command_state_str == "REMOTE_OPERATION_FAILED":
+                command_state = CommandState.REMOTE_OPERATION_FAILED
+            elif command_state_str == "TIMEOUT":
+                command_state = CommandState.TIMEOUT
+            elif command_state_str == "NETWORK_ERROR":
+                command_state = CommandState.NETWORK_ERROR
+            elif command_state_str == "OTHERS":
+                command_state = CommandState.OTHERS
+            else:
+                raise ValueError(f"Unknown command state classification: {command_state_str}")
+                
+        except Exception as json_error:
+            logging.error(f"Failed to process JSON response: {classification_data}")
+            logging.error(f"Error: {str(json_error)}")
+            raise ValueError(f"Invalid JSON response from LLM: {str(json_error)}")
 
-        # Set the command state in the new state
+        # Set the command state and reason in the new state
         new_state.command_state = command_state
+        new_state.reason = reason
 
     except Exception as e:
         # In case of any error, log it and set API_ERROR state
         error_message = f"Error classifying command state: {str(e)}"
 
         # Log the error
-        import logging
-
         logging.error(error_message)
         logging.error(f"Command: {command}")
         logging.error(f"Exit code: {exit_code}")

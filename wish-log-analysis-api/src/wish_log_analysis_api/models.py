@@ -24,6 +24,12 @@ class GraphState(BaseModel):
     command_state: CommandState | None = None
     """Classification of the command result (SUCCESS, COMMAND_NOT_FOUND, etc.)."""
 
+    reason: str | None = None
+    """Reason for the command state classification."""
+
+    run_id: str | None = None
+    """実行ID（StepTraceに使用）"""
+
     # Final output field
     analyzed_command_result: CommandResult | None = None
     """The final CommandResult object with all fields filled. This is the output of the graph."""

@@ -32,8 +32,14 @@ def analyze_command_result(
         # Create the graph
         graph = create_log_analysis_graph(config=config, settings_obj=settings_obj)
 
+        # Get run_id from settings if available
+        run_id = getattr(settings_obj, "RUN_ID", None)
+
         # Create the initial state
-        initial_state = GraphState(command_result=request.command_result)
+        initial_state = GraphState(
+            command_result=request.command_result,
+            run_id=run_id
+        )
 
         # Run the graph with static name
         result = graph.invoke(initial_state, {"run_name": "ActL1-Log-Analysis"})

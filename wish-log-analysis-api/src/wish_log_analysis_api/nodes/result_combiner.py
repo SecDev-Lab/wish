@@ -22,6 +22,7 @@ def combine_results(state: GraphState, settings_obj: Settings) -> GraphState:
         command_result=state.command_result,
         log_summary=state.log_summary,
         command_state=state.command_state,
+        reason=state.reason,
         api_error=state.api_error
     )
 
@@ -51,6 +52,7 @@ def combine_results(state: GraphState, settings_obj: Settings) -> GraphState:
         exit_code=state.command_result.exit_code,
         log_files=state.command_result.log_files,
         log_summary=state.log_summary or "Error: Unable to generate log summary due to API error",
+        reason=state.reason,
         state=command_state or CommandState.API_ERROR,
         created_at=state.command_result.created_at,
         finished_at=state.command_result.finished_at,

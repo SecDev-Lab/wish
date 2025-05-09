@@ -34,6 +34,9 @@ class CommandResult(BaseModel):
 
     It's None before the command is finished."""
 
+    reason: str | None = None
+    """Reason for the command state classification."""
+
     log_files: LogFiles
     """Paths to log files of the command execution."""
 
