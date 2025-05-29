@@ -128,7 +128,6 @@ class BashBackend(Backend):
             cmd_num: The command number.
             log_files: The log files to write output to.
             timeout_sec: The timeout in seconds for this command.
-            
         Note:
             Commands are executed in the working directory /app/{run_id}/ to isolate
             command execution from the application source code.
@@ -145,11 +144,11 @@ class BashBackend(Backend):
             try:
                 # 作業ディレクトリを設定
                 cwd = f"/app/{self.run_id or wish.id}/"
-                
+
                 # ディレクトリが存在することを確認
                 import os
                 os.makedirs(cwd, exist_ok=True)
-                
+
                 # Start the process (this is still synchronous, but the interface is async)
                 process = subprocess.Popen(
                     command,

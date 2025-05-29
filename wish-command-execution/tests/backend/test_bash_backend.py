@@ -60,10 +60,10 @@ class TestBashBackend:
 
         # Expected working directory
         expected_cwd = f"/app/{backend.run_id or wish.id}/"
-        
+
         # Verify that os.makedirs was called to ensure the directory exists
         mock_makedirs.assert_called_once_with(expected_cwd, exist_ok=True)
-        
+
         # Verify that Popen was called with the expected command and cwd
         mock_popen.assert_any_call(
             cmd,
@@ -87,7 +87,9 @@ class TestBashBackend:
     @patch("subprocess.Popen")
     @patch("builtins.open")
     @patch("os.makedirs")
-    async def test_execute_command_subprocess_error(self, mock_makedirs, mock_open, mock_popen, backend, wish, log_files):
+    async def test_execute_command_subprocess_error(
+        self, mock_makedirs, mock_open, mock_popen, backend, wish, log_files
+    ):
         """Test execute_command method with subprocess error."""
         # Set up the mock Popen to raise a subprocess error
         mock_popen.side_effect = subprocess.SubprocessError("Mock error")
@@ -102,10 +104,10 @@ class TestBashBackend:
         cmd_num = 1
         timeout_sec = 60
         await backend.execute_command(wish, cmd, cmd_num, log_files, timeout_sec)
-        
+
         # Expected working directory
         expected_cwd = f"/app/{backend.run_id or wish.id}/"
-        
+
         # Verify that os.makedirs was called to ensure the directory exists
         mock_makedirs.assert_called_once_with(expected_cwd, exist_ok=True)
 
@@ -193,7 +195,9 @@ class TestBashBackend:
     @patch("subprocess.Popen")
     @patch("builtins.open")
     @patch("os.makedirs")
-    async def test_execute_command_without_variable_replacement(self, mock_makedirs, mock_open, mock_popen, backend, wish, log_files):
+    async def test_execute_command_without_variable_replacement(
+        self, mock_makedirs, mock_open, mock_popen, backend, wish, log_files
+    ):
         """Test execute_command method without variable replacement."""
         # Set up the mock Popen
         mock_process = MagicMock()
@@ -212,10 +216,10 @@ class TestBashBackend:
 
         # Expected working directory
         expected_cwd = f"/app/{backend.run_id or wish.id}/"
-        
+
         # Verify that os.makedirs was called to ensure the directory exists
         mock_makedirs.assert_called_once_with(expected_cwd, exist_ok=True)
-        
+
         # Verify that Popen was called with the original command and correct cwd
         mock_popen.assert_any_call(
             cmd,
