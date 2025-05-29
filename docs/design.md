@@ -143,6 +143,111 @@ This separation allows each package to focus on its core functionality.
 7. Status updates are tracked and displayed in the TUI
 8. Results are stored in the wish history
 
+## Detailed Command Flow
+
+The following flowchart shows the complete end-to-end process from user input to command execution and analysis:
+
+```mermaid
+flowchart TB
+    %% User Interface Layer
+    subgraph TUI["🖥️ Terminal User Interface (wish-sh)"]
+        A[User launches wish shell] --> B[WishApp initializes]
+        B --> C[System Info Collection]
+        C --> D[WishInput Screen]
+        D --> E["User enters wish:<br/>'scan all ports on target'"]
+    end
+
+    %% Wish Management Layer
+    subgraph WM["📋 Wish Management"]
+        E --> F[WishManager.generate_commands]
+        F --> G[Create Wish object]
+        G --> H[CommandGenerator client]
+    end
+
+    %% Command Generation API Layer
+    subgraph API["🤖 Command Generation API"]
+        H --> I[API Request with context]
+        I --> J[LangGraph State Machine]
+        
+        subgraph Graph["Command Generation Graph"]
+            J --> K[feedback_analyzer]
+            K --> L{Route by feedback}
+            L -->|First execution| M[query_processor]
+            L -->|Timeout error| N[timeout_handler]
+            L -->|Network error| O[network_error_handler]
+            
+            M --> P[command_generator]
+            N --> Q[command_modifier]
+            O --> Q
+            P --> Q
+            Q --> R[result_formatter]
+        end
+        
+        subgraph LLM["LLM Processing"]
+            P --> S["ChatGPT/OpenAI<br/>with prompt template"]
+            S --> T["Generated command:<br/>'nmap -p1-1000 $TARGET_IP'<br/>'nmap -p1001-2000 $TARGET_IP'<br/>..."]
+        end
+    end
+
+    %% Command Suggestion Layer
+    subgraph CS["✅ Command Suggestion"]
+        R --> U[Return commands list]
+        U --> V[CommandSuggestion Screen]
+        V --> W["Display commands<br/>for user approval"]
+        W --> X{User decision}
+        X -->|Yes| Y[Proceed to execution]
+        X -->|No| D
+    end
+
+    %% Command Execution Layer
+    subgraph CE["⚡ Command Execution"]
+        Y --> Z[CommandExecutionScreen]
+        Z --> AA[CommandExecutor]
+        AA --> AB[Backend selection]
+        
+        AB --> AC{Backend type}
+        AC -->|Local| AD[BashBackend]
+        AC -->|Remote| AE[SliverBackend]
+        
+        AD --> AF[Execute via subprocess]
+        AE --> AG[Execute via C2]
+        
+        AF --> AH[Write stdout/stderr<br/>to log files]
+        AG --> AH
+    end
+
+    %% Monitoring Layer
+    subgraph MON["📊 Monitoring & Analysis"]
+        AH --> AI[CommandStatusTracker]
+        AI --> AJ[Monitor execution]
+        AJ --> AK{Command complete?}
+        AK -->|No| AJ
+        AK -->|Yes| AL[LogAnalysisClient]
+        AL --> AM[Analyze logs with LLM]
+        AM --> AN[Update command state]
+        AN --> AO[Update UI status]
+    end
+
+    %% Completion
+    AO --> AP{All commands done?}
+    AP -->|No| AJ
+    AP -->|Yes| AQ[Update Wish state]
+    AQ --> AR[Show completion message]
+    AR --> AS[Return to WishInput]
+    AS --> D
+
+    %% Styling
+    classDef userAction fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef llmAction fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef systemAction fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    
+    class E,W,X userAction
+    class S,AM llmAction
+    class F,G,H,I,J,K,M,N,O,P,Q,R,U,V,Y,Z,AA,AB,AD,AE,AF,AG,AH,AI,AJ,AL,AN,AO,AQ,AR systemAction
+    class L,X,AC,AK,AP decision
+```
+
 ## Command Result Processing Flow
 
 ```mermaid
@@ -164,3 +269,80 @@ sequenceDiagram
     LogAnalyzer-->>WishManager: CommandResult with log_summary and state
     WishManager-->>User: Display analyzed result
 ```
+
+## Key Components and Their Roles
+
+### 1. **wish-sh (TUI Interface)**
+- **Entry Point**: `wish.py` - Handles CLI arguments and initializes the TUI
+- **Main App**: `WishApp` in `wish_tui.py` - Manages the Textual-based interface
+- **Screens**:
+  - `WishInput`: Where users type their natural language wishes
+  - `CommandSuggestion`: Shows generated commands for approval
+  - `CommandExecutionScreen`: Displays real-time execution status
+
+### 2. **WishManager**
+- Central orchestrator in `wish_manager.py`
+- Coordinates between command generation, execution, and analysis
+- Manages wish lifecycle and persistence
+
+### 3. **Command Generation API**
+- **Client**: `CommandGenerationClient` sends requests to the API
+- **API Handler**: Lambda function processes requests
+- **LangGraph**: State machine with specialized nodes:
+  - `feedback_analyzer`: Handles retry logic for failed commands
+  - `query_processor`: Prepares the query for LLM
+  - `command_generator`: Uses OpenAI/ChatGPT with prompt templates
+  - `command_modifier`: Applies transformations (e.g., divide & conquer)
+  - `result_formatter`: Prepares the final command list
+
+### 4. **LLM Prompt Templates**
+The system uses sophisticated prompts that include:
+- **Context Information**: Current directory, command history
+- **Guidelines**: 
+  - Interactive command avoidance (e.g., `msfconsole -x "...exit -y"`)
+  - Fast alternatives (e.g., using `rg` instead of `grep`)
+  - Divide & conquer strategies (e.g., splitting port scans)
+
+### 5. **Command Execution**
+- **CommandExecutor**: Manages command lifecycle
+- **Backends**:
+  - `BashBackend`: Local execution via subprocess
+  - `SliverBackend`: Remote execution via C2 framework
+- **Logging**: All output captured to files for analysis
+
+### 6. **Monitoring & Analysis**
+- **CommandStatusTracker**: Polls for command completion
+- **LogAnalysisClient**: Uses LLM to analyze command output
+- **State Management**: Tracks success, failure, timeouts, etc.
+
+## Example Flow
+
+**User's Wish**: "scan all ports on the target machine"
+
+1. User types wish in TUI
+2. WishManager creates Wish object with unique ID
+3. CommandGenerator sends to API with system context
+4. LangGraph processes through nodes:
+   - Query processor enhances the query
+   - Command generator creates base command
+   - Command modifier applies divide & conquer (splits into 65 parallel nmap commands)
+5. User sees suggested commands and approves
+6. CommandExecutor runs all commands in parallel
+7. StatusTracker monitors progress
+8. LogAnalysisClient analyzes results
+9. UI updates with findings
+10. User returns to wish input for next task
+
+## Key Design Patterns
+
+1. **State Machine Pattern**: LangGraph for complex command generation logic
+2. **Strategy Pattern**: Multiple execution backends (Bash, Sliver)
+3. **Observer Pattern**: Real-time UI updates during execution
+4. **Chain of Responsibility**: Node-based processing in command generation
+
+## Integration Points
+
+- **LangSmith**: Tracing for LLM operations
+- **OpenAI API**: Command generation and log analysis
+- **Sliver C2**: Remote command execution
+- **File System**: Log storage and analysis

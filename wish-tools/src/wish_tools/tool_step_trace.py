@@ -25,6 +25,7 @@ class StepTraceState(BaseModel):
         response_status_code: レスポンスのステータスコード
         response_body: レスポンスのボディ
     """
+
     run_id: str
     trace_name: str
     trace_message: str
@@ -51,7 +52,7 @@ def encode_trace_message(state: StepTraceState) -> StepTraceState:
         run_id=state.run_id,
         trace_name=state.trace_name,
         trace_message=state.trace_message,
-        trace_message_base64=encoded
+        trace_message_base64=encoded,
     )
 
 
@@ -69,7 +70,7 @@ def post_step_trace(state: StepTraceState) -> StepTraceState:
     data = {
         "run_id": state.run_id,  # プレフィックスを追加しない
         "trace_name": state.trace_name,
-        "trace_message_base64": state.trace_message_base64
+        "trace_message_base64": state.trace_message_base64,
     }
 
     try:
@@ -77,7 +78,7 @@ def post_step_trace(state: StepTraceState) -> StepTraceState:
         response = requests.post(
             "http://host.docker.internal:23456/api/addStepTrace",
             json=data,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
         # レスポンスを取得
@@ -95,7 +96,7 @@ def post_step_trace(state: StepTraceState) -> StepTraceState:
         trace_message=state.trace_message,
         trace_message_base64=state.trace_message_base64,
         response_status_code=status_code,
-        response_body=body
+        response_body=body,
     )
 
 
@@ -121,11 +122,7 @@ def build_graph() -> StateGraph:
     return graph
 
 
-def main(
-    run_id: str,
-    trace_name: str,
-    trace_message: str
-) -> Dict[str, str]:
+def main(run_id: str, trace_name: str, trace_message: str) -> Dict[str, str]:
     """
     メイン関数
 
@@ -142,23 +139,13 @@ def main(
         graph = build_graph()
 
         # グラフの実行
-        initial_state = StepTraceState(
-            run_id=run_id,
-            trace_name=trace_name,
-            trace_message=trace_message
-        )
+        initial_state = StepTraceState(run_id=run_id, trace_name=trace_name, trace_message=trace_message)
 
         workflow = graph.compile()
         result = workflow.invoke(initial_state, {"run_name": f"Tool-StepTrace-{trace_name}"})
 
         # 結果を返す
-        return {
-            "status_code": result["response_status_code"],
-            "body": result["response_body"]
-        }
+        return {"status_code": result["response_status_code"], "body": result["response_body"]}
     except Exception as e:
         # エラーが発生した場合
-        return {
-            "status_code": 599,
-            "body": f"Error during workflow execution: {str(e)}"
-        }
+        return {"status_code": 599, "body": f"Error during workflow execution: {str(e)}"}

@@ -2,7 +2,7 @@
 
 import os
 
-from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from wish_models.command_result.command_state import CommandState
@@ -104,7 +104,7 @@ You must output your response in JSON format with the following structure:
   "reason": "Detailed explanation of why this state was chosen"
 }}
 
-Where STATE_HERE is one of: SUCCESS_INITIAL_ACCESS, SUCCESS, COMMAND_NOT_FOUND, FILE_NOT_FOUND, 
+Where STATE_HERE is one of: SUCCESS_INITIAL_ACCESS, SUCCESS, COMMAND_NOT_FOUND, FILE_NOT_FOUND,
 REMOTE_OPERATION_FAILED, TIMEOUT, NETWORK_ERROR, or OTHERS.
 
 Example output:
@@ -138,6 +138,7 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
     """
     import json
     import logging
+
     from wish_tools.tool_step_trace import main as step_trace
 
     # Create a new state object to avoid modifying the original
@@ -170,8 +171,8 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
 
     # Initialize the OpenAI model
     model = ChatOpenAI(
-        model=settings_obj.OPENAI_MODEL, 
-        api_key=settings_obj.OPENAI_API_KEY, 
+        model=settings_obj.OPENAI_MODEL,
+        api_key=settings_obj.OPENAI_API_KEY,
         use_responses_api=True,
         model_kwargs={"response_format": {"type": "json_object"}}
     )
@@ -189,18 +190,18 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
         try:
             command_state_str = classification_data.get("command_state")
             reason = classification_data.get("reason", "No reason provided")
-            
+
             # Log the classification result and reason
             logging.info(f"Command state classification: {command_state_str}")
             logging.info(f"Reason: {reason}")
-            
+
             # Send to StepTrace if run_id is available
             if state.run_id:
                 trace_message = json.dumps({
                     "command_state": command_state_str,
                     "reason": reason
                 }, ensure_ascii=False)
-                
+
                 try:
                     step_trace(
                         run_id=state.run_id,
@@ -210,7 +211,7 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
                     logging.info(f"StepTrace sent for run_id: {state.run_id}")
                 except Exception as trace_error:
                     logging.error(f"Error sending StepTrace: {str(trace_error)}")
-            
+
             # Convert the classification string to CommandState
             if command_state_str == "SUCCESS_INITIAL_ACCESS":
                 command_state = CommandState.SUCCESS_INITIAL_ACCESS
@@ -230,11 +231,11 @@ def classify_command_state(state: GraphState, settings_obj: Settings) -> GraphSt
                 command_state = CommandState.OTHERS
             else:
                 raise ValueError(f"Unknown command state classification: {command_state_str}")
-                
+
         except Exception as json_error:
             logging.error(f"Failed to process JSON response: {classification_data}")
             logging.error(f"Error: {str(json_error)}")
-            raise ValueError(f"Invalid JSON response from LLM: {str(json_error)}")
+            raise ValueError(f"Invalid JSON response from LLM: {str(json_error)}") from json_error
 
         # Set the command state and reason in the new state
         new_state.command_state = command_state

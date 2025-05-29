@@ -24,11 +24,7 @@ class TestToolStepTrace:
     def test_encode_trace_message(self):
         """Test encoding trace message to Base64."""
         # Setup
-        state = StepTraceState(
-            run_id="test-run-id",
-            trace_name="Test Trace",
-            trace_message="Hello, World!"
-        )
+        state = StepTraceState(run_id="test-run-id", trace_name="Test Trace", trace_message="Hello, World!")
 
         # Call function
         result = encode_trace_message(state)
@@ -53,7 +49,7 @@ class TestToolStepTrace:
             run_id="test-run-id",
             trace_name="Test Trace",
             trace_message="Hello, World!",
-            trace_message_base64="SGVsbG8sIFdvcmxkIQ=="
+            trace_message_base64="SGVsbG8sIFdvcmxkIQ==",
         )
 
         # Call function
@@ -70,12 +66,8 @@ class TestToolStepTrace:
         # Verify mock was called with correct parameters
         mock_post.assert_called_once_with(
             "http://host.docker.internal:23456/api/addStepTrace",
-            json={
-                "run_id": "test-run-id",
-                "trace_name": "Test Trace",
-                "trace_message_base64": "SGVsbG8sIFdvcmxkIQ=="
-            },
-            headers={"Content-Type": "application/json"}
+            json={"run_id": "test-run-id", "trace_name": "Test Trace", "trace_message_base64": "SGVsbG8sIFdvcmxkIQ=="},
+            headers={"Content-Type": "application/json"},
         )
 
     @patch("wish_tools.tool_step_trace.requests.post")
@@ -89,7 +81,7 @@ class TestToolStepTrace:
             run_id="test-run-id",
             trace_name="Test Trace",
             trace_message="Hello, World!",
-            trace_message_base64="SGVsbG8sIFdvcmxkIQ=="
+            trace_message_base64="SGVsbG8sIFdvcmxkIQ==",
         )
 
         # Call function
@@ -119,19 +111,12 @@ class TestToolStepTrace:
         # Setup mock
         mock_graph = MagicMock()
         mock_workflow = MagicMock()
-        mock_workflow.invoke.return_value = {
-            "response_status_code": 200,
-            "response_body": "Success"
-        }
+        mock_workflow.invoke.return_value = {"response_status_code": 200, "response_body": "Success"}
         mock_graph.compile.return_value = mock_workflow
         mock_build_graph.return_value = mock_graph
 
         # Call function
-        result = main(
-            run_id="test-run-id",
-            trace_name="Test Trace",
-            trace_message="Hello, World!"
-        )
+        result = main(run_id="test-run-id", trace_name="Test Trace", trace_message="Hello, World!")
 
         # Verify result
         assert result["status_code"] == 200
@@ -149,11 +134,7 @@ class TestToolStepTrace:
         mock_build_graph.side_effect = Exception("Test error")
 
         # Call function
-        result = main(
-            run_id="test-run-id",
-            trace_name="Test Trace",
-            trace_message="Hello, World!"
-        )
+        result = main(run_id="test-run-id", trace_name="Test Trace", trace_message="Hello, World!")
 
         # Verify result
         assert result["status_code"] == 599
