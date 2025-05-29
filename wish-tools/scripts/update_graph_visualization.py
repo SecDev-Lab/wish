@@ -132,7 +132,7 @@ def extract_graph_config(graph: StateGraph) -> Dict:
         "entry_point": entry_point,
         "finish_points": finish_points,
         "edges": edges,
-        "conditional_edges": conditional_edges
+        "conditional_edges": conditional_edges,
     }
 
 
@@ -143,7 +143,7 @@ def generate_graph_visualization():
         "tool_step_trace": {
             "module_path": "wish_tools.tool_step_trace",
             "filename": "tool_step_trace_graph.svg",
-            "title": "Tool Step Trace Graph"
+            "title": "Tool Step Trace Graph",
         }
     }
 
@@ -238,6 +238,7 @@ def update_readme(graph_title: str, svg_filename: str):
         else:
             # Add this graph to the existing section
             import re
+
             section_pattern = re.compile(f"{graph_section_title}.*?(?=^#|$)", re.DOTALL | re.MULTILINE)
             section_match = section_pattern.search(content)
 

@@ -1,0 +1,50 @@
+name: Update Tool Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'src/wish_tools/tools/**/*.py'
+      - 'src/wish_tools/framework/**/*.py'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'src/wish_tools/tools/**/*.py'
+      - 'src/wish_tools/framework/**/*.py'
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    - name: Install dependencies
+      run: uv sync
+      
+    - name: Generate tool documentation
+      run: uv run python scripts/generate_tool_docs.py
+      
+    - name: Run tool tests
+      run: uv run python scripts/test_tools.py
+      
+    - name: Check for documentation changes
+      run: |
+        if [ -n "$(git diff --name-only docs/)" ]; then
+          echo "Documentation changes detected:"
+          git diff --name-only docs/
+          echo "Please commit the updated documentation."
+          exit 1
+        else
+          echo "Documentation is up to date."
+        fi

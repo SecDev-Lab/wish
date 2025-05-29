@@ -23,11 +23,7 @@ async def test_step_trace_workflow(mock_post):
     print("HTTPレスポンスをモック:", {"status_code": 200, "body": "Success"})
 
     # 関数の実行
-    result = main(
-        run_id="test-run-id",
-        trace_name="Test Trace",
-        trace_message="Hello, World!"
-    )
+    result = main(run_id="test-run-id", trace_name="Test Trace", trace_message="Hello, World!")
 
     # 結果の出力
     print("結果:", result)
@@ -41,12 +37,8 @@ async def test_step_trace_workflow(mock_post):
     # モックが正しく呼び出されたことを確認
     mock_post.assert_called_once_with(
         "http://host.docker.internal:23456/api/addStepTrace",
-        json={
-            "run_id": "test-run-id",
-            "trace_name": "Test Trace",
-            "trace_message_base64": "SGVsbG8sIFdvcmxkIQ=="
-        },
-        headers={"Content-Type": "application/json"}
+        json={"run_id": "test-run-id", "trace_name": "Test Trace", "trace_message_base64": "SGVsbG8sIFdvcmxkIQ=="},
+        headers={"Content-Type": "application/json"},
     )
 
 
@@ -61,11 +53,7 @@ async def test_step_trace_with_error(mock_post):
     print("HTTP接続エラーをモック: Connection error")
 
     # 関数の実行
-    result = main(
-        run_id="test-run-id",
-        trace_name="Test Trace",
-        trace_message="Hello, World!"
-    )
+    result = main(run_id="test-run-id", trace_name="Test Trace", trace_message="Hello, World!")
 
     # 結果の出力
     print("結果:", result)
@@ -98,11 +86,7 @@ async def test_step_trace_with_long_message(mock_post):
     print(f"長いメッセージを作成: {len(long_message)}文字")
 
     # 関数の実行
-    result = main(
-        run_id="test-run-id",
-        trace_name="Long Message Test",
-        trace_message=long_message
-    )
+    result = main(run_id="test-run-id", trace_name="Long Message Test", trace_message=long_message)
 
     # 結果の出力
     print("結果:", result)
