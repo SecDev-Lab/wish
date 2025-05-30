@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 from wish_models.command_result import CommandResult, CommandState, LogFiles
+from wish_models.command_result.command import Command, CommandType
 from wish_models.settings import Settings
 from wish_models.utc_datetime import UtcDatetime
 
@@ -63,7 +64,11 @@ def test_command_generation_with_network_error_feedback(settings):
     act_result = [
         CommandResult(
             num=1,
-            command="smbclient -N //10.10.10.40/Users --option='client min protocol'=LANMAN1",
+            command=Command(
+                command="smbclient -N //10.10.10.40/Users --option='client min protocol'=LANMAN1",
+                tool_type=CommandType.BASH,
+                tool_parameters={}
+            ),
             state=CommandState.NETWORK_ERROR,
             exit_code=1,
             log_summary="Connection closed by peer",
@@ -118,7 +123,11 @@ def test_command_generation_with_timeout_feedback(settings):
     act_result = [
         CommandResult(
             num=1,
-            command="nmap -p- 10.10.10.40",
+            command=Command(
+                command="nmap -p- 10.10.10.40",
+                tool_type=CommandType.BASH,
+                tool_parameters={}
+            ),
             state=CommandState.TIMEOUT,
             exit_code=1,
             log_summary="timeout",
