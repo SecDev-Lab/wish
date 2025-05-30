@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import pytest
+from wish_models import CommandState
 from wish_models.test_factories.command_input_factory import CommandInputFactory
 from wish_models.test_factories.command_result_factory import CommandResultSuccessFactory
 from wish_models.test_factories.settings_factory import SettingsFactory
@@ -199,8 +200,7 @@ def test_modify_command_preserve_state(mock_modify, settings):
     # Create a state with additional fields
     processed_query = "processed test query"
     failed_command_result = CommandResultSuccessFactory(
-        command="test command",
-        state="SUCCESS",
+        state=CommandState.SUCCESS,
         exit_code=0,
         log_summary="success",
     )

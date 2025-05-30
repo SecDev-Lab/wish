@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 from wish_models.command_result import CommandResult, CommandState, LogFiles
+from wish_models.command_result.command import Command, CommandType
 from wish_models.settings import Settings
 from wish_models.utc_datetime import UtcDatetime
 
@@ -66,7 +67,11 @@ def test_graph_with_timeout_feedback(settings):
     act_result = [
             CommandResult(
                 num=1,
-                command="nmap -p- 10.10.10.40",
+                command=Command(
+                    command="nmap -p- 10.10.10.40",
+                    tool_type=CommandType.BASH,
+                    tool_parameters={}
+                ),
                 state=CommandState.TIMEOUT,
                 exit_code=1,
                 log_summary="timeout",
@@ -126,7 +131,11 @@ def test_graph_with_network_error_feedback(settings):
     act_result = [
         CommandResult(
             num=1,
-            command="nmap -p- 10.10.10.40",
+            command=Command(
+                command="nmap -p- 10.10.10.40",
+                tool_type=CommandType.BASH,
+                tool_parameters={}
+            ),
             state=CommandState.NETWORK_ERROR,
             exit_code=1,
             log_summary="Connection closed by peer",
@@ -186,7 +195,11 @@ def test_graph_with_unknown_error_feedback(settings):
     act_result = [
         CommandResult(
             num=1,
-            command="nmap -p- 10.10.10.40",
+            command=Command(
+                command="nmap -p- 10.10.10.40",
+                tool_type=CommandType.BASH,
+                tool_parameters={}
+            ),
             state=CommandState.OTHERS,
             exit_code=1,
             log_summary="Unknown error",

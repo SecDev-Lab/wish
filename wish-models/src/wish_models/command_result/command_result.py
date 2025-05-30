@@ -2,6 +2,7 @@ import json
 
 from pydantic import BaseModel
 
+from wish_models.command_result.command import Command
 from wish_models.command_result.command_state import CommandState
 from wish_models.command_result.log_files import LogFiles
 from wish_models.utc_datetime import UtcDatetime
@@ -15,7 +16,7 @@ class CommandResult(BaseModel):
 
     It starts from 1."""
 
-    command: str
+    command: Command
     """Command executed."""
 
     state: CommandState
@@ -52,7 +53,7 @@ class CommandResult(BaseModel):
     It's None before the command is finished."""
 
     @classmethod
-    def create(cls, num: int, command: str, log_files: LogFiles, timeout_sec: int) -> "CommandResult":
+    def create(cls, num: int, command: Command, log_files: LogFiles, timeout_sec: int) -> "CommandResult":
         return cls(
             num=num,
             command=command,
@@ -74,7 +75,15 @@ class CommandResult(BaseModel):
         return self.model_dump_json(indent=2)
 
     def to_dict(self) -> dict:
-        return self.model_dump()
+        return self.model_dump(mode="json")
+
+    def get_command_string(self) -> str:
+        """Get the command string for execution.
+
+        Returns:
+            The command string from the Command object.
+        """
+        return self.command.command
 
     def finish(self, exit_code: int, state: CommandState | None = None, log_summary: str | None = None) -> None:
         """Mark the command as finished and update its state.

@@ -107,7 +107,7 @@ JSONのみを出力してください。説明や追加のテキストは含め�
 
         # Format the feedback as JSON string
         feedback_str = (
-            json.dumps([result.model_dump() for result in state.failed_command_results], ensure_ascii=False)
+            json.dumps([result.model_dump(mode="json") for result in state.failed_command_results], ensure_ascii=False)
             if state.failed_command_results else "[]"
         )
 

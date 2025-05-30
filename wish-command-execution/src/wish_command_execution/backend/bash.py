@@ -132,8 +132,14 @@ class BashBackend(Backend):
             Commands are executed in the working directory /app/{run_id}/ to isolate
             command execution from the application source code.
         """
-        # Create command result
-        result = CommandResult.create(cmd_num, command, log_files, timeout_sec)
+        # Create command result with Command object
+        from wish_models.command_result.command import Command, CommandType
+        command_obj = Command(
+            command=command,
+            tool_type=CommandType.BASH,
+            tool_parameters={"timeout": timeout_sec}
+        )
+        result = CommandResult.create(cmd_num, command_obj, log_files, timeout_sec)
 
         wish.command_results.append(result)
 

@@ -1,3 +1,4 @@
+from .command_factory import BashCommandFactory, CommandFactory, MsfconsoleCommandFactory
 from .command_result_factory import CommandResultDoingFactory, CommandResultSuccessFactory
 from .executable_collection_factory import ExecutableCollectionFactory
 from .executable_info_factory import ExecutableInfoFactory
@@ -8,6 +9,9 @@ from .utc_datetime_factory import UtcDatetimeFactory
 from .wish_factory import WishDoingFactory, WishDoneFactory
 
 __all__ = [
+    "CommandFactory",
+    "BashCommandFactory",
+    "MsfconsoleCommandFactory",
     "CommandResultDoingFactory",
     "CommandResultSuccessFactory",
     "LogFilesFactory",

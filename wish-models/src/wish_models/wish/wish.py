@@ -52,7 +52,7 @@ class Wish(BaseModel):
         return self.model_dump_json(indent=2)
 
     def to_dict(self) -> dict:
-        return self.model_dump()
+        return self.model_dump(mode="json")
 
     @classmethod
     def _gen_id(cls) -> str:

@@ -21,7 +21,11 @@ def test_lambda_handler_with_feedback(settings):
     act_result = [
         {
             "num": 1,
-            "command": "nmap -p- 10.10.10.40",
+            "command": {
+                "command": "nmap -p- 10.10.10.40",
+                "tool_type": "bash",
+                "tool_parameters": {}
+            },
             "state": "TIMEOUT",
             "exit_code": 1,
             "log_summary": "timeout",
@@ -78,7 +82,11 @@ def test_lambda_handler_with_network_error_feedback(settings):
     act_result = [
         {
             "num": 1,
-            "command": "nmap -p- 10.10.10.40",
+            "command": {
+                "command": "nmap -p- 10.10.10.40",
+                "tool_type": "bash",
+                "tool_parameters": {}
+            },
             "state": "NETWORK_ERROR",
             "exit_code": 1,
             "log_summary": "Connection closed by peer",
@@ -135,7 +143,11 @@ def test_lambda_handler_with_multiple_feedback(settings):
     act_result = [
         {
             "num": 1,
-            "command": "nmap -p1-1000 10.10.10.40",
+            "command": {
+                "command": "nmap -p1-1000 10.10.10.40",
+                "tool_type": "bash",
+                "tool_parameters": {}
+            },
             "state": "SUCCESS",
             "exit_code": 0,
             "log_summary": "Scan completed successfully",
@@ -148,7 +160,11 @@ def test_lambda_handler_with_multiple_feedback(settings):
         },
         {
             "num": 2,
-            "command": "nmap -p1001-65535 10.10.10.40",
+            "command": {
+                "command": "nmap -p1001-65535 10.10.10.40",
+                "tool_type": "bash",
+                "tool_parameters": {}
+            },
             "state": "TIMEOUT",
             "exit_code": 1,
             "log_summary": "timeout",

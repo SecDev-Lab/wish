@@ -76,7 +76,7 @@ class TestBashBackend:
 
         # Verify that the command result was added to the wish
         assert len(wish.command_results) == 1
-        assert wish.command_results[0].command == cmd
+        assert wish.command_results[0].command.command == cmd
         assert wish.command_results[0].num == cmd_num
 
         # Verify that the command was added to running_commands
@@ -113,7 +113,7 @@ class TestBashBackend:
 
         # Verify that the command result was added to the wish
         assert len(wish.command_results) == 1
-        assert wish.command_results[0].command == cmd
+        assert wish.command_results[0].command.command == cmd
         assert wish.command_results[0].num == cmd_num
 
         # Verify that the command result was updated with the error state

@@ -36,7 +36,6 @@ def test_analyze_feedback_timeout(settings):
     """Test analyzing feedback with a TIMEOUT error."""
     # Arrange
     timeout_result = CommandResultSuccessFactory(
-        command="test command",
         state=CommandState.TIMEOUT,
         exit_code=1,
         log_summary="timeout",
@@ -56,7 +55,6 @@ def test_analyze_feedback_network_error(settings):
     """Test analyzing feedback with a NETWORK_ERROR."""
     # Arrange
     network_error_result = CommandResultSuccessFactory(
-        command="test command",
         state=CommandState.NETWORK_ERROR,
         exit_code=1,
         log_summary="network error",
@@ -77,21 +75,18 @@ def test_analyze_feedback_multiple_errors(settings):
     # Arrange
     success_result = CommandResultSuccessFactory(
         num=1,
-        command="command1",
         state=CommandState.SUCCESS,
         exit_code=0,
         log_summary="success",
     )
     network_error_result = CommandResultSuccessFactory(
         num=2,
-        command="command2",
         state=CommandState.NETWORK_ERROR,
         exit_code=1,
         log_summary="network error",
     )
     timeout_result = CommandResultSuccessFactory(
         num=3,
-        command="command3",
         state=CommandState.TIMEOUT,
         exit_code=1,
         log_summary="timeout",
@@ -132,7 +127,6 @@ def test_analyze_feedback_preserve_state(settings):
         CommandInputFactory(command="find . -name '*.py'", timeout_sec=60)
     ]
     timeout_result = CommandResultSuccessFactory(
-        command="test command",
         state=CommandState.TIMEOUT,
         exit_code=1,
         log_summary="timeout",

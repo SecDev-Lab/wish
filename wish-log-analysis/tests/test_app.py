@@ -38,7 +38,6 @@ class TestLogAnalysisClient:
         """Test that the client successfully analyzes a command result."""
         # Create a command result
         command_result = CommandResultDoingFactory.build(
-            command="ls -la",
             log_files={"stdout": "file1.txt\nfile2.txt", "stderr": ""},
             exit_code=0,
             log_summary=None,
@@ -46,7 +45,6 @@ class TestLogAnalysisClient:
 
         # Create the expected response
         analyzed_result = CommandResultSuccessFactory.build(
-            command="ls -la",
             log_files={"stdout": "file1.txt\nfile2.txt", "stderr": ""},
             exit_code=0,
             log_summary="Listed files: file1.txt, file2.txt",
@@ -57,7 +55,7 @@ class TestLogAnalysisClient:
             m.post(
                 "http://localhost:3000/analyze",
                 json={
-                    "analyzed_command_result": analyzed_result.model_dump(),
+                    "analyzed_command_result": analyzed_result.model_dump(mode="json"),
                     "error": None,
                 },
             )
@@ -73,14 +71,13 @@ class TestLogAnalysisClient:
 
             # Verify the request
             assert m.last_request.json() == {
-                "command_result": command_result.model_dump()
+                "command_result": command_result.model_dump(mode="json")
             }
 
     def test_analyze_api_error(self):
         """Test that the client handles API errors."""
         # Create a command result
         command_result = CommandResultDoingFactory.build(
-            command="ls -la",
             log_files={"stdout": "file1.txt\nfile2.txt", "stderr": ""},
             exit_code=0,
             log_summary=None,
@@ -91,7 +88,7 @@ class TestLogAnalysisClient:
             m.post(
                 "http://localhost:3000/analyze",
                 json={
-                    "analyzed_command_result": command_result.model_dump(),
+                    "analyzed_command_result": command_result.model_dump(mode="json"),
                     "error": "API error",
                 },
             )
@@ -109,7 +106,6 @@ class TestLogAnalysisClient:
         """Test that the client handles request exceptions."""
         # Create a command result
         command_result = CommandResultDoingFactory.build(
-            command="ls -la",
             log_files={"stdout": "file1.txt\nfile2.txt", "stderr": ""},
             exit_code=0,
             log_summary=None,
@@ -136,7 +132,6 @@ def test_analyze_result():
     """Test the analyze_result function."""
     # Create a command result
     command_result = CommandResultDoingFactory.build(
-        command="ls -la",
         log_files={"stdout": "file1.txt\nfile2.txt", "stderr": ""},
         exit_code=0,
         log_summary=None,
@@ -144,20 +139,21 @@ def test_analyze_result():
     )
 
     # Create the expected response
+    from wish_models.command_result.command import Command
     analyzed_result = CommandResultSuccessFactory.build(
-        command="ls -la",
         log_files={"stdout": "file1.txt\nfile2.txt", "stderr": ""},
         exit_code=0,
         log_summary="Listed files: file1.txt, file2.txt",
         timeout_sec=60,
     )
+    analyzed_result.command = Command.create_bash_command("ls -la")
 
     # Mock the API response
     with requests_mock.Mocker() as m:
         m.post(
             "http://localhost:3000/analyze",
             json={
-                "analyzed_command_result": analyzed_result.model_dump(),
+                "analyzed_command_result": analyzed_result.model_dump(mode="json"),
                 "error": None,
             },
         )
@@ -166,7 +162,7 @@ def test_analyze_result():
         result = analyze_result(command_result)
 
         # Verify the result
-        assert result.command == "ls -la"
+        assert result.command == command_result.command  # Command should be unchanged
         assert result.exit_code == 0
         assert result.state == CommandState.SUCCESS
         assert result.log_summary == "Listed files: file1.txt, file2.txt"

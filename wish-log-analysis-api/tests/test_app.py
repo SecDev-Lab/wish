@@ -46,7 +46,6 @@ def mock_openai_api():
 def command_result():
     """Create a test command result."""
     return CommandResultSuccessFactory.build(
-        command="ls -la",
         stdout="file1.txt\nfile2.txt",
         stderr=None,
         exit_code=0,
@@ -59,7 +58,6 @@ def command_result():
 def analyzed_command_result():
     """Create a test analyzed command result."""
     return CommandResultSuccessFactory.build(
-        command="ls -la",
         stdout="file1.txt\nfile2.txt",
         stderr=None,
         exit_code=0,
@@ -73,7 +71,7 @@ def lambda_event(command_result):
     """Create a test Lambda event."""
     return {
         "body": json.dumps({
-            "command_result": command_result.model_dump()
+            "command_result": command_result.model_dump(mode="json")
         })
     }
 
@@ -168,7 +166,10 @@ class TestLambdaHandler:
 
                     body = json.loads(response["body"])
                     assert "analyzed_command_result" in body
-                    assert body["analyzed_command_result"]["command"] == "ls -la"
+                    assert (
+                        body["analyzed_command_result"]["command"]["command"]
+                        == analyzed_command_result.command.command
+                    )
                     assert body["analyzed_command_result"]["state"] == "SUCCESS"
                     # Just check that log_summary exists, not its exact content
                     assert "log_summary" in body["analyzed_command_result"]

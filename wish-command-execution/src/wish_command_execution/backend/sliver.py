@@ -67,8 +67,14 @@ class SliverBackend(Backend):
             log_files: The log files to write output to.
             timeout_sec: The timeout in seconds for this command.
         """
-        # Create command result
-        result = CommandResult.create(cmd_num, command, log_files, timeout_sec)
+        # Create command result with Command object
+        from wish_models.command_result.command import Command, CommandType
+        command_obj = Command(
+            command=command,
+            tool_type=CommandType.BASH,  # Sliver executes shell commands
+            tool_parameters={"timeout": timeout_sec, "session_id": self.session_id}
+        )
+        result = CommandResult.create(cmd_num, command_obj, log_files, timeout_sec)
         wish.command_results.append(result)
 
         try:
