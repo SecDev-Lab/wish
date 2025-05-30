@@ -166,7 +166,10 @@ class TestLambdaHandler:
 
                     body = json.loads(response["body"])
                     assert "analyzed_command_result" in body
-                    assert body["analyzed_command_result"]["command"]["command"] == analyzed_command_result.command.command
+                    assert (
+                        body["analyzed_command_result"]["command"]["command"]
+                        == analyzed_command_result.command.command
+                    )
                     assert body["analyzed_command_result"]["state"] == "SUCCESS"
                     # Just check that log_summary exists, not its exact content
                     assert "log_summary" in body["analyzed_command_result"]

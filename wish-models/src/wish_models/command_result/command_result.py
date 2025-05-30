@@ -79,7 +79,7 @@ class CommandResult(BaseModel):
 
     def get_command_string(self) -> str:
         """Get the command string for execution.
-        
+
         Returns:
             The command string from the Command object.
         """

@@ -31,7 +31,7 @@ class Command(BaseModel):
 
     def to_json(self) -> str:
         """Serialize Command to JSON string.
-        
+
         Returns:
             JSON string representation of the Command.
         """
@@ -40,13 +40,13 @@ class Command(BaseModel):
     @classmethod
     def from_json(cls, json_str: str) -> "Command":
         """Deserialize Command from JSON string.
-        
+
         Args:
             json_str: JSON string representation of a Command.
-            
+
         Returns:
             Command object.
-            
+
         Raises:
             ValueError: If JSON is invalid or doesn't represent a valid Command.
         """
@@ -61,13 +61,13 @@ class Command(BaseModel):
         **kwargs
     ) -> "Command":
         """Create a bash command with standard parameters.
-        
+
         Args:
             command: The bash command to execute.
             timeout: Command timeout in seconds.
             category: Command category hint (network, file, process, etc.).
             **kwargs: Additional tool parameters.
-            
+
         Returns:
             Command configured for bash execution.
         """
@@ -94,14 +94,14 @@ class Command(BaseModel):
         **kwargs
     ) -> "Command":
         """Create an msfconsole command with standard parameters.
-        
+
         Args:
             command: The msfconsole command sequence to execute.
             module: The metasploit module path.
             rhosts: Target host(s).
             lhost: Local host for reverse connections.
             **kwargs: Additional tool parameters.
-            
+
         Returns:
             Command configured for msfconsole execution.
         """
@@ -122,13 +122,13 @@ class Command(BaseModel):
 
 def parse_command_from_string(input_str: str) -> Command:
     """Parse command input from string (JSON or plain command).
-    
+
     Args:
         input_str: Either a JSON string representing a Command or plain command string.
-        
+
     Returns:
         Command object.
-        
+
     Raises:
         ValueError: If input cannot be parsed as a valid command.
     """
