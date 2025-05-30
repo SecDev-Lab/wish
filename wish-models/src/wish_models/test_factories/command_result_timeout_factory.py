@@ -5,6 +5,8 @@ CommandResult のタイムアウトエラー用ファクトリクラス
 import factory
 
 from wish_models import CommandResult, CommandState
+from wish_models.command_result.command import Command
+from wish_models.test_factories.command_factory import BashCommandFactory
 from wish_models.test_factories.log_files_factory import LogFilesFactory
 from wish_models.test_factories.utc_datetime_factory import UtcDatetimeFactory
 
@@ -16,7 +18,7 @@ class CommandResultTimeoutFactory(factory.Factory):
         model = CommandResult
 
     num = factory.Faker("random_int", min=1)
-    command = factory.Faker("sentence")
+    command = factory.SubFactory(BashCommandFactory)
     state = CommandState.TIMEOUT
     timeout_sec = 60
     exit_code = 1
@@ -37,6 +39,6 @@ class CommandResultTimeoutFactory(factory.Factory):
             CommandResult: タイムアウトエラーのCommandResult
         """
         return cls(
-            command=command,
+            command=Command.create_bash_command(command),
             timeout_sec=timeout_sec
         )

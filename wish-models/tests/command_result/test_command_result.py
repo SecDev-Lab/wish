@@ -16,7 +16,11 @@ class TestCommandResult:
         now = UtcDatetime.now()
         data = {
             "num": 1,
-            "command": "echo hello",
+            "command": {
+                "command": "echo hello",
+                "tool_type": "bash",
+                "tool_parameters": {}
+            },
             "timeout_sec": 0,
             "exit_code": 0,
             "state": "SUCCESS",
@@ -26,7 +30,7 @@ class TestCommandResult:
             "finished_at": now,
         }
         cr = CommandResult.from_dict(data)
-        assert cr.command == "echo hello"
+        assert cr.command.command == "echo hello"
         assert cr.timeout_sec == 0
         assert cr.exit_code == 0
         assert cr.state == CommandState.SUCCESS
@@ -51,7 +55,8 @@ class TestCommandResult:
     def test_create(self):
         # Arrange
         num = 1
-        command = "echo hello"
+        from wish_models.command_result.command import Command
+        command = Command.create_bash_command("echo hello")
         log_files = LogFilesFactory.create()
         now = UtcDatetime.now()
         timeout_sec = 60
@@ -137,5 +142,5 @@ def test_parse_command_results_json():
     json_str = json.dumps(data_list)
     results = parse_command_results_json(json_str)
     assert len(results) == 2
-    assert results[0].command == data_list[0]["command"]
-    assert results[1].command == data_list[1]["command"]
+    assert results[0].command.command == data_list[0]["command"]["command"]
+    assert results[1].command.command == data_list[1]["command"]["command"]

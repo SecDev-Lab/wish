@@ -75,7 +75,7 @@ class CommandResult(BaseModel):
         return self.model_dump_json(indent=2)
 
     def to_dict(self) -> dict:
-        return self.model_dump()
+        return self.model_dump(mode="json")
     
     def get_command_string(self) -> str:
         """Get the command string for execution.

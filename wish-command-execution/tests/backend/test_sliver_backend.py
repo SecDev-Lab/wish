@@ -92,7 +92,7 @@ async def test_execute_command(sliver_backend, wish, log_files, mock_sliver_clie
 
     # Check that the command result was added to the wish
     assert len(wish.command_results) == 1
-    assert wish.command_results[0].command == "whoami"
+    assert wish.command_results[0].command.command == "whoami"
     assert wish.command_results[0].num == 1
 
     # Check that the log files were written to
@@ -107,7 +107,9 @@ async def test_cancel_command(sliver_backend, wish, log_files):
     """Test cancelling a command."""
     # Add a command result to the wish
     timeout_sec = 60
-    result = CommandResult.create(1, "whoami", log_files, timeout_sec)
+    from wish_models.command_result.command import Command
+    command = Command.create_bash_command("whoami")
+    result = CommandResult.create(1, command, log_files, timeout_sec)
     wish.command_results.append(result)
 
     # Cancel the command

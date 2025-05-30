@@ -38,10 +38,11 @@ def sample_log_files():
 @pytest.fixture
 def sample_command_result(sample_log_files):
     """Create a sample command result for testing"""
+    from wish_models.command_result.command import Command
     return CommandResult(
         num=1,
-        command="ls -la",
-        state="DOING",
+        command=Command.create_bash_command("ls -la"),
+        state=CommandState.DOING,
         exit_code=0,
         log_files=sample_log_files,
         created_at=UtcDatetime.now(),

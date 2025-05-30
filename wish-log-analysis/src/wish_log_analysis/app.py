@@ -37,7 +37,7 @@ class LogAnalysisClient:
         # Send API request
         try:
             print(f"API request destination: {self.api_url}")
-            request_data = {"command_result": command_result.model_dump()}
+            request_data = {"command_result": command_result.model_dump(mode="json")}
             print(f"Request data: {json.dumps(request_data, indent=2)}")
 
             response = requests.post(

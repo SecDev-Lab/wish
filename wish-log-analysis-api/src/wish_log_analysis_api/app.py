@@ -56,7 +56,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "headers": {
                 "Content-Type": "application/json"
             },
-            "body": json.dumps(response.model_dump())
+            "body": json.dumps(response.model_dump(mode="json"))
         }
     except Exception as e:
         logger.exception("Error handling request")

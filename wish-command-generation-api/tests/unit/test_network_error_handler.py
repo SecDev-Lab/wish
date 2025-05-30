@@ -90,7 +90,7 @@ def test_handle_network_error_success(settings, mock_network_error_response):
     assert result.is_retry is True
     assert result.error_type == "NETWORK_ERROR"
     assert len(result.failed_command_results) == 1
-    assert result.failed_command_results[0].command == "nmap -p- 10.10.10.40"
+    assert result.failed_command_results[0].command.command == "nmap -p- 10.10.10.40"
     assert result.failed_command_results[0].state == CommandState.NETWORK_ERROR
 
 
@@ -273,5 +273,5 @@ def test_handle_network_error_preserve_state(mock_handler, settings):
     assert result.is_retry is True
     assert result.error_type == "NETWORK_ERROR"
     assert len(result.failed_command_results) == 1
-    assert result.failed_command_results[0].command == "nmap -p- 10.10.10.40"
+    assert result.failed_command_results[0].command.command == "nmap -p- 10.10.10.40"
     assert result.failed_command_results[0].state == CommandState.NETWORK_ERROR

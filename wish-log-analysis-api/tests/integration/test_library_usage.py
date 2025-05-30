@@ -58,9 +58,10 @@ def test_end_to_end_analysis(mock_chat_openai, mock_str_output_parser):
     try:
         # Create command result
         log_files = LogFiles(stdout=Path(stdout_path), stderr=Path(stderr_path))
+        from wish_models.command_result.command import Command
         command_result = CommandResult(
             num=1,
-            command="echo 'test'",
+            command=Command.create_bash_command("echo 'test'"),
             state=CommandState.DOING,
             exit_code=0,
             log_files=log_files,
@@ -138,9 +139,10 @@ def test_custom_config_integration(mock_chat_openai, mock_str_output_parser):
     try:
         # Create command result
         log_files = LogFiles(stdout=Path(stdout_path), stderr=Path(stderr_path))
+        from wish_models.command_result.command import Command
         command_result = CommandResult(
             num=1,
-            command="unknown_command",
+            command=Command.create_bash_command("unknown_command"),
             state=CommandState.DOING,
             exit_code=127,
             log_files=log_files,
