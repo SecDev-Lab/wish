@@ -1,4 +1,4 @@
-from .command_factory import CommandFactory, BashCommandFactory, MsfconsoleCommandFactory
+from .command_factory import BashCommandFactory, CommandFactory, MsfconsoleCommandFactory
 from .command_result_factory import CommandResultDoingFactory, CommandResultSuccessFactory
 from .executable_collection_factory import ExecutableCollectionFactory
 from .executable_info_factory import ExecutableInfoFactory

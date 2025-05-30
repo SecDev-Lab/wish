@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 class CommandType(Enum):
     """Supported command execution tools."""
-    
+
     BASH = "bash"
     MSFCONSOLE = "msfconsole"
     # Future extensions
@@ -19,16 +19,16 @@ class CommandType(Enum):
 
 class Command(BaseModel):
     """Represents a command with tool type and parameters."""
-    
+
     command: str
     """The actual command string to execute."""
-    
+
     tool_type: CommandType
     """The tool that should execute this command."""
-    
+
     tool_parameters: Dict[str, Any] = {}
     """Tool-specific parameters for command execution."""
-    
+
     def to_json(self) -> str:
         """Serialize Command to JSON string.
         
@@ -36,7 +36,7 @@ class Command(BaseModel):
             JSON string representation of the Command.
         """
         return self.model_dump_json()
-    
+
     @classmethod
     def from_json(cls, json_str: str) -> "Command":
         """Deserialize Command from JSON string.
@@ -51,12 +51,12 @@ class Command(BaseModel):
             ValueError: If JSON is invalid or doesn't represent a valid Command.
         """
         return cls.model_validate_json(json_str)
-    
+
     @classmethod
     def create_bash_command(
-        cls, 
-        command: str, 
-        timeout: int = 300, 
+        cls,
+        command: str,
+        timeout: int = 300,
         category: str = "",
         **kwargs
     ) -> "Command":
@@ -77,13 +77,13 @@ class Command(BaseModel):
         }
         if category:
             tool_parameters["category"] = category
-            
+
         return cls(
             command=command,
             tool_type=CommandType.BASH,
             tool_parameters=tool_parameters
         )
-    
+
     @classmethod
     def create_msfconsole_command(
         cls,
@@ -112,7 +112,7 @@ class Command(BaseModel):
             tool_parameters["rhosts"] = rhosts
         if lhost:
             tool_parameters["lhost"] = lhost
-            
+
         return cls(
             command=command,
             tool_type=CommandType.MSFCONSOLE,
@@ -139,6 +139,6 @@ def parse_command_from_string(input_str: str) -> Command:
             return Command.model_validate(data)
     except (json.JSONDecodeError, ValueError):
         pass
-    
+
     # If not JSON, treat as plain bash command
     return Command.create_bash_command(input_str)
