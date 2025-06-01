@@ -347,10 +347,10 @@ class MsfconsoleTool(BaseTool):
     def _build_command_sequence(self, command_input: CommandInput) -> str:
         """Build MSF command sequence from tool_parameters or use raw command."""
         # If tool_parameters are provided and contain module, build from parameters
-        if (command_input.tool_parameters and 
+        if (command_input.tool_parameters and
             command_input.tool_parameters.get('module')):
             return self._build_from_parameters(command_input)
-        
+
         # Otherwise use the original command string (backward compatibility)
         return command_input.command
 
