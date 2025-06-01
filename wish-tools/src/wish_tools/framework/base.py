@@ -48,6 +48,7 @@ class CommandInput(BaseModel):
 
     command: str = Field(description="The command to execute")
     timeout_sec: int = Field(default=300, description="Timeout in seconds")
+    tool_parameters: Dict[str, Any] = Field(default_factory=dict, description="Tool-specific parameters")
 
 
 class ToolResult(BaseModel):
