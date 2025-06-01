@@ -105,8 +105,10 @@ class MsfconsoleTool(BaseTool):
         start_time = time.time()
 
         try:
+            # Build command sequence from tool_parameters or use raw command
+            msf_command = self._build_command_sequence(command)
             # Prepare msfconsole command with proper formatting
-            msf_command = self._prepare_msf_command(command.command)
+            msf_command = self._prepare_msf_command(msf_command)
 
             # Run msfconsole in non-interactive mode
             process = await asyncio.create_subprocess_exec(
@@ -341,3 +343,46 @@ class MsfconsoleTool(BaseTool):
                 return False, f"Potentially dangerous module detected: {dangerous}"
 
         return True, None
+
+    def _build_command_sequence(self, command_input: CommandInput) -> str:
+        """Build MSF command sequence from tool_parameters or use raw command."""
+        # If tool_parameters are provided and contain module, build from parameters
+        if (command_input.tool_parameters and 
+            command_input.tool_parameters.get('module')):
+            return self._build_from_parameters(command_input)
+        
+        # Otherwise use the original command string (backward compatibility)
+        return command_input.command
+
+    def _build_from_parameters(self, command_input: CommandInput) -> str:
+        """Build command sequence from tool_parameters."""
+        params = command_input.tool_parameters
+        commands = []
+
+        # 1. use command for module
+        if "module" in params:
+            commands.append(f"use {params['module']}")
+
+        # 2. set commands for parameters
+        for param_name, param_value in params.items():
+            if param_name != "module" and param_value is not None:
+                msf_param = self._map_to_msf_parameter(param_name)
+                commands.append(f"set {msf_param} {param_value}")
+
+        # 3. execution command
+        commands.append(command_input.command)
+
+        return "; ".join(commands)
+
+    def _map_to_msf_parameter(self, param_name: str) -> str:
+        """Map tool parameter names to MSF parameter names."""
+        mapping = {
+            "rhosts": "RHOSTS",
+            "rhost": "RHOST",
+            "lhost": "LHOST",
+            "lport": "LPORT",
+            "rport": "RPORT",
+            "payload": "PAYLOAD",
+            "target": "TARGET"
+        }
+        return mapping.get(param_name, param_name.upper())

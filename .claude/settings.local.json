@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(make lint)"
+      "Bash(make lint)",
+      "Bash(uv run pytest:*)"
     ],
     "deny": []
   }
