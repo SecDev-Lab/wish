@@ -202,7 +202,7 @@ class CommandExecutor:
             
             # Update command result
             exit_code = tool_result.exit_code if tool_result.exit_code is not None else (0 if tool_result.success else 1)
-            state = CommandState.SUCCESS if tool_result.success else CommandState.FAILED
+            state = CommandState.SUCCESS if tool_result.success else CommandState.OTHERS
             
             # Finish the command
             result.finish(exit_code=exit_code, state=state)
@@ -228,7 +228,7 @@ class CommandExecutor:
                 
         except Exception as e:
             # Handle other errors
-            result.finish(exit_code=1, state=CommandState.FAILED)
+            result.finish(exit_code=1, state=CommandState.OTHERS)
             # Ensure log directory exists
             log_files.stdout.parent.mkdir(parents=True, exist_ok=True)
             with open(log_files.stdout, 'w') as f:
