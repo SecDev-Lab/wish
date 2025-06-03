@@ -109,6 +109,13 @@ class MsfconsoleTool(BaseTool):
             msf_command = self._build_command_sequence(command)
             # Prepare msfconsole command with proper formatting
             msf_command = self._prepare_msf_command(msf_command)
+            
+            # Debug logging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"[MsfconsoleTool] Original command: {command.command}")
+            logger.info(f"[MsfconsoleTool] Tool parameters: {command.tool_parameters}")
+            logger.info(f"[MsfconsoleTool] Built MSF command: {msf_command}")
 
             # Run msfconsole in non-interactive mode
             process = await asyncio.create_subprocess_exec(
@@ -358,6 +365,12 @@ class MsfconsoleTool(BaseTool):
         """Build command sequence from tool_parameters."""
         params = command_input.tool_parameters
         commands = []
+        
+        # Debug logging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[_build_from_parameters] Input command: {command_input.command}")
+        logger.info(f"[_build_from_parameters] Tool parameters: {params}")
 
         # 1. use command for module
         if "module" in params:
@@ -371,6 +384,8 @@ class MsfconsoleTool(BaseTool):
 
         # 3. execution command
         commands.append(command_input.command)
+        
+        logger.info(f"[_build_from_parameters] Built commands: {commands}")
 
         return "; ".join(commands)
 

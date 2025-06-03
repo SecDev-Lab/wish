@@ -172,6 +172,11 @@ class CommandExecutor:
         tool = MsfconsoleTool()
         
         # Create tool command input
+        logger.info(f"[CommandExecutor._execute_with_msfconsole] Creating ToolCommandInput with:")
+        logger.info(f"  - command: {command}")
+        logger.info(f"  - timeout_sec: {timeout_sec}")
+        logger.info(f"  - tool_parameters: {tool_parameters}")
+        
         tool_command = ToolCommandInput(
             command=command,
             timeout_sec=timeout_sec,
