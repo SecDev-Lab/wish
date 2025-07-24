@@ -11,28 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-### Fixed
-
-### Removed
-
-
-## [0.7.0a1] - 2025-07-24
-
-### Added
-
-### Changed
-
-### Fixed
-
-### Removed
-
-
-## [0.7.0] - 2025-01-24
-
-### Added
-
-### Changed
-
 - Complete rewrite with modern UI / architecture and improved AI integration
 
 ### Fixed
