@@ -1,0 +1,177 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wish-sh"
+version = "0.7.0"
+description = "AI-Powered Penetration Testing Command Center"
+readme = "README.md"
+license = "AGPL-3.0"
+authors = [
+    { name = "SecDevLab Inc.", email = "dev@secdevlab.com" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: System :: Networking",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "pyopenssl>=25.1.0",
+    "tomli>=2.2.1",
+    "wish-cli",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.12.3",
+    "mypy>=1.7.0",
+    "black>=23.0.0",
+]
+
+[project.scripts]
+wish = "wish_cli.main:main"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["README.md"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "README.md",
+    "packages/",
+]
+
+[project.urls]
+Homepage = "https://secdevlab.com/"
+Documentation = "https://github.com/SecDev-Lab/wish/tree/main/docs"
+Repository = "https://github.com/SecDev-Lab/wish"
+Issues = "https://github.com/SecDev-Lab/wish/issues"
+
+# UV workspace configuration
+[tool.uv.workspace]
+members = [
+    "packages/wish-models",
+    "packages/wish-core", 
+    "packages/wish-ai",
+    "packages/wish-tools",
+    "packages/wish-knowledge",
+    "packages/wish-c2",
+    "packages/wish-cli",
+]
+
+# Workspace dependency sources
+[tool.uv.sources]
+wish-models = { workspace = true }
+wish-core = { workspace = true }
+wish-ai = { workspace = true }
+wish-tools = { workspace = true }
+wish-knowledge = { workspace = true }
+wish-c2 = { workspace = true }
+wish-cli = { workspace = true }
+
+# Development tools configuration
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "S",   # flake8-bandit (security)
+]
+ignore = [
+    "S101",  # Use of assert
+    "S108",  # Probable insecure usage of temp file/directory
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = false
+warn_no_return = true
+warn_unreachable = false
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "wish_tools.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "sliver.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "e2e-tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "live: marks tests that require live HTB connection (deselect with '-m \"not live\"')",
+    "tui: marks tests as TUI-specific tests (separate from headless tests)",
+    "htb: marks tests that require HackTheBox VPN connection",
+]
+
+[tool.coverage.run]
+source = ["packages"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.17.0",
+    "ruff>=0.12.3",
+    "vulture>=2.14",
+]
+

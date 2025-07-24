@@ -1,88 +1,39 @@
-name: "Wish: Python Lint & Test"
+name: Tests
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main, develop ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  lint:
-    name: Lint ${{ matrix.project }}
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        project:
-          - wish-sh
-          - wish-knowledge-loader
-          - wish-command-execution
-          - wish-command-generation
-          - wish-command-generation-api
-          - wish-log-analysis
-          - wish-log-analysis-api
-          - wish-models
-          - wish-tools
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: "${{ matrix.project }}/.python-version"
-
-      - name: Install the project
-        run: cd ${{ matrix.project }} ; uv sync --all-extras --dev
-
-      - name: Run lint
-        run: cd ${{ matrix.project }} ; uv run ruff check
-
   test:
-    name: Test ${{ matrix.project }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project:
-          - wish-sh
-          - wish-knowledge-loader
-          - wish-command-execution
-          - wish-command-generation
-          - wish-command-generation-api
-          - wish-log-analysis
-          - wish-log-analysis-api
-          - wish-models
-          - wish-tools
-      fail-fast: false
+        python-version: ['3.11', '3.12']
+
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: "${{ matrix.project }}/.python-version"
-
-      - name: Install the project
-        run: cd ${{ matrix.project }} ; uv sync --all-extras --dev
-
-      - name: Run tests
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
-          OPENAI_MODEL: "gpt-4o"
-          OPENAI_EMBEDDING_MODEL: "text-embedding-3-small"
-          VECTOR_STORE_TYPE: "chroma"
-          EMBEDDING_MODEL: "text-embedding-3-small"
-          LANGCHAIN_TRACING_V2: "true"
-          LANGCHAIN_ENDPOINT: "https://api.smith.langchain.com"
-          LANGCHAIN_PROJECT: "wish-ci"
-          WISH_HOME: "/home/runner/.wish"
-          WISH_API_BASE_URL: "http://localhost:3000"
-        run: cd ${{ matrix.project }} ; uv run pytest
+    - uses: actions/checkout@v4
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: uv sync --all-packages --dev
+    
+    - name: Run tests
+      run: make test
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false

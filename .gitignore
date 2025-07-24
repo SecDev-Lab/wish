@@ -94,12 +94,6 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
-
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
@@ -112,10 +106,8 @@ ipython_config.py
 #pdm.lock
 #   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
 #   in version control.
-#   https://pdm.fming.dev/latest/usage/project/#working-with-version-control
+#   https://pdm.fming.dev/#use-with-ide
 .pdm.toml
-.pdm-python
-.pdm-build/
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -162,34 +154,73 @@ cython_debug/
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+#  be added to the global gitignore or merged into this project gitignore.  For a PyCharm
+#  project, it is also advisable to ignore cache/ directory.
 .idea/
 
-# PyPI configuration file
-.pypirc
+# UV Python package manager
+uv.lock
 
-# SAM related
-.aws-sam/
-samconfig.toml
-packaged.yaml
-
-# Dependencies
-vendor/
-
-# Environment variables
-.env.*
-
-# Editor related
+# VS Code
 .vscode/
-*.swp
-*.swo
-*~
+*.code-workspace
 
-# OS related
+# macOS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Ruff cache
-.ruff_cache/
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Log files
+*.log
+
+# Runtime files
+*.pid
+*.seed
+*.pid.lock
+
+# wish specific
+# Pentest results
+results/
+output/
+scans/
+
+# Credentials and config (security)
+*.key
+*.pem
+*.crt
+config.local.*
+secrets.*
+
+# HackTheBox VPN configs
+*.ovpn
+
+# Sliver C2 configs
+sliver-client/
+*.sliver
+
+# Demo and testing artifacts
+demo/results/
+test-output/
+
+# Claude Code settings
+.claude/settings.local.json
+.claude/hooks/

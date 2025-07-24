@@ -7,6 +7,11 @@ on:
         description: 'Version to publish (e.g. 0.1.0)'
         required: true
         type: string
+      test_pypi:
+        description: 'Publish to Test PyPI first'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   # 1. Publish the foundation package (wish-models) first
@@ -19,83 +24,155 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version-file: "wish-models/.python-version"
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
       - name: Install build dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install build twine
+          uv pip install --system build twine
 
       # Update version in pyproject.toml
       - name: Update version in pyproject.toml
         run: |
-          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" wish-models/pyproject.toml
-          echo "Updated version in wish-models/pyproject.toml to ${{ inputs.version }}"
-          grep -m 1 'version = ' wish-models/pyproject.toml
+          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" packages/wish-models/pyproject.toml
+          echo "Updated version in packages/wish-models/pyproject.toml to ${{ inputs.version }}"
+          grep -m 1 'version = ' packages/wish-models/pyproject.toml
 
       - name: Build package
-        run: cd wish-models ; python -m build
+        run: cd packages/wish-models && python -m build
 
-      - name: Publish package to PyPI
+      - name: Publish to Test PyPI
+        if: ${{ inputs.test_pypi }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: cd packages/wish-models && twine upload --repository testpypi dist/*
+
+      - name: Publish to PyPI
+        if: ${{ !inputs.test_pypi }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: cd wish-models ; twine upload dist/*
+        run: cd packages/wish-models && twine upload dist/*
 
-  # 2. Publish intermediate packages (packages that depend on wish-models)
-  publish-dependencies:
-    name: Publish wish dependencies
+  # 2. Publish wish-core (depends on wish-models)
+  publish-core:
+    name: Publish wish-core
     needs: publish-models
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        package:
-          - wish-command-execution
-          - wish-command-generation
-          - wish-command-generation-api
-          - wish-log-analysis
-          - wish-log-analysis-api
-          - wish-knowledge-loader
-          - wish-tools
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version-file: "${{ matrix.package }}/.python-version"
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
       - name: Install build dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install build twine
+          uv pip install --system build twine
 
       # Update version in pyproject.toml
       - name: Update version in pyproject.toml
         run: |
-          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" ${{ matrix.package }}/pyproject.toml
-          echo "Updated version in ${{ matrix.package }}/pyproject.toml to ${{ inputs.version }}"
-          grep -m 1 'version = ' ${{ matrix.package }}/pyproject.toml
+          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" packages/wish-core/pyproject.toml
+          echo "Updated version in packages/wish-core/pyproject.toml to ${{ inputs.version }}"
+          grep -m 1 'version = ' packages/wish-core/pyproject.toml
 
       # Update dependency versions
       - name: Update dependency versions
         run: |
-          sed -i "s/wish-models>=0.0.1/wish-models==${{ inputs.version }}/g" ${{ matrix.package }}/pyproject.toml
-          echo "Updated dependency versions in ${{ matrix.package }}/pyproject.toml"
+          sed -i "s/wish-models[^\"]*\"/wish-models==${{ inputs.version }}\"/" packages/wish-core/pyproject.toml
+          echo "Updated dependency versions in packages/wish-core/pyproject.toml"
 
       - name: Build package
-        run: cd ${{ matrix.package }} ; python -m build
+        run: cd packages/wish-core && python -m build
 
-      - name: Publish package to PyPI
+      - name: Publish to Test PyPI
+        if: ${{ inputs.test_pypi }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: cd packages/wish-core && twine upload --repository testpypi dist/*
+
+      - name: Publish to PyPI
+        if: ${{ !inputs.test_pypi }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: cd ${{ matrix.package }} ; twine upload dist/*
+        run: cd packages/wish-core && twine upload dist/*
 
-  # 3. Publish the final package (wish-sh)
-  publish-sh:
-    name: Publish wish-sh
+  # 3. Publish intermediate packages (packages that depend on core/models)
+  publish-dependencies:
+    name: Publish wish dependencies
+    needs: publish-core
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - wish-knowledge
+          - wish-tools
+          - wish-c2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install build dependencies
+        run: |
+          uv pip install --system build twine
+
+      # Update version in pyproject.toml
+      - name: Update version in pyproject.toml
+        run: |
+          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" packages/${{ matrix.package }}/pyproject.toml
+          echo "Updated version in packages/${{ matrix.package }}/pyproject.toml to ${{ inputs.version }}"
+          grep -m 1 'version = ' packages/${{ matrix.package }}/pyproject.toml
+
+      # Update dependency versions
+      - name: Update dependency versions
+        run: |
+          sed -i "s/wish-models[^\"]*\"/wish-models==${{ inputs.version }}\"/" packages/${{ matrix.package }}/pyproject.toml
+          sed -i "s/wish-core[^\"]*\"/wish-core==${{ inputs.version }}\"/" packages/${{ matrix.package }}/pyproject.toml
+          echo "Updated dependency versions in packages/${{ matrix.package }}/pyproject.toml"
+
+      - name: Build package
+        run: cd packages/${{ matrix.package }} && python -m build
+
+      - name: Publish to Test PyPI
+        if: ${{ inputs.test_pypi }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: cd packages/${{ matrix.package }} && twine upload --repository testpypi dist/*
+
+      - name: Publish to PyPI
+        if: ${{ !inputs.test_pypi }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: cd packages/${{ matrix.package }} && twine upload dist/*
+
+  # 4. Publish wish-ai (depends on models, core, knowledge)
+  publish-ai:
+    name: Publish wish-ai
     needs: publish-dependencies
     runs-on: ubuntu-latest
     steps:
@@ -104,39 +181,159 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version-file: "wish-sh/.python-version"
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
       - name: Install build dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install build twine
+          uv pip install --system build twine
 
       # Update version in pyproject.toml
       - name: Update version in pyproject.toml
         run: |
-          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" wish-sh/pyproject.toml
-          echo "Updated version in wish-sh/pyproject.toml to ${{ inputs.version }}"
-          grep -m 1 'version = ' wish-sh/pyproject.toml
+          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" packages/wish-ai/pyproject.toml
+          echo "Updated version in packages/wish-ai/pyproject.toml to ${{ inputs.version }}"
+          grep -m 1 'version = ' packages/wish-ai/pyproject.toml
 
       # Update dependency versions
       - name: Update dependency versions
         run: |
-          sed -i "s/wish-models>=0.0.1/wish-models==${{ inputs.version }}/g" wish-sh/pyproject.toml
-          sed -i "s/wish-command-execution>=0.0.1/wish-command-execution==${{ inputs.version }}/g" wish-sh/pyproject.toml
-          sed -i "s/wish-command-generation>=0.0.1/wish-command-generation==${{ inputs.version }}/g" wish-sh/pyproject.toml
-          sed -i "s/wish-log-analysis>=0.0.1/wish-log-analysis==${{ inputs.version }}/g" wish-sh/pyproject.toml
-          echo "Updated dependency versions in wish-sh/pyproject.toml"
+          sed -i "s/wish-models[^\"]*\"/wish-models==${{ inputs.version }}\"/" packages/wish-ai/pyproject.toml
+          sed -i "s/wish-core[^\"]*\"/wish-core==${{ inputs.version }}\"/" packages/wish-ai/pyproject.toml
+          sed -i "s/wish-knowledge[^\"]*\"/wish-knowledge==${{ inputs.version }}\"/" packages/wish-ai/pyproject.toml
+          echo "Updated dependency versions in packages/wish-ai/pyproject.toml"
 
       - name: Build package
-        run: cd wish-sh ; python -m build
+        run: cd packages/wish-ai && python -m build
 
-      - name: Publish package to PyPI
+      - name: Publish to Test PyPI
+        if: ${{ inputs.test_pypi }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: cd packages/wish-ai && twine upload --repository testpypi dist/*
+
+      - name: Publish to PyPI
+        if: ${{ !inputs.test_pypi }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: cd wish-sh ; twine upload dist/*
+        run: cd packages/wish-ai && twine upload dist/*
 
-  # 4. Update CHANGELOG.md and create GitHub release
+  # 5. Publish wish-cli (depends on all packages)
+  publish-cli:
+    name: Publish wish-cli
+    needs: publish-ai
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install build dependencies
+        run: |
+          uv pip install --system build twine
+
+      # Update version in pyproject.toml
+      - name: Update version in pyproject.toml
+        run: |
+          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" packages/wish-cli/pyproject.toml
+          echo "Updated version in packages/wish-cli/pyproject.toml to ${{ inputs.version }}"
+          grep -m 1 'version = ' packages/wish-cli/pyproject.toml
+
+      # Update dependency versions
+      - name: Update dependency versions
+        run: |
+          sed -i "s/wish-models[^\"]*\"/wish-models==${{ inputs.version }}\"/" packages/wish-cli/pyproject.toml
+          sed -i "s/wish-core[^\"]*\"/wish-core==${{ inputs.version }}\"/" packages/wish-cli/pyproject.toml
+          sed -i "s/wish-knowledge[^\"]*\"/wish-knowledge==${{ inputs.version }}\"/" packages/wish-cli/pyproject.toml
+          sed -i "s/wish-ai[^\"]*\"/wish-ai==${{ inputs.version }}\"/" packages/wish-cli/pyproject.toml
+          sed -i "s/wish-tools[^\"]*\"/wish-tools==${{ inputs.version }}\"/" packages/wish-cli/pyproject.toml
+          sed -i "s/wish-c2[^\"]*\"/wish-c2==${{ inputs.version }}\"/" packages/wish-cli/pyproject.toml
+          echo "Updated dependency versions in packages/wish-cli/pyproject.toml"
+
+      - name: Build package
+        run: cd packages/wish-cli && python -m build
+
+      - name: Publish to Test PyPI
+        if: ${{ inputs.test_pypi }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: cd packages/wish-cli && twine upload --repository testpypi dist/*
+
+      - name: Publish to PyPI
+        if: ${{ !inputs.test_pypi }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: cd packages/wish-cli && twine upload dist/*
+
+  # 6. Publish the meta package (wish-sh)
+  publish-sh:
+    name: Publish wish-sh
+    needs: publish-cli
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install build dependencies
+        run: |
+          uv pip install --system build twine
+
+      # Update version in pyproject.toml
+      - name: Update version in pyproject.toml
+        run: |
+          sed -i "s/version = \"[^\"]*\"/version = \"${{ inputs.version }}\"/" pyproject.toml
+          echo "Updated version in pyproject.toml to ${{ inputs.version }}"
+          grep -m 1 'version = ' pyproject.toml
+
+      # Update dependency versions
+      - name: Update dependency versions
+        run: |
+          sed -i "s/wish-cli[^\"]*\"/wish-cli==${{ inputs.version }}\"/" pyproject.toml
+          echo "Updated dependency versions in pyproject.toml"
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish to Test PyPI
+        if: ${{ inputs.test_pypi }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: twine upload --repository testpypi dist/*
+
+      - name: Publish to PyPI
+        if: ${{ !inputs.test_pypi }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
+
+  # 7. Update CHANGELOG.md and create GitHub release
   update-changelog:
     name: Update CHANGELOG and create release
     needs: publish-sh
@@ -145,6 +342,38 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check if CHANGELOG.md exists
+        id: check-changelog
+        run: |
+          if [ -f "CHANGELOG.md" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create initial CHANGELOG.md if not exists
+        if: steps.check-changelog.outputs.exists == 'false'
+        run: |
+          cat > CHANGELOG.md << 'EOF'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+EOF
 
       - name: Update CHANGELOG.md
         id: update-changelog
@@ -169,8 +398,8 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md for version ${{ inputs.version }}"
-          git push
+          git commit -m "Update CHANGELOG.md for version ${{ inputs.version }}" || echo "No changes to commit"
+          git push || echo "No changes to push"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -178,6 +407,24 @@ jobs:
           tag_name: v${{ inputs.version }}
           name: Release v${{ inputs.version }}
           body: |
+            ## PyPI Packages
+
+            This release includes the following packages on PyPI:
+            - [wish-sh](https://pypi.org/project/wish-sh/${{ inputs.version }}/) - Main meta package
+            - [wish-cli](https://pypi.org/project/wish-cli/${{ inputs.version }}/) - CLI interface
+            - [wish-ai](https://pypi.org/project/wish-ai/${{ inputs.version }}/) - AI capabilities
+            - [wish-core](https://pypi.org/project/wish-core/${{ inputs.version }}/) - Core functionality
+            - [wish-models](https://pypi.org/project/wish-models/${{ inputs.version }}/) - Data models
+            - [wish-knowledge](https://pypi.org/project/wish-knowledge/${{ inputs.version }}/) - Knowledge base
+            - [wish-tools](https://pypi.org/project/wish-tools/${{ inputs.version }}/) - Pentesting tools
+            - [wish-c2](https://pypi.org/project/wish-c2/${{ inputs.version }}/) - C2 integration
+
+            ## Installation
+            ```bash
+            pip install wish-sh==${{ inputs.version }}
+            ```
+
+            ## Changelog
             ${{ steps.update-changelog.outputs.VERSION_CONTENT }}
           draft: false
           prerelease: false

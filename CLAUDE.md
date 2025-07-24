@@ -2,191 +2,343 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+### Environment Characteristics
+
+- **The repo root is the pwd where Claude Code is opened. While ../../ is also the repo root due to using sprout, treat the pwd (worktree) as the repo root**
+
+## Work Attitude and Quality Management
+
+**Important**: Claude Code should act as a careful veteran engineer. Prioritize quality and reliability over implementation speed.
+
+### Basic Principles
+- Critically verify when you think implementation is complete
+- Don't just think "it works", ask "does it really work correctly?"
+- Actively consider potential problems and edge cases
+- Don't skimp on testing and validation, be more thorough than necessary. Validation policy:
+  - Actively use headless mode (calling the `HeadlessWish` class) for integrated verification except UI
+  - Make actual communications to target machines and OpenAI API
+  - Verify UI-related parts as much as possible yourself, but ask humans for difficult parts
+- Always be skeptical of your own implementation and verify from multiple perspectives
+
+### Pre-Implementation Checklist
+- Detailed investigation of existing code (related files, dependencies, impact scope)
+- Understanding of design patterns and coding conventions
+- Consideration of test case coverage
+- Verification of error handling appropriateness
+
+### Post-Implementation Required Verification
+1. **Code Quality**: Static analysis with `make lint`, `make format`
+2. **Unit Tests**: Run all package tests with `make test`
+3. **Integration Tests**: Comprehensive validation with `+uat`
+4. **Manual Verification**: Confirm actual use case operation
+5. **Error Cases**: Verify abnormal behavior
+6. **Performance**: Test under unexpected load
+7. **Compatibility**: Check impact on existing features
+
+### Quality Standards
+- All tests passing is the minimum requirement
+- Zero static analysis errors is a prerequisite
+- Confirmed to work in actual usage scenarios
+- Appropriate behavior for edge cases and abnormal conditions
+- Documentation updated (as needed)
+
+### Error Handling and Fail-Fast Policy
+
+**Important**: This repository adopts the fail-fast principle, prioritizing early error detection over recovery.
+
+#### Basic Policy
+- Immediately fail with exceptions for programming errors like type errors instead of handling with conditional branches
+- Avoid continuing operation in uncertain states
+- Emphasize early error detection and clear failures
+
+#### Implementation Guidelines
+- Immediately fail with exceptions for programming errors
+- Only use WARN/ERROR logs for unexpected situations due to user environment factors
+- Allow exceptional handling only for special reasons with explicit documentation
+
+## Language Settings
+
+Responses and document file generation should primarily be in English. Use English in the following cases:
+- Comments, variable names, and function names in code
+- Additions or modifications to existing English documentation
+- When the user asks questions in English
+
+## Specification Management
+
+When developing new features, place specifications under `docs/(short-english-phrase-describing-feature)/*.md` in English.
+These specifications serve as references during implementation, but more importantly, they help review "what was the purpose, how, and what was implemented" after implementation.
+
+## Intermediate File Management
+
+### Using the tmp/ Directory
+All intermediate files created by Claude Code (test files, planning documents, temporary work files, etc.) must be created under the `tmp/` directory.
+
+**Target Files**:
+- Test sample files
+- Implementation planning documents
+- Debug temporary files
+- Verification scripts
+- Other temporary work files
+
+**Exceptions**:
+- Official project files (source code, configuration files, official documentation, etc.)
+- When the user explicitly specifies another location
+
+### Cleanup
+The `tmp/` directory is regularly cleaned up:
+- When executing the `+brc` command
+- When executing the `+review` command
+- During other quality management tasks
+
 ## Project Overview
 
-**wish** is an LLM-assisted shell for penetration testing that translates natural language "wishes" into executable shell commands. It provides a TUI (Text-based User Interface) for reviewing suggested commands, executing them, and monitoring their execution status. The system integrates with various security tools and supports both local execution and remote C2 operations.
+wish is a Workflow-Aware AI Command Center that recognizes penetration testers' workflows and accelerates their thinking. By remembering and interpreting the results of commands executed by testers and suggesting the next logical move based on the situation, it dramatically reduces the cost of context switching.
 
 ## Key Development Commands
 
 ### Testing and Quality
+
 ```bash
-# Root directory commands
-make test             # Run unit tests across all projects
-make integrated-test  # Run integration tests (requires API keys and .env)
+# Basic commands (to be adjusted according to project structure)
+make test             # Run unit tests
 make lint            # Run ruff linting
 make format          # Auto-format with ruff
 
-# Individual module testing
-cd <module-name>
-uv sync --dev        # Install dependencies
-uv run pytest        # Run module tests
-uv run pytest --ignore=tests/integrated/  # Run only unit tests
-uv run pytest tests/integrated/  # Run only integration tests
+# Python environment management
+uv sync              # Install dependencies
+uv sync --dev        # Install with dev dependencies
+uv run pytest        # Run tests
+```
+
+### User Acceptance Testing (UAT)
+```bash
+# Complete system validation (shortcut command)
++uat                  # Run comprehensive UAT including code quality, tests, and functionality checks
 ```
 
 ### Running wish
 ```bash
-# Install and run
+# Installation
 pip install wish-sh
-export OPENAI_API_KEY=your-api-key-here
-wish  # or wish-sh on macOS
 
-# Development mode
-cd wish-sh
-uv run wish
-```
-
-### API Services
-```bash
-# Start unified API Gateway
-make run-api
-
-# Run E2E tests
-make e2e
+# Basic usage
+wish                  # Start the interactive CLI
 ```
 
 ## Architecture Overview
 
-### Module Structure
-- **wish-sh**: Main TUI application with WishManager orchestrator
-- **wish-models**: Shared Pydantic models (CommandResult, Wish, etc.)
-- **wish-command-generation**: LLM-based command generation with RAG capabilities
-- **wish-command-generation-api**: Lambda-based API for command generation using LangGraph
-- **wish-command-execution**: Command execution with multiple backends (Bash, Sliver C2)
-- **wish-log-analysis**: Client library for command log analysis
-- **wish-log-analysis-api**: Lambda-based API for LLM-powered log analysis
-- **wish-knowledge-loader**: CLI tool for loading knowledge bases from GitHub repositories
-- **wish-tools**: Framework for integrating security tools (msfconsole, etc.)
-- **wish-api**: Unified API Gateway for all wish services
-
-### Core Workflow
-1. **User Input**: Natural language wishes in TUI
-2. **Command Generation**: LLM converts wishes to executable commands using RAG
-3. **Command Review**: User approves/modifies suggested commands
-4. **Execution**: Commands run locally (Bash) or remotely (Sliver C2)
-5. **Monitoring**: Real-time status tracking and log analysis
-6. **Analysis**: LLM analyzes execution logs and determines success/failure
-
-### Key Design Patterns
-- **Modular Architecture**: Each component is independently packaged with uv
-- **State Machine**: LangGraph manages command generation workflows
-- **Factory Pattern**: Test factories in `test_factories/` for creating test data
-- **Strategy Pattern**: Multiple execution backends (Bash, Sliver)
-- **Client-Server**: API-based services for scalable command generation and analysis
+### Key Features
+- **Hybrid CLI**: Supports both AI dialogue and direct command execution
+- **State Management**: Internally maintains target information and discovered host/port information
+- **AI Suggestions**: LLM suggests the next command to execute based on current state and context
+- **Asynchronous Job Management**: Asynchronous execution of time-consuming commands and non-freezing UI
+- **Knowledge Base**: RAG (Retrieval-Augmented Generation) utilizing HackTricks
+- **C2 Integration**: Basic integration features with Sliver C2
 
 ## Development Environment
 
 ### Required Configuration
-Create `.env` file in project root or set environment variables:
+
+#### OpenAI API Key Setup
+
+The AI functionality requires an OpenAI API key. Configure it using one of these methods:
+
+**Method 1: Environment Variable (Highest Priority)**
+```bash
+export OPENAI_API_KEY="your-openai-api-key-here"
 ```
-OPENAI_API_KEY=<your-key>
-LANGCHAIN_API_KEY=<optional-for-langsmith>
-LANGCHAIN_PROJECT=<optional-project-name>
+
+**Method 2: Configuration File (Fallback)**
+```bash
+# Initialize configuration file
+wish-ai-validate --init-config
+
+# Set your API key
+wish-ai-validate --set-api-key "your-openai-api-key-here"
 ```
+
+Or manually edit `~/.wish/config.toml`:
+```toml
+[llm]
+api_key = "your-openai-api-key-here"
+model = "gpt-4o"
+max_tokens = 8000
+temperature = 0.1
+```
+
+**Configuration Priority:**
+1. **OPENAI_API_KEY environment variable** (Highest priority)
+2. **~/.wish/config.toml [llm.api_key]** (Fallback)
+3. **None** (fail-fast - immediate error)
+
+**Environment Variable Advantages:**
+- **Development/CI environments**: Reliable configuration in development environments and CI/CD pipelines
+- **Highest priority**: Reliably overrides other settings
+- **Security**: Temporary setting that is not persisted
+
+**Configuration File Advantages:**
+- **Usability**: Intuitive and easy to understand for general users
+- **Persistence**: Settings are retained after restart
+- **Security**: Automatic protection with appropriate file permissions (600)
+- **CLI support**: Easy configuration management with `wish-ai-validate` command
+
+**Security Considerations:**
+- ⚠️ **Never commit API keys to version control**
+- Configuration files are automatically protected with 600 permissions
+- Use different keys for development and production
+- Regularly rotate API keys for security
+
+#### Configuration Management Best Practices
+
+**Configuration File Management:**
+```bash
+# Initialize configuration file
+wish-ai-validate --init-config
+
+# Set API key
+wish-ai-validate --set-api-key "your-api-key-here"
+
+# Check and validate configuration
+wish-ai-validate
+
+# Environment check only
+wish-ai-validate --check-env
+```
+
+**Troubleshooting:**
+- Configuration file not found: `wish-ai-validate --init-config`
+- Invalid API key: `wish-ai-validate --set-api-key "new-key"`
+- Permission errors: `chmod 600 ~/.wish/config.toml`
+
+#### Additional Configuration
+
+Place VPN config at `HTB.ovpn` for HackTheBox connectivity.
+
+### Docker Environment
+- Base image: Kali Linux with security tools pre-installed
+- VPN support for isolated testing environments
+- Mounted volumes for logs and results
 
 ### Testing Considerations
 - Unit tests mock external dependencies (LLMs, APIs)
-- Integration tests require real API connections and keys
+- Tests use the configuration hierarchy (environment → config file → defaults)
 - Use `@pytest.mark.parametrize` for testing multiple scenarios
-- Test factories provide consistent test data across modules
 
-## Common Patterns
+## Session Management
+
+wish uses lightweight SessionMetadata for state management:
+- Simple session tracking with basic metadata
+- Command history (latest 100 commands)
+- Mode tracking (recon, enum, exploit, etc.)
+- Engagement state with targets, hosts, findings, and collected data
+- In-memory only - no complex persistence or task trees
+
+## Development Workflows
+
+### Monorepo Development
+1. **Setup**: `uv sync --all-packages --dev` to install all dependencies
+2. **Testing**: `make test` for all packages, or `cd <package> && uv run pytest` for individual
+3. **Quality**: `make lint` and `make format` for code quality
+4. **Building**: `docker compose build` for containerized testing
 
 ### Adding New Features
-1. Define models in `wish-models` if needed
-2. Implement core logic in appropriate module
+1. Define models in `wish-models`
+2. Implement logic in appropriate module
 3. Add unit tests with mocked dependencies
-4. Add integration tests for end-to-end validation
-5. Update TUI flows in `wish-sh` if needed
+4. Add unit tests for validation
+5. Update workflow in main package if needed
 
-### Adding New Tools
-1. Extend `wish-tools` framework with new tool class
-2. Follow the base tool interface pattern
-3. Add comprehensive tests including integration tests
-4. Document tool capabilities and usage
+### Logging Guidelines
+When implementing logging in any module:
+1. **Import**: Use Python standard logging
+2. **Initialize**: Create logger with `logger = logging.getLogger(__name__)`
+3. **Configuration**: Use centralized logging configuration
+4. **Log Levels**: Use standard levels (DEBUG, INFO, WARNING, ERROR, CRITICAL) as appropriate
+
+Example:
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Use logger normally
+logger.info("Processing task")
+logger.error(f"Failed to process: {error}")
+```
 
 ### Debugging Workflows
-1. Use LangSmith tracing for detailed LLM interactions
-2. Check logs in execution directories (timestamped)
-3. Use individual module testing for isolated debugging
-4. Review command generation API logs for generation issues
+1. Check logs for error messages
+2. Use appropriate debugging tools
+3. Enable verbose logging when needed
 
-## Data Models
+### Before Completing Your Task
 
-### Core Models (wish-models)
-- **Wish**: Top-level user request with commands and execution state
-- **CommandResult**: Execution results with logs, exit codes, and analysis
-- **CommandInput**: Generated commands ready for execution
-- **SystemInfo**: System context for command generation
+Always validate your implementation by running:
+1. `make test` (run all tests)
+2. `make lint` (check code quality)
+3. `make format` (format code)
+4. Any specific tests affected by your changes
 
-### States and Lifecycle
-- **Wish States**: PENDING → IN_PROGRESS → COMPLETED/FAILED
-- **Command States**: TODO → RUNNING → SUCCESS/FAILED/TIMEOUT/CANCELLED
-- **Execution Flow**: Generation → Review → Execution → Analysis → Completion
 
-## Tool Integration
 
-### Supported Tools
-- **bash**: Local shell command execution
-- **msfconsole**: Metasploit framework integration with automation support
-- **sliver**: C2 framework for remote operations
+## Slash Commands
 
-### Tool Framework
-Located in `wish-tools/`, provides:
-- Base tool interface for consistent integration
-- Tool registry for dynamic discovery
-- Testing framework for tool validation
-- Documentation generation for tool capabilities
+This project defines slash commands to streamline repetitive workflows.
+Markdown files defined in the `.claude/commands/` directory are available as slash commands.
+Typing `/` when inputting will display a list of available commands.
 
-## API Architecture
+- `/brc`: Branch review & cleanup
+- `/e2e`: Run end-to-end tests
+- `/fixci`: Fix CI
+- `/fixlint`: Fix linting
+- `/fixtest`: Fix tests
+- `/pr`: Create pull request
 
-### Command Generation API
-- **Endpoint**: Lambda-based API with LangGraph processing
-- **Features**: RAG-enhanced generation, error handling, command optimization
-- **Nodes**: feedback_analyzer, query_processor, command_generator, command_modifier
+## Task Completion Notification
 
-### Log Analysis API
-- **Endpoint**: Lambda-based API for LLM-powered log analysis
-- **Features**: Command state classification, log summarization
-- **Processing**: Multi-stage analysis with result combination
+When Claude Code completes any task in this repository, provide a clear summary of the work completed.
 
-## Common Development Tasks
+This should be done after:
+- Completing code modifications
+- Finishing test runs
+- Completing refactoring tasks
+- Finishing any requested operation
+- Any other task completion
 
-### Running Tests
+
+## Sliver C2 Integration
+
+### Development Configuration Files
+Use the following configuration files for development and testing:
+- For testing: `~/.sliver-client/configs/wish-test.cfg`
+- This is the standard name used in CI and automated tests
+
+### End-User Configuration
+Recommended for end users:
+1. Standard configuration file: `~/.sliver-client/configs/wish.cfg`
+2. Specify via environment variable: `export WISH_C2_SLIVER_CONFIG=/path/to/config.cfg`
+3. Configuration in config.toml
+
+### Generating Configuration Files
 ```bash
-# All tests
-make test
+# For development environment (when running Claude Code)
+sliver-server operator --name wish-test --lhost localhost --save ~/.sliver-client/configs/wish-test.cfg
 
-# Specific module
-cd wish-sh && uv run pytest
-
-# With coverage
-cd wish-sh && uv run pytest --cov=wish_sh
+# For end users
+sliver-server operator --name $USER --lhost localhost --save ~/.sliver-client/configs/wish.cfg
 ```
 
-### Code Quality
-```bash
-# Lint and format
-make lint
-make format
+### Test Execution Notes
+- `wish-test.cfg` is required when running `pytest`
+- If the file doesn't exist, Sliver integration tests will be skipped
 
-# Type checking (if configured)
-cd <module> && uv run mypy src/
-```
+## Python Environment and Command Execution Notes
 
-### Knowledge Base Management
-```bash
-# Load knowledge base
-wish-knowledge-loader load --repo owner/repo --include "*.md"
+### Notes for Python-Related Command Execution
+- Always prefix Python-related commands with `uv run`
+- **Claude hooks**: Direct python/pip execution is automatically blocked by `.claude/hooks/enforce-uv.sh`, and appropriate `uv run` commands are suggested
+- Examples:
+  - ❌ `python script.py` → ✅ `uv run python script.py`
+  - ❌ `pytest` → ✅ `uv run pytest`
+  - ❌ `pip install package` → ✅ `uv add package`
 
-# Search knowledge
-wish-knowledge-loader search "nmap port scan"
-```
-
-## Security Considerations
-
-- API keys should be set via environment variables, never committed
-- Command execution is sandboxed where possible
-- Remote execution through Sliver C2 requires proper authentication
-- Log files may contain sensitive information and should be handled carefully
-- Tool integrations follow security best practices for automated execution

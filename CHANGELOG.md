@@ -11,17 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Changed command execution working directory in wish-command-execution:
-  - Modified BashBackend to execute commands in `/app/{runId}/` directory
-  - Added automatic directory creation with `os.makedirs`
-  - Updated tests to verify correct working directory is used
-  - Improved isolation between command execution and application source code
-
 ### Fixed
 
-- Fixed OpenAI API errors in wish-log-analysis-api:
-  - Isolated command execution from application source code to prevent large outputs
-  - Prevented `.venv` and other source code files from being included in command output
+### Removed
+
+
+## [0.7.0] - 2025-01-24
+
+### Added
+
+### Changed
+
+- Complete rewrite with modern UI / architecture and improved AI integration
+
+### Fixed
 
 ### Removed
 

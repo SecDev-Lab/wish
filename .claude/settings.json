@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.local/bin/enforce-uv-claude-hook"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.local/bin/enforce-no-serialization-claude-hook"
+          },
+          {
+            "type": "command",
+            "command": "~/.local/bin/restrict-working-directory-claude-hook"
+          }
+        ]
+      }
+    ]
+  }
+}
