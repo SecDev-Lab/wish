@@ -59,8 +59,6 @@ model = "gpt-4o"
 
 ```bash
 wish
-# or ...
-wish-sh
 ```
 
 > **Note**: On first launch, wish will download and index the HackTricks knowledge base. This may take a few minutes but only happens once.
